@@ -25,6 +25,32 @@ To LexicalCast(const From& input, const To& default_output) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+enum ErrorCode {
+  kNoError = 0,  // OK
+
+  kHostResolveError,
+  kEndpointConnectError,
+
+  kSocketReadError,
+  kSocketWriteError,
+
+  // Invalid start line in the HTTP response.
+  kHttpStartLineError,
+
+  // Status is not 200 in the HTTP response.
+  kHttpStatusError,
+
+  // Invalid or missing Content-Length in the HTTP response.
+  kHttpContentLengthError,
+
+  kXmlError,
+};
+
+// Return a descriptive message for the given error code.
+const char* GetErrorMessage(ErrorCode error_code);
+
+////////////////////////////////////////////////////////////////////////////////
+
 // XML namespace name/url pair.
 // E.g., { "soapenv", "http://schemas.xmlsoap.org/soap/envelope/" }
 class Namespace {

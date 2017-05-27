@@ -1,18 +1,17 @@
-#ifndef CSOAP_RESPONSE_PARSER_H_
-#define CSOAP_RESPONSE_PARSER_H_
+#ifndef CSOAP_RESPONSE_H_
+#define CSOAP_RESPONSE_H_
 
 #include <string>
 
 namespace csoap {
 
-class SoapResponseParser {
+// SOAP response.
+// Used to parse the SOAP response XML which is returned as the HTTP response
+// body.
+class SoapResponse {
 public:
-  SoapResponseParser();
-
-  // <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
-  //   <soapenv:Body>
-  //     <ns:getPatientResponse xmlns:ns="http://service.csdm.carestream.com">
-  //       <ns:return> ...
+  SoapResponse();
+ 
   bool Parse(const std::string& content,
              const std::string& message_name,
              const std::string& element_name,
@@ -29,4 +28,4 @@ private:
 
 }  // namespace csoap
 
-#endif  // CSOAP_RESPONSE_PARSER_H_
+#endif  // CSOAP_RESPONSE_H_

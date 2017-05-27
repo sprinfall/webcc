@@ -1,16 +1,16 @@
-#include "csoap/soap_response_parser.h"
+#include "csoap/soap_response.h"
 
 #include "csoap/xml.h"
 
 namespace csoap {
 
-SoapResponseParser::SoapResponseParser() {
+SoapResponse::SoapResponse() {
 }
 
-bool SoapResponseParser::Parse(const std::string& content,
-                               const std::string& message_name,
-                               const std::string& element_name,
-                               std::string* element_value) {
+bool SoapResponse::Parse(const std::string& content,
+                         const std::string& message_name,
+                         const std::string& element_name,
+                         std::string* element_value) {
   pugi::xml_document xdoc;
   pugi::xml_parse_result result = xdoc.load_string(content.c_str());
 

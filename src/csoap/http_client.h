@@ -3,15 +3,7 @@
 
 #include <string>
 #include "boost/asio.hpp"
-
-// A little concept about URL (From HTTP The Definitive Guide):
-// Say you want to fetch the URL http://www.joes-hardware.com/seasonal/index-fall.html:
-//   - The first part of the URL(http) is the URL scheme. The scheme tells a web client
-//     *how* to access the resource. In this case, the URL says to use the HTTP protocol.
-//   - The second part of the URL (www.joes-hardware.com) is the server location.
-//     This tells the web client *where* the resource is hosted.
-//   - The third part of the URL(/seasonal/index-fall.html) is the resource path. The
-//     path tells *what* particular local resource on the server is being requested.
+#include "csoap/common.h"
 
 namespace csoap {
 
@@ -22,9 +14,10 @@ enum HttpVersion {
   kHttpV11,
 };
 
-//enum HttpStatus {
-//  kHttpOK = 200,
-//};
+enum HttpStatus {
+  kHttpOK = 200,
+  kHttpNotFound = 404,
+};
 
 enum HeaderField {
   kHeaderContentType,
@@ -37,25 +30,27 @@ enum HeaderField {
 // HTTP request.
 // NOTE:
 // - Only POST method is supported.
-//   See http://stackoverflow.com/questions/26339317/do-soap-web-services-support-only-post-http-method
+//   See https://stackoverflow.com/a/26339467
 class HttpRequest {
 public:
   HttpRequest(HttpVersion version);
 
-  void set_uri(const std::string& uri) {
-    url_ = uri;
+  // Set the URL for the HTTP request start line.
+  // Either a complete URL or the path component it is acceptable.
+  // E.g., both of the following URLs are OK:
+  //   - http://ws1.parasoft.com/glue/calculator
+  //   - /glue/calculator
+  void set_url(const std::string& url) {
+    url_ = url;
   }
 
+  // Default: "text/xml; charset=utf-8"
   void set_content_type(const std::string& content_type) {
     content_type_ = content_type;
   }
 
   void set_content_length(size_t content_length) {
     content_length_ = content_length;
-  }
-
-  void set_keep_alive(bool keep_alive) {
-    keep_alive_ = keep_alive;
   }
 
   const std::string& host() const {
@@ -67,7 +62,7 @@ public:
   }
 
   // \param host Descriptive host name or numeric IP address.
-  // \param port Numeric port number.
+  // \param port Numeric port number, "80" will be used if it's empty.
   void set_host(const std::string& host, const std::string& port) {
     host_ = host;
     port_ = port;
@@ -84,7 +79,8 @@ private:
   HttpVersion version_;
 
   // Request URL.
-  // A complete URL naming the requested resource, or the path component of the URL.
+  // A complete URL naming the requested resource, or the path component of
+  // the URL.
   std::string url_;
 
   std::string content_type_;
@@ -92,8 +88,6 @@ private:
 
   std::string host_;
   std::string port_;
-
-  bool keep_alive_;
 
   std::string soap_action_;
 };
@@ -104,7 +98,7 @@ class HttpResponse {
 public:
   HttpResponse();
 
-  void Parse(const char* data, size_t len);
+  ErrorCode Parse(const char* data, size_t len);
 
   bool finished() const {
     return finished_;
@@ -124,17 +118,17 @@ public:
 
 private:
   // Parse start line, e.g., "HTTP/1.1 200 OK".
-  bool ParseStartLine(const std::string& line);
+  ErrorCode ParseStartLine(const std::string& line);
 
-  // Parse a header line, e.g., "Content-Length: 19".
-  bool ParseHeaderField(const std::string& line);
+  void ParseContentLength(const std::string& line);
 
 private:
   int status_;  // HTTP status, e.g., 200.
   std::string reason_;
-  std::string content_type_;
   size_t content_length_;
   std::string content_;
+
+  ErrorCode error_;
 
   // Data waiting to be parsed.
   std::string pending_data_;
@@ -150,20 +144,14 @@ private:
 class HttpClient {
 public:
   HttpClient();
-  ~HttpClient();
 
-  bool SendRequest(const HttpRequest& request,
-                   const std::string& body);
-
-  const HttpResponse& response() const {
-    return response_;
-  }
+  ErrorCode SendRequest(const HttpRequest& request,
+                        const std::string& body,
+                        HttpResponse* response);
 
 private:
   boost::asio::io_service io_service_;
   std::array<char, 1024> bytes_;
-
-  HttpResponse response_;
 };
 
 }  // namespace csoap
