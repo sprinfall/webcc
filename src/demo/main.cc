@@ -4,9 +4,9 @@
 int main() {
   demo::Calculator calculator;
 
-  float x = 1.0;
-  float y = 2.0;
-  float result = 0.0;
+  double x = 1.0;
+  double y = 2.0;
+  double result = 0.0;
 
   if (calculator.Add(x, y, &result)) {
     printf("add: %.1f\n", result);

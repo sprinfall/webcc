@@ -61,7 +61,7 @@ void HttpRequest::ToString(std::string& req_string) const {
 
   req_string += kFieldContentLengthName;
   req_string += ": ";
-  req_string += LexicalCast<std::string>(content_length_, "0");
+  req_string += boost::lexical_cast<std::string>(content_length_);
   req_string += kCRLF;
 
   req_string += "SOAPAction: ";
@@ -220,7 +220,8 @@ void HttpResponse::ParseContentLength(const std::string& line) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-HttpClient::HttpClient() {
+HttpClient::HttpClient()
+    : timeout_seconds_(15) {
 }
 
 ErrorCode HttpClient::SendRequest(const HttpRequest& request,
@@ -254,6 +255,8 @@ ErrorCode HttpClient::SendRequest(const HttpRequest& request,
     return kEndpointConnectError;
   }
 
+  SetTimeout(socket);
+
   std::string request_str;
   request.ToString(request_str);
 
@@ -272,7 +275,11 @@ ErrorCode HttpClient::SendRequest(const HttpRequest& request,
     size_t len = socket.read_some(boost::asio::buffer(bytes_), ec);
 
     if (len == 0 || ec) {
-      return kSocketReadError;
+      if (ec.value() == WSAETIMEDOUT) {
+        return kSocketTimeoutError;
+      } else {
+        return kSocketReadError;
+      }
     }
 
     // Parse the response piece just read.
@@ -286,6 +293,29 @@ ErrorCode HttpClient::SendRequest(const HttpRequest& request,
   }
 
   return kNoError;
+}
+
+// See https://stackoverflow.com/a/9079092
+void HttpClient::SetTimeout(boost::asio::ip::tcp::socket& socket) {
+#if defined _WINDOWS
+
+  int ms = timeout_seconds_ * 1000;
+
+  const char* optval = reinterpret_cast<const char*>(&ms);
+  size_t optlen = sizeof(ms);
+
+  setsockopt(socket.native(), SOL_SOCKET, SO_RCVTIMEO, optval, optlen);
+  setsockopt(socket.native(), SOL_SOCKET, SO_SNDTIMEO, optval, optlen);
+
+#else  // POSIX
+
+  struct timeval tv;
+  tv.tv_sec = timeout_seconds_;
+  tv.tv_usec = 0;
+  setsockopt(socket.native(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+  setsockopt(socket.native(), SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+
+#endif
 }
 
 }  // namespace csoap

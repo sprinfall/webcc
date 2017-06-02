@@ -12,6 +12,9 @@ const char* GetErrorMessage(ErrorCode error_code) {
     case kEndpointConnectError:
       return "Cannot connect to remote endpoint.";
 
+    case kSocketTimeoutError:
+      return "Operation timeout.";
+
     case kSocketReadError:
       return "Socket read error.";
 
@@ -38,23 +41,24 @@ const char* GetErrorMessage(ErrorCode error_code) {
 ////////////////////////////////////////////////////////////////////////////////
 
 Parameter::Parameter(const std::string& key, const std::string& value)
-    : key_(key) {
-  value_ = LexicalCast<std::string>(value, "");
+    : key_(key), value_(value) {
 }
 
 Parameter::Parameter(const std::string& key, int value)
     : key_(key) {
-  value_ = LexicalCast<std::string>(value, "");
+  value_ = boost::lexical_cast<std::string>(value);
 }
 
-Parameter::Parameter(const std::string& key, float value)
+Parameter::Parameter(const std::string& key, double value)
     : key_(key) {
-  value_ = LexicalCast<std::string>(value, "");
+  char buf[32];
+  sprintf(buf, "%f", value);
+  value_ = buf;
 }
 
 Parameter::Parameter(const std::string& key, bool value)
     : key_(key) {
-  value_ = LexicalCast<std::string>(value, "");
+  value_ = value ? "true" : "false";
 }
 
 }  // namespace csoap

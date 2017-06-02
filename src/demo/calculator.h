@@ -13,13 +13,13 @@ class Calculator {
 public:
   Calculator();
 
-  bool Add(float x, float y, float* result);
+  bool Add(double x, double y, double* result);
 
-  bool Subtract(float x, float y, float* result);
+  bool Subtract(double x, double y, double* result);
 
-  bool Multiply(float x, float y, float* result);
+  bool Multiply(double x, double y, double* result);
 
-  bool Divide(float x, float y, float* result);
+  bool Divide(double x, double y, double* result);
 
 protected:
   void Init();
@@ -28,9 +28,9 @@ protected:
   bool Calc(const std::string& operation,
             const std::string& x_name,
             const std::string& y_name,
-            float x,
-            float y,
-            float* result);
+            double x,
+            double y,
+            double* result);
 
   // A generic wrapper to make a call.
   bool Call(const std::string& operation,

@@ -10,26 +10,13 @@ namespace csoap {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// Wrapper for boost::lexcical_cast.
-// Usage:
-//   LexicalCast<int>("123", 0);
-//   LexicalCast<std::string>(123, "");
-template <typename To, typename From>
-To LexicalCast(const From& input, const To& default_output) {
-  try {
-    return boost::lexical_cast<To>(input);
-  } catch (boost::bad_lexical_cast&) {
-    return default_output;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
 enum ErrorCode {
   kNoError = 0,  // OK
 
   kHostResolveError,
   kEndpointConnectError,
+
+  kSocketTimeoutError,
 
   kSocketReadError,
   kSocketWriteError,
@@ -66,7 +53,7 @@ class Parameter {
 public:
   Parameter(const std::string& key, const std::string& value);
   Parameter(const std::string& key, int value);
-  Parameter(const std::string& key, float value);
+  Parameter(const std::string& key, double value);
   Parameter(const std::string& key, bool value);
 
   const char* c_key() const {

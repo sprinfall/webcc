@@ -145,13 +145,22 @@ class HttpClient {
 public:
   HttpClient();
 
+  // Set socket send & recv timeout.
+  void set_timeout_seconds(int seconds) {
+    timeout_seconds_ = seconds;
+  }
+
   ErrorCode SendRequest(const HttpRequest& request,
                         const std::string& body,
                         HttpResponse* response);
 
 private:
+  void SetTimeout(boost::asio::ip::tcp::socket& socket);
+
+private:
   boost::asio::io_service io_service_;
   std::array<char, 1024> bytes_;
+  int timeout_seconds_;
 };
 
 }  // namespace csoap

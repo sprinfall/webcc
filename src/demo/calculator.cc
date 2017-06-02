@@ -10,19 +10,19 @@ Calculator::Calculator() {
   Init();
 }
 
-bool Calculator::Add(float x, float y, float* result) {
+bool Calculator::Add(double x, double y, double* result) {
   return Calc("add", "x", "y", x, y, result);
 }
 
-bool Calculator::Subtract(float x, float y, float* result) {
+bool Calculator::Subtract(double x, double y, double* result) {
   return Calc("subtract", "x", "y", x, y, result);
 }
 
-bool Calculator::Multiply(float x, float y, float* result) {
+bool Calculator::Multiply(double x, double y, double* result) {
   return Calc("multiply", "x", "y", x, y, result);
 }
 
-bool Calculator::Divide(float x, float y, float* result) {
+bool Calculator::Divide(double x, double y, double* result) {
   return Calc("divide", "numerator", "denominator", x, y, result);
 }
 
@@ -38,9 +38,9 @@ void Calculator::Init() {
 bool Calculator::Calc(const std::string& operation,
                       const std::string& x_name,
                       const std::string& y_name,
-                      float x,
-                      float y,
-                      float* result) {
+                      double x,
+                      double y,
+                      double* result) {
   csoap::Parameter parameters[] = {
     { x_name, x },
     { y_name, y }
@@ -52,7 +52,7 @@ bool Calculator::Calc(const std::string& operation,
   }
 
   try {
-    *result = boost::lexical_cast<float>(result_str);
+    *result = boost::lexical_cast<double>(result_str);
   } catch (boost::bad_lexical_cast&) {
     return false;
   }
