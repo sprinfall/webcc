@@ -4,7 +4,6 @@
 // Common definitions.
 
 #include <string>
-#include "boost/lexical_cast.hpp"
 
 namespace csoap {
 
@@ -56,16 +55,8 @@ public:
   Parameter(const std::string& key, double value);
   Parameter(const std::string& key, bool value);
 
-  const char* c_key() const {
-    return key_.c_str();
-  }
-
   const std::string& key() const {
     return key_;
-  }
-
-  const char* c_value() const {
-    return value_.c_str();
   }
 
   const std::string& value() const {

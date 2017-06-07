@@ -6,5 +6,11 @@ file(GLOB SRCS *.cc *.h)
 
 add_executable(demo ${SRCS})
 
-target_link_libraries(demo csoap pugixml)
+if(CSOAP_USE_TINYXML)
+    set(XML_LIB tinyxml)
+else()
+    set(XML_LIB pugixml)
+endif()
+
+target_link_libraries(demo csoap ${XML_LIB})
 

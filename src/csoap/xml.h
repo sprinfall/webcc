@@ -2,12 +2,52 @@
 #define CSOAP_XML_H_
 
 #include <string>
+
+#ifdef CSOAP_USE_TINYXML
+#include "tinyxml/tinyxml.h"
+#else
 #include "pugixml/pugixml.hpp"
+#endif
 
 // XML utilities.
 
 namespace csoap {
 namespace xml {
+
+#ifdef CSOAP_USE_TINYXML
+
+// Get the namespace prefix from node name.
+// Example:
+//   Node name: soapenv:Envelope
+//   NS prefix: soapenv
+std::string GetNsPrefix(const TiXmlElement* xnode);
+
+// Append a child with the given name which is prefixed by a namespace.
+// E.g., AppendChild(xnode, "soapenv", "Envelope") will append a child with
+// name "soapenv:Envelope".
+TiXmlElement* AppendChild(TiXmlNode* xnode,
+                          const std::string& ns,
+                          const std::string& name);
+
+TiXmlElement* GetChild(TiXmlElement* xnode,
+                       const std::string& ns,
+                       const std::string& name);
+
+TiXmlElement* GetChildNoNS(TiXmlElement* xnode, const std::string& name);
+
+// Add an attribute with the given name which is prefixed by a namespace.
+void AddAttr(TiXmlElement* xnode,
+             const std::string& ns,
+             const std::string& name,
+             const std::string& value);
+
+void SetText(TiXmlElement* xnode, const std::string& text);
+
+bool PrettyPrintXml(std::ostream& os,
+                    const std::string& xml_string,
+                    const char* indent = "  ");
+
+#else  // PugiXml
 
 // Get the namespace prefix from node name.
 // Example:
@@ -29,8 +69,8 @@ pugi::xml_node GetChild(pugi::xml_node& xnode,
 pugi::xml_node GetChildNoNS(pugi::xml_node& xnode,
                             const std::string& name);
 
-// Append a attribute with the given name which is prefixed by a namespace.
-void AppendAttr(pugi::xml_node& xnode,
+// Add an attribute with the given name which is prefixed by a namespace.
+void AddAttr(pugi::xml_node& xnode,
                 const std::string& ns,
                 const std::string& name,
                 const std::string& value);
@@ -56,6 +96,12 @@ public:
 private:
   std::string* result_;
 };
+
+bool PrettyPrintXml(std::ostream& os,
+                    const std::string& xml_string,
+                    const char* indent = "  ");
+
+#endif  // CSOAP_USE_TINYXML
 
 }  // namespace xml
 }  // namespace csoap

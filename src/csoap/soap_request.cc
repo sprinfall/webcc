@@ -5,10 +5,21 @@ namespace csoap {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifdef CSOAP_USE_TINYXML
+
 // Append "xmlns" attribute.
-static void AppendAttrNS(pugi::xml_node& xnode, const Namespace& ns) {
-  xml::AppendAttr(xnode, "xmlns", ns.name, ns.url);
+static void AddNSAttr(TiXmlElement* xnode, const Namespace& ns) {
+  xml::AddAttr(xnode, "xmlns", ns.name, ns.url);
 }
+
+#else
+
+// Append "xmlns" attribute.
+static void AddNSAttr(pugi::xml_node& xnode, const Namespace& ns) {
+  xml::AddAttr(xnode, "xmlns", ns.name, ns.url);
+}
+
+#endif  // CSOAP_USE_TINYXML
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -28,11 +39,35 @@ void SoapRequest::AddParameter(const Parameter& parameter) {
 }
 
 void SoapRequest::ToXmlString(std::string* xml_string) {
+#ifdef CSOAP_USE_TINYXML
+
+  TiXmlDocument xdoc;
+  TiXmlElement* xroot = xml::AppendChild(&xdoc, soapenv_ns_.name, "Envelope");
+
+  AddNSAttr(xroot, soapenv_ns_);
+  AddNSAttr(xroot, service_ns_);
+
+  xml::AppendChild(xroot, soapenv_ns_.name, "Header");
+
+  TiXmlElement* xbody = xml::AppendChild(xroot, soapenv_ns_.name, "Body");
+  TiXmlElement* xop = xml::AppendChild(xbody, service_ns_.name, operation_);
+
+  for (Parameter& p : parameters_) {
+    TiXmlElement* xparam = xml::AppendChild(xop, service_ns_.name, p.key());
+    xml::SetText(xparam, p.value());
+  }
+
+  TiXmlPrinter printer;
+  xdoc.Accept(&printer);
+  *xml_string = printer.CStr();
+
+#else
+
   pugi::xml_document xdoc;
   pugi::xml_node xroot = xml::AppendChild(xdoc, soapenv_ns_.name, "Envelope");
 
-  AppendAttrNS(xroot, soapenv_ns_);
-  AppendAttrNS(xroot, service_ns_);
+  AddNSAttr(xroot, soapenv_ns_);
+  AddNSAttr(xroot, service_ns_);
 
   xml::AppendChild(xroot, soapenv_ns_.name, "Header");
 
@@ -40,12 +75,14 @@ void SoapRequest::ToXmlString(std::string* xml_string) {
   pugi::xml_node xop = xml::AppendChild(xbody, service_ns_.name, operation_);
 
   for (Parameter& p : parameters_) {
-    pugi::xml_node xparam = xml::AppendChild(xop, service_ns_.name, p.c_key());
-    xparam.text().set(p.c_value());
+    pugi::xml_node xparam = xml::AppendChild(xop, service_ns_.name, p.key());
+    xparam.text().set(p.value().c_str());
   }
 
   xml::XmlStrRefWriter writer(xml_string);
   xdoc.print(writer, "\t", pugi::format_default, pugi::encoding_utf8);
+
+#endif  // #ifdef CSOAP_USE_TINYXML
 }
 
 }  // namespace csoap

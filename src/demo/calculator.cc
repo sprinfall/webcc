@@ -1,7 +1,7 @@
 #include "demo/calculator.h"
 
 #include <iostream>
-#include "pugixml/pugixml.hpp"
+#include "boost/lexical_cast.hpp"
 #include "csoap/csoap.h"
 
 namespace demo {
