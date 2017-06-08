@@ -2,7 +2,7 @@
 #define DEMO_CALCULATOR_H_
 
 // Wrapper of calculator.wsdl.
-// See http://service-repository.com/service/overview/877027757
+// See http://ws1.parasoft.com/glue/calculator.wsdl
 
 #include <string>
 #include "csoap/common.h"
