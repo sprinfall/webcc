@@ -1,6 +1,8 @@
 # csoap
 A lightweight C++ SOAP client library.
 
+[中文版介绍](https://segmentfault.com/a/1190000009874151)
+
 ## Usage
 
 Firstly, please install SoapUI if you don't have it. We need SoapUI to generate sample requests for each web service operation. The open source version is good enough.
@@ -21,7 +23,7 @@ Take the calculator web service provided by ParaSoft as an example. Download the
 In order to call the "add" operation, we have to send a HTTP request with the above SOAP envelope as the content. Let's see how to do this with csoap.
 
 ```cpp
-bool All() {
+bool Add() {
   // Create a SOAP request.
   csoap::SoapRequest soap_request("add");
 
@@ -85,5 +87,5 @@ It's not that complicated. But you can't code like this for each operation. You 
 ## Dependencies
 
 - The TCP socket client is based on Boost.Asio.
-- The XML parsing is based on TinyXml or PugiXml, a macro CSOAP_USE_TINYXML controls which one to use.
+- The XML parsing is based on TinyXml or PugiXml, a macro `CSOAP_USE_TINYXML` controls which one to use.
 - Build system is CMake, but it should be easy to integrate into your project.
