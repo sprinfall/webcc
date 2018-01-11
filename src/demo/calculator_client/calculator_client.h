@@ -7,7 +7,7 @@
 #include <string>
 #include "csoap/soap_client.h"
 
-class CalculatorClient : csoap::SoapClient {
+class CalculatorClient : public csoap::SoapClient {
 public:
   CalculatorClient();
 
