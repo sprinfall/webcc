@@ -1,45 +1,28 @@
 #ifndef CSOAP_SOAP_REQUEST_H_
 #define CSOAP_SOAP_REQUEST_H_
 
-#include <string>
 #include <vector>
 
-#include "csoap/common.h"
+#include "csoap/soap_message.h"
 
 namespace csoap {
 
 // SOAP request.
 // Used to compose the SOAP request envelope XML which will be sent as the HTTP
 // request body.
-class SoapRequest {
+class SoapRequest : public SoapMessage {
 public:
-  explicit SoapRequest(const std::string& operation);
+  CLIENT_API void AddParameter(const std::string& key, const std::string& value);
+  CLIENT_API void AddParameter(const Parameter& parameter);
 
-  // Set the name of SOAP envelope namespace if you don't like the default
-  // name "soapenv".
-  void set_soapenv_ns_name(const std::string& name) {
-    soapenv_ns_.name = name;
-  }
+  // Get parameter value by key.
+  SERVER_API std::string GetParameter(const std::string& key) const;
 
-  void set_service_ns(const Namespace& ns) {
-    service_ns_ = ns;
-  }
-
-  void AddParameter(const std::string& key, const std::string& value);
-  void AddParameter(const Parameter& parameter);
-
-  void ToXmlString(std::string* xml_string);
+protected:
+  void ToXmlBody(pugi::xml_node xbody) override;
+  bool FromXmlBody(pugi::xml_node xbody) override;
 
 private:
-  // SOAP envelope namespace.
-  // The URL is always "http://schemas.xmlsoap.org/soap/envelope/".
-  // The name is "soapenv" by default.
-  Namespace soapenv_ns_;
-
-  // Namespace for your web service.
-  Namespace service_ns_;
-
-  std::string operation_;
   std::vector<Parameter> parameters_;
 };
 

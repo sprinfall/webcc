@@ -3,32 +3,6 @@
 
 namespace csoap {
 
-////////////////////////////////////////////////////////////////////////////////
-
-#ifdef CSOAP_USE_TINYXML
-
-// Append "xmlns" attribute.
-static void AddNSAttr(TiXmlElement* xnode, const Namespace& ns) {
-  xml::AddAttr(xnode, "xmlns", ns.name, ns.url);
-}
-
-#else
-
-// Append "xmlns" attribute.
-static void AddNSAttr(pugi::xml_node& xnode, const Namespace& ns) {
-  xml::AddAttr(xnode, "xmlns", ns.name, ns.url);
-}
-
-#endif  // CSOAP_USE_TINYXML
-
-////////////////////////////////////////////////////////////////////////////////
-
-SoapRequest::SoapRequest(const std::string& operation)
-    : operation_(operation) {
-  soapenv_ns_.name = "soapenv";
-  soapenv_ns_.url = "http://schemas.xmlsoap.org/soap/envelope/";
-}
-
 void SoapRequest::AddParameter(const std::string& key,
                                const std::string& value) {
   parameters_.push_back(Parameter(key, value));
@@ -38,51 +12,84 @@ void SoapRequest::AddParameter(const Parameter& parameter) {
   parameters_.push_back(parameter);
 }
 
-void SoapRequest::ToXmlString(std::string* xml_string) {
-#ifdef CSOAP_USE_TINYXML
-
-  TiXmlDocument xdoc;
-  TiXmlElement* xroot = xml::AppendChild(&xdoc, soapenv_ns_.name, "Envelope");
-
-  AddNSAttr(xroot, soapenv_ns_);
-  AddNSAttr(xroot, service_ns_);
-
-  xml::AppendChild(xroot, soapenv_ns_.name, "Header");
-
-  TiXmlElement* xbody = xml::AppendChild(xroot, soapenv_ns_.name, "Body");
-  TiXmlElement* xop = xml::AppendChild(xbody, service_ns_.name, operation_);
-
-  for (Parameter& p : parameters_) {
-    TiXmlElement* xparam = xml::AppendChild(xop, service_ns_.name, p.key());
-    xml::SetText(xparam, p.value());
+std::string SoapRequest::GetParameter(const std::string& key) const {
+  for (const Parameter& p : parameters_) {
+    if (p.key() == key) {
+      return p.value();
+    }
   }
+  return "";
+}
 
-  TiXmlPrinter printer;
-  xdoc.Accept(&printer);
-  *xml_string = printer.CStr();
+//bool SoapRequest::FromXml(const std::string& xml_string) {
+//  pugi::xml_document xdoc;
+//  pugi::xml_parse_result result = xdoc.load_string(xml_string.c_str());
+//
+//  if (!result) {
+//    return false;
+//  }
+//
+//  pugi::xml_node xroot = xdoc.document_element();
+//
+//  soapenv_ns_.name = xml::GetPrefix(xroot);
+//  soapenv_ns_.url = xml::GetNSAttr(xroot, soapenv_ns_.name);
+//
+//  pugi::xml_node xbody = xml::GetChild(xroot, soapenv_ns_.name, "Body");
+//  if (!xbody) {
+//    return false;
+//  }
+//
+//  // Operation
+//
+//  pugi::xml_node xoperation = xbody.first_child();
+//  xml::SplitName(xoperation, &service_ns_.name, &operation_);
+//  service_ns_.url = xml::GetNSAttr(xoperation, service_ns_.name);
+//
+//  // Parameters
+//
+//  pugi::xml_node xparameter = xoperation.first_child();
+//  while (xparameter) {
+//    parameters_.push_back({
+//      xml::GetNameNoPrefix(xparameter),
+//      std::string(xparameter.text().as_string())
+//    });
+//
+//    xparameter = xparameter.next_sibling();
+//  }
+//
+//  return true;
+//}
 
-#else
-
-  pugi::xml_document xdoc;
-  pugi::xml_node xroot = xml::AppendChild(xdoc, soapenv_ns_.name, "Envelope");
-
-  AddNSAttr(xroot, soapenv_ns_);
-  AddNSAttr(xroot, service_ns_);
-
-  xml::AppendChild(xroot, soapenv_ns_.name, "Header");
-
-  pugi::xml_node xbody = xml::AppendChild(xroot, soapenv_ns_.name, "Body");
-  pugi::xml_node xop = xml::AppendChild(xbody, service_ns_.name, operation_);
+void SoapRequest::ToXmlBody(pugi::xml_node xbody) {
+  pugi::xml_node xop = xml::AddChild(xbody, service_ns_.name, operation_);
+  xml::AddNSAttr(xop, service_ns_.name, service_ns_.url);
 
   for (Parameter& p : parameters_) {
-    pugi::xml_node xparam = xml::AppendChild(xop, service_ns_.name, p.key());
+    pugi::xml_node xparam = xml::AddChild(xop, service_ns_.name, p.key());
     xparam.text().set(p.value().c_str());
   }
+}
 
-  xml::XmlStrRefWriter writer(xml_string);
-  xdoc.print(writer, "\t", pugi::format_default, pugi::encoding_utf8);
+bool SoapRequest::FromXmlBody(pugi::xml_node xbody) {
+  pugi::xml_node xoperation = xbody.first_child();
+  if (!xoperation) {
+    return false;
+  }
 
-#endif  // #ifdef CSOAP_USE_TINYXML
+  xml::SplitName(xoperation, &service_ns_.name, &operation_);
+  service_ns_.url = xml::GetNSAttr(xoperation, service_ns_.name);
+
+  pugi::xml_node xparameter = xoperation.first_child();
+  while (xparameter) {
+    parameters_.push_back({
+      xml::GetNameNoPrefix(xparameter),
+      std::string(xparameter.text().as_string())
+    });
+
+    xparameter = xparameter.next_sibling();
+  }
+
+  return true;
 }
 
 }  // namespace csoap

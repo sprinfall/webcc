@@ -1,13 +1,11 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 project(csoap)
 
-option(CSOAP_USE_TINYXML "Use TinyXml instead of PugiXml?" ON)
+# TODO: Replace with log level.
+option(CSOAP_ENABLE_OUTPUT "Enable output for request & response?" OFF)
 
-if(CSOAP_USE_TINYXML)
-    add_definitions(-DCSOAP_USE_TINYXML)
-
-    # TinyXml uses STL.
-    add_definitions(-DTIXML_USE_STL)
+if(CSOAP_ENABLE_OUTPUT)
+    add_definitions(-DCSOAP_ENABLE_OUTPUT)
 endif()
 
 add_definitions(-DUNICODE -D_UNICODE)

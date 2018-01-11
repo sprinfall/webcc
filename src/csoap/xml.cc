@@ -3,104 +3,46 @@
 namespace csoap {
 namespace xml {
 
-#ifdef CSOAP_USE_TINYXML
+void SplitName(const pugi::xml_node& xnode,
+               std::string* prefix,
+               std::string* name) {
+  std::string full_name = xnode.name();
 
-std::string GetNsPrefix(const TiXmlElement* xnode) {
-  std::string node_name = xnode->Value();
-#else
-std::string GetNsPrefix(const pugi::xml_node& xnode) {
-  std::string node_name = xnode.name();
-#endif
-
-  size_t pos = node_name.find(':');
+  size_t pos = full_name.find(':');
 
   if (pos != std::string::npos) {
-    return node_name.substr(0, pos);
-  }
-
-  return "";
-}
-
-#ifdef CSOAP_USE_TINYXML
-
-TiXmlElement* AppendChild(TiXmlNode* xnode,
-                          const std::string& ns,
-                          const std::string& name) {
-  std::string ns_name = ns + ":" + name;
-  TiXmlElement* xchild = new TiXmlElement(ns_name.c_str());
-  xnode->LinkEndChild(xchild);
-  return xchild;
-}
-
-TiXmlElement* GetChild(TiXmlElement* xnode,
-                       const std::string& ns,
-                       const std::string& name) {
-  return xnode->FirstChildElement((ns + ":" + name).c_str());
-}
-
-TiXmlElement* GetChildNoNS(TiXmlElement* xnode, const std::string& name) {
-  TiXmlElement* xchild = xnode->FirstChildElement();
-  while (xchild != NULL) {
-    std::string child_name = xchild->Value();
-
-    // Remove NS prefix.
-    size_t pos = child_name.find(':');
-    if (pos != std::string::npos) {
-      child_name = child_name.substr(pos + 1);
+    if (prefix != NULL) {
+      *prefix = full_name.substr(0, pos);
     }
-
-    if (child_name == name) {
-      return xchild;
+    if (name != NULL) {
+      *name = full_name.substr(pos + 1);
     }
-
-    xchild = xchild->NextSiblingElement();
-  }
-
-  return NULL;
-}
-
-void AddAttr(TiXmlElement* xnode,
-             const std::string& ns,
-             const std::string& name,
-             const std::string& value) {
-  std::string ns_name = ns + ":" + name;
-  xnode->SetAttribute(ns_name.c_str(), value.c_str());
-}
-
-void SetText(TiXmlElement* xnode, const std::string& text) {
-  if (xnode->FirstChild() == NULL) {
-    xnode->LinkEndChild(new TiXmlText(text.c_str()));
   } else {
-    xnode->ReplaceChild(xnode->FirstChild(), TiXmlText(text.c_str()));
+    if (prefix != NULL) {
+      *prefix = "";
+    }
+    if (name != NULL) {
+      *name = full_name;
+    }
   }
 }
 
-bool PrettyPrintXml(std::ostream& os,
-                    const std::string& xml_string,
-                    const char* indent) {
-  TiXmlDocument xdoc;
-  xdoc.Parse(xml_string.c_str());
-
-  if (xdoc.Error()) {
-    os << "Invalid XML" << std::endl;
-    return false;
-  }
-
-  TiXmlPrinter xprinter;
-  xprinter.SetIndent(indent);
-  xdoc.Accept(&xprinter);
-  os << xprinter.CStr();
-
-  return true;
+std::string GetPrefix(const pugi::xml_node& xnode) {
+  std::string ns_prefix;
+  SplitName(xnode, &ns_prefix, nullptr);
+  return ns_prefix;
 }
 
-#else
+std::string GetNameNoPrefix(const pugi::xml_node& xnode) {
+  std::string name;
+  SplitName(xnode, nullptr, &name);
+  return name;
+}
 
-pugi::xml_node AppendChild(pugi::xml_node& xnode,
-                           const std::string& ns,
-                           const std::string& name) {
-  std::string ns_name = ns + ":" + name;
-  return xnode.append_child(ns_name.c_str());
+pugi::xml_node AddChild(pugi::xml_node& xnode,
+                        const std::string& ns,
+                        const std::string& name) {
+  return xnode.append_child((ns + ":" + name).c_str());
 }
 
 pugi::xml_node GetChild(pugi::xml_node& xnode,
@@ -138,6 +80,18 @@ void AddAttr(pugi::xml_node& xnode,
   xnode.append_attribute(ns_name.c_str()) = value.c_str();
 }
 
+void AddNSAttr(pugi::xml_node& xnode,
+               const std::string& ns_name,
+               const std::string& ns_url) {
+  AddAttr(xnode, "xmlns", ns_name, ns_url);
+}
+
+std::string GetNSAttr(pugi::xml_node& xnode,
+                      const std::string& ns_name) {
+  std::string attr_name = "xmlns:" + ns_name;
+  return xnode.attribute(attr_name.c_str()).as_string();
+}
+
 bool PrettyPrintXml(std::ostream& os,
                     const std::string& xml_string,
                     const char* indent) {
@@ -147,11 +101,9 @@ bool PrettyPrintXml(std::ostream& os,
     return false;
   }
 
-  xdoc.print(os, indent);
+  xdoc.save(os, indent);
   return true;
 }
-
-#endif
 
 }  // namespace xml
 }  // namespace csoap

@@ -1,8 +1,8 @@
 #include <iostream>
-#include "demo/calculator.h"
+#include "calculator_client.h"
 
 int main() {
-  demo::Calculator calculator;
+  CalculatorClient calculator;
 
   double x = 1.0;
   double y = 2.0;
@@ -12,6 +12,7 @@ int main() {
     printf("add: %.1f\n", result);
   }
 
+#if 0
   if (calculator.Subtract(x, y, &result)) {
     printf("subtract: %.1f\n", result);
   }
@@ -23,12 +24,7 @@ int main() {
   if (calculator.Divide(x, y, &result)) {
     printf("divide: %.1f\n", result);
   }
+#endif
 
   return 0;
 }
-
-// Output:
-// add: 3.0
-// subtract: -1.0
-// multiply: 2.0
-// divide: 0.5

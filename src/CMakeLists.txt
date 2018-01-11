@@ -1,8 +1,5 @@
-if(CSOAP_USE_TINYXML)
-    add_subdirectory(tinyxml)
-else()
-    add_subdirectory(pugixml)
-endif()
-
+add_subdirectory(pugixml)
 add_subdirectory(csoap)
-add_subdirectory(demo)
+add_subdirectory(demo/calculator_client)
+add_subdirectory(demo/calculator_server)
+add_subdirectory(demo/csdm_client)

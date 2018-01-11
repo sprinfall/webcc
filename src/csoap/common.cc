@@ -4,6 +4,18 @@
 
 namespace csoap {
 
+// NOTE:
+// Field names are case-insensitive.
+// See: https://stackoverflow.com/a/5259004
+const std::string kContentTypeName = "Content-Type";
+const std::string kContentLengthName = "Content-Length";
+
+// According to www.w3.org when placing SOAP messages in HTTP bodies, the HTTP
+// Content-type header must be chosen as "application/soap+xml" [RFC 3902].
+// But in practice, many web servers cannot understand it.
+// See: https://www.w3.org/TR/2007/REC-soap12-part0-20070427/#L26854
+const std::string kTextXmlUtf8 = "text/xml; charset=utf-8";
+
 ////////////////////////////////////////////////////////////////////////////////
 
 const char* GetErrorMessage(ErrorCode error_code) {
@@ -39,6 +51,13 @@ const char* GetErrorMessage(ErrorCode error_code) {
       return "No error";
   }
 }
+
+////////////////////////////////////////////////////////////////////////////////
+
+const Namespace kSoapEnvNamespace{
+  "soap",
+  "http://schemas.xmlsoap.org/soap/envelope/"
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 
