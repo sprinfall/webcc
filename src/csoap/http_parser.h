@@ -21,11 +21,11 @@ public:
   // Reset parsing state.
   void Reset();
 
-  ErrorCode Parse(const char* data, size_t len);
+  Error Parse(const char* data, size_t len);
 
 protected:
   // Parse HTTP start line.
-  virtual ErrorCode ParseStartLine(const std::string& line) = 0;
+  virtual Error ParseStartLine(const std::string& line) = 0;
 
   void ParseContentLength(const std::string& line);
 
@@ -33,7 +33,7 @@ protected:
   // The result HTTP message.
   HttpMessage* message_;
 
-  ErrorCode error_;
+  Error error_;
 
   // Data waiting to be parsed.
   std::string pending_data_;

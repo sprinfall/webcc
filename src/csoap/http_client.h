@@ -25,8 +25,8 @@ public:
   }
 
   // Send an HTTP request, wait until the response is received.
-  ErrorCode SendRequest(const HttpRequest& request,
-                        HttpResponse* response);
+  Error SendRequest(const HttpRequest& request,
+                    HttpResponse* response);
 
 private:
   boost::asio::io_context io_context_;

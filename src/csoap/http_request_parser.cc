@@ -12,7 +12,7 @@ HttpRequestParser::HttpRequestParser(HttpRequest* request)
   , request_(request) {
 }
 
-ErrorCode HttpRequestParser::ParseStartLine(const std::string& line) {
+Error HttpRequestParser::ParseStartLine(const std::string& line) {
   // Example: POST / HTTP/1.1
 
   std::vector<std::string> strs;

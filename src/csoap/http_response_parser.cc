@@ -10,7 +10,7 @@ HttpResponseParser::HttpResponseParser(HttpResponse* response)
 }
 
 // TODO: Use split.
-ErrorCode HttpResponseParser::ParseStartLine(const std::string& line) {
+Error HttpResponseParser::ParseStartLine(const std::string& line) {
   size_t off = 0;
 
   size_t pos = line.find(' ');

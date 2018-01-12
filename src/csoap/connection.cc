@@ -50,7 +50,7 @@ void Connection::HandleRead(boost::system::error_code ec,
     return;
   }
 
-  ErrorCode error = request_parser_.Parse(buffer_.data(), bytes_transferred);
+  Error error = request_parser_.Parse(buffer_.data(), bytes_transferred);
 
   if (error != kNoError) {
     // Bad request.

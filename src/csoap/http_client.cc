@@ -56,8 +56,8 @@ HttpClient::HttpClient()
     : timeout_seconds_(15) {
 }
 
-ErrorCode HttpClient::SendRequest(const HttpRequest& request,
-                                  HttpResponse* response) {
+Error HttpClient::SendRequest(const HttpRequest& request,
+                              HttpResponse* response) {
   assert(response != NULL);
 
   using boost::asio::ip::tcp;
@@ -71,6 +71,7 @@ ErrorCode HttpClient::SendRequest(const HttpRequest& request,
     port = "80";
   }
 
+  // TODO: IPv4 or both IPv4 and IPv6
   boost::system::error_code ec;
   tcp::resolver::results_type endpoints =
       resolver.resolve(/*tcp::v4(), */request.host(), port, ec);
@@ -130,7 +131,7 @@ ErrorCode HttpClient::SendRequest(const HttpRequest& request,
     // Parse the response piece just read.
     // If the content has been fully received, next time flag "finished_"
     // will be set.
-    ErrorCode error = parser.Parse(buffer_.data(), length);
+    Error error = parser.Parse(buffer_.data(), length);
 
     if (error != kNoError) {
       return error;

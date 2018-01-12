@@ -12,7 +12,7 @@ public:
   explicit HttpRequestParser(HttpRequest* request);
 
 private:
-  ErrorCode ParseStartLine(const std::string& line) override;
+  Error ParseStartLine(const std::string& line) override;
 
 private:
   HttpRequest* request_;

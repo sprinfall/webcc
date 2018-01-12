@@ -15,11 +15,29 @@ public:
 protected:
   void Init();
 
+  // Call CSDM API with NO parameter.
+  bool Call0(const std::string& operation,
+             std::string* result_xml);
+
   // Call CSDM API with one parameter.
   bool Call1(const std::string& operation,
              const std::string& name,
              const std::string& value,
              std::string* result_xml);
+
+  // Call CSDM API with two parameters.
+  bool Call2(const std::string& operation,
+             const std::string& name1,
+             const std::string& value1,
+             const std::string& name2,
+             const std::string& value2,
+             std::string* result_xml);
+
+  // A wrapper of CSoapClient::Call().
+  bool CallEx(const std::string& operation,
+              const csoap::Parameter* parameters,
+              std::size_t count,
+              std::string* result);
 };
 
 #endif  // CSDM_CLIENT_H_

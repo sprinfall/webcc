@@ -35,7 +35,8 @@ const std::size_t kInvalidLength = std::string::npos;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-enum ErrorCode {
+// Error codes.
+enum Error {
   kNoError = 0,  // OK
 
   kHostResolveError,
@@ -59,7 +60,7 @@ enum ErrorCode {
 };
 
 // Return a descriptive message for the given error code.
-const char* GetErrorMessage(ErrorCode error_code);
+const char* GetErrorMessage(Error error);
 
 ////////////////////////////////////////////////////////////////////////////////
 

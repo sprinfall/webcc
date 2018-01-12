@@ -55,7 +55,11 @@ bool CalculatorClient::Calc(const std::string& operation,
   };
 
   std::string result_str;
-  if (!Call(operation, parameters, 2, &result_str)) {
+  csoap::Error error = Call(operation, parameters, 2, &result_str);
+
+  if (error != csoap::kNoError) {
+    std::cerr << "Error: " << error;
+    std::cerr << ", " << csoap::GetErrorMessage(error) << std::endl;
     return false;
   }
 

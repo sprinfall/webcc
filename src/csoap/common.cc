@@ -18,8 +18,8 @@ const std::string kTextXmlUtf8 = "text/xml; charset=utf-8";
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const char* GetErrorMessage(ErrorCode error_code) {
-  switch (error_code) {
+const char* GetErrorMessage(Error error) {
+  switch (error) {
     case kHostResolveError:
       return "Cannot resolve the host.";
 

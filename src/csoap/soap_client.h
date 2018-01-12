@@ -19,10 +19,10 @@ protected:
   }
 
   // A generic wrapper to make a call.
-  bool Call(const std::string& operation,
-            const csoap::Parameter* parameters,
-            size_t count,
-            std::string* result);
+  Error Call(const std::string& operation,
+             const Parameter* parameters,
+             std::size_t count,
+             std::string* result);
 
 protected:
   // Request URL.

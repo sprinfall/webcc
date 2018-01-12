@@ -18,7 +18,7 @@ void HttpParser::Reset() {
   // TODO: Reset parsing state.
 }
 
-ErrorCode HttpParser::Parse(const char* data, size_t len) {
+Error HttpParser::Parse(const char* data, size_t len) {
   if (header_parsed_) {
     // Add the data to the content.
     message_->AppendContent(data, len);
@@ -50,7 +50,7 @@ ErrorCode HttpParser::Parse(const char* data, size_t len) {
 
     if (!start_line_parsed_) {
       start_line_parsed_ = true;
-      ErrorCode error = ParseStartLine(line);
+      Error error = ParseStartLine(line);
       if (error != kNoError) {
         return error;
       }

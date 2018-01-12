@@ -13,7 +13,7 @@ public:
 
 private:
   // Parse HTTP start line; E.g., "HTTP/1.1 200 OK".
-  ErrorCode ParseStartLine(const std::string& line) override;
+  Error ParseStartLine(const std::string& line) override;
 
 private:
   // The result response message.
