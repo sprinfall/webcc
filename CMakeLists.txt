@@ -15,6 +15,7 @@ if(MSVC)
     add_definitions(-D_WIN32_WINNT=0x0601)
 endif()
 
+# Boost version: 1.66+
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost)
 if(Boost_FOUND)

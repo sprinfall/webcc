@@ -5,12 +5,14 @@
 namespace csoap {
 
 HttpResponseParser::HttpResponseParser(HttpResponse* response)
-  : HttpParser(response)
-  , response_(response) {
+    : HttpParser(response)
+    , response_(response) {
 }
 
 // TODO: Use split.
 Error HttpResponseParser::ParseStartLine(const std::string& line) {
+  response_->set_start_line(line + "\r\n");
+
   size_t off = 0;
 
   size_t pos = line.find(' ');
@@ -37,7 +39,6 @@ Error HttpResponseParser::ParseStartLine(const std::string& line) {
   }
 
   off = pos + 1;  // Skip space.
-  //response_->set_reason(line.substr(off));
 
   if (response_->status() != HttpStatus::OK) {
     return kHttpStatusError;

@@ -27,7 +27,7 @@ Error HttpRequestParser::ParseStartLine(const std::string& line) {
     return kHttpStartLineError;
   }
 
-  request_->set_url(strs[1]);
+  request_->SetURL(strs[1]);
 
   // TODO: strs[2];
 

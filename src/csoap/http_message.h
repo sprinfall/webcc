@@ -16,31 +16,36 @@ public:
 // Base class for HTTP request and response messages.
 class HttpMessage {
 public:
-  void set_version(HttpVersion version) {
-    version_ = version;
+  const std::string& start_line() const {
+    return start_line_;
+  }
+  void set_start_line(const std::string& start_line) {
+    start_line_ = start_line;
   }
 
   size_t content_length() const {
     return content_length_;
   }
-  void set_content_length(size_t length) {
-    content_length_ = length;
-  }
-
-  // E.g., "text/xml; charset=utf-8"
-  void set_content_type(const std::string& content_type) {
-    content_type_ = content_type;
-  }
-
-  void AddHeader(const std::string& name, const std::string& value) {
-    headers_.push_back({ name, value });
-  }
 
   const std::string& content() const {
     return content_;
   }
-  void set_content(const std::string& content) {
-    content_ = content;
+
+  void SetHeader(const std::string& name, const std::string& value);
+
+  // E.g., "text/xml; charset=utf-8"
+  void SetContentType(const std::string& content_type) {
+    SetHeader(kContentType, content_type);
+  }
+
+  void SetContentLength(size_t content_length) {
+    content_length_ = content_length;
+    SetHeader(kContentLength, std::to_string(content_length));
+  }
+
+  // Use move semantics to avoid copy.
+  void set_content(std::string&& content) {
+    content_ = std::move(content);
   }
 
   void AppendContent(const char* data, size_t count) {
@@ -52,8 +57,12 @@ public:
   }
 
   bool IsContentFull() const {
-    assert(content_length_ != kInvalidLength);
+    assert(IsContentLengthValid());
     return content_.length() >= content_length_;
+  }
+
+  bool IsContentLengthValid() const {
+    return content_length_ != kInvalidLength;
   }
 
 protected:
@@ -61,10 +70,10 @@ protected:
   }
 
 protected:
-  HttpVersion version_ = kHttpV11;
+  // Start line with trailing "\r\n".
+  std::string start_line_;
 
   size_t content_length_ = kInvalidLength;
-  std::string content_type_;
 
   std::vector<HttpHeader> headers_;
 

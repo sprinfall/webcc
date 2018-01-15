@@ -8,14 +8,10 @@
 namespace csoap {
 
 HttpParser::HttpParser(HttpMessage* message)
-  : message_(message)
-  , start_line_parsed_(false)
-  , header_parsed_(false)
-  , finished_(false) {
-}
-
-void HttpParser::Reset() {
-  // TODO: Reset parsing state.
+    : message_(message)
+    , start_line_parsed_(false)
+    , header_parsed_(false)
+    , finished_(false) {
 }
 
 Error HttpParser::Parse(const char* data, size_t len) {
@@ -35,13 +31,13 @@ Error HttpParser::Parse(const char* data, size_t len) {
   size_t off = 0;
 
   while (true) {
-    size_t pos = pending_data_.find(kCRLF, off);
+    size_t pos = pending_data_.find("\r\n", off);
     if (pos == std::string::npos) {
       break;
     }
 
-    if (pos == off) {  // End of headers.
-      off = pos + 2;  // Skip CRLF.
+    if (pos == off) {   // End of headers.
+      off = pos + 2;    // Skip CRLF.
       header_parsed_ = true;
       break;
     }
@@ -57,8 +53,7 @@ Error HttpParser::Parse(const char* data, size_t len) {
     } else {
       // Currently, only Content-Length is important to us.
       // Other fields are ignored.
-      if (message_->content_length() == kInvalidLength) {
-        // Not parsed yet.
+      if (!message_->IsContentLengthValid()) {
         ParseContentLength(line);
       }
     }
@@ -69,7 +64,7 @@ Error HttpParser::Parse(const char* data, size_t len) {
   if (header_parsed_) {
     // Headers just ended.
 
-    if (message_->content_length() == kInvalidLength) {
+    if (!message_->IsContentLengthValid()) {
       // No Content-Length?
       return kHttpContentLengthError;
     }
@@ -96,7 +91,7 @@ void HttpParser::ParseContentLength(const std::string& line) {
 
   std::string name = line.substr(0, pos);
 
-  if (boost::iequals(name, kContentLengthName)) {
+  if (boost::iequals(name, kContentLength)) {
     ++pos;  // Skip ':'.
     while (line[pos] == ' ') {  // Skip spaces.
       ++pos;
@@ -105,7 +100,7 @@ void HttpParser::ParseContentLength(const std::string& line) {
     std::string value = line.substr(pos);
 
     try {
-      message_->set_content_length(boost::lexical_cast<size_t>(value));
+      message_->SetContentLength(boost::lexical_cast<size_t>(value));
     } catch (boost::bad_lexical_cast&) {
       // TODO
     }

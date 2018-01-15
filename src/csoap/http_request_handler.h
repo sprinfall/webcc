@@ -1,9 +1,7 @@
 #ifndef CSOAP_HTTP_REQUEST_HANDLER_H_
 #define CSOAP_HTTP_REQUEST_HANDLER_H_
 
-#include <string>
 #include <vector>
-
 #include "csoap/soap_service.h"
 
 namespace csoap {
@@ -21,8 +19,9 @@ public:
 
   bool RegisterService(SoapServicePtr soap_service);
 
-  // Handle a request and produce a reply.
-  void HandleRequest(const HttpRequest& request, HttpResponse& response);
+  // Handle a request and produce a response.
+  void HandleRequest(const HttpRequest& http_request,
+                     HttpResponse* http_response);
 
 private:
   std::vector<SoapServicePtr> soap_services_;

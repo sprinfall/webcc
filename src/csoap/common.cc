@@ -7,8 +7,10 @@ namespace csoap {
 // NOTE:
 // Field names are case-insensitive.
 // See: https://stackoverflow.com/a/5259004
-const std::string kContentTypeName = "Content-Type";
-const std::string kContentLengthName = "Content-Length";
+const std::string kContentType = "Content-Type";
+const std::string kContentLength = "Content-Length";
+const std::string kSOAPAction = "SOAPAction";
+const std::string kHost = "Host";
 
 // According to www.w3.org when placing SOAP messages in HTTP bodies, the HTTP
 // Content-type header must be chosen as "application/soap+xml" [RFC 3902].

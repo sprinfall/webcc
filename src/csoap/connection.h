@@ -57,7 +57,7 @@ private:
   HttpRequestHandler& request_handler_;
 
   // Buffer for incoming data.
-  std::array<char, 8192> buffer_;
+  std::array<char, BUF_SIZE> buffer_;
 
   // The incoming request.
   HttpRequest request_;

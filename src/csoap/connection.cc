@@ -56,7 +56,6 @@ void Connection::HandleRead(boost::system::error_code ec,
     // Bad request.
     response_ = HttpResponse::Fault(HttpStatus::BAD_REQUEST);
     DoWrite();
-
     return;
   }
 
@@ -67,7 +66,8 @@ void Connection::HandleRead(boost::system::error_code ec,
   }
 
   // Handle request.
-  request_handler_.HandleRequest(request_, response_);
+  // TODO: Time consuming
+  request_handler_.HandleRequest(request_, &response_);
 
   // Send back the response.
   DoWrite();

@@ -2,7 +2,6 @@
 #define CSOAP_HTTP_PARSER_H_
 
 #include <string>
-
 #include "csoap/common.h"
 
 namespace csoap {
@@ -17,9 +16,6 @@ public:
   bool finished() const {
     return finished_;
   }
-
-  // Reset parsing state.
-  void Reset();
 
   Error Parse(const char* data, size_t len);
 

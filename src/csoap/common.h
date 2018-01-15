@@ -10,28 +10,16 @@ namespace csoap {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// API decorators.
-// For a given class, e.g., SoapRequest, some APIs are for client while others
-// are for server. In order to make it clear to the user, use the following
-// macros to decorate.
-#define SERVER_API
-#define CLIENT_API
-
-////////////////////////////////////////////////////////////////////////////////
-
-// TODO
-
 // Buffer size for sending HTTP request and receiving HTTP response.
 const std::size_t BUF_SIZE = 1024;
+const std::size_t kInvalidLength = std::string::npos;
 
-static const std::string kCRLF = "\r\n";
-
-extern const std::string kContentTypeName;
-extern const std::string kContentLengthName;
+extern const std::string kContentType;
+extern const std::string kContentLength;
+extern const std::string kSOAPAction;
+extern const std::string kHost;
 
 extern const std::string kTextXmlUtf8;
-
-const std::size_t kInvalidLength = std::string::npos;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -64,12 +52,6 @@ const char* GetErrorMessage(Error error);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// TODO: No 1.1 feature has been used or supported yet.
-enum HttpVersion {
-  kHttpV10,
-  kHttpV11,
-};
-
 // HTTP response status.
 // NOTE: Only support the listed status codes.
 enum HttpStatus {
@@ -78,12 +60,6 @@ enum HttpStatus {
   INTERNAL_SERVER_ERROR = 500,
   NOT_IMPLEMENTED = 501,
   SERVICE_UNAVAILABLE = 503,
-};
-
-enum HeaderField {
-  kHeaderContentType,
-  kHeaderContentLength,
-  kHeaderHost,
 };
 
 ////////////////////////////////////////////////////////////////////////////////

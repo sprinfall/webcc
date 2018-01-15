@@ -2,7 +2,6 @@
 #define CSOAP_SOAP_REQUEST_H_
 
 #include <vector>
-
 #include "csoap/soap_message.h"
 
 namespace csoap {
@@ -12,11 +11,11 @@ namespace csoap {
 // request body.
 class SoapRequest : public SoapMessage {
 public:
-  CLIENT_API void AddParameter(const std::string& key, const std::string& value);
-  CLIENT_API void AddParameter(const Parameter& parameter);
+  void AddParameter(const std::string& key, const std::string& value);
+  void AddParameter(const Parameter& parameter);
 
   // Get parameter value by key.
-  SERVER_API std::string GetParameter(const std::string& key) const;
+  std::string GetParameter(const std::string& key) const;
 
 protected:
   void ToXmlBody(pugi::xml_node xbody) override;

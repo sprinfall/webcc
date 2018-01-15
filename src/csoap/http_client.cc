@@ -4,10 +4,6 @@
 #include <iostream>
 #endif
 
-#include "boost/algorithm/string.hpp"
-#include "boost/bind.hpp"
-#include "boost/lexical_cast.hpp"
-
 #if 0
 #include "boost/asio.hpp"
 #else
@@ -20,7 +16,10 @@
 #include "csoap/http_response_parser.h"
 #include "csoap/http_request.h"
 #include "csoap/http_response.h"
-#include "csoap/xml.h"
+
+#if CSOAP_ENABLE_OUTPUT
+#include "csoap/xml.h"  // For pretty print response XML.
+#endif
 
 namespace csoap {
 
@@ -71,10 +70,9 @@ Error HttpClient::SendRequest(const HttpRequest& request,
     port = "80";
   }
 
-  // TODO: IPv4 or both IPv4 and IPv6
   boost::system::error_code ec;
   tcp::resolver::results_type endpoints =
-      resolver.resolve(/*tcp::v4(), */request.host(), port, ec);
+      resolver.resolve(tcp::v4(), request.host(), port, ec);
   if (ec) {
     return kHostResolveError;
   }
@@ -88,22 +86,19 @@ Error HttpClient::SendRequest(const HttpRequest& request,
 
   // Send HTTP request.
 
-  std::string headers = request.GetHeaders();
-
-  std::vector<boost::asio::const_buffer> buffers{
-    boost::asio::buffer(headers),
-    boost::asio::buffer(request.content()),
-  };
-
 #if CSOAP_ENABLE_OUTPUT
-  std::cout << request << std::endl;
+  std::cout << "# REQUEST" << std::endl << request << std::endl;
 #endif
 
   try {
-    boost::asio::write(socket, buffers);
+    boost::asio::write(socket, request.ToBuffers());
   } catch (boost::system::system_error&) {
     return kSocketWriteError;
   }
+
+#if CSOAP_ENABLE_OUTPUT
+  std::cout << "# RESPONSE" << std::endl;
+#endif
 
   // Read and parse HTTP response.
 
@@ -139,10 +134,9 @@ Error HttpClient::SendRequest(const HttpRequest& request,
   }
 
 #if CSOAP_ENABLE_OUTPUT
-  std::cout << std::endl << std::endl;
-  std::cout << "[ PRETTY PRINT ]" << std::endl;
-  xml::PrettyPrintXml(std::cout, response->content());
   std::cout << std::endl;
+  std::cout << "# RESPONSE (PARSED)" << std::endl;
+  std::cout << *response << std::endl;
 #endif
 
   return kNoError;

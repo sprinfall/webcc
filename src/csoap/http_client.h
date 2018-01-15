@@ -2,12 +2,7 @@
 #define CSOAP_HTTP_CLIENT_H_
 
 #include <array>
-#include <string>
-
-// Don't use any deprecated definitions (e.g., io_service).
-#define BOOST_ASIO_NO_DEPRECATED
 #include "boost/asio/io_context.hpp"
-
 #include "csoap/common.h"
 
 namespace csoap {

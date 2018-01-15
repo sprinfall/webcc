@@ -4,63 +4,66 @@
 
 namespace csoap {
 
-////////////////////////////////////////////////////////////////////////////////
-
 std::ostream& operator<<(std::ostream& os, const HttpRequest& request) {
-  return os << request.GetHeaders() << request.content();
+  os << request.start_line();
+
+  for (const HttpHeader& h : request.headers_) {
+    os << h.name << ": " << h.value << std::endl;
+  }
+
+  os << std::endl;
+
+  os << request.content() << std::endl;
+
+  return os;
 }
 
-////////////////////////////////////////////////////////////////////////////////
+void HttpRequest::SetURL(const std::string& url) {
+  url_ = url;
 
-std::string HttpRequest::GetHeaders() const {
-  std::string headers;
+  start_line_ = "POST ";
+  start_line_ += url_;
+  start_line_ += " HTTP/1.1\r\n";
+}
 
-  // Start line
+void HttpRequest::SetHost(const std::string& host, const std::string& port) {
+  host_ = host;
+  port_ = port;
 
-  headers += "POST ";
-  headers += url_;
-  headers += " ";
-
-  if (version_ == kHttpV10) {
-    headers += "HTTP/1.0";
+  if (port.empty()) {
+    SetHeader(kHost, host);
   } else {
-    headers += "HTTP/1.1";
+    SetHeader(kHost, host + ":" + port);
   }
-  headers += kCRLF;
+}
 
-  // Header fields
+namespace misc_strings {
 
-  headers += kContentTypeName;
-  headers += ": ";
+const char NAME_VALUE_SEPARATOR[] = { ':', ' ' };
+const char CRLF[] = { '\r', '\n' };
 
-  if (!content_type_.empty()) {
-    headers += content_type_;
-  } else {
-    headers += kTextXmlUtf8;
+}  // misc_strings
+
+// ATTENTION: The buffers don't hold the memory!
+std::vector<boost::asio::const_buffer> HttpRequest::ToBuffers() const {
+  assert(IsContentLengthValid());
+
+  std::vector<boost::asio::const_buffer> buffers;
+
+  buffers.push_back(boost::asio::buffer(start_line_));
+
+  for (const HttpHeader& h : headers_) {
+    buffers.push_back(boost::asio::buffer(h.name));
+    buffers.push_back(boost::asio::buffer(misc_strings::NAME_VALUE_SEPARATOR));
+    buffers.push_back(boost::asio::buffer(h.value));
+    buffers.push_back(boost::asio::buffer(misc_strings::CRLF));
   }
 
-  headers += kCRLF;
+  buffers.push_back(boost::asio::buffer(misc_strings::CRLF));
 
-  headers += kContentLengthName;
-  headers += ": ";
-  headers += std::to_string(content_length_);
-  headers += kCRLF;
+  buffers.push_back(boost::asio::buffer(content_));
 
-  headers += "SOAPAction: ";
-  headers += soap_action_;
-  headers += kCRLF;
-
-  headers += "Host: ";
-  headers += host_;
-  if (!port_.empty()) {
-    headers += ":";
-    headers += port_;
-  }
-  headers += kCRLF;
-
-  headers += kCRLF;  // End of Headers.
-
-  return headers;
+  return buffers;
 }
 
 }  // namespace csoap

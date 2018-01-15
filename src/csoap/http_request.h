@@ -2,20 +2,14 @@
 #define CSOAP_HTTP_REQUEST_H_
 
 #include <string>
-#include <vector>
-
-#include "csoap/common.h"
+#include "boost/asio/buffer.hpp"  // for const_buffer
 #include "csoap/http_message.h"
 
 namespace csoap {
 
-////////////////////////////////////////////////////////////////////////////////
-
 class HttpRequest;
 
 std::ostream& operator<<(std::ostream& os, const HttpRequest& request);
-
-////////////////////////////////////////////////////////////////////////////////
 
 // HTTP request.
 // NOTE:
@@ -27,18 +21,6 @@ class HttpRequest : public HttpMessage {
                                   const HttpRequest& request);
 
 public:
-  HttpRequest() {
-  }
-
-  // Set the URL for the HTTP request start line.
-  // Either a complete URL or the path component it is acceptable.
-  // E.g., both of the following URLs are OK:
-  //   - http://ws1.parasoft.com/glue/calculator
-  //   - /glue/calculator
-  void set_url(const std::string& url) {
-    url_ = url;
-  }
-
   const std::string& host() const {
     return host_;
   }
@@ -47,19 +29,21 @@ public:
     return port_;
   }
 
+  // Set the URL for the HTTP request start line.
+  // Either a complete URL or the path component it is acceptable.
+  // E.g., both of the following URLs are OK:
+  //   - http://ws1.parasoft.com/glue/calculator
+  //   - /glue/calculator
+  void SetURL(const std::string& url);
+
   // \param host Descriptive host name or numeric IP address.
   // \param port Numeric port number, "80" will be used if it's empty.
-  void set_host(const std::string& host, const std::string& port) {
-    host_ = host;
-    port_ = port;
-  }
+  void SetHost(const std::string& host, const std::string& port);
 
-  // SOAP specific.
-  void set_soap_action(const std::string& soap_action) {
-    soap_action_ = soap_action;
-  }
-
-  std::string GetHeaders() const;
+  // Convert the response into a vector of buffers. The buffers do not own the
+  // underlying memory blocks, therefore the response object must remain valid
+  // and not be changed until the write operation has completed.
+  std::vector<boost::asio::const_buffer> ToBuffers() const;
 
 private:
   // Request URL.
@@ -69,8 +53,6 @@ private:
 
   std::string host_;
   std::string port_;
-
-  std::string soap_action_;
 };
 
 }  // namespace csoap

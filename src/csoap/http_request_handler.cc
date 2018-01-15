@@ -57,20 +57,18 @@ bool HttpRequestHandler::RegisterService(SoapServicePtr soap_service) {
   return true;
 }
 
-void HttpRequestHandler::HandleRequest(const HttpRequest& request,
-                                       HttpResponse& response) {
+void HttpRequestHandler::HandleRequest(const HttpRequest& http_request,
+                                       HttpResponse* http_response) {
   // Parse the SOAP request XML.
   SoapRequest soap_request;
-  if (!soap_request.FromXml(request.content())) {
-    // TODO: Bad request
+  if (!soap_request.FromXml(http_request.content())) {
+    http_response->set_status(HttpStatus::BAD_REQUEST);
     return;
   }
 
-  // TEST
-
   SoapResponse soap_response;
 
-  // Get service by URL.
+  // TODO: Get service by URL.
 
   for (SoapServicePtr& service : soap_services_) {
     service->Handle(soap_request, &soap_response);
@@ -79,10 +77,10 @@ void HttpRequestHandler::HandleRequest(const HttpRequest& request,
   std::string content;
   soap_response.ToXml(&content);
 
-  response.set_status(HttpStatus::OK);
-  response.AddHeader(kContentTypeName, kTextXmlUtf8);
-  response.AddHeader(kContentLengthName, std::to_string(content.length()));
-  response.set_content(content);
+  http_response->set_status(HttpStatus::OK);
+  http_response->SetContentType(kTextXmlUtf8);
+  http_response->SetContentLength(content.length());
+  http_response->set_content(std::move(content));
 
 #if 0
   // Decode URL to path.

@@ -19,7 +19,7 @@ public:
   }
 
   // Handle SOAP request, output the response.
-  virtual bool Handle(const SoapRequest& request,
+  virtual bool Handle(const SoapRequest& soap_request,
                       SoapResponse* soap_response) = 0;
 
 protected:

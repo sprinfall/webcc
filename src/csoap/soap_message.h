@@ -3,7 +3,6 @@
 
 #include <string>
 #include "pugixml/pugixml.hpp"
-
 #include "csoap/common.h"
 
 namespace csoap {
@@ -12,27 +11,27 @@ namespace csoap {
 class SoapMessage {
 public:
   // E.g., set as kSoapEnvNamespace.
-  CLIENT_API void set_soapenv_ns(const Namespace& soapenv_ns) {
+  void set_soapenv_ns(const Namespace& soapenv_ns) {
     soapenv_ns_ = soapenv_ns;
   }
 
-  CLIENT_API void set_service_ns(const Namespace& service_ns) {
+  void set_service_ns(const Namespace& service_ns) {
     service_ns_ = service_ns;
   }
 
-  SERVER_API const std::string& operation() const {
+  const std::string& operation() const {
     return operation_;
   }
 
-  CLIENT_API void set_operation(const std::string& operation) {
+  void set_operation(const std::string& operation) {
     operation_ = operation;
   }
 
   // Convert to SOAP request XML.
-  CLIENT_API void ToXml(std::string* xml_string);
+  void ToXml(std::string* xml_string);
 
   // Parse from SOAP request XML.
-  SERVER_API bool FromXml(const std::string& xml_string);
+  bool FromXml(const std::string& xml_string);
 
 protected:
   SoapMessage() {
