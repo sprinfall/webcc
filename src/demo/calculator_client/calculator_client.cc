@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include "boost/lexical_cast.hpp"
-#include "csoap/csoap.h"
 
 CalculatorClient::CalculatorClient() {
   Init();

@@ -1,8 +1,5 @@
 #include "csdm_client.h"
-
 #include <iostream>
-#include "boost/lexical_cast.hpp"
-#include "csoap/csoap.h"
 
 CsdmClient::CsdmClient() {
   Init();
