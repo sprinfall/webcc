@@ -1,14 +1,10 @@
 # csoap
 
-[中文版介绍](https://segmentfault.com/a/1190000009874151)
-
 A lightweight C++ SOAP client & server library based on Boost.Asio.
-
-NOTE: The server part is currently under development, not stable enough to be used in a real production. 
 
 ## Client Usage
 
-Firstly, please install SoapUI if you don't have it. We need SoapUI to generate sample requests for each web service operation. The open source version is good enough.
+Firstly, please install **SoapUI** if you don't have it. We need SoapUI to generate sample requests for each web service operation. The open source version is good enough.
 
 Take the calculator web service provided by ParaSoft as an example. Download the WSDL from http://ws1.parasoft.com/glue/calculator.wsdl, create a SOAP project within SoapUI (remember to check "**Create sample requests for all operations?**"), you will see the sample request for "add" operation as the following:
 ```xml
@@ -59,14 +55,19 @@ bool Calc(const std::string& operation,
           double y,
           double* result) {
   // Prepare parameters.
-  csoap::Parameter parameters[] = {
+  std::vector<csoap::Parameter> parameters{
     { x_name, x },
     { y_name, y }
   };
 
   // Make the call.
   std::string result_str;
-  if (!Call(operation, parameters, 2, &result_str)) {
+  csoap::Error error = Call(operation, std::move(parameters), &result_str);
+  
+  // Error handling if any.
+  if (error != csoap::kNoError) {
+    std::cerr << "Error: " << error;
+    std::cerr << ", " << csoap::GetErrorMessage(error) << std::endl;
     return false;
   }
 
@@ -80,6 +81,8 @@ bool Calc(const std::string& operation,
   return true;
 }
 ```
+
+Note that the local parameters are moved (with `std::move()`). This is to avoid expensive copy of long string parameters, e.g., XML strings.
 
 Finally, we implement the four operations simply as the following:
 ```cpp
@@ -102,7 +105,98 @@ bool Divide(double x, double y, double* result) {
 See? It's not that complicated. Check folder ***demo/calculator_client*** for the full example.
 
 ## Server Usage
-TODO
+
+*NOTE: The server part is currently under development, not stable enough to be used in a real production.*
+
+Suppose you want to provide a calculator web service just like the one from ParaSoft.
+
+Firstly, create a class `CalculatorService` which is derived from `csoap::SoapService`, override the `Handle` method:
+```cpp
+#include "csoap/soap_service.h"
+
+class CalculatorService : public csoap::SoapService {
+public:
+  CalculatorService();
+
+  bool Handle(const csoap::SoapRequest& soap_request,
+              csoap::SoapResponse* soap_response) override;
+};
+```
+The `Handle` method has two parameters, one for request (input), one for response (output).
+The implementation is quite straightforward:
+- Get operation from request.
+- Get parameters from request.
+- Calculate the result.
+- Set namespaces, result name and so on to response.
+- Set result to response.
+
+```cpp
+#include "calculator_service.h"
+
+#include "boost/lexical_cast.hpp"
+
+#include "csoap/soap_request.h"
+#include "csoap/soap_response.h"
+
+CalculatorService::CalculatorService() {
+}
+
+bool CalculatorService::Handle(const csoap::SoapRequest& soap_request,
+                               csoap::SoapResponse* soap_response) {
+  try {
+    if (soap_request.operation() == "add") {
+      double x = boost::lexical_cast<double>(soap_request.GetParameter("x"));
+      double y = boost::lexical_cast<double>(soap_request.GetParameter("y"));
+
+      double result = x + y;
+
+      soap_response->set_soapenv_ns(csoap::kSoapEnvNamespace);
+      soap_response->set_service_ns({ "cal", "http://mycalculator/" });
+      soap_response->set_operation(soap_request.operation());
+      soap_response->set_result_name("Result");
+      soap_response->set_result(boost::lexical_cast<std::string>(result));
+
+      return true;
+
+    } else {
+      // NOT_IMPLEMENTED
+    }
+  } catch (boost::bad_lexical_cast&) {
+    // BAD_REQUEST
+  }
+
+  return false;
+}
+```
+
+The `main` function would be:
+```cpp
+int main(int argc, char* argv[]) {
+  if (argc != 2) {
+    std::cout << "Usage: " << argv[0] << " <port>" << std::endl;
+    std::cout << "  E.g.," << std::endl;
+    std::cout << "    " << argv[0] << " 8080" << std::endl;
+    return 1;
+  }
+
+  const char* host = "0.0.0.0";  // TODO
+
+  try {
+    csoap::HttpServer server(host, argv[1]);
+
+    csoap::SoapServicePtr service(new CalculatorService);
+    server.RegisterService(service);
+
+    server.Run();
+
+  } catch (std::exception& e) {
+    std::cerr << "exception: " << e.what() << "\n";
+    return 1;
+  }
+
+  return 0;
+}
+```
 
 ## Limitations
 
@@ -113,6 +207,6 @@ TODO
 
 ## Dependencies
 
-- Boost.Asio is used for both client and server.
+- Boost 1.66+.
 - XML processing is based on PugiXml, which is already included in the source tree.
 - Build system is CMake, but it should be quite easy to integrate into your own project.

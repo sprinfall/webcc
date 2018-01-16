@@ -30,8 +30,8 @@ void CalculatorClient::Init() {
 #if ACCESS_PARASOFT
   url_ = "/glue/calculator";
   host_ = "ws1.parasoft.com";
-  port_ = "80";  // Or leave it empty because 80 is the default HTTP port.
-  service_ns_ = { "ser", "http://www.parasoft.com/wsdl/calculator/" };
+  port_ = "";  // Default to "80".
+  service_ns_ = { "cal", "http://www.parasoft.com/wsdl/calculator/" };
   result_name_ = "Result";
 #else
   url_ = "/";
@@ -48,20 +48,24 @@ bool CalculatorClient::Calc(const std::string& operation,
                             double x,
                             double y,
                             double* result) {
-  csoap::Parameter parameters[] = {
+  // Prepare parameters.
+  std::vector<csoap::Parameter> parameters{
     { x_name, x },
     { y_name, y }
   };
 
+  // Make the call.
   std::string result_str;
-  csoap::Error error = Call(operation, parameters, 2, &result_str);
+  csoap::Error error = Call(operation, std::move(parameters), &result_str);
 
+  // Error handling if any.
   if (error != csoap::kNoError) {
     std::cerr << "Error: " << error;
     std::cerr << ", " << csoap::GetErrorMessage(error) << std::endl;
     return false;
   }
 
+  // Convert the result from string to double.
   try {
     *result = boost::lexical_cast<double>(result_str);
   } catch (boost::bad_lexical_cast&) {

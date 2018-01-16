@@ -7,10 +7,8 @@ class CalculatorService : public csoap::SoapService {
 public:
   CalculatorService();
 
-  bool Handle(const csoap::SoapRequest& request,
-              csoap::SoapResponse* response) override;
-
-protected:
+  bool Handle(const csoap::SoapRequest& soap_request,
+              csoap::SoapResponse* soap_response) override;
 };
 
 #endif  // CALCULATOR_SERVICE_H_

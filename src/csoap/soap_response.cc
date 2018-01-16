@@ -10,8 +10,7 @@ void SoapResponse::ToXmlBody(pugi::xml_node xbody) {
   pugi::xml_node xop = xml::AddChild(xbody, service_ns_.name, rsp_operation);
   xml::AddNSAttr(xop, service_ns_.name, service_ns_.url);
 
-  // TODO: Leave the user to decide the result name.
-  pugi::xml_node xresult = xml::AddChild(xop, service_ns_.name, "Result");
+  pugi::xml_node xresult = xml::AddChild(xop, service_ns_.name, result_name_);
   xresult.text().set(result_.c_str());
 }
 

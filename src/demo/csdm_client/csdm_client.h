@@ -35,8 +35,7 @@ protected:
 
   // A wrapper of CSoapClient::Call().
   bool CallEx(const std::string& operation,
-              const csoap::Parameter* parameters,
-              std::size_t count,
+              std::vector<csoap::Parameter>&& parameters,
               std::string* result);
 };
 

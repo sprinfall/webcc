@@ -5,8 +5,6 @@
 
 namespace csoap {
 
-////////////////////////////////////////////////////////////////////////////////
-
 std::ostream& operator<<(std::ostream& os, const HttpResponse& response) {
   os << response.start_line();
 
@@ -23,8 +21,6 @@ std::ostream& operator<<(std::ostream& os, const HttpResponse& response) {
 
   return os;
 }
-
-////////////////////////////////////////////////////////////////////////////////
 
 namespace status_strings {
 

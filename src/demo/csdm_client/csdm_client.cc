@@ -22,18 +22,18 @@ void CsdmClient::Init() {
 
 bool CsdmClient::Call0(const std::string& operation,
                        std::string* result_xml) {
-  return CallEx(operation, NULL, 0, result_xml);
+  std::vector<csoap::Parameter> parameters;
+  return CallEx(operation, std::move(parameters), result_xml);
 }
 
 bool CsdmClient::Call1(const std::string& operation,
                        const std::string& name,
                        const std::string& value,
                        std::string* result_xml) {
-  csoap::Parameter parameters[] = {
+  std::vector<csoap::Parameter> parameters{
     { name, value },
   };
-
-  return CallEx(operation, parameters, 1, result_xml);
+  return CallEx(operation, std::move(parameters), result_xml);
 }
 
 bool CsdmClient::Call2(const std::string& operation,
@@ -42,18 +42,16 @@ bool CsdmClient::Call2(const std::string& operation,
                        const std::string& name2,
                        const std::string& value2,
                        std::string* result_xml) {
-  csoap::Parameter parameters[] = {
+  std::vector<csoap::Parameter> parameters{
     { name1, value1 },
     { name2, value2 },
   };
-
-  return CallEx(operation, parameters, 2, result_xml);
+  return CallEx(operation, std::move(parameters), result_xml);
 }
 
 bool CsdmClient::CallEx(const std::string& operation,
-                        const csoap::Parameter* parameters,
-                        std::size_t count,
+                        std::vector<csoap::Parameter>&& parameters,
                         std::string* result) {
-  csoap::Error error = Call(operation, parameters, count, result);
+  csoap::Error error = Call(operation, std::move(parameters), result);
   return error == csoap::kNoError;
 }

@@ -17,10 +17,6 @@
 #include "csoap/http_request.h"
 #include "csoap/http_response.h"
 
-#if CSOAP_ENABLE_OUTPUT
-#include "csoap/xml.h"  // For pretty print response XML.
-#endif
-
 namespace csoap {
 
 ////////////////////////////////////////////////////////////////////////////////

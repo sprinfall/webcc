@@ -84,10 +84,16 @@ extern const Namespace kSoapEnvNamespace;
 // Parameter in the SOAP request envelope.
 class Parameter {
 public:
+  Parameter(const std::string& key, const char* value);
   Parameter(const std::string& key, const std::string& value);
   Parameter(const std::string& key, int value);
   Parameter(const std::string& key, double value);
   Parameter(const std::string& key, bool value);
+
+  // Move constructor.
+  Parameter(Parameter&& rhs);
+
+  Parameter& operator=(Parameter&& rhs);
 
   const std::string& key() const {
     return key_;
@@ -95,6 +101,14 @@ public:
 
   const std::string& value() const {
     return value_;
+  }
+
+  const char* c_key() const {
+    return key_.c_str();
+  }
+
+  const char* c_value() const {
+    return value_.c_str();
   }
 
 private:

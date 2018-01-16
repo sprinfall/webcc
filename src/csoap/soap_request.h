@@ -11,8 +11,9 @@ namespace csoap {
 // request body.
 class SoapRequest : public SoapMessage {
 public:
-  void AddParameter(const std::string& key, const std::string& value);
   void AddParameter(const Parameter& parameter);
+
+  void AddParameter(Parameter&& parameter);
 
   // Get parameter value by key.
   std::string GetParameter(const std::string& key) const;

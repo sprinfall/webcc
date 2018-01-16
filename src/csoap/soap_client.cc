@@ -11,23 +11,25 @@
 namespace csoap {
 
 Error SoapClient::Call(const std::string& operation,
-                       const Parameter* parameters,
-                       std::size_t count,
+                       std::vector<Parameter>&& parameters,
                        std::string* result) {
-  assert(!url_.empty() &&
-         !host_.empty() &&
-         !result_name_.empty() &&
-         service_ns_.IsValid());
+  assert(service_ns_.IsValid());
+  assert(!url_.empty() && !host_.empty());
+  assert(!result_name_.empty());
+
+  if (!soapenv_ns_.IsValid()) {
+    soapenv_ns_ = kSoapEnvNamespace;
+  }
 
   SoapRequest soap_request;
 
-  soap_request.set_soapenv_ns(kSoapEnvNamespace);  // TODO: Configurable
+  soap_request.set_soapenv_ns(soapenv_ns_);
   soap_request.set_service_ns(service_ns_);
 
   soap_request.set_operation(operation);
 
-  for (std::size_t i = 0; i < count; ++i) {
-    soap_request.AddParameter(parameters[i]);
+  for (Parameter& p : parameters) {
+    soap_request.AddParameter(std::move(p));
   }
 
   std::string http_content;
@@ -55,7 +57,7 @@ Error SoapClient::Call(const std::string& operation,
   soap_response.set_result_name(result_name_);
 
   if (!soap_response.FromXml(http_response.content())) {
-    return kXmlError;  // TODO: Some SOAP error?
+    return kXmlError;
   }
 
   *result = soap_response.result();

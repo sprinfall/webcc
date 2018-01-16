@@ -7,13 +7,9 @@
 
 namespace csoap {
 
-////////////////////////////////////////////////////////////////////////////////
-
 class HttpResponse;
 
 std::ostream& operator<<(std::ostream& os, const HttpResponse& response);
-
-////////////////////////////////////////////////////////////////////////////////
 
 class HttpResponse : public HttpMessage {
   friend std::ostream& operator<<(std::ostream& os,

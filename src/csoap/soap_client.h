@@ -2,6 +2,7 @@
 #define CSOAP_SOAP_CLIENT_H_
 
 #include <string>
+#include <vector>
 #include "csoap/common.h"
 
 namespace csoap {
@@ -19,12 +20,15 @@ protected:
   }
 
   // A generic wrapper to make a call.
+  // NOTE: The parameters should be movable.
   Error Call(const std::string& operation,
-             const Parameter* parameters,
-             std::size_t count,
+             std::vector<Parameter>&& parameters,
              std::string* result);
 
 protected:
+  Namespace soapenv_ns_;  // SOAP envelope namespace.
+  Namespace service_ns_;  // Namespace for your web service.
+
   // Request URL.
   // Could be a complete URL (http://ws1.parasoft.com/glue/calculator)
   // or just the path component of it (/glue/calculator).
@@ -32,9 +36,6 @@ protected:
 
   std::string host_;
   std::string port_;  // Leave this empty to use default 80.
-
-  // The namespace of your service.
-  csoap::Namespace service_ns_;
 
   // Response result XML node name.
   // E.g., "Result".

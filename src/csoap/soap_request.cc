@@ -3,13 +3,12 @@
 
 namespace csoap {
 
-void SoapRequest::AddParameter(const std::string& key,
-                               const std::string& value) {
-  parameters_.push_back(Parameter(key, value));
-}
-
 void SoapRequest::AddParameter(const Parameter& parameter) {
   parameters_.push_back(parameter);
+}
+
+void SoapRequest::AddParameter(Parameter&& parameter) {
+  parameters_.push_back(std::move(parameter));
 }
 
 std::string SoapRequest::GetParameter(const std::string& key) const {
@@ -20,45 +19,6 @@ std::string SoapRequest::GetParameter(const std::string& key) const {
   }
   return "";
 }
-
-//bool SoapRequest::FromXml(const std::string& xml_string) {
-//  pugi::xml_document xdoc;
-//  pugi::xml_parse_result result = xdoc.load_string(xml_string.c_str());
-//
-//  if (!result) {
-//    return false;
-//  }
-//
-//  pugi::xml_node xroot = xdoc.document_element();
-//
-//  soapenv_ns_.name = xml::GetPrefix(xroot);
-//  soapenv_ns_.url = xml::GetNSAttr(xroot, soapenv_ns_.name);
-//
-//  pugi::xml_node xbody = xml::GetChild(xroot, soapenv_ns_.name, "Body");
-//  if (!xbody) {
-//    return false;
-//  }
-//
-//  // Operation
-//
-//  pugi::xml_node xoperation = xbody.first_child();
-//  xml::SplitName(xoperation, &service_ns_.name, &operation_);
-//  service_ns_.url = xml::GetNSAttr(xoperation, service_ns_.name);
-//
-//  // Parameters
-//
-//  pugi::xml_node xparameter = xoperation.first_child();
-//  while (xparameter) {
-//    parameters_.push_back({
-//      xml::GetNameNoPrefix(xparameter),
-//      std::string(xparameter.text().as_string())
-//    });
-//
-//    xparameter = xparameter.next_sibling();
-//  }
-//
-//  return true;
-//}
 
 void SoapRequest::ToXmlBody(pugi::xml_node xbody) {
   pugi::xml_node xop = xml::AddChild(xbody, service_ns_.name, operation_);
