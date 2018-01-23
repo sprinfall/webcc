@@ -23,6 +23,10 @@ public:
     result_ = result;
   }
 
+  void set_result(std::string&& result) {
+    result_ = std::move(result);
+  }
+
 protected:
   void ToXmlBody(pugi::xml_node xbody) override;
 

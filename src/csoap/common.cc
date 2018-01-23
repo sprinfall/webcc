@@ -71,6 +71,10 @@ Parameter::Parameter(const std::string& key, const std::string& value)
     : key_(key), value_(value) {
 }
 
+Parameter::Parameter(const std::string& key, std::string&& value)
+    : key_(key), value_(std::move(value)) {
+}
+
 Parameter::Parameter(const std::string& key, int value)
     : key_(key) {
   value_ = boost::lexical_cast<std::string>(value);

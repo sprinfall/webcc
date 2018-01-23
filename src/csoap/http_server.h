@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "boost/scoped_ptr.hpp"
 #include "boost/asio/io_context.hpp"
 #include "boost/asio/signal_set.hpp"
 #include "boost/asio/ip/tcp.hpp"
@@ -14,16 +15,14 @@
 
 namespace csoap {
 
-// The top-level class of the HTTP server.
+// HTTP server accepts TCP connections from TCP clients.
+// NOTE: Only support IPv4.
 class HttpServer {
 public:
   HttpServer(const HttpServer&) = delete;
   HttpServer& operator=(const HttpServer&) = delete;
 
-  // Construct the server to listen on the specified TCP address and port, and
-  // serve up files from the given directory.
-  HttpServer(const std::string& address,
-             const std::string& port);
+  HttpServer(unsigned short port);
 
   bool RegisterService(SoapServicePtr soap_service);
 
@@ -45,7 +44,7 @@ private:
   boost::asio::signal_set signals_;
 
   // Acceptor used to listen for incoming connections.
-  boost::asio::ip::tcp::acceptor acceptor_;
+  boost::scoped_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
 
   // The connection manager which owns all live connections.
   ConnectionManager connection_manager_;

@@ -11,13 +11,15 @@ void SoapRequest::AddParameter(Parameter&& parameter) {
   parameters_.push_back(std::move(parameter));
 }
 
-std::string SoapRequest::GetParameter(const std::string& key) const {
+const std::string& SoapRequest::GetParameter(const std::string& key) const {
   for (const Parameter& p : parameters_) {
     if (p.key() == key) {
       return p.value();
     }
   }
-  return "";
+
+  static const std::string kEmptyValue;
+  return kEmptyValue;
 }
 
 void SoapRequest::ToXmlBody(pugi::xml_node xbody) {

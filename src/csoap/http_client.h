@@ -2,7 +2,9 @@
 #define CSOAP_HTTP_CLIENT_H_
 
 #include <array>
+
 #include "boost/asio/io_context.hpp"
+
 #include "csoap/common.h"
 
 namespace csoap {

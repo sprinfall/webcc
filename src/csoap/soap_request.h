@@ -16,7 +16,7 @@ public:
   void AddParameter(Parameter&& parameter);
 
   // Get parameter value by key.
-  std::string GetParameter(const std::string& key) const;
+  const std::string& GetParameter(const std::string& key) const;
 
 protected:
   void ToXmlBody(pugi::xml_node xbody) override;
