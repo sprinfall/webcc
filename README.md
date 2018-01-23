@@ -2,6 +2,8 @@
 
 A lightweight C++ SOAP client & server library based on Boost.Asio.
 
+[中文教程](doc/ClientTutorial_zh-CN.md)
+
 ## Client Usage
 
 Firstly, please install **SoapUI** if you don't have it. We need SoapUI to generate sample requests for each web service operation. The open source version is good enough.
