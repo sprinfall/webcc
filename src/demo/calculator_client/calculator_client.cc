@@ -24,7 +24,7 @@ bool CalculatorClient::Divide(double x, double y, double* result) {
 }
 
 // Set to 0 to test our own calculator server created with csoap.
-#define ACCESS_PARASOFT 1
+#define ACCESS_PARASOFT 0
 
 void CalculatorClient::Init() {
 #if ACCESS_PARASOFT

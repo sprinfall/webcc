@@ -22,15 +22,15 @@ public:
   Connection(const Connection&) = delete;
   Connection& operator=(const Connection&) = delete;
 
+  friend class HttpRequestHandler;
+
   // Construct a connection with the given io_service.
   Connection(boost::asio::ip::tcp::socket socket,
              ConnectionManager& manager,
              HttpRequestHandler& handler);
 
-  // Start the first asynchronous operation for the connection.
   void Start();
 
-  // Stop all asynchronous operations associated with the connection.
   void Stop();
 
 private:
@@ -38,13 +38,11 @@ private:
 
   void DoWrite();
 
-  // Handle completion of a read operation.
   void HandleRead(boost::system::error_code ec,
-                  std::size_t bytes_transferred);
+                  std::size_t length);
 
-  // Handle completion of a write operation.
   void HandleWrite(boost::system::error_code ec,
-                   size_t bytes_transferred);
+                   std::size_t length);
 
 private:
   // Socket for the connection.
@@ -65,7 +63,7 @@ private:
   // The parser for the incoming request.
   HttpRequestParser request_parser_;
 
-  // The reply to be sent back to the client.
+  // The response to be sent back to the client.
   HttpResponse response_;
 };
 

@@ -1,5 +1,9 @@
 #include "csoap/connection.h"
+
 #include <vector>
+#if CSOAP_ENABLE_OUTPUT
+#include <iostream>
+#endif
 
 #include "boost/asio/write.hpp"
 
@@ -42,7 +46,7 @@ void Connection::DoWrite() {
 }
 
 void Connection::HandleRead(boost::system::error_code ec,
-                            std::size_t bytes_transferred) {
+                            std::size_t length) {
   if (ec) {
     if (ec != boost::asio::error::operation_aborted) {
       connection_manager_.Stop(shared_from_this());
@@ -50,7 +54,7 @@ void Connection::HandleRead(boost::system::error_code ec,
     return;
   }
 
-  Error error = request_parser_.Parse(buffer_.data(), bytes_transferred);
+  Error error = request_parser_.Parse(buffer_.data(), length);
 
   if (error != kNoError) {
     // Bad request.
@@ -65,16 +69,23 @@ void Connection::HandleRead(boost::system::error_code ec,
     return;
   }
 
-  // Handle request.
-  // TODO: Time consuming
-  request_handler_.HandleRequest(request_, &response_);
-
-  // Send back the response.
-  DoWrite();
+  // Enqueue this connection.
+  // Some worker thread will handle it later.
+  // And DoWrite() will be called in the worker thread.
+  request_handler_.Enqueue(shared_from_this());
 }
 
+// NOTE:
+// This write handler will be called from main thread (the thread calling
+// io_context.run), even though DoWrite() is invoked by worker threads. This is
+// ensured by Asio.
 void Connection::HandleWrite(boost::system::error_code ec,
-                             size_t bytes_transferred) {
+                             size_t length) {
+#if CSOAP_ENABLE_OUTPUT
+  boost::thread::id thread_id = boost::this_thread::get_id();
+  std::cout << "Response has been sent back (thread: " << thread_id << ")\n";
+#endif
+
   if (!ec) {
     // Initiate graceful connection closure.
     boost::system::error_code ignored_ec;
