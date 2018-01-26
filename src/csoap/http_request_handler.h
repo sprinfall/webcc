@@ -21,21 +21,18 @@ public:
   HttpRequestHandler(const HttpRequestHandler&) = delete;
   HttpRequestHandler& operator=(const HttpRequestHandler&) = delete;
 
-  HttpRequestHandler();
+  HttpRequestHandler() = default;
 
   bool RegisterService(SoapServicePtr soap_service);
-
-  // Handle a request and produce a response.
-#if 0
-  void HandleRequest(const HttpRequest& http_request,
-                     HttpResponse* http_response);
-#endif
 
   // Put the connection into the queue.
   void Enqueue(ConnectionPtr conn);
 
-  // Stop all worker threads.
-  void StopWorkers();
+  // Start worker threads.
+  void Start(std::size_t count);
+
+  // Close pending connections, stop worker threads.
+  void Stop();
 
 private:
   void WorkerRoutine();

@@ -16,8 +16,10 @@ int main(int argc, char* argv[]) {
 
   unsigned short port = std::atoi(argv[1]);
 
+  std::size_t workers = 2;
+
   try {
-    csoap::HttpServer server(port);
+    csoap::HttpServer server(port, workers);
 
     csoap::SoapServicePtr service(new CalculatorService);
     server.RegisterService(service);

@@ -12,7 +12,6 @@
 #include "boost/asio/ip/tcp.hpp"
 
 #include "csoap/connection.h"
-#include "csoap/connection_manager.h"
 #include "csoap/http_request_handler.h"
 
 namespace csoap {
@@ -24,7 +23,7 @@ public:
   HttpServer(const HttpServer&) = delete;
   HttpServer& operator=(const HttpServer&) = delete;
 
-  HttpServer(unsigned short port);
+  HttpServer(unsigned short port, std::size_t workers);
 
   bool RegisterService(SoapServicePtr soap_service);
 
@@ -39,6 +38,9 @@ private:
   void DoAwaitStop();
 
 private:
+  // The number of worker threads.
+  std::size_t workers_;
+
   // The io_context used to perform asynchronous operations.
   boost::asio::io_context io_context_;
 
@@ -47,9 +49,6 @@ private:
 
   // Acceptor used to listen for incoming connections.
   boost::scoped_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
-
-  // The connection manager which owns all live connections.
-  ConnectionManager connection_manager_;
 
   // The handler for all incoming requests.
   HttpRequestHandler request_handler_;

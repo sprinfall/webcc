@@ -1,7 +1,7 @@
 #include "csoap/http_request_handler.h"
 
 #include <sstream>
-#if CSOAP_ENABLE_OUTPUT
+#if CSOAP_DEBUG_OUTPUT
 #include <iostream>
 #endif
 
@@ -12,13 +12,6 @@
 #include "csoap/soap_response.h"
 
 namespace csoap {
-
-HttpRequestHandler::HttpRequestHandler() {
-  // Create worker threads.
-  for (std::size_t i = 0; i < 2; ++i) {
-    workers_.create_thread(std::bind(&HttpRequestHandler::WorkerRoutine, this));
-  }
-}
 
 bool HttpRequestHandler::RegisterService(SoapServicePtr soap_service) {
   assert(soap_service);
@@ -32,65 +25,63 @@ bool HttpRequestHandler::RegisterService(SoapServicePtr soap_service) {
   return true;
 }
 
-#if 0
-void HttpRequestHandler::HandleRequest(const HttpRequest& http_request,
-                                       HttpResponse* http_response) {
-  // Parse the SOAP request XML.
-  SoapRequest soap_request;
-  if (!soap_request.FromXml(http_request.content())) {
-    http_response->set_status(HttpStatus::BAD_REQUEST);
-    return;
-  }
-
-  SoapResponse soap_response;
-
-  // TODO: Get service by URL.
-
-  for (SoapServicePtr& service : soap_services_) {
-    service->Handle(soap_request, &soap_response);
-  }
-
-  std::string content;
-  soap_response.ToXml(&content);
-
-  http_response->set_status(HttpStatus::OK);
-  http_response->SetContentType(kTextXmlUtf8);
-  http_response->SetContentLength(content.length());
-  http_response->set_content(std::move(content));
-}
-#endif
-
 void HttpRequestHandler::Enqueue(ConnectionPtr conn) {
-  queue_.Put(conn);
+  queue_.Push(conn);
 }
 
-void HttpRequestHandler::StopWorkers() {
-#if CSOAP_ENABLE_OUTPUT
+void HttpRequestHandler::Start(std::size_t count) {
+  assert(count > 0 && workers_.size() == 0);
+
+  for (std::size_t i = 0; i < count; ++i) {
+#if CSOAP_DEBUG_OUTPUT
+    boost::thread* worker =
+#endif
+    workers_.create_thread(std::bind(&HttpRequestHandler::WorkerRoutine, this));
+
+#if CSOAP_DEBUG_OUTPUT
+    std::cout << "Worker is running (thread: " << worker->get_id() << ")\n";
+#endif
+  }
+}
+
+void HttpRequestHandler::Stop() {
+#if CSOAP_DEBUG_OUTPUT
   std::cout << "Stopping workers...\n";
 #endif
 
-  // Enqueue an null connection to trigger the first worker to stop.
-  queue_.Put(ConnectionPtr());
+  // Close pending connections.
+  for (ConnectionPtr conn = queue_.Pop(); conn; conn = queue_.Pop()) {
+#if CSOAP_DEBUG_OUTPUT
+    std::cout << "Closing pending connection...\n";
+#endif
+    conn->Stop();
+  }
+
+  // Enqueue a null connection to trigger the first worker to stop.
+  queue_.Push(ConnectionPtr());
 
   workers_.join_all();
 
-#if CSOAP_ENABLE_OUTPUT
-  std::cout << "Workers have been stopped.\n";
+#if CSOAP_DEBUG_OUTPUT
+  std::cout << "All workers have been stopped.\n";
 #endif
 }
 
-// TODO: How and when to exit?
 void HttpRequestHandler::WorkerRoutine() {
+#if CSOAP_DEBUG_OUTPUT
+  boost::thread::id thread_id = boost::this_thread::get_id();
+#endif
+
   for (;;) {
-    ConnectionPtr conn = queue_.Get();
+    ConnectionPtr conn = queue_.PopOrWait();
 
     if (!conn) {
-#if CSOAP_ENABLE_OUTPUT
-      boost::thread::id thread_id = boost::this_thread::get_id();
+#if CSOAP_DEBUG_OUTPUT
       std::cout << "Worker is going to stop (thread: " << thread_id << ")\n";
 #endif
       // For stopping next worker.
-      queue_.Put(ConnectionPtr());
+      queue_.Push(ConnectionPtr());
+
       // Stop the worker.
       break;
     }
@@ -99,7 +90,7 @@ void HttpRequestHandler::WorkerRoutine() {
     SoapRequest soap_request;
     if (!soap_request.FromXml(conn->request_.content())) {
       conn->response_.set_status(HttpStatus::BAD_REQUEST);
-      conn->DoWrite();  // TODO
+      conn->DoWrite();
       continue;
     }
 

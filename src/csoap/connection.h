@@ -13,7 +13,6 @@
 
 namespace csoap {
 
-class ConnectionManager;
 class HttpRequestHandler;
 
 // Represents a single connection from a client.
@@ -26,7 +25,6 @@ public:
 
   // Construct a connection with the given io_service.
   Connection(boost::asio::ip::tcp::socket socket,
-             ConnectionManager& manager,
              HttpRequestHandler& handler);
 
   void Start();
@@ -47,9 +45,6 @@ private:
 private:
   // Socket for the connection.
   boost::asio::ip::tcp::socket socket_;
-
-  // The manager for this connection.
-  ConnectionManager& connection_manager_;
 
   // The handler used to process the incoming request.
   HttpRequestHandler& request_handler_;

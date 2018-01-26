@@ -1,6 +1,6 @@
 #include "csoap/http_client.h"
 
-#if CSOAP_ENABLE_OUTPUT
+#if CSOAP_DEBUG_OUTPUT
 #include <iostream>
 #endif
 
@@ -82,7 +82,7 @@ Error HttpClient::SendRequest(const HttpRequest& request,
 
   // Send HTTP request.
 
-#if CSOAP_ENABLE_OUTPUT
+#if CSOAP_DEBUG_OUTPUT
   std::cout << "# REQUEST" << std::endl << request << std::endl;
 #endif
 
@@ -92,7 +92,7 @@ Error HttpClient::SendRequest(const HttpRequest& request,
     return kSocketWriteError;
   }
 
-#if CSOAP_ENABLE_OUTPUT
+#if CSOAP_DEBUG_OUTPUT
   std::cout << "# RESPONSE" << std::endl;
 #endif
 
@@ -114,7 +114,7 @@ Error HttpClient::SendRequest(const HttpRequest& request,
       }
     }
 
-#if CSOAP_ENABLE_OUTPUT
+#if CSOAP_DEBUG_OUTPUT
     // NOTE: the content XML might not be well formated.
     std::cout.write(buffer_.data(), length);
 #endif
@@ -129,7 +129,7 @@ Error HttpClient::SendRequest(const HttpRequest& request,
     }
   }
 
-#if CSOAP_ENABLE_OUTPUT
+#if CSOAP_DEBUG_OUTPUT
   std::cout << std::endl;
   std::cout << "# RESPONSE (PARSED)" << std::endl;
   std::cout << *response << std::endl;

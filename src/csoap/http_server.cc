@@ -2,7 +2,7 @@
 
 #include <signal.h>
 
-#if CSOAP_ENABLE_OUTPUT
+#if CSOAP_DEBUG_OUTPUT
 #include <iostream>
 #endif
 
@@ -13,9 +13,9 @@ using tcp = boost::asio::ip::tcp;
 
 namespace csoap {
 
-HttpServer::HttpServer(unsigned short port)
-    : io_context_(1)
-    , signals_(io_context_) {
+HttpServer::HttpServer(unsigned short port, std::size_t workers)
+    : signals_(io_context_)
+    , workers_(workers) {
 
   // Register to handle the signals that indicate when the server should exit.
   // It is safe to register for the same signal multiple times in a program,
@@ -47,10 +47,13 @@ bool HttpServer::RegisterService(SoapServicePtr soap_service) {
 }
 
 void HttpServer::Run() {
-#if CSOAP_ENABLE_OUTPUT
+#if CSOAP_DEBUG_OUTPUT
   boost::thread::id thread_id = boost::this_thread::get_id();
   std::cout << "Server main thread: " << thread_id << std::endl;
 #endif
+
+  // Start worker threads.
+  request_handler_.Start(workers_);
 
   // The io_context::run() call will block until all asynchronous operations
   // have finished. While the server is running, there is always at least one
@@ -69,10 +72,10 @@ void HttpServer::DoAccept() {
       }
 
       if (!ec) {
-        connection_manager_.Start(
-            std::make_shared<Connection>(std::move(socket),
-                                         connection_manager_,
-                                         request_handler_));
+        ConnectionPtr conn{
+          new Connection(std::move(socket), request_handler_)
+        };
+        conn->Start();
       }
 
       DoAccept();
@@ -86,8 +89,7 @@ void HttpServer::DoAwaitStop() {
     // operations. Once all operations have finished the io_context::run()
     // call will exit.
     acceptor_->close();
-    request_handler_.StopWorkers();
-    connection_manager_.StopAll();
+    request_handler_.Stop();
   });
 }
 

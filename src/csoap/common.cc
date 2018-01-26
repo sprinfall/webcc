@@ -82,6 +82,7 @@ Parameter::Parameter(const std::string& key, int value)
 
 Parameter::Parameter(const std::string& key, double value)
     : key_(key) {
+  // TODO
   char buf[32];
   sprintf(buf, "%f", value);
   value_ = buf;

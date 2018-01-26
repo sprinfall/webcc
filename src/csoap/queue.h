@@ -4,6 +4,7 @@
 // A general message queue.
 
 #include <list>
+#include <queue>
 
 #include "boost/thread/condition_variable.hpp"
 #include "boost/thread/locks.hpp"
@@ -19,18 +20,30 @@ public:
 
   Queue() = default;
 
-  T Get() {
+  T PopOrWait() {
     boost::unique_lock<boost::mutex> lock(mutex_);
 
     // Wait for a message.
-    not_empty_cv_.wait(lock, [=] { return !message_list_.empty(); });
+    not_empty_cv_.wait(lock, [this] { return !message_list_.empty(); });
 
     T message = message_list_.front();
     message_list_.pop_front();
     return message;
   }
 
-  void Put(const T& message) {
+  T Pop() {
+    boost::lock_guard<boost::mutex> lock(mutex_);
+
+    if (message_list_.empty()) {
+      return T();
+    }
+
+    T message = message_list_.front();
+    message_list_.pop_front();
+    return message;
+  }
+
+  void Push(const T& message) {
     {
       boost::lock_guard<boost::mutex> lock(mutex_);
       message_list_.push_back(message);
