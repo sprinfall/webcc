@@ -1,5 +1,5 @@
 #include <iostream>
-#include "csoap/soap_server.h"
+#include "webcc/soap_server.h"
 #include "calc_service.h"
 
 static void Help(const char* argv0) {
@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
   std::size_t workers = 2;
 
   try {
-    csoap::SoapServer server(port, workers);
+    webcc::SoapServer server(port, workers);
 
     server.RegisterService(std::make_shared<CalcService>(),
                            "/calculator");

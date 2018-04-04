@@ -22,7 +22,7 @@ bool CalcClient::Divide(double x, double y, double* result) {
   return Calc("divide", "numerator", "denominator", x, y, result);
 }
 
-// Set to 0 to test our own calculator server created with csoap.
+// Set to 0 to test our own calculator server created with webcc.
 #define ACCESS_PARASOFT 0
 
 void CalcClient::Init() {
@@ -48,19 +48,19 @@ bool CalcClient::Calc(const std::string& operation,
                       double y,
                       double* result) {
   // Prepare parameters.
-  std::vector<csoap::Parameter> parameters{
+  std::vector<webcc::Parameter> parameters{
     { x_name, x },
     { y_name, y }
   };
 
   // Make the call.
   std::string result_str;
-  csoap::Error error = Call(operation, std::move(parameters), &result_str);
+  webcc::Error error = Call(operation, std::move(parameters), &result_str);
 
   // Error handling if any.
-  if (error != csoap::kNoError) {
+  if (error != webcc::kNoError) {
     std::cerr << "Error: " << error;
-    std::cerr << ", " << csoap::GetErrorMessage(error) << std::endl;
+    std::cerr << ", " << webcc::GetErrorMessage(error) << std::endl;
     return false;
   }
 

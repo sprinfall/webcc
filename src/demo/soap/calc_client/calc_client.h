@@ -2,9 +2,9 @@
 #define CALC_CLIENT_H_
 
 #include <string>
-#include "csoap/soap_client.h"
+#include "webcc/soap_client.h"
 
-class CalcClient : public csoap::SoapClient {
+class CalcClient : public webcc::SoapClient {
 public:
   CalcClient();
 

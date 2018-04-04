@@ -2,11 +2,11 @@
 
 #include "boost/lexical_cast.hpp"
 
-#include "csoap/soap_request.h"
-#include "csoap/soap_response.h"
+#include "webcc/soap_request.h"
+#include "webcc/soap_response.h"
 
-bool CalcService::Handle(const csoap::SoapRequest& soap_request,
-                         csoap::SoapResponse* soap_response) {
+bool CalcService::Handle(const webcc::SoapRequest& soap_request,
+                         webcc::SoapResponse* soap_response) {
   try {
     if (soap_request.operation() == "add") {
       double x = boost::lexical_cast<double>(soap_request.GetParameter("x"));
@@ -14,7 +14,7 @@ bool CalcService::Handle(const csoap::SoapRequest& soap_request,
 
       double result = x + y;
 
-      soap_response->set_soapenv_ns(csoap::kSoapEnvNamespace);
+      soap_response->set_soapenv_ns(webcc::kSoapEnvNamespace);
       soap_response->set_service_ns({
         "cal",
         "http://www.example.com/calculator/"

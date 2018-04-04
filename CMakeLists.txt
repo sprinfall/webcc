@@ -1,14 +1,15 @@
 cmake_minimum_required(VERSION 3.0)
-project(csoap)
+project(webcc)
 
-option(CSOAP_ENABLE_SOAP "Enable SOAP support (need PugiXml)?" ON)
-option(CSOAP_ENABLE_UT "Enable unit test?" OFF)
+option(WEBCC_ENABLE_SOAP "Enable SOAP support (need PugiXml)?" ON)
+option(WEBCC_ENABLE_UT "Enable unit test?" ON)
+option(WEBCC_ENABLE_DEMO "Enable demo programs?" ON)
 
-if(CSOAP_ENABLE_SOAP)
-    add_definitions(-DCSOAP_ENABLE_SOAP)
+if(WEBCC_ENABLE_SOAP)
+    add_definitions(-DWEBCC_ENABLE_SOAP)
 endif()
 
-if(CSOAP_ENABLE_UT)
+if(WEBCC_ENABLE_UT)
     enable_testing()
 endif()
 

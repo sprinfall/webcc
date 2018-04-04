@@ -1,15 +1,15 @@
 #ifndef CALC_SERVICE_H_
 #define CALC_SERVICE_H_
 
-#include "csoap/soap_service.h"
+#include "webcc/soap_service.h"
 
-class CalcService : public csoap::SoapService {
+class CalcService : public webcc::SoapService {
 public:
   CalcService() = default;
   ~CalcService() override = default;
 
-  bool Handle(const csoap::SoapRequest& soap_request,
-              csoap::SoapResponse* soap_response) override;
+  bool Handle(const webcc::SoapRequest& soap_request,
+              webcc::SoapResponse* soap_response) override;
 };
 
 #endif  // CALC_SERVICE_H_
