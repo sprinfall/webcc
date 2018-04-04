@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+
 #include "csoap/common.h"
 
 namespace csoap {
@@ -30,8 +31,6 @@ protected:
   Namespace service_ns_;  // Namespace for your web service.
 
   // Request URL.
-  // Could be a complete URL (http://ws1.parasoft.com/glue/calculator)
-  // or just the path component of it (/glue/calculator).
   std::string url_;
 
   std::string host_;

@@ -32,10 +32,10 @@ public:
   std::vector<boost::asio::const_buffer> ToBuffers() const;
 
   // Get a fault response when HTTP status is not OK.
-  static HttpResponse Fault(HttpStatus status);
+  static HttpResponse Fault(HttpStatus::Enum status);
 
 private:
-  int status_ = HttpStatus::OK;  // TODO: HttpStatus
+  int status_ = HttpStatus::kOK;  // TODO: HttpStatus
 };
 
 }  // namespace csoap

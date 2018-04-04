@@ -1,6 +1,17 @@
 cmake_minimum_required(VERSION 3.0)
 project(csoap)
 
+option(CSOAP_ENABLE_SOAP "Enable SOAP support (need PugiXml)?" ON)
+option(CSOAP_ENABLE_UT "Enable unit test?" OFF)
+
+if(CSOAP_ENABLE_SOAP)
+    add_definitions(-DCSOAP_ENABLE_SOAP)
+endif()
+
+if(CSOAP_ENABLE_UT)
+    enable_testing()
+endif()
+
 # See: https://stackoverflow.com/a/40217291
 if(WIN32)
 	macro(get_WIN32_WINNT version)
@@ -27,6 +38,24 @@ if(WIN32)
     # Asio needs this!
 	add_definitions(-D_WIN32_WINNT=${ver})
 endif(WIN32)
+
+# Group sources by dir.
+# Usage: source_group_by_dir(SRCS)
+macro(GROUP_SOURCES_BY_DIR source_files)
+    set(sgbd_cur_dir ${CMAKE_CURRENT_BINARY_DIR})
+    foreach(sgbd_file ${${source_files}})
+        #message("sgbd_fpath=${sgbd_fpath}")
+        string(REGEX REPLACE ${sgbd_cur_dir}/\(.*\) \\1 sgbd_fpath ${sgbd_file})
+        string(REGEX REPLACE "\(.*\)/.*" \\1 sgbd_group_name ${sgbd_fpath})
+        string(COMPARE EQUAL ${sgbd_fpath} ${sgbd_group_name} sgbd_nogroup)
+        string(REPLACE "/" "\\" sgbd_group_name ${sgbd_group_name})
+        if(sgbd_nogroup)
+            set(sgbd_group_name "\\")
+        endif()
+        #message("group name=${sgbd_group_name}")
+        source_group(${sgbd_group_name} FILES ${sgbd_file})
+    endforeach()
+endmacro()
 
 # Boost version: 1.66+
 set(Boost_USE_STATIC_LIBS ON)

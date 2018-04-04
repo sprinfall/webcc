@@ -9,7 +9,6 @@ HttpResponseParser::HttpResponseParser(HttpResponse* response)
     , response_(response) {
 }
 
-// TODO: Use split.
 Error HttpResponseParser::ParseStartLine(const std::string& line) {
   response_->set_start_line(line + "\r\n");
 
@@ -40,7 +39,7 @@ Error HttpResponseParser::ParseStartLine(const std::string& line) {
 
   off = pos + 1;  // Skip space.
 
-  if (response_->status() != HttpStatus::OK) {
+  if (response_->status() != HttpStatus::kOK) {
     return kHttpStatusError;
   }
 

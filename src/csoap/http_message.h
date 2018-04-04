@@ -16,6 +16,11 @@ public:
 // Base class for HTTP request and response messages.
 class HttpMessage {
 public:
+  HttpMessage() = default;
+  HttpMessage(const HttpMessage&) = default;
+  HttpMessage& operator=(const HttpMessage&) = default;
+  virtual ~HttpMessage() = default;
+
   const std::string& start_line() const {
     return start_line_;
   }
@@ -66,14 +71,10 @@ public:
   }
 
 protected:
-  HttpMessage() {
-  }
-
-protected:
   // Start line with trailing "\r\n".
   std::string start_line_;
 
-  size_t content_length_ = kInvalidLength;
+  std::size_t content_length_ = kInvalidLength;
 
   std::vector<HttpHeader> headers_;
 

@@ -1,7 +1,5 @@
 #include "csoap/common.h"
 
-#include "boost/lexical_cast.hpp"
-
 namespace csoap {
 
 // NOTE:
@@ -9,7 +7,7 @@ namespace csoap {
 // See: https://stackoverflow.com/a/5259004
 const std::string kContentType = "Content-Type";
 const std::string kContentLength = "Content-Length";
-const std::string kSOAPAction = "SOAPAction";
+const std::string kSoapAction = "SOAPAction";
 const std::string kHost = "Host";
 
 // According to www.w3.org when placing SOAP messages in HTTP bodies, the HTTP
@@ -17,6 +15,8 @@ const std::string kHost = "Host";
 // But in practice, many web servers cannot understand it.
 // See: https://www.w3.org/TR/2007/REC-soap12-part0-20070427/#L26854
 const std::string kTextXmlUtf8 = "text/xml; charset=utf-8";
+
+const std::string kTextJsonUtf8 = "text/json; charset=utf-8";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -77,15 +77,12 @@ Parameter::Parameter(const std::string& key, std::string&& value)
 
 Parameter::Parameter(const std::string& key, int value)
     : key_(key) {
-  value_ = boost::lexical_cast<std::string>(value);
+  value_ = std::to_string(value);
 }
 
 Parameter::Parameter(const std::string& key, double value)
     : key_(key) {
-  // TODO
-  char buf[32];
-  sprintf(buf, "%f", value);
-  value_ = buf;
+  value_ = std::to_string(value);
 }
 
 Parameter::Parameter(const std::string& key, bool value)

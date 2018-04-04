@@ -11,15 +11,18 @@ namespace csoap {
 ////////////////////////////////////////////////////////////////////////////////
 
 // Buffer size for sending HTTP request and receiving HTTP response.
-const std::size_t BUF_SIZE = 1024;
-const std::size_t kInvalidLength = std::string::npos;
+// TODO: Configurable for client and server separately.
+const std::size_t kBufferSize = 1024;
+
+const std::size_t kInvalidLength = static_cast<std::size_t>(-1);
 
 extern const std::string kContentType;
 extern const std::string kContentLength;
-extern const std::string kSOAPAction;
+extern const std::string kSoapAction;
 extern const std::string kHost;
 
 extern const std::string kTextXmlUtf8;
+extern const std::string kTextJsonUtf8;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -52,20 +55,49 @@ const char* GetErrorMessage(Error error);
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// HTTP methods (verbs).
+// NOTE: Don't use enum to avoid converting back and forth.
+const std::string kHttpHead = "HEAD";
+const std::string kHttpGet = "GET";
+const std::string kHttpPost = "POST";
+const std::string kHttpPatch = "PATCH";
+const std::string kHttpPut = "PUT";
+const std::string kHttpDelete = "DELETE";
+
+//enum class HttpMethod : int {
+//  kUnknown,
+//  kHead,
+//  kGet,
+//  kPost,
+//  kPatch,
+//  kPut,
+//  kDelete,
+//};
+
 // HTTP response status.
-// NOTE: Only support the listed status codes.
-enum HttpStatus {
-  OK = 200,
-  BAD_REQUEST = 400,
-  INTERNAL_SERVER_ERROR = 500,
-  NOT_IMPLEMENTED = 501,
-  SERVICE_UNAVAILABLE = 503,
+// This is not a full list.
+// Full list: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+// NTOE: Don't use enum class because we want to convert to/from int easily.
+struct HttpStatus {
+  enum Enum {
+    kOK = 200,
+    kCreated = 201,
+    kAccepted = 202,
+    kNoContent = 204,
+    kNotModified = 304,
+    kBadRequest = 400,
+    kNotFound = 404,
+    InternalServerError = 500,
+    kNotImplemented = 501,
+    kServiceUnavailable = 503,
+  };
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
 // XML namespace name/url pair.
 // E.g., { "soap", "http://schemas.xmlsoap.org/soap/envelope/" }
+// TODO: Rename (add soap prefix)
 class Namespace {
 public:
   std::string name;
@@ -82,6 +114,7 @@ extern const Namespace kSoapEnvNamespace;
 ////////////////////////////////////////////////////////////////////////////////
 
 // Parameter in the SOAP request envelope.
+// TODO: Rename (add soap prefix)
 class Parameter {
 public:
   Parameter() = default;
@@ -95,9 +128,10 @@ public:
   Parameter(const std::string& key, double value);
   Parameter(const std::string& key, bool value);
 
-  // Move constructor.
+  // Use "= default" if drop the support of VS 2013.
   Parameter(Parameter&& rhs);
 
+  // Use "= default" if drop the support of VS 2013.
   Parameter& operator=(Parameter&& rhs);
 
   const std::string& key() const {

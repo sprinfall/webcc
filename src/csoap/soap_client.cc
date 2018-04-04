@@ -37,12 +37,15 @@ Error SoapClient::Call(const std::string& operation,
 
   HttpRequest http_request;
 
-  http_request.SetURL(url_);
+  http_request.set_method(kHttpPost);
+  http_request.set_url(url_);
   http_request.SetContentType(kTextXmlUtf8);
   http_request.SetContentLength(http_content.size());
   http_request.SetHost(host_, port_);
-  http_request.SetHeader(kSOAPAction, operation);
+  http_request.SetHeader(kSoapAction, operation);
   http_request.set_content(std::move(http_content));
+
+  http_request.MakeStartLine();
 
   HttpResponse http_response;
 

@@ -6,7 +6,7 @@
 
 #include "boost/thread/thread.hpp"
 
-#include "csoap/connection.h"
+#include "csoap/http_session.h"
 #include "csoap/queue.h"
 #include "csoap/soap_service.h"
 
@@ -23,24 +23,26 @@ public:
 
   HttpRequestHandler() = default;
 
-  bool RegisterService(SoapServicePtr soap_service);
+  virtual ~HttpRequestHandler() {
+  }
 
-  // Put the connection into the queue.
-  void Enqueue(ConnectionPtr conn);
+  // Put the session into the queue.
+  void Enqueue(HttpSessionPtr session);
 
   // Start worker threads.
   void Start(std::size_t count);
 
-  // Close pending connections, stop worker threads.
+  // Close pending sessions and stop worker threads.
   void Stop();
 
 private:
   void WorkerRoutine();
 
-private:
-  std::vector<SoapServicePtr> soap_services_;
+  // Called by the worker routine.
+  virtual HttpStatus::Enum HandleSession(HttpSessionPtr session) = 0;
 
-  Queue<ConnectionPtr> queue_;
+private:
+  Queue<HttpSessionPtr> queue_;
   boost::thread_group workers_;
 };
 

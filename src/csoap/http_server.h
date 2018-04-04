@@ -11,10 +11,11 @@
 #include "boost/asio/signal_set.hpp"
 #include "boost/asio/ip/tcp.hpp"
 
-#include "csoap/connection.h"
-#include "csoap/http_request_handler.h"
+#include "csoap/http_session.h"
 
 namespace csoap {
+
+class HttpRequestHandler;
 
 // HTTP server accepts TCP connections from TCP clients.
 // NOTE: Only support IPv4.
@@ -25,7 +26,7 @@ public:
 
   HttpServer(unsigned short port, std::size_t workers);
 
-  bool RegisterService(SoapServicePtr soap_service);
+  virtual ~HttpServer();
 
   // Run the server's io_service loop.
   void Run();
@@ -36,6 +37,11 @@ private:
 
   // Wait for a request to stop the server.
   void DoAwaitStop();
+
+protected:
+  // The handler for all incoming requests.
+  // TODO: Replace with virtual GetRequestHandler()?
+  HttpRequestHandler* request_handler_;
 
 private:
   // The number of worker threads.
@@ -49,9 +55,6 @@ private:
 
   // Acceptor used to listen for incoming connections.
   boost::scoped_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
-
-  // The handler for all incoming requests.
-  HttpRequestHandler request_handler_;
 };
 
 }  // namespace csoap

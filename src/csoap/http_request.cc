@@ -18,14 +18,6 @@ std::ostream& operator<<(std::ostream& os, const HttpRequest& request) {
   return os;
 }
 
-void HttpRequest::SetURL(const std::string& url) {
-  url_ = url;
-
-  start_line_ = "POST ";
-  start_line_ += url_;
-  start_line_ += " HTTP/1.1\r\n";
-}
-
 void HttpRequest::SetHost(const std::string& host, const std::string& port) {
   host_ = host;
   port_ = port;
@@ -34,6 +26,15 @@ void HttpRequest::SetHost(const std::string& host, const std::string& port) {
     SetHeader(kHost, host);
   } else {
     SetHeader(kHost, host + ":" + port);
+  }
+}
+
+void HttpRequest::MakeStartLine() {
+  if (start_line_.empty()) {
+    start_line_ = method_;
+    start_line_ += " ";
+    start_line_ += url_;
+    start_line_ += " HTTP/1.1\r\n";
   }
 }
 
@@ -46,6 +47,7 @@ const char CRLF[] = { '\r', '\n' };
 
 // ATTENTION: The buffers don't hold the memory!
 std::vector<boost::asio::const_buffer> HttpRequest::ToBuffers() const {
+  assert(!start_line_.empty());
   assert(IsContentLengthValid());
 
   std::vector<boost::asio::const_buffer> buffers;

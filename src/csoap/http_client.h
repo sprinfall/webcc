@@ -27,7 +27,7 @@ public:
 
 private:
   boost::asio::io_context io_context_;
-  std::array<char, BUF_SIZE> buffer_;
+  std::array<char, kBufferSize> buffer_;
   int timeout_seconds_;
 };
 

@@ -1,6 +1,7 @@
 #include "csoap/http_request_handler.h"
 
 #include <sstream>
+
 #if CSOAP_DEBUG_OUTPUT
 #include <iostream>
 #endif
@@ -8,25 +9,11 @@
 #include "csoap/common.h"
 #include "csoap/http_request.h"
 #include "csoap/http_response.h"
-#include "csoap/soap_request.h"
-#include "csoap/soap_response.h"
 
 namespace csoap {
 
-bool HttpRequestHandler::RegisterService(SoapServicePtr soap_service) {
-  assert(soap_service);
-
-  if (std::find(soap_services_.begin(), soap_services_.end(), soap_service) !=
-      soap_services_.end()) {
-    return false;
-  }
-
-  soap_services_.push_back(soap_service);
-  return true;
-}
-
-void HttpRequestHandler::Enqueue(ConnectionPtr conn) {
-  queue_.Push(conn);
+void HttpRequestHandler::Enqueue(HttpSessionPtr session) {
+  queue_.Push(session);
 }
 
 void HttpRequestHandler::Start(std::size_t count) {
@@ -49,16 +36,16 @@ void HttpRequestHandler::Stop() {
   std::cout << "Stopping workers...\n";
 #endif
 
-  // Close pending connections.
-  for (ConnectionPtr conn = queue_.Pop(); conn; conn = queue_.Pop()) {
+  // Close pending sessions.
+  for (HttpSessionPtr conn = queue_.Pop(); conn; conn = queue_.Pop()) {
 #if CSOAP_DEBUG_OUTPUT
-    std::cout << "Closing pending connection...\n";
+    std::cout << "Closing pending session...\n";
 #endif
     conn->Stop();
   }
 
-  // Enqueue a null connection to trigger the first worker to stop.
-  queue_.Push(ConnectionPtr());
+  // Enqueue a null session to trigger the first worker to stop.
+  queue_.Push(HttpSessionPtr());
 
   workers_.join_all();
 
@@ -73,43 +60,20 @@ void HttpRequestHandler::WorkerRoutine() {
 #endif
 
   for (;;) {
-    ConnectionPtr conn = queue_.PopOrWait();
+    HttpSessionPtr session = queue_.PopOrWait();
 
-    if (!conn) {
+    if (!session) {
 #if CSOAP_DEBUG_OUTPUT
       std::cout << "Worker is going to stop (thread: " << thread_id << ")\n";
 #endif
       // For stopping next worker.
-      queue_.Push(ConnectionPtr());
+      queue_.Push(HttpSessionPtr());
 
       // Stop the worker.
       break;
     }
 
-    // Parse the SOAP request XML.
-    SoapRequest soap_request;
-    if (!soap_request.FromXml(conn->request_.content())) {
-      conn->response_.set_status(HttpStatus::BAD_REQUEST);
-      conn->DoWrite();
-      continue;
-    }
-
-    SoapResponse soap_response;
-     
-    // TODO: Get service by URL.
-    for (SoapServicePtr& service : soap_services_) {
-      service->Handle(soap_request, &soap_response);
-    }
-
-    std::string content;
-    soap_response.ToXml(&content);
-
-    conn->response_.set_status(HttpStatus::OK);
-    conn->response_.SetContentType(kTextXmlUtf8);
-    conn->response_.SetContentLength(content.length());
-    conn->response_.set_content(std::move(content));
-
-    conn->DoWrite();
+    HandleSession(session);
   }
 }
 

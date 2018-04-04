@@ -6,6 +6,7 @@
 #include <iostream>
 #endif
 
+#include "csoap/http_request_handler.h"
 #include "csoap/soap_service.h"
 #include "csoap/utility.h"
 
@@ -42,18 +43,19 @@ HttpServer::HttpServer(unsigned short port, std::size_t workers)
   DoAccept();
 }
 
-bool HttpServer::RegisterService(SoapServicePtr soap_service) {
-  return request_handler_.RegisterService(soap_service);
+HttpServer::~HttpServer() {
 }
 
 void HttpServer::Run() {
+  assert(request_handler_ != NULL);
+
 #if CSOAP_DEBUG_OUTPUT
   boost::thread::id thread_id = boost::this_thread::get_id();
   std::cout << "Server main thread: " << thread_id << std::endl;
 #endif
 
   // Start worker threads.
-  request_handler_.Start(workers_);
+  request_handler_->Start(workers_);
 
   // The io_context::run() call will block until all asynchronous operations
   // have finished. While the server is running, there is always at least one
@@ -64,33 +66,33 @@ void HttpServer::Run() {
 
 void HttpServer::DoAccept() {
   acceptor_->async_accept(
-    [this](boost::system::error_code ec, tcp::socket socket) {
-      // Check whether the server was stopped by a signal before this
-      // completion handler had a chance to run.
-      if (!acceptor_->is_open()) {
-        return;
-      }
+      [this](boost::system::error_code ec, tcp::socket socket) {
+        // Check whether the server was stopped by a signal before this
+        // completion handler had a chance to run.
+        if (!acceptor_->is_open()) {
+          return;
+        }
 
-      if (!ec) {
-        ConnectionPtr conn{
-          new Connection(std::move(socket), request_handler_)
-        };
-        conn->Start();
-      }
+        if (!ec) {
+          HttpSessionPtr conn{
+            new HttpSession(std::move(socket), request_handler_)
+          };
+          conn->Start();
+        }
 
-      DoAccept();
-    });
+        DoAccept();
+      });
 }
 
 void HttpServer::DoAwaitStop() {
   signals_.async_wait(
-    [this](boost::system::error_code /*ec*/, int /*signo*/) {
-    // The server is stopped by canceling all outstanding asynchronous
-    // operations. Once all operations have finished the io_context::run()
-    // call will exit.
-    acceptor_->close();
-    request_handler_.Stop();
-  });
+      [this](boost::system::error_code, int /*signo*/) {
+        // The server is stopped by canceling all outstanding asynchronous
+        // operations. Once all operations have finished the io_context::run()
+        // call will exit.
+        acceptor_->close();
+        request_handler_->Stop();
+      });
 }
 
 }  // namespace csoap
