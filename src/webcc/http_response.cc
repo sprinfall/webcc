@@ -1,8 +1,5 @@
 #include "webcc/http_response.h"
 
-#include "webcc/common.h"
-#include "webcc/xml.h"
-
 namespace webcc {
 
 std::ostream& operator<<(std::ostream& os, const HttpResponse& response) {
@@ -12,12 +9,8 @@ std::ostream& operator<<(std::ostream& os, const HttpResponse& response) {
     os << h.name << ": " << h.value << std::endl;
   }
 
-  os << std::endl;
-
-  // Pretty print the SOAP response XML.
-  if (!xml::PrettyPrintXml(os, response.content())) {
-    os << response.content();
-  }
+  os << std::endl << std::endl;
+  os << response.content();
 
   return os;
 }

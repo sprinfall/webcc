@@ -1,7 +1,7 @@
 #include "webcc/soap_message.h"
 
 #include <cassert>
-#include "webcc/xml.h"
+#include "webcc/soap_xml.h"
 
 namespace webcc {
 
@@ -18,15 +18,15 @@ void SoapMessage::ToXml(std::string* xml_string) {
   //   pugi::xml_node xdecl = xdoc.prepend_child(pugi::node_declaration);
   //   xdecl.append_attribute("version").set_value("1.0");
 
-  pugi::xml_node xroot = xml::AddChild(xdoc, soapenv_ns_.name, "Envelope");
+  pugi::xml_node xroot = soap_xml::AddChild(xdoc, soapenv_ns_.name, "Envelope");
 
-  xml::AddNSAttr(xroot, soapenv_ns_.name, soapenv_ns_.url);
+  soap_xml::AddNSAttr(xroot, soapenv_ns_.name, soapenv_ns_.url);
 
-  pugi::xml_node xbody = xml::AddChild(xroot, soapenv_ns_.name, "Body");
+  pugi::xml_node xbody = soap_xml::AddChild(xroot, soapenv_ns_.name, "Body");
 
   ToXmlBody(xbody);
 
-  xml::XmlStrRefWriter writer(xml_string);
+  soap_xml::XmlStrRefWriter writer(xml_string);
   xdoc.save(writer, "\t", pugi::format_default, pugi::encoding_utf8);
 }
 
@@ -40,10 +40,10 @@ bool SoapMessage::FromXml(const std::string& xml_string) {
 
   pugi::xml_node xroot = xdoc.document_element();
 
-  soapenv_ns_.name = xml::GetPrefix(xroot);
-  soapenv_ns_.url = xml::GetNSAttr(xroot, soapenv_ns_.name);
+  soapenv_ns_.name = soap_xml::GetPrefix(xroot);
+  soapenv_ns_.url = soap_xml::GetNSAttr(xroot, soapenv_ns_.name);
 
-  pugi::xml_node xbody = xml::GetChild(xroot, soapenv_ns_.name, "Body");
+  pugi::xml_node xbody = soap_xml::GetChild(xroot, soapenv_ns_.name, "Body");
   if (xbody) {
     return FromXmlBody(xbody);
   }

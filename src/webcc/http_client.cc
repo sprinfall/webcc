@@ -83,7 +83,7 @@ Error HttpClient::SendRequest(const HttpRequest& request,
   // Send HTTP request.
 
 #if WEBCC_DEBUG_OUTPUT
-  std::cout << "# REQUEST" << std::endl << request << std::endl;
+  std::cout << "--- REQUEST ---" << std::endl << request << std::endl;
 #endif
 
   try {
@@ -93,7 +93,7 @@ Error HttpClient::SendRequest(const HttpRequest& request,
   }
 
 #if WEBCC_DEBUG_OUTPUT
-  std::cout << "# RESPONSE" << std::endl;
+  std::cout << "--- RESPONSE ---" << std::endl;
 #endif
 
   // Read and parse HTTP response.
@@ -131,7 +131,7 @@ Error HttpClient::SendRequest(const HttpRequest& request,
 
 #if WEBCC_DEBUG_OUTPUT
   std::cout << std::endl;
-  std::cout << "# RESPONSE (PARSED)" << std::endl;
+  std::cout << "--- RESPONSE (PARSED) ---" << std::endl;
   std::cout << *response << std::endl;
 #endif
 

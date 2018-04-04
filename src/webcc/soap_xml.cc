@@ -1,7 +1,7 @@
-#include "webcc/xml.h"
+#include "webcc/soap_xml.h"
 
 namespace webcc {
-namespace xml {
+namespace soap_xml {
 
 void SplitName(const pugi::xml_node& xnode,
                std::string* prefix,
@@ -92,9 +92,9 @@ std::string GetNSAttr(pugi::xml_node& xnode,
   return xnode.attribute(attr_name.c_str()).as_string();
 }
 
-bool PrettyPrintXml(std::ostream& os,
-                    const std::string& xml_string,
-                    const char* indent) {
+bool PrettyPrint(std::ostream& os,
+                 const std::string& xml_string,
+                 const char* indent) {
   pugi::xml_document xdoc;
   if (!xdoc.load_string(xml_string.c_str())) {
     os << "Invalid XML" << std::endl;
@@ -105,5 +105,5 @@ bool PrettyPrintXml(std::ostream& os,
   return true;
 }
 
-}  // namespace xml
+}  // namespace soap_xml
 }  // namespace webcc

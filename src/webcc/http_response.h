@@ -22,6 +22,7 @@ public:
   int status() const {
     return status_;
   }
+
   void set_status(int status) {
     status_ = status;
   }
@@ -35,7 +36,7 @@ public:
   static HttpResponse Fault(HttpStatus::Enum status);
 
 private:
-  int status_ = HttpStatus::kOK;  // TODO: HttpStatus
+  int status_ = HttpStatus::kOK;
 };
 
 }  // namespace webcc

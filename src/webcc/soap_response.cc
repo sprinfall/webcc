@@ -1,16 +1,19 @@
 #include "webcc/soap_response.h"
 
 #include <cassert>
-#include "webcc/xml.h"
+#include "webcc/soap_xml.h"
 
 namespace webcc {
 
 void SoapResponse::ToXmlBody(pugi::xml_node xbody) {
-  std::string rsp_operation = operation_ + "Response";
-  pugi::xml_node xop = xml::AddChild(xbody, service_ns_.name, rsp_operation);
-  xml::AddNSAttr(xop, service_ns_.name, service_ns_.url);
+  pugi::xml_node xop = soap_xml::AddChild(xbody,
+                                          service_ns_.name,
+                                          operation_ + "Response");
+  soap_xml::AddNSAttr(xop, service_ns_.name, service_ns_.url);
 
-  pugi::xml_node xresult = xml::AddChild(xop, service_ns_.name, result_name_);
+  pugi::xml_node xresult = soap_xml::AddChild(xop,
+                                              service_ns_.name,
+                                              result_name_);
   xresult.text().set(result_.c_str());
 }
 
@@ -19,10 +22,10 @@ bool SoapResponse::FromXmlBody(pugi::xml_node xbody) {
 
   pugi::xml_node xresponse = xbody.first_child();
   if (xresponse) {
-    xml::SplitName(xresponse, &service_ns_.name, NULL);
-    service_ns_.url = xml::GetNSAttr(xresponse, service_ns_.name);
+    soap_xml::SplitName(xresponse, &service_ns_.name, NULL);
+    service_ns_.url = soap_xml::GetNSAttr(xresponse, service_ns_.name);
 
-    pugi::xml_node xresult = xml::GetChildNoNS(xresponse, result_name_);
+    pugi::xml_node xresult = soap_xml::GetChildNoNS(xresponse, result_name_);
     if (xresult) {
       result_ = xresult.text().get();
       return true;

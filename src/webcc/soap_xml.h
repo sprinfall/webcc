@@ -1,5 +1,5 @@
-#ifndef WEBCC_XML_H_
-#define WEBCC_XML_H_
+#ifndef WEBCC_SOAP_XML_H_
+#define WEBCC_SOAP_XML_H_
 
 // XML utilities.
 
@@ -7,7 +7,7 @@
 #include "pugixml/pugixml.hpp"
 
 namespace webcc {
-namespace xml {
+namespace soap_xml {
 
 // Split the node name into namespace prefix and real name.
 // E.g., if the node name is "soapenv:Envelope", it will be splited to
@@ -81,11 +81,12 @@ private:
   std::string* result_;
 };
 
-bool PrettyPrintXml(std::ostream& os,
-                    const std::string& xml_string,
-                    const char* indent = "\t");
+// Print the XML string to output stream in pretty format.
+bool PrettyPrint(std::ostream& os,
+                 const std::string& xml_string,
+                 const char* indent = "\t");
 
-}  // namespace xml
+}  // namespace soap_xml
 }  // namespace webcc
 
-#endif  // WEBCC_XML_H_
+#endif  // WEBCC_SOAP_XML_H_

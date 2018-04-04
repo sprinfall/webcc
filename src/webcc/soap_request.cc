@@ -1,5 +1,5 @@
 #include "webcc/soap_request.h"
-#include "webcc/xml.h"
+#include "webcc/soap_xml.h"
 
 namespace webcc {
 
@@ -23,11 +23,11 @@ const std::string& SoapRequest::GetParameter(const std::string& key) const {
 }
 
 void SoapRequest::ToXmlBody(pugi::xml_node xbody) {
-  pugi::xml_node xop = xml::AddChild(xbody, service_ns_.name, operation_);
-  xml::AddNSAttr(xop, service_ns_.name, service_ns_.url);
+  pugi::xml_node xop = soap_xml::AddChild(xbody, service_ns_.name, operation_);
+  soap_xml::AddNSAttr(xop, service_ns_.name, service_ns_.url);
 
   for (Parameter& p : parameters_) {
-    pugi::xml_node xparam = xml::AddChild(xop, service_ns_.name, p.key());
+    pugi::xml_node xparam = soap_xml::AddChild(xop, service_ns_.name, p.key());
     xparam.text().set(p.value().c_str());
   }
 }
@@ -38,13 +38,13 @@ bool SoapRequest::FromXmlBody(pugi::xml_node xbody) {
     return false;
   }
 
-  xml::SplitName(xoperation, &service_ns_.name, &operation_);
-  service_ns_.url = xml::GetNSAttr(xoperation, service_ns_.name);
+  soap_xml::SplitName(xoperation, &service_ns_.name, &operation_);
+  service_ns_.url = soap_xml::GetNSAttr(xoperation, service_ns_.name);
 
   pugi::xml_node xparameter = xoperation.first_child();
   while (xparameter) {
     parameters_.push_back({
-      xml::GetNameNoPrefix(xparameter),
+      soap_xml::GetNameNoPrefix(xparameter),
       std::string(xparameter.text().as_string())
     });
 
