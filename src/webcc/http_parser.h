@@ -17,7 +17,7 @@ public:
     return finished_;
   }
 
-  Error Parse(const char* data, size_t len);
+  Error Parse(const char* data, std::size_t len);
 
 protected:
   // Parse HTTP start line.
@@ -36,6 +36,7 @@ protected:
 
   // Parsing helper flags.
   bool start_line_parsed_;
+  bool content_length_parsed_;
   bool header_parsed_;
   bool finished_;
 };

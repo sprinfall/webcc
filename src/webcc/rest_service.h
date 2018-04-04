@@ -1,8 +1,9 @@
 #ifndef WEBCC_REST_SERVICE_H_
 #define WEBCC_REST_SERVICE_H_
 
-#include <string>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "webcc/common.h"
 
@@ -18,8 +19,9 @@ public:
   // Both the request and response parameters should be JSON.
   // TODO: Query parameters.
   virtual bool Handle(const std::string& http_method,
-                      const std::string& request,
-                      std::string* response) = 0;
+                      const std::vector<std::string>& url_sub_matches,
+                      const std::string& request_content,
+                      std::string* response_content) = 0;
 };
 
 typedef std::shared_ptr<RestService> RestServicePtr;

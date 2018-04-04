@@ -29,7 +29,7 @@ void HttpRequest::SetHost(const std::string& host, const std::string& port) {
   }
 }
 
-void HttpRequest::MakeStartLine() {
+void HttpRequest::Build() {
   if (start_line_.empty()) {
     start_line_ = method_;
     start_line_ += " ";
@@ -48,7 +48,6 @@ const char CRLF[] = { '\r', '\n' };
 // ATTENTION: The buffers don't hold the memory!
 std::vector<boost::asio::const_buffer> HttpRequest::ToBuffers() const {
   assert(!start_line_.empty());
-  assert(IsContentLengthValid());
 
   std::vector<boost::asio::const_buffer> buffers;
 
@@ -63,7 +62,9 @@ std::vector<boost::asio::const_buffer> HttpRequest::ToBuffers() const {
 
   buffers.push_back(boost::asio::buffer(misc_strings::CRLF));
 
-  buffers.push_back(boost::asio::buffer(content_));
+  if (content_length_ > 0) {
+    buffers.push_back(boost::asio::buffer(content_));
+  }
 
   return buffers;
 }

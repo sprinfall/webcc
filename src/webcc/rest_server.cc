@@ -87,6 +87,7 @@ HttpStatus::Enum RestRequestHandler::HandleSession(HttpSessionPtr session) {
   // TODO: Error handling.
   std::string content;
   service->Handle(session->request().method(),
+                  sub_matches,
                   session->request().content(),
                   &content);
 

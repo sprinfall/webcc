@@ -10,11 +10,12 @@ namespace webcc {
 HttpParser::HttpParser(HttpMessage* message)
     : message_(message)
     , start_line_parsed_(false)
+    , content_length_parsed_(false)
     , header_parsed_(false)
     , finished_(false) {
 }
 
-Error HttpParser::Parse(const char* data, size_t len) {
+Error HttpParser::Parse(const char* data, std::size_t len) {
   if (header_parsed_) {
     // Add the data to the content.
     message_->AppendContent(data, len);
@@ -28,10 +29,10 @@ Error HttpParser::Parse(const char* data, size_t len) {
   }
 
   pending_data_.append(data, len);
-  size_t off = 0;
+  std::size_t off = 0;
 
   while (true) {
-    size_t pos = pending_data_.find("\r\n", off);
+    std::size_t pos = pending_data_.find("\r\n", off);
     if (pos == std::string::npos) {
       break;
     }
@@ -52,8 +53,8 @@ Error HttpParser::Parse(const char* data, size_t len) {
       }
     } else {
       // Currently, only Content-Length is important to us.
-      // Other fields are ignored.
-      if (!message_->IsContentLengthValid()) {
+      // Other header fields are ignored.
+      if (!content_length_parsed_) {
         ParseContentLength(line);
       }
     }
@@ -64,9 +65,16 @@ Error HttpParser::Parse(const char* data, size_t len) {
   if (header_parsed_) {
     // Headers just ended.
 
-    if (!message_->IsContentLengthValid()) {
-      // No Content-Length?
-      return kHttpContentLengthError;
+    if (!content_length_parsed_) {
+      // No Content-Length, no content.
+      message_->SetContentLength(0);
+      finished_ = true;
+      return kNoError;
+    } else {
+      // Invalid Content-Length in the request. 
+      if (!message_->IsContentLengthValid()) {
+        return kHttpContentLengthError;
+      }
     }
 
     message_->AppendContent(pending_data_.substr(off));
@@ -84,7 +92,7 @@ Error HttpParser::Parse(const char* data, size_t len) {
 }
 
 void HttpParser::ParseContentLength(const std::string& line) {
-  size_t pos = line.find(':');
+  std::size_t pos = line.find(':');
   if (pos == std::string::npos) {
     return;
   }
@@ -92,6 +100,8 @@ void HttpParser::ParseContentLength(const std::string& line) {
   std::string name = line.substr(0, pos);
 
   if (boost::iequals(name, kContentLength)) {
+    content_length_parsed_ = true;
+
     ++pos;  // Skip ':'.
     while (line[pos] == ' ') {  // Skip spaces.
       ++pos;
@@ -100,9 +110,9 @@ void HttpParser::ParseContentLength(const std::string& line) {
     std::string value = line.substr(pos);
 
     try {
-      message_->SetContentLength(boost::lexical_cast<size_t>(value));
+      std::size_t length = boost::lexical_cast<std::size_t>(value);
+      message_->SetContentLength(length);
     } catch (boost::bad_lexical_cast&) {
-      // TODO
     }
   }
 }

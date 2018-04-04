@@ -51,13 +51,13 @@ public:
   // \param port Numeric port number, "80" will be used if it's empty.
   void SetHost(const std::string& host, const std::string& port);
 
-  // Compose start line from method, url, etc.
-  void MakeStartLine();
+  // Compose start line, etc.
+  // Must be called before ToBuffers()!
+  void Build();
 
   // Convert the response into a vector of buffers. The buffers do not own the
   // underlying memory blocks, therefore the request object must remain valid
   // and not be changed until the write operation has completed.
-  // NOTE: Please call MakeStartLine() before.
   std::vector<boost::asio::const_buffer> ToBuffers() const;
 
 private:

@@ -28,7 +28,7 @@ public:
     start_line_ = start_line;
   }
 
-  size_t content_length() const {
+  std::size_t content_length() const {
     return content_length_;
   }
 
@@ -43,7 +43,7 @@ public:
     SetHeader(kContentType, content_type);
   }
 
-  void SetContentLength(size_t content_length) {
+  void SetContentLength(std::size_t content_length) {
     content_length_ = content_length;
     SetHeader(kContentLength, std::to_string(content_length));
   }
@@ -53,7 +53,7 @@ public:
     content_ = std::move(content);
   }
 
-  void AppendContent(const char* data, size_t count) {
+  void AppendContent(const char* data, std::size_t count) {
     content_.append(data, count);
   }
 
@@ -62,8 +62,7 @@ public:
   }
 
   bool IsContentFull() const {
-    assert(IsContentLengthValid());
-    return content_.length() >= content_length_;
+    return IsContentLengthValid() && content_.length() >= content_length_;
   }
 
   bool IsContentLengthValid() const {
