@@ -1,3 +1,7 @@
+if(UNIX)
+    add_definitions(-std=c++11)
+endif()
+
 set(SRCS
     gtest-all.cc
     gtest_main.cc

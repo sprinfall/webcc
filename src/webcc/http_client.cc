@@ -37,7 +37,7 @@ static void SetTimeout(boost::asio::ip::tcp::socket& socket,
 #else  // POSIX
 
   struct timeval tv;
-  tv.tv_sec = timeout_seconds_;
+  tv.tv_sec = timeout_seconds;
   tv.tv_usec = 0;
   setsockopt(socket.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
   setsockopt(socket.native_handle(), SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
@@ -107,11 +107,12 @@ Error HttpClient::SendRequest(const HttpRequest& request,
     size_t length = socket.read_some(boost::asio::buffer(buffer_), ec);
 
     if (length == 0 || ec) {
+#if defined _WINDOWS
       if (ec.value() == WSAETIMEDOUT) {
         return kSocketTimeoutError;
-      } else {
-        return kSocketReadError;
       }
+#endif
+      return kSocketReadError;
     }
 
 #if WEBCC_DEBUG_OUTPUT

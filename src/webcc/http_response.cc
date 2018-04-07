@@ -1,4 +1,5 @@
 #include "webcc/http_response.h"
+#include <iostream>
 
 namespace webcc {
 
@@ -98,7 +99,7 @@ std::vector<boost::asio::const_buffer> HttpResponse::ToBuffers() const {
   if (IsContentLengthValid()) {
     buffers.push_back(boost::asio::buffer(content_));
   }
-  
+
   return buffers;
 }
 

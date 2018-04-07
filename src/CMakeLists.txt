@@ -1,3 +1,7 @@
+if(UNIX)
+    add_definitions(-std=c++11)
+endif()
+
 if(WEBCC_ENABLE_UT)
     add_subdirectory(gtest)
     add_subdirectory(webcc_unittest)

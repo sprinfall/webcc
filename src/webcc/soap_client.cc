@@ -45,7 +45,7 @@ Error SoapClient::Call(const std::string& operation,
   http_request.SetHeader(kSoapAction, operation);
   http_request.set_content(std::move(http_content));
 
-  http_request.MakeStartLine();
+  http_request.Build();
 
   HttpResponse http_response;
 

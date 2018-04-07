@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1.0)
 project(webcc)
 
 option(WEBCC_ENABLE_SOAP "Enable SOAP support (need PugiXml)?" ON)
@@ -58,12 +58,18 @@ macro(GROUP_SOURCES_BY_DIR source_files)
     endforeach()
 endmacro()
 
+# CMake 3.1.0+
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
 # Boost version: 1.66+
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost)
+set(Boost_USE_MULTITHREADED ON)
+find_package(Boost 1.66.0 REQUIRED COMPONENTS system thread)
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
     link_directories(${Boost_LIBRARY_DIRS})
+    message(STATUS ${Boost_LIBRARIES})
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
