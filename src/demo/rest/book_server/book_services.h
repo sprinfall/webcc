@@ -7,6 +7,8 @@
 // XxxListService and XxxDetailService are similar to the XxxListView
 // and XxxDetailView in Django (a Python web framework).
 
+////////////////////////////////////////////////////////////////////////////////
+
 // List Service handles the HTTP GET and returns the book list based on
 // query parameters specified in the URL.
 // The URL should be like:
@@ -23,6 +25,8 @@ public:
               const std::string& request_content,
               std::string* response_content) override;
 };
+
+////////////////////////////////////////////////////////////////////////////////
 
 // Detail Service handles the following HTTP methods:
 //   - GET

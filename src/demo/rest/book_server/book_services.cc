@@ -8,6 +8,9 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// In-memory test data.
+// There should be some database in a real product.
+
 class Book {
 public:
   std::string id;
@@ -35,42 +38,34 @@ public:
   }
 
   const Book& GetBook(const std::string& id) const {
-    auto it = std::find_if(books_.begin(),
-                           books_.end(),
-                           [&id](const Book& book) { return book.id == id; });
-
-    if (it == books_.end()) {
-      return kNullBook;
-    }
-
-    return *it;
+    auto it = FindBook(id);
+    return (it == books_.end() ? kNullBook : *it);
   }
 
   bool AddBook(const Book& new_book) {
-    auto it = std::find_if(
-        books_.begin(),
-        books_.end(),
-        [&new_book](const Book& book) { return book.id == new_book.id; });
-
-    if (it != books_.end()) {
-      return false;
+    if (FindBook(new_book.id) == books_.end()) {
+      books_.push_back(new_book);
+      return true;
     }
-
-    books_.push_back(new_book);
-    return true;
+    return false;
   }
 
   bool DeleteBook(const std::string& id) {
-    auto it = std::find_if(books_.begin(),
-                           books_.end(),
-                           [&id](const Book& book) { return book.id == id; });
+    auto it = FindBook(id);
 
-    if (it == books_.end()) {
-      return false;
+    if (it != books_.end()) {
+      books_.erase(it);
+      return true;
     }
 
-    books_.erase(it);
-    return true;
+    return false;
+  }
+
+private:
+  std::list<Book>::const_iterator FindBook(const std::string& id) const {
+    return std::find_if(books_.begin(),
+                        books_.end(),
+                        [&id](const Book& book) { return book.id == id; });
   }
 
 private:
@@ -112,6 +107,8 @@ static std::string CreateBookListJson(const std::list<Book>& books) {
   return json;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 bool BookListService::Handle(const std::string& http_method,
                              const std::vector<std::string>& url_sub_matches,
                              const std::string& request_content,
@@ -120,7 +117,7 @@ bool BookListService::Handle(const std::string& http_method,
     *response_content = CreateBookListJson(g_book_store.books());
 
     // Sleep for testing timeout control.
-    boost::this_thread::sleep(boost::posix_time::seconds(2));
+    //boost::this_thread::sleep(boost::posix_time::seconds(2));
 
     return true;
   }
