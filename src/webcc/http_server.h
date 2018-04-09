@@ -28,6 +28,10 @@ public:
 
   virtual ~HttpServer();
 
+  void set_timeout_seconds(long seconds) {
+    timeout_seconds_ = seconds;
+  }
+
   // Run the server's io_service loop.
   void Run();
 
@@ -38,10 +42,8 @@ private:
   // Wait for a request to stop the server.
   void DoAwaitStop();
 
-protected:
-  // The handler for all incoming requests.
-  // TODO: Replace with virtual GetRequestHandler()?
-  HttpRequestHandler* request_handler_;
+  // Get the handler for incoming requests.
+  virtual HttpRequestHandler* GetRequestHandler() = 0;
 
 private:
   // The number of worker threads.
@@ -55,6 +57,10 @@ private:
 
   // Acceptor used to listen for incoming connections.
   boost::scoped_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
+
+  // Timeout in seconds for socket connection.
+  // Default is 0 which means no timeout.
+  long timeout_seconds_;
 };
 
 }  // namespace webcc

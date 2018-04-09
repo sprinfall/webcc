@@ -16,7 +16,8 @@ namespace webcc {
 
 HttpServer::HttpServer(unsigned short port, std::size_t workers)
     : signals_(io_context_)
-    , workers_(workers) {
+    , workers_(workers)
+    , timeout_seconds_(0) {
 
   // Register to handle the signals that indicate when the server should exit.
   // It is safe to register for the same signal multiple times in a program,
@@ -47,7 +48,7 @@ HttpServer::~HttpServer() {
 }
 
 void HttpServer::Run() {
-  assert(request_handler_ != NULL);
+  assert(GetRequestHandler() != NULL);
 
 #if WEBCC_DEBUG_OUTPUT
   boost::thread::id thread_id = boost::this_thread::get_id();
@@ -55,7 +56,7 @@ void HttpServer::Run() {
 #endif
 
   // Start worker threads.
-  request_handler_->Start(workers_);
+  GetRequestHandler()->Start(workers_);
 
   // The io_context::run() call will block until all asynchronous operations
   // have finished. While the server is running, there is always at least one
@@ -74,10 +75,10 @@ void HttpServer::DoAccept() {
         }
 
         if (!ec) {
-          HttpSessionPtr conn{
-            new HttpSession(std::move(socket), request_handler_)
+          HttpSessionPtr session{
+            new HttpSession(std::move(socket), GetRequestHandler())
           };
-          conn->Start();
+          session->Start(timeout_seconds_);
         }
 
         DoAccept();
@@ -91,7 +92,7 @@ void HttpServer::DoAwaitStop() {
         // operations. Once all operations have finished the io_context::run()
         // call will exit.
         acceptor_->close();
-        request_handler_->Stop();
+        GetRequestHandler()->Stop();
       });
 }
 

@@ -65,7 +65,12 @@ find_package(Threads REQUIRED)
 # Boost version: 1.66+
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.66.0 REQUIRED COMPONENTS system thread)
+if(WIN32)
+	# TODO: Fix COMPONENTS on Windows.
+	find_package(Boost 1.66.0 REQUIRED)
+else()
+	find_package(Boost 1.66.0 REQUIRED COMPONENTS system thread)
+endif()
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
     link_directories(${Boost_LIBRARY_DIRS})

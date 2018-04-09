@@ -72,18 +72,16 @@ SoapServicePtr SoapRequestHandler::GetServiceByUrl(const std::string& url) {
 
 SoapServer::SoapServer(unsigned short port, std::size_t workers)
     : HttpServer(port, workers)
-    , soap_request_handler_(new SoapRequestHandler()) {
-  request_handler_ = soap_request_handler_;
+    , request_handler_(new SoapRequestHandler()) {
 }
 
 SoapServer::~SoapServer() {
-  request_handler_ = NULL;
-  delete soap_request_handler_;
+  delete request_handler_;
 }
 
 bool SoapServer::RegisterService(SoapServicePtr service,
                                  const std::string& url) {
-  return soap_request_handler_->RegisterService(service, url);
+  return request_handler_->RegisterService(service, url);
 }
 
 }  // namespace webcc

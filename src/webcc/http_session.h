@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "boost/asio/ip/tcp.hpp"  // for ip::tcp::socket
+#include "boost/asio/deadline_timer.hpp"
 
 #include "webcc/common.h"
 #include "webcc/http_request.h"
@@ -17,19 +18,20 @@ class HttpRequestHandler;
 
 class HttpSession : public std::enable_shared_from_this<HttpSession> {
 public:
-  friend class HttpRequestHandler;
-
   HttpSession(const HttpSession&) = delete;
   HttpSession& operator=(const HttpSession&) = delete;
 
   HttpSession(boost::asio::ip::tcp::socket socket,
               HttpRequestHandler* handler);
 
+  ~HttpSession();
+
   const HttpRequest& request() const {
     return request_;
   }
 
-  void Start();
+  // Start the session with an optional timeout.
+  void Start(long timeout_seconds = 0);
 
   void Stop();
 
@@ -49,15 +51,19 @@ private:
 
   void DoWrite();
 
-  void HandleRead(boost::system::error_code ec,
-                  std::size_t length);
+  void HandleRead(boost::system::error_code ec, std::size_t length);
+  void HandleWrite(boost::system::error_code ec, std::size_t length);
 
-  void HandleWrite(boost::system::error_code ec,
-                   std::size_t length);
+  void HandleTimer(boost::system::error_code ec);
+
+  void CancelTimer();
 
 private:
   // Socket for the connection.
   boost::asio::ip::tcp::socket socket_;
+
+  // Timeout timer (optional).
+  std::unique_ptr<boost::asio::deadline_timer> timer_;
 
   // The handler used to process the incoming request.
   HttpRequestHandler* request_handler_;

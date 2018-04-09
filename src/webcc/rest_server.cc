@@ -104,18 +104,16 @@ HttpStatus::Enum RestRequestHandler::HandleSession(HttpSessionPtr session) {
 
 RestServer::RestServer(unsigned short port, std::size_t workers)
     : HttpServer(port, workers)
-    , rest_request_handler_(new RestRequestHandler()) {
-  request_handler_ = rest_request_handler_;
+    , request_handler_(new RestRequestHandler()) {
 }
 
 RestServer::~RestServer() {
-  request_handler_ = NULL;
-  delete rest_request_handler_;
+  delete request_handler_;
 }
 
 bool RestServer::RegisterService(RestServicePtr service,
                                  const std::string& url) {
-  return rest_request_handler_->RegisterService(service, url);
+  return request_handler_->RegisterService(service, url);
 }
 
 }  // namespace webcc

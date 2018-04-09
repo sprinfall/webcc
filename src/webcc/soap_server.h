@@ -44,7 +44,12 @@ public:
   bool RegisterService(SoapServicePtr service, const std::string& url);
 
 private:
-  SoapRequestHandler* soap_request_handler_;
+  HttpRequestHandler* GetRequestHandler() override {
+    return request_handler_;
+  }
+
+private:
+  SoapRequestHandler* request_handler_;
 };
 
 }  // namespace webcc

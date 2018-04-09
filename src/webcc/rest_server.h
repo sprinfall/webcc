@@ -97,7 +97,12 @@ public:
   bool RegisterService(RestServicePtr service, const std::string& url);
 
 private:
-  RestRequestHandler* rest_request_handler_;
+  HttpRequestHandler* GetRequestHandler() override {
+    return request_handler_;
+  }
+
+private:
+  RestRequestHandler* request_handler_;
 };
 
 }  // namespace webcc
