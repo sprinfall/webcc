@@ -1,15 +1,16 @@
 cmake_minimum_required(VERSION 3.1.0)
 project(webcc)
 
-option(WEBCC_ENABLE_SOAP "Enable SOAP support (need PugiXml)?" ON)
-option(WEBCC_ENABLE_UT "Enable unit test?" ON)
-option(WEBCC_ENABLE_DEMO "Enable demo programs?" ON)
+option(WEBCC_ENABLE_SOAP "Enable SOAP support (need pugixml)?" ON)
+option(WEBCC_BUILD_UNITTEST "Build unit test?" ON)
+option(WEBCC_BUILD_REST_EXAMPLE "Build REST example?" ON)
+option(WEBCC_BUILD_SOAP_EXAMPLE "Build SOAP example?" ON)
 
 if(WEBCC_ENABLE_SOAP)
     add_definitions(-DWEBCC_ENABLE_SOAP)
 endif()
 
-if(WEBCC_ENABLE_UT)
+if(WEBCC_BUILD_UNITTEST)
     enable_testing()
 endif()
 
@@ -77,6 +78,35 @@ if(Boost_FOUND)
     message(STATUS ${Boost_LIBRARIES})
 endif()
 
+# For including its own headers as "webcc/http_client.h".
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
-add_subdirectory(src)
+# SOAP support needs pugixml to parse and create XML.
+if(WEBCC_ENABLE_SOAP)
+	add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/pugixml)
+
+	# For including pugixml as "pugixml/pugixml.hpp".
+	# TODO: Remove "pugixml" prefix?
+	include_directories(${PROJECT_SOURCE_DIR}/third_party)
+endif()
+
+add_subdirectory(src/webcc)
+
+if(WEBCC_BUILD_REST_EXAMPLE)
+	# REST example needs rapidjson to parse and create JSON.
+	# rapidjson is included as a Git submodule.
+	include_directories(${PROJECT_SOURCE_DIR}/third_party/rapidjson/include)
+
+	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_book_server)
+	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_book_client)
+endif()
+
+if(WEBCC_BUILD_SOAP_EXAMPLE)
+	add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_calc_server)
+	add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_calc_client)
+endif()
+
+if(WEBCC_BUILD_UNITTEST)
+    add_subdirectory(third_party/gtest)
+    add_subdirectory(unittest)
+endif()
