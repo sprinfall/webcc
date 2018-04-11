@@ -1,4 +1,4 @@
-# cSoap 客户端使用指南
+# SOAP Client Tutorial (zh-CN)
 
 ## 背景
 
@@ -8,11 +8,12 @@
 
 WWSAPI 的官方文档经常让人摸不着头脑，没有完整的示例，给出一段代码，常常需要几经调整才能使用。WWSAPI 自动生成的代码，是纯 C 的接口，在难用程度上，较 gSoap 有过之而无不及。在消息参数上，它强制使用双字节 Unicode，我们的输入输出都是 UTF8 的 `std::string`，于是莫名地多出很多编码转换。WWSAPI 需要你手动分配堆（heap），需要你指定消息的缓冲大小，而最严重的问题是，它不够稳定，特别是在子线程里调用时，莫名其妙连接就会断掉。
 
-于是，我就动手自己写了个 [cSoap](https://github.com/sprinfall/csoap)。
+于是，我就动手自己写了个 [webcc](https://github.com/sprinfall/webcc)。
+一开始 webcc 只支持 SOAP，名字就叫 csoap，后来支持了 REST，于是改名为 webcc，取 Web C++ 的意思。
 
 ## 原理
 
-cSoap 没有提供从 WSDL 自动生成代码的功能，一来是因为这一过程太复杂了，二来是自动生成的代码一般都不好用。所以 cSoap 最好搭配 [SoapUI](https://www.soapui.org) 一起使用。SoapUI 可以帮助我们为每一个 Web Service 操作（operation）生成请求的样例，基于请求样例，就很容易发起调用了，也避免了直接阅读 WSDL。
+Webcc 没有提供从 WSDL 自动生成代码的功能，一来是因为这一过程太复杂了，二来是自动生成的代码一般都不好用。所以 webcc 最好搭配 [SoapUI](https://www.soapui.org) 一起使用。SoapUI 可以帮助我们为每一个 Web Service 操作（operation）生成请求的样例，基于请求样例，就很容易发起调用了，也避免了直接阅读 WSDL。
 
 下面以 ParaSoft 提供的 [Calculator](http://ws1.parasoft.com/glue/calculator.wsdl) 为例，首先下载 WSDL，然后在 SoapUI 里创建一个 SOAP 项目，记得勾上 "Create sample requests for all operations?" 这个选项，然后就能看到下面这样的请求样例了：
 ```xml
@@ -49,19 +50,19 @@ User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
    </soapenv:Body>
 </soapenv:Envelope>
 ```
-所以 cSoap 所做的，只不过是跟 `ws1.parasoft.com` 建立 TCP Socket 连接，然后发送上面这段内容而已。
+所以 webcc 所做的，只不过是跟 `ws1.parasoft.com` 建立 TCP Socket 连接，然后发送上面这段内容而已。
 
 ## 用法
 
-首先，创建一个类 `CalculatorClient`，继承自 `csoap::SoapClient`：
+首先，创建一个类 `CalcClient`，继承自 `webcc::SoapClient`：
 
 ```cpp
 #include <string>
-#include "csoap/soap_client.h"
+#include "webcc/soap_client.h"
 
-class CalculatorClient : public csoap::SoapClient {
+class CalcClient : public webcc::SoapClient {
 public:
-  CalculatorClient() {
+  CalcClient() {
     Init();
   }
 ```
@@ -87,19 +88,19 @@ bool Calc(const std::string& operation,
           double y,
           double* result) {
   // Prepare parameters.
-  std::vector<csoap::Parameter> parameters{
+  std::vector<webcc::Parameter> parameters{
     { x_name, x },
     { y_name, y }
   };
 
   // Make the call.
   std::string result_str;
-  csoap::Error error = Call(operation, std::move(parameters), &result_str);
+  webcc::Error error = Call(operation, std::move(parameters), &result_str);
   
   // Error handling if any.
-  if (error != csoap::kNoError) {
+  if (error != webcc::kNoError) {
     std::cerr << "Error: " << error;
-    std::cerr << ", " << csoap::GetErrorMessage(error) << std::endl;
+    std::cerr << ", " << webcc::GetErrorMessage(error) << std::endl;
     return false;
   }
 
@@ -138,7 +139,7 @@ bool Divide(double x, double y, double* result) {
 
 ## 局限
 
-当然，cSoap 有很多局限，比如：
+当然，webcc 有很多局限，比如：
 - 只支持 `int`, `double`, `bool` 和 `string` 这几种参数类型；
 - 只支持 UTF-8 编码的消息内容；
 - 一次调用一个连接；
@@ -146,7 +147,7 @@ bool Divide(double x, double y, double* result) {
 
 ## 依赖
 
-在实现上，cSoap 有下面这些依赖：
+在实现上，webcc 有下面这些依赖：
 - Boost 1.66+；
-- XML 解析和构造基于 PugiXml；
+- XML 解析和构造基于 pugixml；
 - 构建系统是 CMake，应该可以很方便地集成到其他 C++ 项目中。
