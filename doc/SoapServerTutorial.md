@@ -15,7 +15,9 @@ public:
 };
 ```
 
-The `Handle` method has two parameters, one for request (input), one for response (output). The implementation is quite straightforward:
+The `Handle` method has two parameters, one for request (input), one for response (output).
+
+The implementation is quite straightforward:
 
 - Get operation (e.g., add) from request;
 - Get parameters (e.g., x and y) from request;
@@ -97,7 +99,7 @@ POST /calculator HTTP/1.1
 
 Registering multiple services to a server is allowed, but the URL must be unique for each service.
 
-To invoke the `add` operation of the calculator service, the client HTTP request will be:
+To invoke the `add` operation of the calculator service, an example of the client HTTP request would be:
 ```
 POST /calculator HTTP/1.1
 Content-Type: text/xml; charset=utf-8
@@ -132,4 +134,4 @@ Content-Length: 262
 </soap:Envelope>
 ```
 
-See [example/soap_calc_server](example/soap_calc_server) for the full example.
+See [example/soap_calc_server](https://github.com/sprinfall/webcc/tree/master/example/soap_calc_server) for the full example.

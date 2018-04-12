@@ -14,8 +14,9 @@ A lightweight C++ REST and SOAP client and server library based on Boost.Asio.
 
 - C++11
 - Boost 1.66+
-- pugixml (already included in the source tree) (SOAP only)
+
+If enable SOAP support, **pugixml** is needed to parse and compose XML strings.
 
 ## Build
 
-TODO
+The build system is CMake.
