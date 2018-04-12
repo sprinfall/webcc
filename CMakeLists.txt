@@ -93,9 +93,9 @@ endif()
 add_subdirectory(src/webcc)
 
 if(WEBCC_BUILD_REST_EXAMPLE)
-	# REST example needs rapidjson to parse and create JSON.
-	# rapidjson is included as a Git submodule.
-	include_directories(${PROJECT_SOURCE_DIR}/third_party/rapidjson/include)
+	# REST example needs jsoncpp to parse and create JSON.
+	add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/jsoncpp)
+	include_directories(${PROJECT_SOURCE_DIR}/third_party/jsoncpp)
 
 	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_book_server)
 	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_book_client)

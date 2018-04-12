@@ -1,8 +1,8 @@
 #include "book_services.h"
 
 #include <list>
-
 #include "boost/lexical_cast.hpp"
+#include "json/json.h"  // jsoncpp
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -17,6 +17,14 @@ public:
 
   bool IsNull() const {
     return id.empty();
+  }
+
+  Json::Value ToJson() const {
+    Json::Value root;
+    root["id"] = id;
+    root["title"] = title;
+    root["price"] = price;
+    return root;
   }
 };
 
@@ -74,45 +82,18 @@ static BookStore g_book_store;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// Naively create JSON object for a book.
-// You should use real JSON library in real product.
-static std::string CreateBookJson(const Book& book) {
-  std::string json = "{ ";
-  json += "\"id\": " + book.id + ", ";
-  json += "\"title\": " + book.title + ", ";
-  json += "\"price\": " + std::to_string(book.price);
-  json += " }";
-  return json;
-}
-
-// Naively create JSON array object for a list of books.
-// You should use real JSON library in real product.
-static std::string CreateBookListJson(const std::list<Book>& books) {
-  std::string json = "[ ";
-
-  for (const Book& book : books) {
-    json += CreateBookJson(book);
-    json += ",";
-  }
-
-  // Remove last ','.
-  if (!books.empty()) {
-    json[json.size() - 1] = ' ';
-  }
-
-  json += "]";
-
-  return json;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
 bool BookListService::Handle(const std::string& http_method,
                              const std::vector<std::string>& url_sub_matches,
                              const std::string& request_content,
                              std::string* response_content) {
   if (http_method == webcc::kHttpGet) {
-    *response_content = CreateBookListJson(g_book_store.books());
+    Json::Value root(Json::arrayValue);
+    for (const Book& book : g_book_store.books()) {
+      root.append(book.ToJson());
+    }
+
+    Json::StreamWriterBuilder wbuilder;
+    *response_content = Json::writeString(wbuilder, root);
     return true;
   }
 
@@ -138,7 +119,8 @@ bool BookDetailService::Handle(const std::string& http_method,
       return false;
     }
 
-    *response_content = CreateBookJson(book);
+    Json::StreamWriterBuilder wbuilder;
+    *response_content = Json::writeString(wbuilder, book.ToJson());
 
     return true;
 
