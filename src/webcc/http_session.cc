@@ -22,27 +22,13 @@ HttpSession::HttpSession(boost::asio::ip::tcp::socket socket,
 HttpSession::~HttpSession() {
 }
 
-void HttpSession::Start(long timeout_seconds) {
-  if (timeout_seconds > 0) {
-    // Create timer only necessary.
-    boost::asio::io_context& ioc = socket_.get_executor().context();
-    timer_.reset(new boost::asio::deadline_timer(ioc));
-
-    timer_->expires_from_now(boost::posix_time::seconds(timeout_seconds));
-
-    timer_->async_wait(std::bind(&HttpSession::HandleTimer,
-                                 shared_from_this(),
-                                 std::placeholders::_1));
-  }
-  
+void HttpSession::Start() {
   DoRead();
 }
 
 void HttpSession::Stop() {
-  CancelTimer();
-
-  boost::system::error_code ignored_ec;
-  socket_.close(ignored_ec);
+  boost::system::error_code ec;
+  socket_.close(ec);
 }
 
 void HttpSession::SetResponseContent(const std::string& content_type,
@@ -78,8 +64,6 @@ void HttpSession::HandleRead(boost::system::error_code ec,
   if (ec) {
     if (ec != boost::asio::error::operation_aborted) {
       Stop();
-    } else {
-      CancelTimer();
     }
     return;
   }
@@ -116,52 +100,24 @@ void HttpSession::HandleWrite(boost::system::error_code ec,
 #endif
 
   if (!ec) {
-    CancelTimer();
+#if WEBCC_DEBUG_OUTPUT
+    std::cout << "Response has been sent back (thread: " << thread_id << ")\n";
+#endif
 
     // Initiate graceful connection closure.
     boost::system::error_code ec;
     socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
 
-#if WEBCC_DEBUG_OUTPUT
-    std::cout << "Response has been sent back (thread: " << thread_id << ")\n";
-#endif
   } else {
 #if WEBCC_DEBUG_OUTPUT
     std::cout << "(thread: " << thread_id << ") Sending response error: "
-      << ec.message()
-      << std::endl;
+              << ec.message()
+              << std::endl;
 #endif
 
-    if (ec == boost::asio::error::operation_aborted) {
-      CancelTimer();
-    } else {
+    if (ec != boost::asio::error::operation_aborted) {
       Stop();
     }
-  }
-}
-
-void HttpSession::HandleTimer(boost::system::error_code ec) {
-  std::cout << "HandleTimer: ";
-
-  if (!ec) {
-    if (socket_.is_open()) {
-      std::cout << "socket is open, close it.\n";
-      socket_.close();
-    } else {
-      std::cout << "socket is not open.\n";
-    }
-  } else {
-    if (ec == boost::asio::error::operation_aborted) {
-      std::cout << "Timer aborted\n";
-    }
-  }
-}
-
-void HttpSession::CancelTimer() {
-  if (timer_) {
-    // The wait handler will be invoked with the operation_aborted error code.
-    boost::system::error_code ec;
-    timer_->cancel(ec);
   }
 }
 

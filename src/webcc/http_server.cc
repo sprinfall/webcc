@@ -16,8 +16,7 @@ namespace webcc {
 
 HttpServer::HttpServer(unsigned short port, std::size_t workers)
     : signals_(io_context_)
-    , workers_(workers)
-    , timeout_seconds_(0) {
+    , workers_(workers) {
 
   // Register to handle the signals that indicate when the server should exit.
   // It is safe to register for the same signal multiple times in a program,
@@ -78,7 +77,7 @@ void HttpServer::DoAccept() {
           HttpSessionPtr session{
             new HttpSession(std::move(socket), GetRequestHandler())
           };
-          session->Start(timeout_seconds_);
+          session->Start();
         }
 
         DoAccept();

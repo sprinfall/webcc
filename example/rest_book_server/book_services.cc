@@ -3,8 +3,6 @@
 #include <list>
 
 #include "boost/lexical_cast.hpp"
-#include "boost/thread.hpp"
-#include "boost/date_time/posix_time/posix_time.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -115,10 +113,6 @@ bool BookListService::Handle(const std::string& http_method,
                              std::string* response_content) {
   if (http_method == webcc::kHttpGet) {
     *response_content = CreateBookListJson(g_book_store.books());
-
-    // Sleep for testing timeout control.
-    //boost::this_thread::sleep(boost::posix_time::seconds(2));
-
     return true;
   }
 
@@ -145,9 +139,6 @@ bool BookDetailService::Handle(const std::string& http_method,
     }
 
     *response_content = CreateBookJson(book);
-
-    // Sleep for testing timeout control.
-    //boost::this_thread::sleep(boost::posix_time::seconds(2));
 
     return true;
 

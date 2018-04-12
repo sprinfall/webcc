@@ -27,11 +27,6 @@ int main(int argc, char* argv[]) {
     server.RegisterService(std::make_shared<BookDetailService>(),
                            "/books/(\\d+)");
 
-    // For test purpose.
-    // Timeout like 60s makes more sense in a real product.
-    // Leave it as default (0) for no timeout control.
-    server.set_timeout_seconds(1);
-
     server.Run();
 
   } catch (std::exception& e) {
