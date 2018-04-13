@@ -59,11 +59,17 @@ macro(GROUP_SOURCES_BY_DIR source_files)
     endforeach()
 endmacro()
 
-# CMake 3.1.0+
+# C++ standard requirements.
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# CMake 3.1.0+ required.
+# See: https://stackoverflow.com/a/29871891
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-# Boost version: 1.66+
+# Boost 1.66+ required.
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 if(WIN32)

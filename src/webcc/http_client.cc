@@ -29,12 +29,14 @@ static void SetTimeout(boost::asio::ip::tcp::socket& socket,
   int ms = timeout_seconds * 1000;
 
   const char* optval = reinterpret_cast<const char*>(&ms);
-  size_t optlen = sizeof(ms);
+  std::size_t optlen = sizeof(ms);
 
   setsockopt(socket.native_handle(), SOL_SOCKET, SO_RCVTIMEO, optval, optlen);
   setsockopt(socket.native_handle(), SOL_SOCKET, SO_SNDTIMEO, optval, optlen);
 
 #else  // POSIX
+
+  // TODO: This doesn't work! Consider to control timeout in server side.
 
   struct timeval tv;
   tv.tv_sec = timeout_seconds;
@@ -104,7 +106,9 @@ Error HttpClient::SendRequest(const HttpRequest& request,
   // We must stop trying to read once all content has been received,
   // because some servers will block extra call to read_some().
   while (!parser.finished()) {
-    size_t length = socket.read_some(boost::asio::buffer(buffer_), ec);
+    // read_some() will block until one or more bytes of data has been
+    // read successfully, or until an error occurs.
+    std::size_t length = socket.read_some(boost::asio::buffer(buffer_), ec);
 
     if (length == 0 || ec) {
 #if defined _WINDOWS

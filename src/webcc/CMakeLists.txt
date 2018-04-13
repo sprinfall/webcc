@@ -1,7 +1,3 @@
-if(UNIX)
-    add_definitions(-std=c++11)
-endif()
-
 option(WEBCC_DEBUG_OUTPUT "Enable debug output?" OFF)
 
 if(WEBCC_DEBUG_OUTPUT)
