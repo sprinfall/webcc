@@ -13,6 +13,10 @@ class HttpParser {
 public:
   explicit HttpParser(HttpMessage* message);
 
+  ~HttpParser() = default;
+  HttpParser(const HttpParser&) = delete;
+  HttpParser& operator=(const HttpParser&) = delete;
+
   bool finished() const {
     return finished_;
   }
@@ -25,6 +29,13 @@ protected:
 
   void ParseContentLength(const std::string& line);
 
+  void Finish();
+
+  void AppendContent(const char* data, std::size_t count);
+  void AppendContent(const std::string& data);
+
+  bool IsContentFull() const;
+
 protected:
   // The result HTTP message.
   HttpMessage* message_;
@@ -34,7 +45,9 @@ protected:
   // Data waiting to be parsed.
   std::string pending_data_;
 
-  // Parsing helper flags.
+  // Temporary data and helper flags for parsing.
+  std::size_t content_length_;
+  std::string content_;
   bool start_line_parsed_;
   bool content_length_parsed_;
   bool header_parsed_;

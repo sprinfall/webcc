@@ -9,6 +9,7 @@ namespace webcc {
 
 HttpParser::HttpParser(HttpMessage* message)
     : message_(message)
+    , content_length_(kInvalidLength)
     , start_line_parsed_(false)
     , content_length_parsed_(false)
     , header_parsed_(false)
@@ -18,11 +19,11 @@ HttpParser::HttpParser(HttpMessage* message)
 Error HttpParser::Parse(const char* data, std::size_t len) {
   if (header_parsed_) {
     // Add the data to the content.
-    message_->AppendContent(data, len);
+    AppendContent(data, len);
 
-    if (message_->IsContentFull()) {
+    if (IsContentFull()) {
       // All content has been read.
-      finished_ = true;
+      Finish();
     }
 
     return kNoError;
@@ -66,22 +67,21 @@ Error HttpParser::Parse(const char* data, std::size_t len) {
     // Headers just ended.
 
     if (!content_length_parsed_) {
-      // No Content-Length, no content.
-      message_->SetContentLength(0);
-      finished_ = true;
+      // No Content-Length, no content. (TODO: Support chucked data)
+      Finish();
       return kNoError;
     } else {
       // Invalid Content-Length in the request. 
-      if (!message_->IsContentLengthValid()) {
+      if (content_length_ == kInvalidLength) {
         return kHttpContentLengthError;
       }
     }
 
-    message_->AppendContent(pending_data_.substr(off));
+    AppendContent(pending_data_.substr(off));
 
-    if (message_->IsContentFull()) {
+    if (IsContentFull()) {
       // All content has been read.
-      finished_ = true;
+      Finish();
     }
   } else {
     // Save the unparsed piece for next parsing.
@@ -110,11 +110,28 @@ void HttpParser::ParseContentLength(const std::string& line) {
     std::string value = line.substr(pos);
 
     try {
-      std::size_t length = boost::lexical_cast<std::size_t>(value);
-      message_->SetContentLength(length);
+      content_length_ = boost::lexical_cast<std::size_t>(value);
     } catch (boost::bad_lexical_cast&) {
     }
   }
+}
+
+void HttpParser::Finish() {
+  message_->SetContent(content_);
+  finished_ = true;
+}
+
+void HttpParser::AppendContent(const char* data, std::size_t count) {
+  content_.append(data, count);
+}
+
+void HttpParser::AppendContent(const std::string& data) {
+  content_.append(data);
+}
+
+bool HttpParser::IsContentFull() const {
+  return content_length_ != kInvalidLength &&
+         content_length_ <= content_.length();
 }
 
 }  // namespace webcc

@@ -43,30 +43,20 @@ public:
     SetHeader(kContentType, content_type);
   }
 
+  void SetContent(std::string&& content) {
+    content_ = std::move(content);
+    SetContentLength(content_.size());
+  }
+
+  void SetContent(const std::string& content) {
+    content_ = content;
+    SetContentLength(content_.size());
+  }
+
+private:
   void SetContentLength(std::size_t content_length) {
     content_length_ = content_length;
     SetHeader(kContentLength, std::to_string(content_length));
-  }
-
-  // Use move semantics to avoid copy.
-  void set_content(std::string&& content) {
-    content_ = std::move(content);
-  }
-
-  void AppendContent(const char* data, std::size_t count) {
-    content_.append(data, count);
-  }
-
-  void AppendContent(const std::string& data) {
-    content_.append(data);
-  }
-
-  bool IsContentFull() const {
-    return IsContentLengthValid() && content_.length() >= content_length_;
-  }
-
-  bool IsContentLengthValid() const {
-    return content_length_ != kInvalidLength;
   }
 
 protected:

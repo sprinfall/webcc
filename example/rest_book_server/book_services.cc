@@ -1,6 +1,7 @@
 #include "book_services.h"
 
 #include <list>
+#include <iostream>
 #include "boost/lexical_cast.hpp"
 #include "json/json.h"  // jsoncpp
 
@@ -28,16 +29,16 @@ public:
   }
 };
 
+std::ostream& operator<<(std::ostream& os, const Book& book) {
+  os << "{ " << book.id << ", " << book.title << ", " << book.price << " }";
+  return os;
+}
+
 static const Book kNullBook{};
 
 class BookStore {
 public:
-  BookStore() {
-    // Prepare test data.
-    books_.push_back({ "1", "Title1", 11.1 });
-    books_.push_back({ "2", "Title2", 22.2 });
-    books_.push_back({ "3", "Title3", 33.3 });
-  }
+  BookStore() = default;
 
   const std::list<Book>& books() const {
     return books_;
@@ -87,14 +88,37 @@ bool BookListService::Handle(const std::string& http_method,
                              const std::string& request_content,
                              std::string* response_content) {
   if (http_method == webcc::kHttpGet) {
+    // Return all books as a JSON array.
+
     Json::Value root(Json::arrayValue);
     for (const Book& book : g_book_store.books()) {
       root.append(book.ToJson());
     }
 
-    Json::StreamWriterBuilder wbuilder;
-    *response_content = Json::writeString(wbuilder, root);
+    Json::StreamWriterBuilder builder;
+    *response_content = Json::writeString(builder, root);
+
     return true;
+  }
+
+  if (http_method == webcc::kHttpPost) {
+    // Add a new book.
+
+    Json::Value root;
+    Json::CharReaderBuilder builder;
+    std::stringstream stream(request_content);
+    std::string errs;
+    if (!Json::parseFromStream(builder, stream, &root, &errs)) {
+      std::cerr << errs << std::endl;
+      return false;
+    }
+
+    Book book;
+    book.id = root["id"].asString();
+    book.title = root["title"].asString();
+    book.price = root["price"].asDouble();
+
+    return g_book_store.AddBook(book);
   }
 
   return false;
@@ -119,8 +143,8 @@ bool BookDetailService::Handle(const std::string& http_method,
       return false;
     }
 
-    Json::StreamWriterBuilder wbuilder;
-    *response_content = Json::writeString(wbuilder, book.ToJson());
+    Json::StreamWriterBuilder builder;
+    *response_content = Json::writeString(builder, book.ToJson());
 
     return true;
 

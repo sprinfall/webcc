@@ -35,8 +35,7 @@ void HttpSession::SetResponseContent(const std::string& content_type,
                                      std::size_t content_length,
                                      std::string&& content) {
   response_.SetContentType(content_type);
-  response_.SetContentLength(content.length());
-  response_.set_content(std::move(content));
+  response_.SetContent(std::move(content));
 }
 
 void HttpSession::SendResponse() {

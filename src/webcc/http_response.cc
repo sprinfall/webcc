@@ -96,7 +96,7 @@ std::vector<boost::asio::const_buffer> HttpResponse::ToBuffers() const {
   buffers.push_back(boost::asio::buffer(misc_strings::CRLF));
 
   // Content (optional)
-  if (IsContentLengthValid()) {
+  if (!content_.empty()) {
     buffers.push_back(boost::asio::buffer(content_));
   }
 
