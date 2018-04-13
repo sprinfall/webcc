@@ -1,18 +1,16 @@
-#include "csoap/rest_server.h"
+#include "webcc/rest_server.h"
 #include "gtest/gtest.h"
 
-using namespace csoap;
+using namespace webcc;
 
 ////////////////////////////////////////////////////////////////////////////////
 
 class TestRestService : public RestService {
 public:
-  ~TestRestService() override {
-  }
-
   bool Handle(const std::string& http_method,
-              const std::string& request,
-              std::string* response) override {
+              const std::vector<std::string>& url_sub_matches,
+              const std::string& request_content,
+              std::string* response_content) override {
     return true;
   }
 };
