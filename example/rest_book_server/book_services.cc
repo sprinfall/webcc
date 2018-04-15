@@ -57,6 +57,15 @@ public:
     return false;
   }
 
+  bool UpdateBook(const Book& book) {
+    auto it = FindBook(book.id);
+    if (it != books_.end()) {
+      it->title = book.title;
+      it->price = book.price;
+    }
+    return false;
+  }
+
   bool DeleteBook(const std::string& id) {
     auto it = FindBook(id);
 
@@ -75,6 +84,12 @@ private:
                         [&id](const Book& book) { return book.id == id; });
   }
 
+  std::list<Book>::iterator FindBook(const std::string& id) {
+    return std::find_if(books_.begin(),
+                        books_.end(),
+                        [&id](Book& book) { return book.id == id; });
+  }
+
 private:
   std::list<Book> books_;
 };
@@ -82,6 +97,23 @@ private:
 static BookStore g_book_store;
 
 ////////////////////////////////////////////////////////////////////////////////
+
+static bool BookFromJson(const std::string& json, Book* book) {
+  Json::Value root;
+  Json::CharReaderBuilder builder;
+  std::stringstream stream(json);
+  std::string errs;
+  if (!Json::parseFromStream(builder, stream, &root, &errs)) {
+    std::cerr << errs << std::endl;
+    return false;
+  }
+
+  book->id = root["id"].asString();
+  book->title = root["title"].asString();
+  book->price = root["price"].asDouble();
+
+  return true;
+}
 
 bool BookListService::Handle(const std::string& http_method,
                              const std::vector<std::string>& url_sub_matches,
@@ -103,22 +135,11 @@ bool BookListService::Handle(const std::string& http_method,
 
   if (http_method == webcc::kHttpPost) {
     // Add a new book.
-
-    Json::Value root;
-    Json::CharReaderBuilder builder;
-    std::stringstream stream(request_content);
-    std::string errs;
-    if (!Json::parseFromStream(builder, stream, &root, &errs)) {
-      std::cerr << errs << std::endl;
-      return false;
-    }
-
     Book book;
-    book.id = root["id"].asString();
-    book.title = root["title"].asString();
-    book.price = root["price"].asDouble();
-
-    return g_book_store.AddBook(book);
+    if (BookFromJson(request_content, &book)) {
+      return g_book_store.AddBook(book);
+    }
+    return false;
   }
 
   return false;
@@ -138,20 +159,24 @@ bool BookDetailService::Handle(const std::string& http_method,
 
   if (http_method == webcc::kHttpGet) {
     const Book& book = g_book_store.GetBook(book_id);
-
-    if (book.IsNull()) {
-      return false;
+    if (!book.IsNull()) {
+      Json::StreamWriterBuilder builder;
+      *response_content = Json::writeString(builder, book.ToJson());
+      return true;
     }
-
-    Json::StreamWriterBuilder builder;
-    *response_content = Json::writeString(builder, book.ToJson());
-
-    return true;
+    return false;
 
   } else if (http_method == webcc::kHttpPost) {
+    // Update a book.
+    Book book;
+    if (BookFromJson(request_content, &book)) {
+      book.id = book_id;
+      return g_book_store.UpdateBook(book);
+    }
+    return false;
 
   } else if (http_method == webcc::kHttpDelete) {
-
+    return g_book_store.DeleteBook(book_id);
   }
 
   return false;

@@ -96,13 +96,13 @@
 },
 {
   "directory": "/home/adam/github/webcc/build/src/webcc",
-  "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_DEBUG_OUTPUT -DWEBCC_ENABLE_SOAP -I/home/adam/include -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party    -std=c++11 -o CMakeFiles/webcc.dir/soap_client.cc.o -c /home/adam/github/webcc/src/webcc/soap_client.cc",
-  "file": "/home/adam/github/webcc/src/webcc/soap_client.cc"
+  "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_DEBUG_OUTPUT -DWEBCC_ENABLE_SOAP -I/home/adam/include -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party    -std=c++11 -o CMakeFiles/webcc.dir/soap_server.cc.o -c /home/adam/github/webcc/src/webcc/soap_server.cc",
+  "file": "/home/adam/github/webcc/src/webcc/soap_server.cc"
 },
 {
   "directory": "/home/adam/github/webcc/build/src/webcc",
-  "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_DEBUG_OUTPUT -DWEBCC_ENABLE_SOAP -I/home/adam/include -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party    -std=c++11 -o CMakeFiles/webcc.dir/soap_server.cc.o -c /home/adam/github/webcc/src/webcc/soap_server.cc",
-  "file": "/home/adam/github/webcc/src/webcc/soap_server.cc"
+  "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_DEBUG_OUTPUT -DWEBCC_ENABLE_SOAP -I/home/adam/include -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party    -std=c++11 -o CMakeFiles/webcc.dir/soap_client.cc.o -c /home/adam/github/webcc/src/webcc/soap_client.cc",
+  "file": "/home/adam/github/webcc/src/webcc/soap_client.cc"
 },
 {
   "directory": "/home/adam/github/webcc/build/third_party/jsoncpp",
@@ -111,13 +111,13 @@
 },
 {
   "directory": "/home/adam/github/webcc/build/example/rest_book_server",
-  "command": "/usr/bin/c++   -DWEBCC_ENABLE_SOAP -I/home/adam/include -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party -I/home/adam/github/webcc/third_party/jsoncpp    -std=c++11 -o CMakeFiles/rest_book_server.dir/book_services.cc.o -c /home/adam/github/webcc/example/rest_book_server/book_services.cc",
-  "file": "/home/adam/github/webcc/example/rest_book_server/book_services.cc"
+  "command": "/usr/bin/c++   -DWEBCC_ENABLE_SOAP -I/home/adam/include -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party -I/home/adam/github/webcc/third_party/jsoncpp    -std=c++11 -o CMakeFiles/rest_book_server.dir/main.cc.o -c /home/adam/github/webcc/example/rest_book_server/main.cc",
+  "file": "/home/adam/github/webcc/example/rest_book_server/main.cc"
 },
 {
   "directory": "/home/adam/github/webcc/build/example/rest_book_server",
-  "command": "/usr/bin/c++   -DWEBCC_ENABLE_SOAP -I/home/adam/include -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party -I/home/adam/github/webcc/third_party/jsoncpp    -std=c++11 -o CMakeFiles/rest_book_server.dir/main.cc.o -c /home/adam/github/webcc/example/rest_book_server/main.cc",
-  "file": "/home/adam/github/webcc/example/rest_book_server/main.cc"
+  "command": "/usr/bin/c++   -DWEBCC_ENABLE_SOAP -I/home/adam/include -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party -I/home/adam/github/webcc/third_party/jsoncpp    -std=c++11 -o CMakeFiles/rest_book_server.dir/book_services.cc.o -c /home/adam/github/webcc/example/rest_book_server/book_services.cc",
+  "file": "/home/adam/github/webcc/example/rest_book_server/book_services.cc"
 },
 {
   "directory": "/home/adam/github/webcc/build/example/rest_book_client",
