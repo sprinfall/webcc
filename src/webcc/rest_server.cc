@@ -84,10 +84,14 @@ HttpStatus::Enum RestRequestHandler::HandleSession(HttpSessionPtr session) {
     return HttpStatus::kBadRequest;
   }
 
+  // TODO: Only for GET?
+  Url::Query query = Url::SplitQuery(url.query());
+
   // TODO: Error handling.
   std::string content;
   service->Handle(session->request().method(),
                   sub_matches,
+                  query,
                   session->request().content(),
                   &content);
 

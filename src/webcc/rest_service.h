@@ -1,6 +1,7 @@
 #ifndef WEBCC_REST_SERVICE_H_
 #define WEBCC_REST_SERVICE_H_
 
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -16,10 +17,15 @@ public:
   }
 
   // Handle REST request, output the response.
-  // Both the request and response parameters should be JSON.
-  // TODO: Query parameters.
+  // \param http_method GET, POST, etc.
+  // \param url_sub_matches The regex sub-matches in the URL,
+  //                        usually resource ID.
+  // \param query Query parameters in the URL, key value pairs.
+  // \param request_content Request JSON.
+  // \param response_content Output response JSON.
   virtual bool Handle(const std::string& http_method,
                       const std::vector<std::string>& url_sub_matches,
+                      const std::map<std::string, std::string>& query,
                       const std::string& request_content,
                       std::string* response_content) = 0;
 };
