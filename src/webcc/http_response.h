@@ -32,6 +32,9 @@ public:
   // and not be changed until the write operation has completed.
   std::vector<boost::asio::const_buffer> ToBuffers() const;
 
+  // Dump as string, only used by logger.
+  std::string Dump() const;
+
   // Get a fault response when HTTP status is not OK.
   static HttpResponse Fault(HttpStatus::Enum status);
 

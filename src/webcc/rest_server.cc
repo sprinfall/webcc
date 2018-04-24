@@ -1,9 +1,6 @@
 #include "webcc/rest_server.h"
 
-#if WEBCC_DEBUG_OUTPUT
-#include <iostream>
-#endif
-
+#include "webcc/logger.h"
 #include "webcc/url.h"
 
 namespace webcc {
@@ -27,9 +24,7 @@ bool RestServiceManager::AddService(RestServicePtr service,
     return true;
 
   } catch (std::regex_error& e) {
-#if WEBCC_DEBUG_OUTPUT
-    std::cout << e.what() << std::endl;
-#endif
+    LOG_ERRO("URL is not a valid regular expression: %s", e.what());
   }
 
   return false;
@@ -76,9 +71,7 @@ HttpStatus::Enum RestRequestHandler::HandleSession(HttpSessionPtr session) {
   std::vector<std::string> sub_matches;
   RestServicePtr service = service_manager_.GetService(url.path(), &sub_matches);
   if (!service) {
-#if WEBCC_DEBUG_OUTPUT
-    std::cout << "No service matches the URL: " << url.path() << std::endl;
-#endif
+    LOG_WARN("No service matches the URL: %s", url.path().c_str());
     session->SetResponseStatus(HttpStatus::kBadRequest);
     session->SendResponse();
     return HttpStatus::kBadRequest;

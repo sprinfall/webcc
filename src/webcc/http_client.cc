@@ -1,9 +1,5 @@
 #include "webcc/http_client.h"
 
-#if WEBCC_DEBUG_OUTPUT
-#include <iostream>
-#endif
-
 #if 0
 #include "boost/asio.hpp"
 #else
@@ -13,6 +9,7 @@
 #include "boost/asio/write.hpp"
 #endif
 
+#include "webcc/logger.h"
 #include "webcc/http_response_parser.h"
 #include "webcc/http_request.h"
 #include "webcc/http_response.h"
@@ -69,9 +66,14 @@ Error HttpClient::SendRequest(const HttpRequest& request,
   }
 
   boost::system::error_code ec;
-  tcp::resolver::results_type endpoints =
-      resolver.resolve(tcp::v4(), request.host(), port, ec);
+  // tcp::resolver::results_type
+  auto endpoints = resolver.resolve(tcp::v4(), request.host(), port, ec);
+
   if (ec) {
+    LOG_ERRO("cannot resolve host: %s, %s",
+             request.host().c_str(),
+             port.c_str());
+
     return kHostResolveError;
   }
 
@@ -84,19 +86,13 @@ Error HttpClient::SendRequest(const HttpRequest& request,
 
   // Send HTTP request.
 
-#if WEBCC_DEBUG_OUTPUT
-  std::cout << "--- REQUEST ---" << std::endl << request << std::endl;
-#endif
+  LOG_VERB("http request:\n{\n%s}", request.Dump().c_str());
 
   try {
     boost::asio::write(socket, request.ToBuffers());
   } catch (boost::system::system_error&) {
     return kSocketWriteError;
   }
-
-#if WEBCC_DEBUG_OUTPUT
-  std::cout << "--- RESPONSE ---" << std::endl;
-#endif
 
   // Read and parse HTTP response.
 
@@ -119,26 +115,18 @@ Error HttpClient::SendRequest(const HttpRequest& request,
       return kSocketReadError;
     }
 
-#if WEBCC_DEBUG_OUTPUT
-    // NOTE: the content XML might not be well formated.
-    std::cout.write(buffer_.data(), length);
-#endif
-
     // Parse the response piece just read.
     // If the content has been fully received, next time flag "finished_"
     // will be set.
     Error error = parser.Parse(buffer_.data(), length);
 
     if (error != kNoError) {
+      LOG_ERRO("failed to parse http response.");
       return error;
     }
   }
 
-#if WEBCC_DEBUG_OUTPUT
-  std::cout << std::endl;
-  std::cout << "--- RESPONSE (PARSED) ---" << std::endl;
-  std::cout << *response << std::endl;
-#endif
+  LOG_VERB("http response:\n{\n%s}", response->Dump().c_str());
 
   return kNoError;
 }

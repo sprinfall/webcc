@@ -60,6 +60,9 @@ public:
   // and not be changed until the write operation has completed.
   std::vector<boost::asio::const_buffer> ToBuffers() const;
 
+  // Dump as string, only used by logger.
+  std::string Dump() const;
+
 private:
   // HTTP method.
   std::string method_;

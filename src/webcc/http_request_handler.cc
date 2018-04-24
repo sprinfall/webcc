@@ -2,10 +2,7 @@
 
 #include <sstream>
 
-#if WEBCC_DEBUG_OUTPUT
-#include <iostream>
-#endif
-
+#include "webcc/logger.h"
 #include "webcc/common.h"
 #include "webcc/http_request.h"
 #include "webcc/http_response.h"
@@ -20,27 +17,16 @@ void HttpRequestHandler::Start(std::size_t count) {
   assert(count > 0 && workers_.size() == 0);
 
   for (std::size_t i = 0; i < count; ++i) {
-#if WEBCC_DEBUG_OUTPUT
-    boost::thread* worker =
-#endif
     workers_.create_thread(std::bind(&HttpRequestHandler::WorkerRoutine, this));
-
-#if WEBCC_DEBUG_OUTPUT
-    std::cout << "Worker is running (thread: " << worker->get_id() << ")\n";
-#endif
   }
 }
 
 void HttpRequestHandler::Stop() {
-#if WEBCC_DEBUG_OUTPUT
-  std::cout << "Stopping workers...\n";
-#endif
+  LOG_VERB("Stopping workers...");
 
   // Close pending sessions.
   for (HttpSessionPtr conn = queue_.Pop(); conn; conn = queue_.Pop()) {
-#if WEBCC_DEBUG_OUTPUT
-    std::cout << "Closing pending session...\n";
-#endif
+    LOG_VERB("Closing pending session...");
     conn->Stop();
   }
 
@@ -49,23 +35,18 @@ void HttpRequestHandler::Stop() {
 
   workers_.join_all();
 
-#if WEBCC_DEBUG_OUTPUT
-  std::cout << "All workers have been stopped.\n";
-#endif
+  LOG_VERB("All workers have been stopped.");
 }
 
 void HttpRequestHandler::WorkerRoutine() {
-#if WEBCC_DEBUG_OUTPUT
-  boost::thread::id thread_id = boost::this_thread::get_id();
-#endif
+  LOG_VERB("Worker is running.");
 
   for (;;) {
     HttpSessionPtr session = queue_.PopOrWait();
 
     if (!session) {
-#if WEBCC_DEBUG_OUTPUT
-      std::cout << "Worker is going to stop (thread: " << thread_id << ")\n";
-#endif
+      LOG_VERB("Worker is going to stop.");
+
       // For stopping next worker.
       queue_.Push(HttpSessionPtr());
 

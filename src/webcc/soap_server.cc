@@ -1,9 +1,6 @@
 #include "webcc/soap_server.h"
 
-#if WEBCC_DEBUG_OUTPUT
-#include <iostream>
-#endif
-
+#include "webcc/logger.h"
 #include "webcc/soap_request.h"
 #include "webcc/soap_response.h"
 
@@ -55,15 +52,11 @@ SoapServicePtr SoapRequestHandler::GetServiceByUrl(const std::string& url) {
   UrlServiceMap::const_iterator it = url_service_map_.find(url);
 
   if (it != url_service_map_.end()) {
-#if WEBCC_DEBUG_OUTPUT
-    std::cout << "Service matches the URL: " << url << std::endl;
-#endif
+    LOG_VERB("Service matches the URL: %s", url.c_str());
     return it->second;
   }
 
-#if WEBCC_DEBUG_OUTPUT
-  std::cout << "No service matches the URL: " << url << std::endl;
-#endif
+  LOG_WARN("No service matches the URL: %s", url.c_str());
 
   return SoapServicePtr();
 }

@@ -2,10 +2,7 @@
 
 #include <signal.h>
 
-#if WEBCC_DEBUG_OUTPUT
-#include <iostream>
-#endif
-
+#include "webcc/logger.h"
 #include "webcc/http_request_handler.h"
 #include "webcc/soap_service.h"
 #include "webcc/utility.h"
@@ -49,10 +46,7 @@ HttpServer::~HttpServer() {
 void HttpServer::Run() {
   assert(GetRequestHandler() != NULL);
 
-#if WEBCC_DEBUG_OUTPUT
-  boost::thread::id thread_id = boost::this_thread::get_id();
-  std::cout << "Server main thread: " << thread_id << std::endl;
-#endif
+  LOG_VERB("Server is going to run...");
 
   // Start worker threads.
   GetRequestHandler()->Start(workers_);

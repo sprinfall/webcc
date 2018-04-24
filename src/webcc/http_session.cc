@@ -1,13 +1,11 @@
 #include "webcc/http_session.h"
 
 #include <vector>
-#if WEBCC_DEBUG_OUTPUT
-#include <iostream>
-#endif
 
 #include "boost/asio/write.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
 
+#include "webcc/logger.h"
 #include "webcc/http_request_handler.h"
 
 namespace webcc {
@@ -94,25 +92,15 @@ void HttpSession::HandleRead(boost::system::error_code ec,
 // ensured by Asio.
 void HttpSession::HandleWrite(boost::system::error_code ec,
                               std::size_t length) {
-#if WEBCC_DEBUG_OUTPUT
-  boost::thread::id thread_id = boost::this_thread::get_id();
-#endif
-
   if (!ec) {
-#if WEBCC_DEBUG_OUTPUT
-    std::cout << "Response has been sent back (thread: " << thread_id << ")\n";
-#endif
+    LOG_VERB("Response has been sent back.");
 
     // Initiate graceful connection closure.
     boost::system::error_code ec;
     socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
 
   } else {
-#if WEBCC_DEBUG_OUTPUT
-    std::cout << "(thread: " << thread_id << ") Sending response error: "
-              << ec.message()
-              << std::endl;
-#endif
+    LOG_ERRO("Sending response error: %s", ec.message().c_str());
 
     if (ec != boost::asio::error::operation_aborted) {
       Stop();

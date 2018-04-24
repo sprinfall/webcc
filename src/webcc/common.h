@@ -64,16 +64,6 @@ const std::string kHttpPatch = "PATCH";
 const std::string kHttpPut = "PUT";
 const std::string kHttpDelete = "DELETE";
 
-//enum class HttpMethod : int {
-//  kUnknown,
-//  kHead,
-//  kGet,
-//  kPost,
-//  kPatch,
-//  kPut,
-//  kDelete,
-//};
-
 // HTTP response status.
 // This is not a full list.
 // Full list: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes

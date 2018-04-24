@@ -1,10 +1,15 @@
 cmake_minimum_required(VERSION 3.1.0)
 project(webcc)
 
+option(WEBCC_ENABLE_LOG "Enable console logger?" ON)
 option(WEBCC_ENABLE_SOAP "Enable SOAP support (need pugixml)?" ON)
 option(WEBCC_BUILD_UNITTEST "Build unit test?" ON)
 option(WEBCC_BUILD_REST_EXAMPLE "Build REST example?" ON)
 option(WEBCC_BUILD_SOAP_EXAMPLE "Build SOAP example?" ON)
+
+if(WEBCC_ENABLE_LOG)
+    add_definitions(-DWEBCC_ENABLE_LOG)
+endif()
 
 if(WEBCC_ENABLE_SOAP)
     add_definitions(-DWEBCC_ENABLE_SOAP)

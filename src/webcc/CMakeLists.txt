@@ -1,9 +1,3 @@
-option(WEBCC_DEBUG_OUTPUT "Enable debug output?" OFF)
-
-if(WEBCC_DEBUG_OUTPUT)
-    add_definitions(-DWEBCC_DEBUG_OUTPUT)
-endif()
-
 # Don't use any deprecated definitions (e.g., io_service).
 add_definitions(-DBOOST_ASIO_NO_DEPRECATED)
 
@@ -30,6 +24,8 @@ set(SRCS
 	http_server.h
 	http_session.cc
 	http_session.h
+	logger.cc
+	logger.h
 	queue.h
 	rest_server.cc
 	rest_server.h

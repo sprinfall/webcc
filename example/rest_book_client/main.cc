@@ -3,6 +3,7 @@
 #include "boost/algorithm/string.hpp"
 #include "json/json.h"  // jsoncpp
 
+#include "webcc/logger.h"
 #include "webcc/http_client.h"
 #include "webcc/http_request.h"
 #include "webcc/http_response.h"
@@ -54,7 +55,7 @@ public:
       return false;
     }
 
-    std::cout << http_response.content() << std::endl;
+    std::cout << "result:\n" << http_response.content() << std::endl;
 
     return true;
   }
@@ -173,6 +174,8 @@ int main(int argc, char* argv[]) {
     Help(argv[0]);
     return 1;
   }
+
+  LOG_INIT(webcc::VERB, 0);
 
   g_host = argv[1];
   g_port = argv[2];
