@@ -48,7 +48,12 @@ Error SoapClient::Call(const std::string& operation,
   HttpResponse http_response;
 
   HttpClient http_client;
-  Error error = http_client.SendRequest(http_request, &http_response);
+
+  if (timeout_seconds_ != -1) {
+    http_client.set_timeout_seconds(timeout_seconds_);
+  }
+
+  Error error = http_client.MakeRequest(http_request, &http_response);
 
   if (error != kNoError) {
     return error;

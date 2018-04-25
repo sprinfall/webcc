@@ -1,4 +1,5 @@
 #include <iostream>
+#include "webcc/logger.h"
 #include "webcc/soap_server.h"
 #include "calc_service.h"
 
@@ -13,6 +14,8 @@ int main(int argc, char* argv[]) {
     Help(argv[0]);
     return 1;
   }
+
+  LOG_INIT(webcc::VERB, 0);
 
   unsigned short port = std::atoi(argv[1]);
 

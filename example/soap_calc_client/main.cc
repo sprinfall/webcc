@@ -12,7 +12,6 @@ int main() {
     printf("add: %.1f\n", result);
   }
 
-#if 0
   if (calc.Subtract(x, y, &result)) {
     printf("subtract: %.1f\n", result);
   }
@@ -24,7 +23,11 @@ int main() {
   if (calc.Divide(x, y, &result)) {
     printf("divide: %.1f\n", result);
   }
-#endif
+
+  // Try to call a non-existing operation.
+  if (calc.NotExist(x, y, &result)) {
+    printf("notexist: %.1f\n", result);
+  }
 
   return 0;
 }

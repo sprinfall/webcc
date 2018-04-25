@@ -29,31 +29,32 @@ void HttpSession::Stop() {
   socket_.close(ec);
 }
 
-void HttpSession::SetResponseContent(const std::string& content_type,
-                                     std::size_t content_length,
-                                     std::string&& content) {
-  response_.SetContentType(content_type);
+void HttpSession::SetResponseContent(std::string&& content,
+                                     const std::string& content_type) {
   response_.SetContent(std::move(content));
+  response_.SetContentType(content_type);
 }
 
-void HttpSession::SendResponse() {
+void HttpSession::SendResponse(int status) {
+  response_.set_status(status);
   DoWrite();
 }
 
 void HttpSession::DoRead() {
-  auto handler = std::bind(&HttpSession::HandleRead,
-                           shared_from_this(),
-                           std::placeholders::_1,
-                           std::placeholders::_2);
-  socket_.async_read_some(boost::asio::buffer(buffer_), handler);
+  socket_.async_read_some(boost::asio::buffer(buffer_),
+                          std::bind(&HttpSession::HandleRead,
+                                    shared_from_this(),
+                                    std::placeholders::_1,
+                                    std::placeholders::_2));
 }
 
 void HttpSession::DoWrite() {
-  auto handler = std::bind(&HttpSession::HandleWrite,
-                           shared_from_this(),
-                           std::placeholders::_1,
-                           std::placeholders::_2);
-  boost::asio::async_write(socket_, response_.ToBuffers(), handler);
+  boost::asio::async_write(socket_,
+                           response_.ToBuffers(),
+                           std::bind(&HttpSession::HandleWrite,
+                                     shared_from_this(),
+                                     std::placeholders::_1,
+                                     std::placeholders::_2));
 }
 
 void HttpSession::HandleRead(boost::system::error_code ec,

@@ -16,36 +16,30 @@ bool SoapRequestHandler::RegisterService(SoapServicePtr service,
   return true;
 }
 
-HttpStatus::Enum SoapRequestHandler::HandleSession(HttpSessionPtr session) {
+void SoapRequestHandler::HandleSession(HttpSessionPtr session) {
   SoapServicePtr service = GetServiceByUrl(session->request().url());
   if (!service) {
-    session->SetResponseStatus(HttpStatus::kBadRequest);
-    session->SendResponse();
-    return HttpStatus::kBadRequest;
+    session->SendResponse(HttpStatus::kBadRequest);
+    return;
   }
 
   // Parse the SOAP request XML.
   SoapRequest soap_request;
   if (!soap_request.FromXml(session->request().content())) {
-    session->SetResponseStatus(HttpStatus::kBadRequest);
-    session->SendResponse();
-    return HttpStatus::kBadRequest;
+    session->SendResponse(HttpStatus::kBadRequest);
+    return;
   }
 
-  // TODO: Error handling.
   SoapResponse soap_response;
-  service->Handle(soap_request, &soap_response);
+  if (!service->Handle(soap_request, &soap_response)) {
+    session->SendResponse(HttpStatus::kBadRequest);
+    return;
+  }
 
   std::string content;
   soap_response.ToXml(&content);
-
-  session->SetResponseStatus(HttpStatus::kOK);
-  session->SetResponseContent(kTextXmlUtf8,
-                              content.length(),
-                              std::move(content));
-  session->SendResponse();
-
-  return HttpStatus::kOK;
+  session->SetResponseContent(std::move(content), kTextXmlUtf8);
+  session->SendResponse(HttpStatus::kOK);
 }
 
 SoapServicePtr SoapRequestHandler::GetServiceByUrl(const std::string& url) {

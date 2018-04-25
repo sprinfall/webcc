@@ -59,42 +59,39 @@ bool RestRequestHandler::RegisterService(RestServicePtr service,
   return service_manager_.AddService(service, url);
 }
 
-HttpStatus::Enum RestRequestHandler::HandleSession(HttpSessionPtr session) {
+void RestRequestHandler::HandleSession(HttpSessionPtr session) {
   Url url(session->request().url());
 
   if (!url.IsValid()) {
-    session->SetResponseStatus(HttpStatus::kBadRequest);
-    session->SendResponse();
-    return HttpStatus::kBadRequest;
+    session->SendResponse(HttpStatus::kBadRequest);
+    return;
   }
 
   std::vector<std::string> sub_matches;
   RestServicePtr service = service_manager_.GetService(url.path(), &sub_matches);
   if (!service) {
     LOG_WARN("No service matches the URL: %s", url.path().c_str());
-    session->SetResponseStatus(HttpStatus::kBadRequest);
-    session->SendResponse();
-    return HttpStatus::kBadRequest;
+    session->SendResponse(HttpStatus::kBadRequest);
+    return;
   }
 
   // TODO: Only for GET?
   Url::Query query = Url::SplitQuery(url.query());
 
-  // TODO: Error handling.
   std::string content;
-  service->Handle(session->request().method(),
-                  sub_matches,
-                  query,
-                  session->request().content(),
-                  &content);
+  bool ok = service->Handle(session->request().method(),
+                            sub_matches,
+                            query,
+                            session->request().content(),
+                            &content);
+  if (!ok) {
+    // TODO: Could be other than kBadRequest.
+    session->SendResponse(HttpStatus::kBadRequest);
+    return;
+  }
 
-  session->SetResponseStatus(HttpStatus::kOK);
-  session->SetResponseContent(kTextJsonUtf8,
-                              content.length(),
-                              std::move(content));
-  session->SendResponse();
-
-  return HttpStatus::kOK;
+  session->SetResponseContent(std::move(content), kTextJsonUtf8);
+  session->SendResponse(HttpStatus::kOK);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -16,8 +16,8 @@ class HttpResponse : public HttpMessage {
                                   const HttpResponse& response);
 
 public:
-  HttpResponse() {
-  }
+  HttpResponse() = default;
+  ~HttpResponse() override = default;
 
   int status() const {
     return status_;

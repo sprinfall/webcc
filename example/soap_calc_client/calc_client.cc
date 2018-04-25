@@ -2,6 +2,9 @@
 #include <iostream>
 #include "boost/lexical_cast.hpp"
 
+// Set to 0 to test our own calculator server created with webcc.
+#define ACCESS_PARASOFT 0
+
 CalcClient::CalcClient() {
   Init();
 }
@@ -19,13 +22,22 @@ bool CalcClient::Multiply(double x, double y, double* result) {
 }
 
 bool CalcClient::Divide(double x, double y, double* result) {
+  // ParaSoft's Calculator Service uses different parameter names for Divide.
+#if ACCESS_PARASOFT
   return Calc("divide", "numerator", "denominator", x, y, result);
+#else
+  return Calc("divide", "x", "y", x, y, result);
+#endif
 }
 
-// Set to 0 to test our own calculator server created with webcc.
-#define ACCESS_PARASOFT 0
+bool CalcClient::NotExist(double x, double y, double* result) {
+  return Calc("notexist", "x", "y", x, y, result);
+}
 
 void CalcClient::Init() {
+  // Override the default timeout.
+  timeout_seconds_ = 5;
+
 #if ACCESS_PARASOFT
   url_ = "/glue/calculator";
   host_ = "ws1.parasoft.com";

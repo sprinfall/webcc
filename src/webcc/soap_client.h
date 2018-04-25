@@ -13,12 +13,10 @@ namespace webcc {
 //
 class SoapClient {
 public:
-  virtual ~SoapClient() {
-  }
+  virtual ~SoapClient() = default;
 
 protected:
-  SoapClient() {
-  }
+  SoapClient() = default;
 
   // A generic wrapper to make a call.
   // NOTE: The parameters should be movable.
@@ -27,6 +25,9 @@ protected:
              std::string* result);
 
 protected:
+  // -1 means default timeout (normally 30s) will be used.
+  int timeout_seconds_ = -1;
+
   Namespace soapenv_ns_;  // SOAP envelope namespace.
   Namespace service_ns_;  // Namespace for your web service.
 

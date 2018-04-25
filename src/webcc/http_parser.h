@@ -13,7 +13,8 @@ class HttpParser {
 public:
   explicit HttpParser(HttpMessage* message);
 
-  ~HttpParser() = default;
+  virtual ~HttpParser() = default;
+
   HttpParser(const HttpParser&) = delete;
   HttpParser& operator=(const HttpParser&) = delete;
 

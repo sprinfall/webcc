@@ -23,9 +23,11 @@ void LogInit(int level, int modes);
 
 void LogWrite(int level, const char* file, int line, const char* format, ...);
 
+}  // namespace webcc
+
 // Initialize the logger with a level.
 // E.g., LOG_INIT(ERRO, FLUSH)
-#define LOG_INIT(level, modes) LogInit(level, modes);
+#define LOG_INIT(level, modes) webcc::LogInit(level, modes);
 
 #if (defined(WIN32) || defined(_WIN64))
 
@@ -33,19 +35,19 @@ void LogWrite(int level, const char* file, int line, const char* format, ...);
 #define __FILENAME__ strrchr("\\" __FILE__, '\\') + 1
 
 #define LOG_VERB(format, ...) \
-    LogWrite(VERB, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
+    webcc::LogWrite(webcc::VERB, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
 
 #define LOG_INFO(format, ...) \
-    LogWrite(INFO, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
+    webcc::LogWrite(webcc::INFO, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
 
 #define LOG_WARN(format, ...) \
-    LogWrite(WARN, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
+    webcc::LogWrite(webcc::WARN, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
 
 #define LOG_ERRO(format, ...) \
-    LogWrite(ERRO, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
+    webcc::LogWrite(webcc::ERRO, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
 
 #define LOG_FATA(format, ...) \
-    LogWrite(FATA, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
+    webcc::LogWrite(webcc::FATA, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
 
 #else
 
@@ -53,19 +55,19 @@ void LogWrite(int level, const char* file, int line, const char* format, ...);
 #define __FILENAME__ strrchr("/" __FILE__, '/') + 1
 
 #define LOG_VERB(format, args...) \
-    LogWrite(VERB, __FILENAME__, __LINE__, format, ##args);
+    webcc::LogWrite(webcc::VERB, __FILENAME__, __LINE__, format, ##args);
 
 #define LOG_INFO(format, args...) \
-    LogWrite(INFO, __FILENAME__, __LINE__, format, ##args);
+    webcc::LogWrite(webcc::INFO, __FILENAME__, __LINE__, format, ##args);
 
 #define LOG_WARN(format, args...) \
-    LogWrite(WARN, __FILENAME__, __LINE__, format, ##args);
+    webcc::LogWrite(webcc::WARN, __FILENAME__, __LINE__, format, ##args);
 
 #define LOG_ERRO(format, args...) \
-    LogWrite(ERRO, __FILENAME__, __LINE__, format, ##args);
+    webcc::LogWrite(webcc::ERRO, __FILENAME__, __LINE__, format, ##args);
 
 #define LOG_FATA(format, args...) \
-    LogWrite(FATA, __FILENAME__, __LINE__, format, ##args);
+    webcc::LogWrite(webcc::FATA, __FILENAME__, __LINE__, format, ##args);
 
 #endif  // defined(WIN32) || defined(_WIN64)
 
@@ -88,7 +90,5 @@ void LogWrite(int level, const char* file, int line, const char* format, ...);
 #endif  // defined(WIN32) || defined(_WIN64)
 
 #endif  // WEBCC_ENABLE_LOG
-
-}  // namespace webcc
 
 #endif  // WEBCC_LOGGER_H_

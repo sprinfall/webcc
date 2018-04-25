@@ -33,16 +33,11 @@ public:
 
   void Stop();
 
-  void SetResponseStatus(int status) {
-    response_.set_status(status);
-  }
+  void SetResponseContent(std::string&& content,
+                          const std::string& content_type);
 
-  void SetResponseContent(const std::string& content_type,
-                          std::size_t content_length,
-                          std::string&& content);
-
-  // Write response back to the client.
-  void SendResponse();
+  // Write response back to the client with the given HTTP status.
+  void SendResponse(int status);
 
 private:
   void DoRead();

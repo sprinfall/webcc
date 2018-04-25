@@ -26,6 +26,36 @@ extern const std::string kTextJsonUtf8;
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// HTTP methods (verbs) in string ("HEAD", "GET", etc.).
+// NOTE: Don't use enum to avoid converting back and forth.
+extern const std::string kHttpHead;
+extern const std::string kHttpGet;
+extern const std::string kHttpPost;
+extern const std::string kHttpPatch;
+extern const std::string kHttpPut;
+extern const std::string kHttpDelete;
+
+// HTTP response status.
+// This is not a full list.
+// Full list: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+// NTOE: Don't use enum class because we want to convert to/from int easily.
+struct HttpStatus {
+  enum Enum {
+    kOK = 200,
+    kCreated = 201,
+    kAccepted = 202,
+    kNoContent = 204,
+    kNotModified = 304,
+    kBadRequest = 400,
+    kNotFound = 404,
+    InternalServerError = 500,
+    kNotImplemented = 501,
+    kServiceUnavailable = 503,
+  };
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
 // Error codes.
 enum Error {
   kNoError = 0,  // OK
@@ -52,36 +82,6 @@ enum Error {
 
 // Return a descriptive message for the given error code.
 const char* GetErrorMessage(Error error);
-
-////////////////////////////////////////////////////////////////////////////////
-
-// HTTP methods (verbs).
-// NOTE: Don't use enum to avoid converting back and forth.
-const std::string kHttpHead = "HEAD";
-const std::string kHttpGet = "GET";
-const std::string kHttpPost = "POST";
-const std::string kHttpPatch = "PATCH";
-const std::string kHttpPut = "PUT";
-const std::string kHttpDelete = "DELETE";
-
-// HTTP response status.
-// This is not a full list.
-// Full list: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-// NTOE: Don't use enum class because we want to convert to/from int easily.
-struct HttpStatus {
-  enum Enum {
-    kOK = 200,
-    kCreated = 201,
-    kAccepted = 202,
-    kNoContent = 204,
-    kNotModified = 304,
-    kBadRequest = 400,
-    kNotFound = 404,
-    InternalServerError = 500,
-    kNotImplemented = 501,
-    kServiceUnavailable = 503,
-  };
-};
 
 ////////////////////////////////////////////////////////////////////////////////
 

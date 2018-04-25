@@ -18,6 +18,13 @@ const std::string kTextXmlUtf8 = "text/xml; charset=utf-8";
 
 const std::string kTextJsonUtf8 = "text/json; charset=utf-8";
 
+const std::string kHttpHead = "HEAD";
+const std::string kHttpGet = "GET";
+const std::string kHttpPost = "POST";
+const std::string kHttpPatch = "PATCH";
+const std::string kHttpPut = "PUT";
+const std::string kHttpDelete = "DELETE";
+
 ////////////////////////////////////////////////////////////////////////////////
 
 const char* GetErrorMessage(Error error) {

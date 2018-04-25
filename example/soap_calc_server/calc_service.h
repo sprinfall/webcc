@@ -10,6 +10,11 @@ public:
 
   bool Handle(const webcc::SoapRequest& soap_request,
               webcc::SoapResponse* soap_response) override;
+
+private:
+  bool GetParameters(const webcc::SoapRequest& soap_request,
+                     double* x,
+                     double* y);
 };
 
 #endif  // CALC_SERVICE_H_

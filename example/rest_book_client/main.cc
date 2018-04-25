@@ -31,7 +31,7 @@ public:
     http_request.Build();
 
     webcc::HttpClient http_client;
-    webcc::Error error = http_client.SendRequest(http_request, http_response);
+    webcc::Error error = http_client.MakeRequest(http_request, http_response);
 
     return error == webcc::kNoError;
   }

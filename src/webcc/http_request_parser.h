@@ -11,6 +11,8 @@ class HttpRequestParser : public HttpParser {
 public:
   explicit HttpRequestParser(HttpRequest* request);
 
+  ~HttpRequestParser() override = default;
+
 private:
   Error ParseStartLine(const std::string& line) override;
 

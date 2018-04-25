@@ -39,7 +39,7 @@ private:
   void WorkerRoutine();
 
   // Called by the worker routine.
-  virtual HttpStatus::Enum HandleSession(HttpSessionPtr session) = 0;
+  virtual void HandleSession(HttpSessionPtr session) = 0;
 
 private:
   Queue<HttpSessionPtr> queue_;

@@ -16,6 +16,9 @@ public:
 
   bool Divide(double x, double y, double* result);
 
+  // For testing purpose.
+  bool NotExist(double x, double y, double* result);
+
 protected:
   void Init();
 

@@ -24,7 +24,7 @@ public:
   bool RegisterService(SoapServicePtr service, const std::string& url);
 
 private:
-  HttpStatus::Enum HandleSession(HttpSessionPtr session) override;
+  void HandleSession(HttpSessionPtr session) override;
 
   SoapServicePtr GetServiceByUrl(const std::string& url);
 

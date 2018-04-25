@@ -75,7 +75,7 @@ public:
   bool RegisterService(RestServicePtr service, const std::string& url);
 
 private:
-  HttpStatus::Enum HandleSession(HttpSessionPtr session) override;
+  void HandleSession(HttpSessionPtr session) override;
 
 private:
   RestServiceManager service_manager_;
