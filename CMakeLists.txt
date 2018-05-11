@@ -19,6 +19,7 @@ if(WEBCC_BUILD_UNITTEST)
     enable_testing()
 endif()
 
+# Automatically detect _WIN32_WINNT for Asio.
 # See: https://stackoverflow.com/a/40217291
 if(WIN32)
 	macro(get_WIN32_WINNT version)

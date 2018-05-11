@@ -1,7 +1,10 @@
 #include <iostream>
+#include "webcc/logger.h"
 #include "calc_client.h"
 
 int main() {
+  LOG_INIT(webcc::INFO, 0);
+
   CalcClient calc;
 
   double x = 1.0;

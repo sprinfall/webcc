@@ -7,7 +7,6 @@ namespace webcc {
 
 // Print the resolved endpoints.
 // NOTE: Endpoint is one word, don't use "end point".
-// TODO
 void DumpEndpoints(tcp::resolver::results_type& endpoints) {
   std::cout << "Endpoints: " << endpoints.size() << std::endl;
 

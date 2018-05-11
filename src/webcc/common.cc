@@ -63,7 +63,7 @@ const char* GetErrorMessage(Error error) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const Namespace kSoapEnvNamespace{
+const SoapNamespace kSoapEnvNamespace{
   "soap",
   "http://schemas.xmlsoap.org/soap/envelope/"
 };

@@ -11,7 +11,36 @@
 #include <string>
 #include <vector>
 
+#include "webcc/common.h"
+
 namespace webcc {
+
+////////////////////////////////////////////////////////////////////////////////
+
+// URL query parameters.
+class UrlQuery {
+public:
+  typedef std::vector<Parameter> Parameters;
+
+  void Add(std::string&& key, std::string&& value);
+
+  void Remove(const std::string& key);
+
+  const std::string& GetValue(const std::string& key) const;
+
+  bool HasKey(const std::string& key) const {
+    return Find(key) != parameters_.end();
+  }
+
+private:
+  typedef Parameters::const_iterator ConstIterator;
+  ConstIterator Find(const std::string& key) const;
+
+private:
+  Parameters parameters_;
+};
+
+////////////////////////////////////////////////////////////////////////////////
 
 class Url {
 public:
@@ -40,8 +69,8 @@ public:
   // Split a path into its hierarchical components.
   static std::vector<std::string> SplitPath(const std::string& path);
 
-  // Split query string into key-value map.
-  static Query SplitQuery(const std::string& query);
+  // Split query string into key-value parameters.
+  static void SplitQuery(const std::string& str, UrlQuery* query);
 
 private:
   std::string path_;

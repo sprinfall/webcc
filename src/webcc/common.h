@@ -87,8 +87,7 @@ const char* GetErrorMessage(Error error);
 
 // XML namespace name/url pair.
 // E.g., { "soap", "http://schemas.xmlsoap.org/soap/envelope/" }
-// TODO: Rename (add soap prefix)
-class Namespace {
+class SoapNamespace {
 public:
   std::string name;
   std::string url;
@@ -99,12 +98,11 @@ public:
 };
 
 // CSoap's default namespace for SOAP Envelope.
-extern const Namespace kSoapEnvNamespace;
+extern const SoapNamespace kSoapEnvNamespace;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// Parameter in the SOAP request envelope.
-// TODO: Rename (add soap prefix)
+// Key-value parameter.
 class Parameter {
 public:
   Parameter() = default;

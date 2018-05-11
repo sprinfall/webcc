@@ -1,6 +1,7 @@
 #include "calc_client.h"
 #include <iostream>
 #include "boost/lexical_cast.hpp"
+#include "webcc/logger.h"
 
 // Set to 0 to test our own calculator server created with webcc.
 #define ACCESS_PARASOFT 0
@@ -71,8 +72,9 @@ bool CalcClient::Calc(const std::string& operation,
 
   // Error handling if any.
   if (error != webcc::kNoError) {
-    std::cerr << "Error: " << error;
-    std::cerr << ", " << webcc::GetErrorMessage(error) << std::endl;
+    LOG_ERRO("Operation '%s' failed: %s",
+             operation.c_str(),
+             webcc::GetErrorMessage(error));
     return false;
   }
 

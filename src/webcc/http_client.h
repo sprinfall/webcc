@@ -19,7 +19,6 @@ class HttpResponse;
 class HttpClient {
 public:
   HttpClient();
-
   ~HttpClient() = default;
 
   HttpClient(const HttpClient&) = delete;

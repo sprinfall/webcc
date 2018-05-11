@@ -26,17 +26,17 @@ public:
 
   HttpServer(unsigned short port, std::size_t workers);
 
-  virtual ~HttpServer();
+  virtual ~HttpServer() = default;
 
   // Run the server's io_service loop.
   void Run();
 
 private:
   // Initiate an asynchronous accept operation.
-  void DoAccept();
+  void AsyncAccept();
 
   // Wait for a request to stop the server.
-  void DoAwaitStop();
+  void AsyncAwaitStop();
 
   // Get the handler for incoming requests.
   virtual HttpRequestHandler* GetRequestHandler() = 0;

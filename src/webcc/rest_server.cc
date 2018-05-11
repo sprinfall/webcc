@@ -76,7 +76,8 @@ void RestRequestHandler::HandleSession(HttpSessionPtr session) {
   }
 
   // TODO: Only for GET?
-  Url::Query query = Url::SplitQuery(url.query());
+  UrlQuery query;
+  Url::SplitQuery(url.query(), &query);
 
   std::string content;
   bool ok = service->Handle(session->request().method(),

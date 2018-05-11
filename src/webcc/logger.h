@@ -3,9 +3,9 @@
 
 // Simple console logger.
 
-namespace webcc {
-
 #if WEBCC_ENABLE_LOG
+
+namespace webcc {
 
 enum LogLevel {
   VERB = 0,

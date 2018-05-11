@@ -17,14 +17,11 @@ HttpSession::HttpSession(boost::asio::ip::tcp::socket socket,
     , request_parser_(&request_) {
 }
 
-HttpSession::~HttpSession() {
-}
-
 void HttpSession::Start() {
-  DoRead();
+  AsyncRead();
 }
 
-void HttpSession::Stop() {
+void HttpSession::Close() {
   boost::system::error_code ec;
   socket_.close(ec);
 }
@@ -35,33 +32,24 @@ void HttpSession::SetResponseContent(std::string&& content,
   response_.SetContentType(content_type);
 }
 
-void HttpSession::SendResponse(int status) {
+void HttpSession::SendResponse(HttpStatus::Enum status) {
   response_.set_status(status);
-  DoWrite();
+  AsyncWrite();
 }
 
-void HttpSession::DoRead() {
+void HttpSession::AsyncRead() {
   socket_.async_read_some(boost::asio::buffer(buffer_),
-                          std::bind(&HttpSession::HandleRead,
+                          std::bind(&HttpSession::ReadHandler,
                                     shared_from_this(),
                                     std::placeholders::_1,
                                     std::placeholders::_2));
 }
 
-void HttpSession::DoWrite() {
-  boost::asio::async_write(socket_,
-                           response_.ToBuffers(),
-                           std::bind(&HttpSession::HandleWrite,
-                                     shared_from_this(),
-                                     std::placeholders::_1,
-                                     std::placeholders::_2));
-}
-
-void HttpSession::HandleRead(boost::system::error_code ec,
-                             std::size_t length) {
+void HttpSession::ReadHandler(boost::system::error_code ec,
+                              std::size_t length) {
   if (ec) {
     if (ec != boost::asio::error::operation_aborted) {
-      Stop();
+      Close();
     }
     return;
   }
@@ -71,13 +59,13 @@ void HttpSession::HandleRead(boost::system::error_code ec,
   if (error != kNoError) {
     // Bad request.
     response_ = HttpResponse::Fault(HttpStatus::kBadRequest);
-    DoWrite();
+    AsyncWrite();
     return;
   }
 
   if (!request_parser_.finished()) {
     // Continue to read the request.
-    DoRead();
+    AsyncRead();
     return;
   }
 
@@ -87,14 +75,23 @@ void HttpSession::HandleRead(boost::system::error_code ec,
   request_handler_->Enqueue(shared_from_this());
 }
 
+void HttpSession::AsyncWrite() {
+  boost::asio::async_write(socket_,
+                           response_.ToBuffers(),
+                           std::bind(&HttpSession::WriteHandler,
+                                     shared_from_this(),
+                                     std::placeholders::_1,
+                                     std::placeholders::_2));
+}
+
 // NOTE:
 // This write handler will be called from main thread (the thread calling
 // io_context.run), even though DoWrite() is invoked by worker threads. This is
 // ensured by Asio.
-void HttpSession::HandleWrite(boost::system::error_code ec,
-                              std::size_t length) {
+void HttpSession::WriteHandler(boost::system::error_code ec,
+                               std::size_t length) {
   if (!ec) {
-    LOG_VERB("Response has been sent back.");
+    LOG_INFO("Response has been sent back.");
 
     // Initiate graceful connection closure.
     boost::system::error_code ec;
@@ -104,7 +101,7 @@ void HttpSession::HandleWrite(boost::system::error_code ec,
     LOG_ERRO("Sending response error: %s", ec.message().c_str());
 
     if (ec != boost::asio::error::operation_aborted) {
-      Stop();
+      Close();
     }
   }
 }

@@ -28,8 +28,8 @@ protected:
   // -1 means default timeout (normally 30s) will be used.
   int timeout_seconds_ = -1;
 
-  Namespace soapenv_ns_;  // SOAP envelope namespace.
-  Namespace service_ns_;  // Namespace for your web service.
+  SoapNamespace soapenv_ns_;  // SOAP envelope namespace.
+  SoapNamespace service_ns_;  // Namespace for your web service.
 
   // Request URL.
   std::string url_;

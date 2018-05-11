@@ -22,12 +22,12 @@ void HttpRequestHandler::Start(std::size_t count) {
 }
 
 void HttpRequestHandler::Stop() {
-  LOG_VERB("Stopping workers...");
+  LOG_INFO("Stopping workers...");
 
   // Close pending sessions.
   for (HttpSessionPtr conn = queue_.Pop(); conn; conn = queue_.Pop()) {
-    LOG_VERB("Closing pending session...");
-    conn->Stop();
+    LOG_INFO("Closing pending session...");
+    conn->Close();
   }
 
   // Enqueue a null session to trigger the first worker to stop.
@@ -35,17 +35,17 @@ void HttpRequestHandler::Stop() {
 
   workers_.join_all();
 
-  LOG_VERB("All workers have been stopped.");
+  LOG_INFO("All workers have been stopped.");
 }
 
 void HttpRequestHandler::WorkerRoutine() {
-  LOG_VERB("Worker is running.");
+  LOG_INFO("Worker is running.");
 
   for (;;) {
     HttpSessionPtr session = queue_.PopOrWait();
 
     if (!session) {
-      LOG_VERB("Worker is going to stop.");
+      LOG_INFO("Worker is going to stop.");
 
       // For stopping next worker.
       queue_.Push(HttpSessionPtr());

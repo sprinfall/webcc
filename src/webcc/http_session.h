@@ -23,29 +23,30 @@ public:
   HttpSession(boost::asio::ip::tcp::socket socket,
               HttpRequestHandler* handler);
 
-  ~HttpSession();
+  ~HttpSession() = default;
 
   const HttpRequest& request() const {
     return request_;
   }
 
+  // Start to read and process the client request.
   void Start();
 
-  void Stop();
+  // Close the socket.
+  void Close();
 
   void SetResponseContent(std::string&& content,
                           const std::string& content_type);
 
-  // Write response back to the client with the given HTTP status.
-  void SendResponse(int status);
+  // Send response to client with the given status.
+  void SendResponse(HttpStatus::Enum status);
 
 private:
-  void DoRead();
+  void AsyncRead();
+  void ReadHandler(boost::system::error_code ec, std::size_t length);
 
-  void DoWrite();
-
-  void HandleRead(boost::system::error_code ec, std::size_t length);
-  void HandleWrite(boost::system::error_code ec, std::size_t length);
+  void AsyncWrite();
+  void WriteHandler(boost::system::error_code ec, std::size_t length);
 
 private:
   // Socket for the connection.

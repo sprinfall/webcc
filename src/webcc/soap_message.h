@@ -11,11 +11,11 @@ namespace webcc {
 class SoapMessage {
 public:
   // E.g., set as kSoapEnvNamespace.
-  void set_soapenv_ns(const Namespace& soapenv_ns) {
+  void set_soapenv_ns(const SoapNamespace& soapenv_ns) {
     soapenv_ns_ = soapenv_ns;
   }
 
-  void set_service_ns(const Namespace& service_ns) {
+  void set_service_ns(const SoapNamespace& service_ns) {
     service_ns_ = service_ns;
   }
 
@@ -34,8 +34,7 @@ public:
   bool FromXml(const std::string& xml_string);
 
 protected:
-  SoapMessage() {
-  }
+  SoapMessage() = default;
 
   // Convert to SOAP body XML.
   virtual void ToXmlBody(pugi::xml_node xbody) = 0;
@@ -44,8 +43,8 @@ protected:
   virtual bool FromXmlBody(pugi::xml_node xbody) = 0;
 
 protected:
-  Namespace soapenv_ns_;  // SOAP envelope namespace.
-  Namespace service_ns_;  // Namespace for your web service.
+  SoapNamespace soapenv_ns_;  // SOAP envelope namespace.
+  SoapNamespace service_ns_;  // Namespace for your web service.
 
   std::string operation_;
 };

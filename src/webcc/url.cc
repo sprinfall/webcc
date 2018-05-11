@@ -1,8 +1,42 @@
 #include "webcc/url.h"
 
+#include <algorithm>
 #include <sstream>
 
 namespace webcc {
+
+////////////////////////////////////////////////////////////////////////////////
+
+void UrlQuery::Add(std::string&& key, std::string&& value) {
+  if (!HasKey(key)) {
+    parameters_.push_back({ std::move(key), std::move(value) });
+  }
+}
+
+void UrlQuery::Remove(const std::string& key) {
+  auto it = Find(key);
+  if (it != parameters_.end()) {
+    parameters_.erase(it);
+  }
+}
+
+const std::string& UrlQuery::GetValue(const std::string& key) const {
+  static const std::string kEmptyValue;
+
+  auto it = Find(key);
+  if (it != parameters_.end()) {
+    return it->value();
+  }
+  return kEmptyValue;
+}
+
+UrlQuery::ConstIterator UrlQuery::Find(const std::string& key) const {
+  return std::find_if(parameters_.begin(),
+                      parameters_.end(),
+                      [&key](const Parameter& p) { return p.key() == key; });
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 Url::Url(const std::string& str) {
   std::size_t pos = str.find('?');
@@ -44,33 +78,29 @@ static bool SplitKeyValue(const std::string& kv,
 }
 
 // static
-Url::Query Url::SplitQuery(const std::string& query) {
+void Url::SplitQuery(const std::string& str, UrlQuery* query) {
   const std::size_t NPOS = std::string::npos;
-
-  Query result;
 
   // Split into key value pairs separated by '&'.
   std::size_t i = 0;
   while (i != NPOS) {
-    std::size_t j = query.find_first_of('&', i);
+    std::size_t j = str.find_first_of('&', i);
 
     std::string kv;
     if (j == NPOS) {
-      kv = query.substr(i);
+      kv = str.substr(i);
       i = NPOS;
     } else {
-      kv = query.substr(i, j - i);
+      kv = str.substr(i, j - i);
       i = j + 1;
     }
 
     std::string key;
     std::string value;
     if (SplitKeyValue(kv, &key, &value)) {
-      result[key] = value;  // TODO: Move
+      query->Add(std::move(key), std::move(value));
     }
   }
-
-  return result;
 }
 
 }  // namespace webcc

@@ -25,7 +25,7 @@ HttpServer::HttpServer(unsigned short port, std::size_t workers)
   signals_.add(SIGQUIT);
 #endif
 
-  DoAwaitStop();
+  AsyncAwaitStop();
 
   // NOTE:
   // "reuse_addr=true" means option SO_REUSEADDR will be set.
@@ -37,16 +37,13 @@ HttpServer::HttpServer(unsigned short port, std::size_t workers)
                                     tcp::endpoint(tcp::v4(), port),
                                     true));  // reuse_addr
 
-  DoAccept();
-}
-
-HttpServer::~HttpServer() {
+  AsyncAccept();
 }
 
 void HttpServer::Run() {
   assert(GetRequestHandler() != NULL);
 
-  LOG_VERB("Server is going to run...");
+  LOG_INFO("Server is going to run...");
 
   // Start worker threads.
   GetRequestHandler()->Start(workers_);
@@ -58,7 +55,7 @@ void HttpServer::Run() {
   io_context_.run();
 }
 
-void HttpServer::DoAccept() {
+void HttpServer::AsyncAccept() {
   acceptor_->async_accept(
       [this](boost::system::error_code ec, tcp::socket socket) {
         // Check whether the server was stopped by a signal before this
@@ -68,17 +65,19 @@ void HttpServer::DoAccept() {
         }
 
         if (!ec) {
+          LOG_INFO("Accepted a connection.");
+
           HttpSessionPtr session{
             new HttpSession(std::move(socket), GetRequestHandler())
           };
           session->Start();
         }
 
-        DoAccept();
+        AsyncAccept();
       });
 }
 
-void HttpServer::DoAwaitStop() {
+void HttpServer::AsyncAwaitStop() {
   signals_.async_wait(
       [this](boost::system::error_code, int /*signo*/) {
         // The server is stopped by canceling all outstanding asynchronous
