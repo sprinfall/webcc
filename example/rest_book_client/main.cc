@@ -92,7 +92,7 @@ public:
 
   bool GetBook(const std::string& id) {
     webcc::HttpResponse http_response;
-    if (!Request(webcc::kHttpGet, "/books/" + id, "", &http_response)) {
+    if (!Request(webcc::kHttpGet, "/book/" + id, "", &http_response)) {
       return false;
     }
 
@@ -113,7 +113,7 @@ public:
     std::string book_json = Json::writeString(builder, root);
 
     webcc::HttpResponse http_response;
-    if (!Request(webcc::kHttpPost, "/books/" + id, book_json, &http_response)) {
+    if (!Request(webcc::kHttpPost, "/book/" + id, book_json, &http_response)) {
       return false;
     }
 
@@ -124,7 +124,7 @@ public:
 
   bool DeleteBook(const std::string& id) {
     webcc::HttpResponse http_response;
-    if (!Request(webcc::kHttpDelete, "/books/" + id, "", &http_response)) {
+    if (!Request(webcc::kHttpDelete, "/book/" + id, "", &http_response)) {
       return false;
     }
 

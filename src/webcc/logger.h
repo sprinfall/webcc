@@ -5,6 +5,8 @@
 
 #if WEBCC_ENABLE_LOG
 
+#include <cstring>  // for strrchr()
+
 namespace webcc {
 
 enum LogLevel {
@@ -32,7 +34,7 @@ void LogWrite(int level, const char* file, int line, const char* format, ...);
 #if (defined(WIN32) || defined(_WIN64))
 
 // See: https://stackoverflow.com/a/8488201
-#define __FILENAME__ strrchr("\\" __FILE__, '\\') + 1
+#define __FILENAME__ std::strrchr("\\" __FILE__, '\\') + 1
 
 #define LOG_VERB(format, ...) \
     webcc::LogWrite(webcc::VERB, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
@@ -52,7 +54,7 @@ void LogWrite(int level, const char* file, int line, const char* format, ...);
 #else
 
 // See: https://stackoverflow.com/a/8488201
-#define __FILENAME__ strrchr("/" __FILE__, '/') + 1
+#define __FILENAME__ std::strrchr("/" __FILE__, '/') + 1
 
 #define LOG_VERB(format, args...) \
     webcc::LogWrite(webcc::VERB, __FILENAME__, __LINE__, format, ##args);

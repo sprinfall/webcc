@@ -3,48 +3,42 @@
 
 #include "webcc/rest_service.h"
 
-// NOTE:
-// XxxListService and XxxDetailService are similar to the XxxListView
-// and XxxDetailView in Django (a Python web framework).
-
 ////////////////////////////////////////////////////////////////////////////////
 
-// List Service handles the HTTP GET and returns the book list based on
+// BookListService handles the HTTP GET and returns the book list based on
 // query parameters specified in the URL.
 // The URL should be like:
 //   - /books
 //   - /books?name={BookName}
 // The query parameters could be regular expressions.
-class BookListService : public webcc::RestService {
-public:
-  BookListService() = default;
-  ~BookListService() override = default;
+class BookListService : public webcc::RestListService {
+ protected:
+  // Return a list of books based on query parameters.
+  // URL examples:
+  //   - /books
+  //   - /books?name={BookName}
+  bool Get(const webcc::UrlQuery& query,
+           std::string* response_content) final;
 
-  bool Handle(const std::string& http_method,
-              const std::vector<std::string>& url_sub_matches,
-              const webcc::UrlQuery& query,
-              const std::string& request_content,
-              std::string* response_content) override;
+  // Create a new book.
+  bool Post(const std::string& request_content,
+            std::string* response_content) final;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// Detail Service handles the following HTTP methods:
-//   - GET
-//   - PUT
-//   - PATCH
-//   - DELETE
-// The URL should be like: /books/{BookID}.
-class BookDetailService : public webcc::RestService {
-public:
-  BookDetailService() = default;
-  ~BookDetailService() override = default;
+// The URL is like '/books/{BookID}', and the 'url_sub_matches' parameter
+// contains the matched book ID.
+class BookDetailService : public webcc::RestDetailService {
+ protected:
+  bool Get(const std::vector<std::string>& url_sub_matches,
+           std::string* response_content) final;
 
-  bool Handle(const std::string& http_method,
-              const std::vector<std::string>& url_sub_matches,
-              const webcc::UrlQuery& query,
-              const std::string& request_content,
-              std::string* response_content) override;
+  bool Patch(const std::vector<std::string>& url_sub_matches,
+             const std::string& request_content,
+             std::string* response_content) final;
+
+  bool Delete(const std::vector<std::string>& url_sub_matches) final;
 };
 
 #endif  // BOOK_SERVICE_H_

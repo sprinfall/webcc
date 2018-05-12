@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
                            "/books");
 
     server.RegisterService(std::make_shared<BookDetailService>(),
-                           "/books/(\\d+)");
+                           "/book/(\\d+)");
 
     server.Run();
 

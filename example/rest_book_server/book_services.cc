@@ -115,71 +115,77 @@ static bool BookFromJson(const std::string& json, Book* book) {
   return true;
 }
 
-bool BookListService::Handle(const std::string& http_method,
-                             const std::vector<std::string>& url_sub_matches,
-                             const webcc::UrlQuery& query,
-                             const std::string& request_content,
-                             std::string* response_content) {
-  if (http_method == webcc::kHttpGet) {
-    // Return all books as a JSON array.
-
-    Json::Value root(Json::arrayValue);
-    for (const Book& book : g_book_store.books()) {
-      root.append(book.ToJson());
-    }
-
-    Json::StreamWriterBuilder builder;
-    *response_content = Json::writeString(builder, root);
-
-    return true;
+// Return all books as a JSON array.
+// TODO: Support query parameters.
+bool BookListService::Get(const webcc::UrlQuery& /* query */,
+                          std::string* response_content) {
+  Json::Value root(Json::arrayValue);
+  for (const Book& book : g_book_store.books()) {
+    root.append(book.ToJson());
   }
 
-  if (http_method == webcc::kHttpPost) {
-    // Add a new book.
-    Book book;
-    if (BookFromJson(request_content, &book)) {
-      return g_book_store.AddBook(book);
-    }
-    return false;
-  }
+  Json::StreamWriterBuilder builder;
+  *response_content = Json::writeString(builder, root);
 
+  return true;
+}
+
+// Add a new book.
+// No response content.
+bool BookListService::Post(const std::string& request_content,
+                           std::string* /* response_content */) {
+  Book book;
+  if (BookFromJson(request_content, &book)) {
+    return g_book_store.AddBook(book);
+  }
   return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool BookDetailService::Handle(const std::string& http_method,
-                               const std::vector<std::string>& url_sub_matches,
-                               const webcc::UrlQuery& query,
-                               const std::string& request_content,
-                               std::string* response_content) {
+bool BookDetailService::Get(const std::vector<std::string>& url_sub_matches,
+                            std::string* response_content) {
   if (url_sub_matches.size() != 1) {
     return false;
   }
 
   const std::string& book_id = url_sub_matches[0];
 
-  if (http_method == webcc::kHttpGet) {
-    const Book& book = g_book_store.GetBook(book_id);
-    if (!book.IsNull()) {
-      Json::StreamWriterBuilder builder;
-      *response_content = Json::writeString(builder, book.ToJson());
-      return true;
-    }
-    return false;
-
-  } else if (http_method == webcc::kHttpPost) {
-    // Update a book.
-    Book book;
-    if (BookFromJson(request_content, &book)) {
-      book.id = book_id;
-      return g_book_store.UpdateBook(book);
-    }
-    return false;
-
-  } else if (http_method == webcc::kHttpDelete) {
-    return g_book_store.DeleteBook(book_id);
+  const Book& book = g_book_store.GetBook(book_id);
+  if (!book.IsNull()) {
+    Json::StreamWriterBuilder builder;
+    *response_content = Json::writeString(builder, book.ToJson());
+    return true;
   }
 
   return false;
+}
+
+// Update a book partially.
+bool BookDetailService::Patch(const std::vector<std::string>& url_sub_matches,
+                              const std::string& request_content,
+                              std::string* response_content) {
+  if (url_sub_matches.size() != 1) {
+    return false;
+  }
+
+  const std::string& book_id = url_sub_matches[0];
+
+  Book book;
+  if (BookFromJson(request_content, &book)) {
+    book.id = book_id;
+    return g_book_store.UpdateBook(book);
+  }
+
+  return false;
+}
+
+bool BookDetailService::Delete(const std::vector<std::string>& url_sub_matches) {
+  if (url_sub_matches.size() != 1) {
+    return false;
+  }
+
+  const std::string& book_id = url_sub_matches[0];
+
+  return g_book_store.DeleteBook(book_id);
 }

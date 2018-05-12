@@ -29,6 +29,7 @@ set(SRCS
 	queue.h
 	rest_server.cc
 	rest_server.h
+	rest_service.cc
 	rest_service.h
 	url.cc
 	url.h
