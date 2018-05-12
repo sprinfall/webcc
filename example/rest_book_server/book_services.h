@@ -13,7 +13,7 @@
 // query parameters specified in the URL.
 // The URL should be like:
 //   - /books
-//   - /books?name={BookName} 
+//   - /books?name={BookName}
 // The query parameters could be regular expressions.
 class BookListService : public webcc::RestService {
 public:
@@ -22,7 +22,7 @@ public:
 
   bool Handle(const std::string& http_method,
               const std::vector<std::string>& url_sub_matches,
-              const std::map<std::string, std::string>& query,
+              const webcc::UrlQuery& query,
               const std::string& request_content,
               std::string* response_content) override;
 };
@@ -42,7 +42,7 @@ public:
 
   bool Handle(const std::string& http_method,
               const std::vector<std::string>& url_sub_matches,
-              const std::map<std::string, std::string>& query,
+              const webcc::UrlQuery& query,
               const std::string& request_content,
               std::string* response_content) override;
 };

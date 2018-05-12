@@ -50,7 +50,7 @@ Error HttpClient::MakeRequest(const HttpRequest& request,
   if ((error = Connect(request)) != kNoError) {
     return error;
   }
-  
+
   // Send HTTP request.
 
   if ((error = SendReqeust(request)) != kNoError) {
@@ -59,7 +59,8 @@ Error HttpClient::MakeRequest(const HttpRequest& request,
 
   // Read and parse HTTP response.
 
-  parser_ = std::make_unique<HttpResponseParser>(response);
+  // NOTE: Don't use make_unique because it's since C++14.
+  parser_.reset(new HttpResponseParser(response));
 
   error = ReadResponse(response);
 
@@ -165,7 +166,7 @@ Error HttpClient::ReadResponse(HttpResponse* response) {
             LOG_ERRO("failed to parse http response.");
             return;
           }
-          
+
           if (parser_->finished()) {
             // Stop trying to read once all content has been received,
             // because some servers will block extra call to read_some().

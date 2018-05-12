@@ -9,7 +9,7 @@ class TestRestService : public RestService {
 public:
   bool Handle(const std::string& http_method,
               const std::vector<std::string>& url_sub_matches,
-              const std::map<std::string, std::string>& query,
+              const webcc::UrlQuery& query,
               const std::string& request_content,
               std::string* response_content) override {
     return true;
