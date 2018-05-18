@@ -3,14 +3,9 @@
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "boost/lambda/bind.hpp"
 #include "boost/lambda/lambda.hpp"
-
-#if 0
-#include "boost/asio.hpp"
-#else
 #include "boost/asio/connect.hpp"
 #include "boost/asio/read.hpp"
 #include "boost/asio/write.hpp"
-#endif
 
 #include "webcc/logger.h"
 #include "webcc/http_request.h"

@@ -2,7 +2,8 @@
 #define WEBCC_SOAP_SERVICE_H_
 
 #include <memory>
-#include "webcc/common.h"
+
+#include "webcc/globals.h"
 
 namespace webcc {
 
@@ -12,8 +13,7 @@ class SoapResponse;
 // Base class for your SOAP service.
 class SoapService {
 public:
-  virtual ~SoapService() {
-  }
+  virtual ~SoapService() = default;
 
   // Handle SOAP request, output the response.
   virtual bool Handle(const SoapRequest& soap_request,

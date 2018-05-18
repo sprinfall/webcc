@@ -144,6 +144,7 @@ bool BookListService::Post(const std::string& request_content,
 ////////////////////////////////////////////////////////////////////////////////
 
 bool BookDetailService::Get(const std::vector<std::string>& url_sub_matches,
+                            const webcc::UrlQuery& query,
                             std::string* response_content) {
   if (url_sub_matches.size() != 1) {
     return false;

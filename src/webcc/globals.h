@@ -1,17 +1,47 @@
-#ifndef WEBCC_COMMON_H_
-#define WEBCC_COMMON_H_
-
-// Common definitions.
+#ifndef WEBCC_GLOBALS_H_
+#define WEBCC_GLOBALS_H_
 
 #include <string>
 #include <vector>
 
 namespace webcc {
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
+// Macros
+
+// Explicitly declare the assignment operator as deleted.
+#define DISALLOW_ASSIGN(TypeName) TypeName& operator=(const TypeName&) = delete;
+
+// Explicitly declare the copy constructor and assignment operator as deleted.
+#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
+  TypeName(const TypeName&) = delete;      \
+  DISALLOW_ASSIGN(TypeName)
+
+// Explicitly declare all implicit constructors as deleted, namely the
+// default constructor, copy constructor and operator= functions.
+// This is especially useful for classes containing only static methods.
+#define DISALLOW_IMPLICIT_CONSTRUCTORS(TypeName) \
+  TypeName() = delete;                           \
+  DISALLOW_COPY_AND_ASSIGN(TypeName)
+
+// Disallow copying a type, but provide default construction, move construction
+// and move assignment. Especially useful for move-only structs.
+#define MOVE_ONLY_WITH_DEFAULT_CONSTRUCTORS(TypeName) \
+  TypeName() = default;                               \
+  MOVE_ONLY_NO_DEFAULT_CONSTRUCTOR(TypeName)
+
+// Disallow copying a type, and only provide move construction and move
+// assignment. Especially useful for move-only structs.
+#define MOVE_ONLY_NO_DEFAULT_CONSTRUCTOR(TypeName) \
+  TypeName(TypeName&&) = default;                  \
+  TypeName& operator=(TypeName&&) = default;       \
+  DISALLOW_COPY_AND_ASSIGN(TypeName)
+
+// -----------------------------------------------------------------------------
+// Constants
 
 // Buffer size for sending HTTP request and receiving HTTP response.
-// TODO: Configurable for client and server separately.
+// TODO: Configurable
 const std::size_t kBufferSize = 1024;
 
 const std::size_t kInvalidLength = static_cast<std::size_t>(-1);
@@ -23,8 +53,6 @@ extern const std::string kHost;
 
 extern const std::string kTextXmlUtf8;
 extern const std::string kTextJsonUtf8;
-
-////////////////////////////////////////////////////////////////////////////////
 
 // HTTP methods (verbs) in string ("HEAD", "GET", etc.).
 // NOTE: Don't use enum to avoid converting back and forth.
@@ -54,11 +82,9 @@ struct HttpStatus {
   };
 };
 
-////////////////////////////////////////////////////////////////////////////////
-
 // Error codes.
 enum Error {
-  kNoError = 0,  // OK
+  kNoError = 0,
 
   kHostResolveError,
   kEndpointConnectError,
@@ -83,31 +109,14 @@ enum Error {
 // Return a descriptive message for the given error code.
 const char* GetErrorMessage(Error error);
 
-////////////////////////////////////////////////////////////////////////////////
-
-// XML namespace name/url pair.
-// E.g., { "soap", "http://schemas.xmlsoap.org/soap/envelope/" }
-class SoapNamespace {
-public:
-  std::string name;
-  std::string url;
-
-  bool IsValid() const {
-    return !name.empty() && !url.empty();
-  }
-};
-
-// CSoap's default namespace for SOAP Envelope.
-extern const SoapNamespace kSoapEnvNamespace;
-
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 // Key-value parameter.
 class Parameter {
 public:
   Parameter() = default;
-  Parameter(const Parameter& rhs) = default;
-  Parameter& operator=(const Parameter& rhs) = default;
+  Parameter(const Parameter&) = default;
+  Parameter& operator=(const Parameter&) = default;
 
   Parameter(const std::string& key, const char* value);
   Parameter(const std::string& key, const std::string& value);
@@ -138,6 +147,9 @@ public:
     return value_.c_str();
   }
 
+  // Return "key=value" string.
+  std::string ToString() const;
+
 private:
   std::string key_;
   std::string value_;
@@ -145,4 +157,4 @@ private:
 
 }  // namespace webcc
 
-#endif  // WEBCC_COMMON_H_
+#endif  // WEBCC_GLOBALS_H_

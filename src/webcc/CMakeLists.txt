@@ -2,8 +2,8 @@
 add_definitions(-DBOOST_ASIO_NO_DEPRECATED)
 
 set(SRCS
-	common.cc
-	common.h
+	globals.cc
+	globals.h
 	http_client.cc
 	http_client.h
 	http_message.cc
@@ -27,7 +27,12 @@ set(SRCS
 	logger.cc
 	logger.h
 	queue.h
-	rest_server.cc
+	rest_client.cc
+	rest_client.h
+	rest_request_handler.cc
+	rest_request_handler.h
+	rest_service_manager.cc
+	rest_service_manager.h
 	rest_server.h
 	rest_service.cc
 	rest_service.h

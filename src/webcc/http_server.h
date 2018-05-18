@@ -4,12 +4,11 @@
 #include <string>
 #include <vector>
 
+#include "boost/asio/io_context.hpp"
+#include "boost/asio/ip/tcp.hpp"
+#include "boost/asio/signal_set.hpp"
 #include "boost/scoped_ptr.hpp"
 #include "boost/thread/thread.hpp"
-
-#include "boost/asio/io_context.hpp"
-#include "boost/asio/signal_set.hpp"
-#include "boost/asio/ip/tcp.hpp"
 
 #include "webcc/http_session.h"
 

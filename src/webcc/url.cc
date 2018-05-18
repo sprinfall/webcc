@@ -6,10 +6,75 @@
 namespace webcc {
 
 ////////////////////////////////////////////////////////////////////////////////
+// Helper functions to decode URL string.
+
+// Convert a hex character digit to a decimal character value.
+static bool HexToDecimal(char hex, int* decimal) {
+  if (hex >= '0' && hex <= '9') {
+    *decimal = hex - '0';
+  } else if (hex >= 'A' && hex <= 'F') {
+    *decimal = 10 + (hex - 'A');
+  } else if (hex >= 'a' && hex <= 'f') {
+    *decimal = 10 + (hex - 'a');
+  } else {
+    return false;
+  }
+  return true;
+}
+
+static bool Decode(const std::string& encoded, std::string* raw) {
+  for (auto iter = encoded.begin(); iter != encoded.end(); ++iter) {
+    if (*iter == '%') {
+      if (++iter == encoded.end()) {
+        // Invalid URI string, two hexadecimal digits must follow '%'.
+        return false;
+      }
+
+      int h_decimal = 0;
+      if (!HexToDecimal(*iter, &h_decimal)) {
+        return false;
+      }
+
+      if (++iter == encoded.end()) {
+        // Invalid URI string, two hexadecimal digits must follow '%'.
+        return false;
+      }
+
+      int l_decimal = 0;
+      if (!HexToDecimal(*iter, &l_decimal)) {
+        return false;
+      }
+
+      raw->push_back(static_cast<char>((h_decimal << 4) + l_decimal));
+
+    } else if (*iter > 127 || *iter < 0) {
+      // Invalid encoded URI string, must be entirely ASCII.
+      return false;
+    } else {
+      raw->push_back(*iter);
+    }
+  }
+
+  return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+UrlQuery::UrlQuery(const std::map<std::string, std::string>& map) {
+  for (auto& pair : map) {
+    Add(pair.first, pair.second);
+  }
+}
 
 void UrlQuery::Add(std::string&& key, std::string&& value) {
-  if (!HasKey(key)) {
+  if (!Has(key)) {
     parameters_.push_back({ std::move(key), std::move(value) });
+  }
+}
+
+void UrlQuery::Add(const std::string& key, const std::string& value) {
+  if (!Has(key)) {
+    parameters_.push_back({ key, value });
   }
 }
 
@@ -20,14 +85,29 @@ void UrlQuery::Remove(const std::string& key) {
   }
 }
 
-const std::string& UrlQuery::GetValue(const std::string& key) const {
-  static const std::string kEmptyValue;
-
+const std::string& UrlQuery::Get(const std::string& key) const {
   auto it = Find(key);
   if (it != parameters_.end()) {
     return it->value();
   }
+
+  static const std::string kEmptyValue;
   return kEmptyValue;
+}
+
+std::string UrlQuery::ToString() const {
+  if (parameters_.empty()) {
+    return "";
+  }
+
+  std::string str = parameters_[0].ToString();
+
+  for (std::size_t i = 1; i < parameters_.size(); ++i) {
+    str += "&";
+    str += parameters_[i].ToString();
+  }
+
+  return str;
 }
 
 UrlQuery::ConstIterator UrlQuery::Find(const std::string& key) const {
@@ -38,13 +118,18 @@ UrlQuery::ConstIterator UrlQuery::Find(const std::string& key) const {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-Url::Url(const std::string& str) {
-  std::size_t pos = str.find('?');
-  if (pos == std::string::npos) {
-    path_ = str;
+Url::Url(const std::string& str, bool decode) {
+  if (!decode || str.find('%') == std::string::npos) {
+    Init(str);
+    return;
+  }
+
+  std::string decoded;
+  if (Decode(str, &decoded)) {
+    Init(decoded);
   } else {
-    path_ = str.substr(0, pos);
-    query_ = str.substr(pos + 1);
+    // TODO: Exception?
+    Init(str);
   }
 }
 
@@ -100,6 +185,16 @@ void Url::SplitQuery(const std::string& str, UrlQuery* query) {
     if (SplitKeyValue(kv, &key, &value)) {
       query->Add(std::move(key), std::move(value));
     }
+  }
+}
+
+void Url::Init(const std::string& str) {
+  std::size_t pos = str.find('?');
+  if (pos == std::string::npos) {
+    path_ = str;
+  } else {
+    path_ = str.substr(0, pos);
+    query_ = str.substr(pos + 1);
   }
 }
 

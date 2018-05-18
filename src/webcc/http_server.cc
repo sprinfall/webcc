@@ -1,9 +1,9 @@
 #include "webcc/http_server.h"
 
-#include <signal.h>
+#include <csignal>
 
-#include "webcc/logger.h"
 #include "webcc/http_request_handler.h"
+#include "webcc/logger.h"
 #include "webcc/soap_service.h"
 #include "webcc/utility.h"
 

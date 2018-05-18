@@ -2,10 +2,10 @@
 
 #include <sstream>
 
-#include "webcc/logger.h"
-#include "webcc/common.h"
+#include "webcc/globals.h"
 #include "webcc/http_request.h"
 #include "webcc/http_response.h"
+#include "webcc/logger.h"
 
 namespace webcc {
 

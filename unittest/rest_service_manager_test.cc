@@ -1,9 +1,7 @@
-#include "webcc/rest_server.h"
+#include "webcc/rest_service_manager.h"
 #include "gtest/gtest.h"
 
 using namespace webcc;
-
-////////////////////////////////////////////////////////////////////////////////
 
 class TestRestService : public RestService {
 public:
@@ -15,8 +13,6 @@ public:
     return true;
   }
 };
-
-////////////////////////////////////////////////////////////////////////////////
 
 TEST(RestServiceManager, URL_RegexBasic) {
   RestServiceManager service_manager;

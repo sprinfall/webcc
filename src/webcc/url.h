@@ -11,26 +11,43 @@
 #include <string>
 #include <vector>
 
-#include "webcc/common.h"
+#include "webcc/globals.h"
 
 namespace webcc {
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 // URL query parameters.
 class UrlQuery {
 public:
   typedef std::vector<Parameter> Parameters;
 
+  UrlQuery() = default;
+
+  // Construct from key-value pairs.
+  explicit UrlQuery(const std::map<std::string, std::string>& map);
+
+  void Add(const std::string& key, const std::string& value);
+
   void Add(std::string&& key, std::string&& value);
 
   void Remove(const std::string& key);
 
-  const std::string& GetValue(const std::string& key) const;
+  // Get a value by key.
+  // Return empty string if the key doesn't exist.
+  const std::string& Get(const std::string& key) const;
 
-  bool HasKey(const std::string& key) const {
+  bool Has(const std::string& key) const {
     return Find(key) != parameters_.end();
   }
+
+  bool IsEmpty() const {
+    return parameters_.empty();
+  }
+
+  // Return key-value pairs concatenated by '&'.
+  // E.g., "item=12731&color=blue&size=large".
+  std::string ToString() const;
 
 private:
   typedef Parameters::const_iterator ConstIterator;
@@ -40,13 +57,12 @@ private:
   Parameters parameters_;
 };
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 class Url {
 public:
-  typedef std::map<std::string, std::string> Query;
-
-  Url(const std::string& str);
+  Url() = default;
+  Url(const std::string& str, bool decode);
 
   bool IsValid() const;
 
@@ -73,6 +89,8 @@ public:
   static void SplitQuery(const std::string& str, UrlQuery* query);
 
 private:
+  void Init(const std::string& str);
+
   std::string path_;
   std::string query_;
 };

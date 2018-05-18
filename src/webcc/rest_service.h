@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include "webcc/common.h"
+#include "webcc/globals.h"
 
 namespace webcc {
 
@@ -28,12 +28,9 @@ public:
   }
 
   // Handle REST request, output the response.
-  // \param http_method GET, POST, etc.
-  // \param url_sub_matches The regex sub-matches in the URL,
-  //                        usually resource ID.
-  // \param query Query parameters in the URL.
-  // \param request_content Request JSON.
-  // \param response_content Output response JSON.
+  // The regex sub-matches of the URL (usually resource IDs) were stored in
+  // |url_sub_matches|. The |query| part of the URL is normally only for GET
+  // request. Both the request and response contents are JSON strings.
   virtual bool Handle(const std::string& http_method,
                       const std::vector<std::string>& url_sub_matches,
                       const UrlQuery& query,
@@ -79,6 +76,7 @@ class RestDetailService : public RestService {
 
  protected:
   virtual bool Get(const std::vector<std::string>& url_sub_matches,
+                   const UrlQuery& query,
                    std::string* response_content) {
     return false;
   }

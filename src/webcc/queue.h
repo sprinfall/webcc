@@ -15,10 +15,10 @@ namespace webcc {
 template <typename T>
 class Queue {
 public:
-  Queue(const Queue& rhs) = delete;
-  Queue& operator=(const Queue& rhs) = delete;
-
   Queue() = default;
+
+  Queue(const Queue&) = delete;
+  Queue& operator=(const Queue&) = delete;
 
   T PopOrWait() {
     boost::unique_lock<boost::mutex> lock(mutex_);

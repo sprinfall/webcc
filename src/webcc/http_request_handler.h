@@ -18,13 +18,8 @@ class HttpResponse;
 // The common handler for all incoming requests.
 class HttpRequestHandler {
 public:
-  HttpRequestHandler(const HttpRequestHandler&) = delete;
-  HttpRequestHandler& operator=(const HttpRequestHandler&) = delete;
-
   HttpRequestHandler() = default;
-
-  virtual ~HttpRequestHandler() {
-  }
+  virtual ~HttpRequestHandler() = default;
 
   // Put the session into the queue.
   void Enqueue(HttpSessionPtr session);
@@ -41,9 +36,10 @@ private:
   // Called by the worker routine.
   virtual void HandleSession(HttpSessionPtr session) = 0;
 
-private:
   Queue<HttpSessionPtr> queue_;
   boost::thread_group workers_;
+
+  DISALLOW_COPY_AND_ASSIGN(HttpRequestHandler);
 };
 
 }  // namespace webcc

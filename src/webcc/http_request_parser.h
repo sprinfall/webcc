@@ -16,7 +16,6 @@ public:
 private:
   Error ParseStartLine(const std::string& line) override;
 
-private:
   HttpRequest* request_;
 };
 

@@ -5,8 +5,8 @@
 #include "boost/asio/write.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
 
-#include "webcc/logger.h"
 #include "webcc/http_request_handler.h"
+#include "webcc/logger.h"
 
 namespace webcc {
 

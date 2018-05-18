@@ -2,6 +2,7 @@
 #define WEBCC_SOAP_REQUEST_H_
 
 #include <vector>
+
 #include "webcc/soap_message.h"
 
 namespace webcc {

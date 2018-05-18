@@ -5,10 +5,10 @@
 #include <memory>
 
 #include "boost/asio/deadline_timer.hpp"
-#include "boost/asio/ip/tcp.hpp"
 #include "boost/asio/io_context.hpp"
+#include "boost/asio/ip/tcp.hpp"
 
-#include "webcc/common.h"
+#include "webcc/globals.h"
 #include "webcc/http_response_parser.h"
 
 namespace webcc {

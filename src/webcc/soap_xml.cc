@@ -3,8 +3,7 @@
 namespace webcc {
 namespace soap_xml {
 
-void SplitName(const pugi::xml_node& xnode,
-               std::string* prefix,
+void SplitName(const pugi::xml_node& xnode, std::string* prefix,
                std::string* name) {
   std::string full_name = xnode.name();
 
@@ -39,14 +38,12 @@ std::string GetNameNoPrefix(const pugi::xml_node& xnode) {
   return name;
 }
 
-pugi::xml_node AddChild(pugi::xml_node& xnode,
-                        const std::string& ns,
+pugi::xml_node AddChild(pugi::xml_node& xnode, const std::string& ns,
                         const std::string& name) {
   return xnode.append_child((ns + ":" + name).c_str());
 }
 
-pugi::xml_node GetChild(pugi::xml_node& xnode,
-                        const std::string& ns,
+pugi::xml_node GetChild(pugi::xml_node& xnode, const std::string& ns,
                         const std::string& name) {
   return xnode.child((ns + ":" + name).c_str());
 }
@@ -72,28 +69,23 @@ pugi::xml_node GetChildNoNS(pugi::xml_node& xnode, const std::string& name) {
   return pugi::xml_node();
 }
 
-void AddAttr(pugi::xml_node& xnode,
-             const std::string& ns,
-             const std::string& name,
-             const std::string& value) {
+void AddAttr(pugi::xml_node& xnode, const std::string& ns,
+             const std::string& name, const std::string& value) {
   std::string ns_name = ns + ":" + name;
   xnode.append_attribute(ns_name.c_str()) = value.c_str();
 }
 
-void AddNSAttr(pugi::xml_node& xnode,
-               const std::string& ns_name,
+void AddNSAttr(pugi::xml_node& xnode, const std::string& ns_name,
                const std::string& ns_url) {
   AddAttr(xnode, "xmlns", ns_name, ns_url);
 }
 
-std::string GetNSAttr(pugi::xml_node& xnode,
-                      const std::string& ns_name) {
+std::string GetNSAttr(pugi::xml_node& xnode, const std::string& ns_name) {
   std::string attr_name = "xmlns:" + ns_name;
   return xnode.attribute(attr_name.c_str()).as_string();
 }
 
-bool PrettyPrint(std::ostream& os,
-                 const std::string& xml_string,
+bool PrettyPrint(std::ostream& os, const std::string& xml_string,
                  const char* indent) {
   pugi::xml_document xdoc;
   if (!xdoc.load_string(xml_string.c_str())) {

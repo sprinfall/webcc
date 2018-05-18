@@ -4,7 +4,8 @@
 #include <string>
 #include <vector>
 
-#include "webcc/common.h"
+#include "webcc/globals.h"
+#include "webcc/soap_message.h"
 
 namespace webcc {
 

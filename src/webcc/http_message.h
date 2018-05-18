@@ -3,7 +3,8 @@
 
 #include <cassert>
 #include <string>
-#include "webcc/common.h"
+
+#include "webcc/globals.h"
 
 namespace webcc {
 
@@ -16,9 +17,6 @@ public:
 // Base class for HTTP request and response messages.
 class HttpMessage {
 public:
-  HttpMessage() = default;
-  HttpMessage(const HttpMessage&) = default;
-  HttpMessage& operator=(const HttpMessage&) = default;
   virtual ~HttpMessage() = default;
 
   const std::string& start_line() const {

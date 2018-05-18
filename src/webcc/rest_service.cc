@@ -1,4 +1,5 @@
 #include "webcc/rest_service.h"
+
 #include "webcc/logger.h"
 
 namespace webcc {
@@ -29,7 +30,7 @@ bool RestDetailService::Handle(const std::string& http_method,
                                const std::string& request_content,
                                std::string* response_content) {
   if (http_method == kHttpGet) {
-    return Get(url_sub_matches, response_content);
+    return Get(url_sub_matches, query, response_content);
   }
 
   if (http_method == kHttpPut) {

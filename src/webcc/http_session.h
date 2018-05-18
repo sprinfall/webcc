@@ -6,7 +6,7 @@
 
 #include "boost/asio/ip/tcp.hpp"  // for ip::tcp::socket
 
-#include "webcc/common.h"
+#include "webcc/globals.h"
 #include "webcc/http_request.h"
 #include "webcc/http_request_parser.h"
 #include "webcc/http_response.h"

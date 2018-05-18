@@ -1,4 +1,4 @@
-#include "webcc/common.h"
+#include "webcc/globals.h"
 
 namespace webcc {
 
@@ -63,13 +63,6 @@ const char* GetErrorMessage(Error error) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const SoapNamespace kSoapEnvNamespace{
-  "soap",
-  "http://schemas.xmlsoap.org/soap/envelope/"
-};
-
-////////////////////////////////////////////////////////////////////////////////
-
 Parameter::Parameter(const std::string& key, const char* value)
     : key_(key), value_(value) {
 }
@@ -108,6 +101,10 @@ Parameter& Parameter::operator=(Parameter&& rhs) {
     value_ = std::move(rhs.value_);
   }
   return *this;
+}
+
+std::string Parameter::ToString() const {
+  return key_ + "=" + value_;
 }
 
 }  // namespace webcc

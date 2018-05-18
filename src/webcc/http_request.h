@@ -2,7 +2,9 @@
 #define WEBCC_HTTP_REQUEST_H_
 
 #include <string>
+
 #include "boost/asio/buffer.hpp"  // for const_buffer
+
 #include "webcc/http_message.h"
 
 namespace webcc {
@@ -12,10 +14,6 @@ class HttpRequest;
 std::ostream& operator<<(std::ostream& os, const HttpRequest& request);
 
 class HttpRequest : public HttpMessage {
-
-  friend std::ostream& operator<<(std::ostream& os,
-                                  const HttpRequest& request);
-
 public:
   HttpRequest() = default;
   HttpRequest(const HttpRequest&) = default;
@@ -47,8 +45,9 @@ public:
     return port_;
   }
 
-  // \param host Descriptive host name or numeric IP address.
-  // \param port Numeric port number, "80" will be used if it's empty.
+  // Set host name and port number.
+  // The |host| is a descriptive name or a numeric IP address. The |port| is
+  // a numeric number (e.g., "9000") and "80" will be used if it's empty.
   void SetHost(const std::string& host, const std::string& port);
 
   // Compose start line, etc.
@@ -64,6 +63,8 @@ public:
   std::string Dump() const;
 
 private:
+  friend std::ostream& operator<<(std::ostream& os, const HttpRequest& request);
+
   // HTTP method.
   std::string method_;
 

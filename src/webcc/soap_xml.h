@@ -1,19 +1,19 @@
 #ifndef WEBCC_SOAP_XML_H_
 #define WEBCC_SOAP_XML_H_
 
-// XML utilities.
+// XML helpers for SOAP messages.
 
 #include <string>
+
 #include "pugixml/pugixml.hpp"
 
 namespace webcc {
 namespace soap_xml {
 
 // Split the node name into namespace prefix and real name.
-// E.g., if the node name is "soapenv:Envelope", it will be splited to
+// E.g., if the node name is "soapenv:Envelope", it will be splitted to
 // "soapenv" and "Envelope".
-void SplitName(const pugi::xml_node& xnode,
-               std::string* prefix = NULL,
+void SplitName(const pugi::xml_node& xnode, std::string* prefix = NULL,
                std::string* name = NULL);
 
 // Get the namespace prefix from node name.
@@ -26,38 +26,31 @@ std::string GetNameNoPrefix(const pugi::xml_node& xnode);
 // Add a child with the given name which is prefixed by a namespace.
 // E.g., AppendChild(xnode, "soapenv", "Envelope") will append a child with
 // name "soapenv:Envelope".
-pugi::xml_node AddChild(pugi::xml_node& xnode,
-                        const std::string& ns,
+pugi::xml_node AddChild(pugi::xml_node& xnode, const std::string& ns,
                         const std::string& name);
 
-pugi::xml_node GetChild(pugi::xml_node& xnode,
-                        const std::string& ns,
+pugi::xml_node GetChild(pugi::xml_node& xnode, const std::string& ns,
                         const std::string& name);
 
 // TODO: Remove
-pugi::xml_node GetChildNoNS(pugi::xml_node& xnode,
-                            const std::string& name);
+pugi::xml_node GetChildNoNS(pugi::xml_node& xnode, const std::string& name);
 
 // Add an attribute with the given name which is prefixed by a namespace.
-void AddAttr(pugi::xml_node& xnode,
-             const std::string& ns,
-             const std::string& name,
-             const std::string& value);
+void AddAttr(pugi::xml_node& xnode, const std::string& ns,
+             const std::string& name, const std::string& value);
 
 // Append "xmlns" attribute.
 // E.g., if the namespace is
 //   { "soapenv", "http://schemas.xmlsoap.org/soap/envelope/" }
 // the attribute added will be
 //   xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-void AddNSAttr(pugi::xml_node& xnode,
-               const std::string& ns_name,
+void AddNSAttr(pugi::xml_node& xnode, const std::string& ns_name,
                const std::string& ns_url);
 
 // Get namespace attribute value.
 // E.g., if the given namespace name is "soapenv", the value of
 // attribute "xmlns:soapenv" will be returned.
-std::string GetNSAttr(pugi::xml_node& xnode,
-                      const std::string& ns_name);
+std::string GetNSAttr(pugi::xml_node& xnode, const std::string& ns_name);
 
 // An XML writer writing to a referenced string.
 // Example:
@@ -68,12 +61,11 @@ std::string GetNSAttr(pugi::xml_node& xnode,
 //   xdoc.save(writer, "\t", pugi::format_default, pugi::encoding_utf8);
 class XmlStrRefWriter : public pugi::xml_writer {
 public:
-  explicit XmlStrRefWriter(std::string* result)
-      : result_(result) {
+  explicit XmlStrRefWriter(std::string* result) : result_(result) {
     result_->clear();
   }
 
-  virtual void write(const void* data, size_t size) override {
+  void write(const void* data, size_t size) override {
     result_->append(static_cast<const char*>(data), size);
   }
 
@@ -82,8 +74,7 @@ private:
 };
 
 // Print the XML string to output stream in pretty format.
-bool PrettyPrint(std::ostream& os,
-                 const std::string& xml_string,
+bool PrettyPrint(std::ostream& os, const std::string& xml_string,
                  const char* indent = "\t");
 
 }  // namespace soap_xml

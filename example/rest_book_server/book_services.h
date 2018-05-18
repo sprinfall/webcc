@@ -32,6 +32,7 @@ class BookListService : public webcc::RestListService {
 class BookDetailService : public webcc::RestDetailService {
  protected:
   bool Get(const std::vector<std::string>& url_sub_matches,
+           const webcc::UrlQuery& query,
            std::string* response_content) final;
 
   bool Patch(const std::vector<std::string>& url_sub_matches,

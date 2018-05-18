@@ -2,7 +2,8 @@
 #define WEBCC_HTTP_PARSER_H_
 
 #include <string>
-#include "webcc/common.h"
+
+#include "webcc/globals.h"
 
 namespace webcc {
 
@@ -14,9 +15,6 @@ public:
   explicit HttpParser(HttpMessage* message);
 
   virtual ~HttpParser() = default;
-
-  HttpParser(const HttpParser&) = delete;
-  HttpParser& operator=(const HttpParser&) = delete;
 
   bool finished() const {
     return finished_;
@@ -53,6 +51,8 @@ protected:
   bool content_length_parsed_;
   bool header_parsed_;
   bool finished_;
+
+  DISALLOW_COPY_AND_ASSIGN(HttpParser);
 };
 
 }  // namespace webcc

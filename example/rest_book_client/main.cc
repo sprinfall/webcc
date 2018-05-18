@@ -1,78 +1,50 @@
 #include <iostream>
 
 #include "boost/algorithm/string.hpp"
-#include "json/json.h"  // jsoncpp
+#include "json/json.h"
 
 #include "webcc/logger.h"
 #include "webcc/http_client.h"
 #include "webcc/http_request.h"
 #include "webcc/http_response.h"
+#include "webcc/rest_client.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class BookClientBase {
-public:
-  BookClientBase(const std::string& host, const std::string& port)
-      : host_(host), port_(port) {
-  }
-
-  bool Request(const std::string& method,
-               const std::string& url,
-               const std::string& content,
-               webcc::HttpResponse* http_response) {
-    webcc::HttpRequest http_request;
-
-    http_request.set_method(method);
-    http_request.set_url(url);
-    http_request.SetHost(host_, port_);
-    if (!content.empty()) {  // TODO
-      http_request.SetContent(content);
-    }
-    http_request.Build();
-
-    webcc::HttpClient http_client;
-    webcc::Error error = http_client.MakeRequest(http_request, http_response);
-
-    return error == webcc::kNoError;
-  }
-
-protected:
-  std::string host_;
-  std::string port_;
-};
+// Write a JSON object to string.
+std::string JsonToString(const Json::Value& json) {
+  Json::StreamWriterBuilder builder;
+  return Json::writeString(builder, json);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class BookListClient : public BookClientBase {
+class BookListClient {
 public:
   BookListClient(const std::string& host, const std::string& port)
-      : BookClientBase(host, port) {
+      : rest_client_(host, port) {
   }
 
   bool ListBooks() {
     webcc::HttpResponse http_response;
-    if (!Request(webcc::kHttpGet, "/books", "", &http_response)) {
+    if (!rest_client_.Get("/books", &http_response)) {
       return false;
     }
 
     std::cout << "result:\n" << http_response.content() << std::endl;
-
     return true;
   }
 
   bool CreateBook(const std::string& id,
                   const std::string& title,
                   double price) {
-    Json::Value root(Json::objectValue);
-    root["id"] = id;
-    root["title"] = title;
-    root["price"] = price;
-
-    Json::StreamWriterBuilder builder;
-    std::string book_json = Json::writeString(builder, root);
+    Json::Value json(Json::objectValue);
+    json["id"] = id;
+    json["title"] = title;
+    json["price"] = price;
 
     webcc::HttpResponse http_response;
-    if (!Request(webcc::kHttpPost, "/books", book_json, &http_response)) {
+    if (!rest_client_.Post("/books", JsonToString(json), &http_response)) {
       return false;
     }
 
@@ -80,58 +52,58 @@ public:
 
     return true;
   }
+
+private:
+  webcc::RestClient rest_client_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class BookDetailClient : public BookClientBase {
+class BookDetailClient {
 public:
   BookDetailClient(const std::string& host, const std::string& port)
-      : BookClientBase(host, port) {
+      : rest_client_(host, port) {
   }
 
   bool GetBook(const std::string& id) {
     webcc::HttpResponse http_response;
-    if (!Request(webcc::kHttpGet, "/book/" + id, "", &http_response)) {
+    if (!rest_client_.Get("/book/" + id, &http_response)) {
       return false;
     }
 
     std::cout << http_response.content() << std::endl;
-
     return true;
   }
 
   bool UpdateBook(const std::string& id,
                   const std::string& title,
                   double price) {
-    Json::Value root(Json::objectValue);
-    // root["id"] = id;  // NOTE: ID is already in the URL.
-    root["title"] = title;
-    root["price"] = price;
-
-    Json::StreamWriterBuilder builder;
-    std::string book_json = Json::writeString(builder, root);
+    // NOTE: ID is already in the URL.
+    Json::Value json(Json::objectValue);
+    json["title"] = title;
+    json["price"] = price;
 
     webcc::HttpResponse http_response;
-    if (!Request(webcc::kHttpPost, "/book/" + id, book_json, &http_response)) {
+    if (!rest_client_.Post("/book/" + id, JsonToString(json), &http_response)) {
       return false;
     }
 
     std::cout << http_response.status() << std::endl;
-
     return true;
   }
 
   bool DeleteBook(const std::string& id) {
     webcc::HttpResponse http_response;
-    if (!Request(webcc::kHttpDelete, "/book/" + id, "", &http_response)) {
+    if (!rest_client_.Delete("/book/" + id, &http_response)) {
       return false;
     }
 
-    std::cout << http_response.content() << std::endl;
-
+    std::cout << http_response.status() << std::endl;
     return true;
   }
+
+private:
+  webcc::RestClient rest_client_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -147,13 +119,8 @@ void Help(const char* argv0) {
 
 std::string GetUserInput() {
   char input[256];
-  // std::size_t length = 0;
-  // do {
-    std::cout << ">> ";
-    std::cin.getline(input, 256);
-    // length = strlen(input);
-  // } while (length == 0);
-
+  std::cout << ">> ";
+  std::cin.getline(input, 256);
   return input;
 }
 

@@ -2,7 +2,9 @@
 #define WEBCC_HTTP_RESPONSE_H_
 
 #include <string>
+
 #include "boost/asio/buffer.hpp"  // for const_buffer
+
 #include "webcc/http_message.h"
 
 namespace webcc {
@@ -12,9 +14,6 @@ class HttpResponse;
 std::ostream& operator<<(std::ostream& os, const HttpResponse& response);
 
 class HttpResponse : public HttpMessage {
-  friend std::ostream& operator<<(std::ostream& os,
-                                  const HttpResponse& response);
-
 public:
   HttpResponse() = default;
   ~HttpResponse() override = default;
@@ -39,6 +38,9 @@ public:
   static HttpResponse Fault(HttpStatus::Enum status);
 
 private:
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const HttpResponse& response);
+
   int status_ = HttpStatus::kOK;
 };
 

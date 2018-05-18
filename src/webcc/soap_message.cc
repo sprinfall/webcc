@@ -1,9 +1,15 @@
 #include "webcc/soap_message.h"
 
 #include <cassert>
+
 #include "webcc/soap_xml.h"
 
 namespace webcc {
+
+const SoapNamespace kSoapEnvNamespace{
+  "soap",
+  "http://schemas.xmlsoap.org/soap/envelope/"
+};
 
 void SoapMessage::ToXml(std::string* xml_string) {
   assert(soapenv_ns_.IsValid() &&
