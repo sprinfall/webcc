@@ -113,7 +113,7 @@ const char* GetErrorMessage(Error error);
 
 // Key-value parameter.
 class Parameter {
-public:
+ public:
   Parameter() = default;
   Parameter(const Parameter&) = default;
   Parameter& operator=(const Parameter&) = default;
@@ -150,7 +150,7 @@ public:
   // Return "key=value" string.
   std::string ToString() const;
 
-private:
+ private:
   std::string key_;
   std::string value_;
 };

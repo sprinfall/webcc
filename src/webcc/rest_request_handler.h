@@ -9,18 +9,14 @@
 namespace webcc {
 
 class RestRequestHandler : public HttpRequestHandler {
-public:
+ public:
   ~RestRequestHandler() override = default;
 
-  // Register a REST service to the given URL path.
-  // The URL should start with "/" and could be a regular expression or not.
-  // E.g., "/instances". "/instances/(\\d+)"
-  bool RegisterService(RestServicePtr service, const std::string& url);
+  bool Bind(RestServicePtr service, const std::string& url, bool is_regex);
 
-private:
+ private:
   void HandleSession(HttpSessionPtr session) override;
 
-private:
   RestServiceManager service_manager_;
 };
 

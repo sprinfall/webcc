@@ -26,18 +26,23 @@ public:
   }
 
   bool ListBooks() {
+    std::cout << "ListBooks" << std::endl;
+
     webcc::HttpResponse http_response;
     if (!rest_client_.Get("/books", &http_response)) {
       return false;
     }
 
-    std::cout << "result:\n" << http_response.content() << std::endl;
+    std::cout << http_response.content() << std::endl;
     return true;
   }
 
   bool CreateBook(const std::string& id,
                   const std::string& title,
                   double price) {
+    std::cout << "CreateBook: " << id << " " << title << " " << price
+              << std::endl;
+
     Json::Value json(Json::objectValue);
     json["id"] = id;
     json["title"] = title;
@@ -66,6 +71,8 @@ public:
   }
 
   bool GetBook(const std::string& id) {
+    std::cout << "GetBook: " << id << std::endl;
+
     webcc::HttpResponse http_response;
     if (!rest_client_.Get("/book/" + id, &http_response)) {
       return false;
@@ -78,13 +85,16 @@ public:
   bool UpdateBook(const std::string& id,
                   const std::string& title,
                   double price) {
+    std::cout << "UpdateBook: " << id << " " << title << " " << price
+              << std::endl;
+
     // NOTE: ID is already in the URL.
     Json::Value json(Json::objectValue);
     json["title"] = title;
     json["price"] = price;
 
     webcc::HttpResponse http_response;
-    if (!rest_client_.Post("/book/" + id, JsonToString(json), &http_response)) {
+    if (!rest_client_.Put("/book/" + id, JsonToString(json), &http_response)) {
       return false;
     }
 
@@ -93,6 +103,8 @@ public:
   }
 
   bool DeleteBook(const std::string& id) {
+    std::cout << "DeleteBook: " << id << std::endl;
+
     webcc::HttpResponse http_response;
     if (!rest_client_.Delete("/book/" + id, &http_response)) {
       return false;
@@ -108,32 +120,10 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-std::string g_host;
-std::string g_port;
-
 void Help(const char* argv0) {
   std::cout << "Usage: " << argv0 << " <host> <port>" << std::endl;
   std::cout << "  E.g.," << std::endl;
   std::cout << "    " << argv0 << " localhost 8080" << std::endl;
-}
-
-std::string GetUserInput() {
-  char input[256];
-  std::cout << ">> ";
-  std::cin.getline(input, 256);
-  return input;
-}
-
-bool ParseJsonInput(const std::string& input, Json::Value* root) {
-  Json::CharReaderBuilder builder;
-  std::stringstream stream(input);
-  std::string errs;
-  if (Json::parseFromStream(builder, stream, root, &errs)) {
-    return true;
-  } else {
-    std::cerr << errs << std::endl;
-    return false;
-  }
 }
 
 int main(int argc, char* argv[]) {
@@ -142,85 +132,23 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  LOG_INIT(webcc::VERB, 0);
+  LOG_INIT(webcc::ERRO, 0);
 
-  g_host = argv[1];
-  g_port = argv[2];
+  std::string host = argv[1];
+  std::string port = argv[2];
 
-  // Type commands to execute actions.
-  // Commands: list, create, detail, update, delete and exit.
-  // Examples:
-  //   >> list
-  //   >> create 1 { "title": "1984", "price": 12.3 }
-  //   >> detail 1
-  //   >> update 1 { "title": "1Q84", "price": 32.1 }
-  //   >> delete 1
-  //   >> exit
+  BookListClient list_client(host, port);
+  BookDetailClient detail_client(host, port);
 
-  // A very naive implementation of interaction mode.
-  while (true) {
-    std::string input = GetUserInput();
-    boost::trim(input);
+  list_client.ListBooks();
+  list_client.CreateBook("1", "1984", 12.3);
 
-    std::string command;
-    std::size_t i = input.find(' ');
-    if (i == std::string::npos) {
-      command = input;
-    } else {
-      command = input.substr(0, i);
-    }
+  detail_client.GetBook("1");
+  detail_client.UpdateBook("1", "1Q84", 32.1);
+  detail_client.GetBook("1");
+  detail_client.DeleteBook("1");
 
-    if (command == "exit") {
-      break;
-    }
-
-    if (command == "list") {
-      BookListClient client(g_host, g_port);
-      client.ListBooks();
-      continue;
-    }
-
-    ++i;
-
-    std::size_t j = input.find(' ', i);
-    std::string id = input.substr(i, j - i);
-    i = j + 1;
-
-    if (command == "create") {
-      std::string json = input.substr(i);
-
-      Json::Value root;
-      if (ParseJsonInput(json, &root)) {
-        BookListClient client(g_host, g_port);
-        client.CreateBook(id, root["title"].asString(), root["price"].asDouble());
-      }
-      continue;
-    }
-
-    if (command == "update") {
-      std::string json = input.substr(i);
-
-      Json::Value root;
-      if (ParseJsonInput(json, &root)) {
-        BookDetailClient client(g_host, g_port);
-        client.UpdateBook(id, root["title"].asString(), root["price"].asDouble());
-      }
-      continue;
-    }
-
-    if (command == "detail") {
-      BookDetailClient client(g_host, g_port);
-      client.GetBook(id);
-      continue;
-    }
-
-    if (command == "delete") {
-      BookDetailClient client(g_host, g_port);
-      client.DeleteBook(id);
-      continue;
-    }
-  }
-
+  list_client.ListBooks();
 
   return 0;
 }

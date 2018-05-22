@@ -23,7 +23,7 @@ class UrlQuery;
 
 // Base class for your REST service.
 class RestService {
-public:
+ public:
   virtual ~RestService() {
   }
 

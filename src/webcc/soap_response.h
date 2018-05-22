@@ -7,7 +7,7 @@ namespace webcc {
 
 // SOAP response.
 class SoapResponse : public SoapMessage {
-public:
+ public:
   // Could be "Price" for an operation/method like "GetXyzPrice".
   // Really depend on the service.
   // Most services use a general name "Result".
@@ -27,12 +27,12 @@ public:
     result_ = std::move(result);
   }
 
-protected:
+ protected:
   void ToXmlBody(pugi::xml_node xbody) override;
 
   bool FromXmlBody(pugi::xml_node xbody) override;
 
-private:
+ private:
   // NOTE:
   // Multiple results might be necessary. But for most cases, single result
   // should be enough, because an API normally returns only one value.

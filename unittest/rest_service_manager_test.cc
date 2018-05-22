@@ -20,7 +20,7 @@ TEST(RestServiceManager, URL_RegexBasic) {
   {
     RestServicePtr service = std::make_shared<TestRestService>();
 
-    service_manager.AddService(service, "/instances/(\\d+)");
+    service_manager.AddService(service, "/instances/(\\d+)", true);
   }
 
   std::vector<std::string> sub_matches;
@@ -38,4 +38,21 @@ TEST(RestServiceManager, URL_RegexBasic) {
   service = service_manager.GetService(url, &sub_matches);
 
   EXPECT_FALSE(!!service);
+}
+
+TEST(RestServiceManager, URL_NonRegex) {
+  RestServiceManager service_manager;
+
+  {
+    RestServicePtr service = std::make_shared<TestRestService>();
+
+    service_manager.AddService(service, "/instances", false);
+  }
+
+  std::vector<std::string> sub_matches;
+  std::string url = "/instances";
+  RestServicePtr service = service_manager.GetService(url, &sub_matches);
+
+  EXPECT_TRUE(!!service);
+  EXPECT_EQ(0, sub_matches.size());
 }

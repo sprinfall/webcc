@@ -8,16 +8,15 @@ namespace webcc {
 class HttpResponse;
 
 class HttpResponseParser : public HttpParser {
-public:
+ public:
   explicit HttpResponseParser(HttpResponse* response);
 
   ~HttpResponseParser() override = default;
 
-private:
+ private:
   // Parse HTTP start line; E.g., "HTTP/1.1 200 OK".
   Error ParseStartLine(const std::string& line) override;
 
-private:
   // The result response message.
   HttpResponse* response_;
 };

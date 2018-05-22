@@ -17,23 +17,19 @@ class HttpRequest;
 class HttpResponse;
 
 class HttpClient {
-public:
+ public:
   HttpClient();
   ~HttpClient() = default;
-
-  HttpClient(const HttpClient&) = delete;
-  HttpClient& operator=(const HttpClient&) = delete;
 
   void set_timeout_seconds(int timeout_seconds) {
     timeout_seconds_ = timeout_seconds;
   }
 
-  // Make a HTTP request.
   // Connect to the server, send the request, wait until the response is
   // received.
-  Error MakeRequest(const HttpRequest& request, HttpResponse* response);
+  Error Request(const HttpRequest& request, HttpResponse* response);
 
-private:
+ private:
   Error Connect(const HttpRequest& request);
 
   Error SendReqeust(const HttpRequest& request);
@@ -42,7 +38,6 @@ private:
 
   void CheckDeadline();
 
-private:
   boost::asio::io_context io_context_;
 
   boost::asio::ip::tcp::socket socket_;
@@ -57,6 +52,8 @@ private:
 
   // Timer for the timeout control.
   boost::asio::deadline_timer deadline_timer_;
+
+  DISALLOW_COPY_AND_ASSIGN(HttpClient);
 };
 
 }  // namespace webcc

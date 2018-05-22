@@ -91,8 +91,8 @@ Parameter::Parameter(const std::string& key, bool value)
 }
 
 Parameter::Parameter(Parameter&& rhs)
-    : key_(std::move(rhs.key_))
-    , value_(std::move(rhs.value_)) {
+    : key_(std::move(rhs.key_)),
+      value_(std::move(rhs.value_)) {
 }
 
 Parameter& Parameter::operator=(Parameter&& rhs) {

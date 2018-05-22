@@ -12,14 +12,14 @@ class SoapResponse;
 
 // Base class for your SOAP service.
 class SoapService {
-public:
+ public:
   virtual ~SoapService() = default;
 
   // Handle SOAP request, output the response.
   virtual bool Handle(const SoapRequest& soap_request,
                       SoapResponse* soap_response) = 0;
 
-protected:
+ protected:
   HttpStatus::Enum http_status_ = HttpStatus::kOK;
 };
 

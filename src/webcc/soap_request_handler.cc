@@ -6,8 +6,7 @@
 
 namespace webcc {
 
-bool SoapRequestHandler::RegisterService(SoapServicePtr service,
-                                         const std::string& url) {
+bool SoapRequestHandler::Bind(SoapServicePtr service, const std::string& url) {
   assert(service);
 
   url_service_map_[url] = service;

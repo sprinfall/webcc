@@ -17,7 +17,7 @@ class HttpResponse;
 
 // The common handler for all incoming requests.
 class HttpRequestHandler {
-public:
+ public:
   HttpRequestHandler() = default;
   virtual ~HttpRequestHandler() = default;
 
@@ -30,7 +30,7 @@ public:
   // Close pending sessions and stop worker threads.
   void Stop();
 
-private:
+ private:
   void WorkerRoutine();
 
   // Called by the worker routine.

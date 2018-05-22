@@ -14,7 +14,7 @@ class HttpResponse;
 std::ostream& operator<<(std::ostream& os, const HttpResponse& response);
 
 class HttpResponse : public HttpMessage {
-public:
+ public:
   HttpResponse() = default;
   ~HttpResponse() override = default;
 
@@ -37,7 +37,7 @@ public:
   // Get a fault response when HTTP status is not OK.
   static HttpResponse Fault(HttpStatus::Enum status);
 
-private:
+ private:
   friend std::ostream& operator<<(std::ostream& os,
                                   const HttpResponse& response);
 

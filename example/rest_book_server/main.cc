@@ -26,11 +26,9 @@ int main(int argc, char* argv[]) {
   try {
     webcc::RestServer server(port, workers);
 
-    server.RegisterService(std::make_shared<BookListService>(),
-                           "/books");
+    server.Bind(std::make_shared<BookListService>(), "/books", false);
 
-    server.RegisterService(std::make_shared<BookDetailService>(),
-                           "/book/(\\d+)");
+    server.Bind(std::make_shared<BookDetailService>(), "/book/(\\d+)", true);
 
     server.Run();
 

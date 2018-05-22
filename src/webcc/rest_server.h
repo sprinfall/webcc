@@ -10,28 +10,30 @@
 namespace webcc {
 
 class RestServer : public HttpServer {
-public:
+ public:
   RestServer(unsigned short port, std::size_t workers)
       : HttpServer(port, workers) {
   }
 
   ~RestServer() override = default;
 
-  // Register a REST service to the given URL path.
-  // The URL should start with "/" and could be a regular expression or not.
-  // E.g., "/instances". "/instances/(\\d+)"
-  // NOTE: Registering to the same URL multiple times is allowed, but only the
-  //       last one takes effect.
-  bool RegisterService(RestServicePtr service, const std::string& url) {
-    return request_handler_.RegisterService(service, url);
+  // Bind a REST service to the given URL path.
+  // The URL should start with "/" and it will be treated as a regular
+  // expression if |is_regex| is true.
+  // Examples:
+  //   - "/instances"
+  //   - "/instances/(\\d+)"
+  // Binding to the same URL multiple times is allowed, but only the last one
+  // takes effect.
+  bool Bind(RestServicePtr service, const std::string& url, bool is_regex) {
+    return request_handler_.Bind(service, url, is_regex);
   }
 
-private:
+ private:
   HttpRequestHandler* GetRequestHandler() override {
     return &request_handler_;
   }
 
-private:
   RestRequestHandler request_handler_;
 };
 

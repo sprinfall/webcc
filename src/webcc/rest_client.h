@@ -10,7 +10,7 @@ namespace webcc {
 class HttpResponse;
 
 class RestClient {
-public:
+ public:
   RestClient(const std::string& host, const std::string& port)
       : host_(host), port_(port) {
   }
@@ -41,7 +41,7 @@ public:
     return Request(kHttpDelete, url, "", response);
   }
 
-private:
+ private:
   bool Request(const std::string& method,
                const std::string& url,
                const std::string& content,

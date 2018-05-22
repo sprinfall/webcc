@@ -35,9 +35,9 @@ class BookDetailService : public webcc::RestDetailService {
            const webcc::UrlQuery& query,
            std::string* response_content) final;
 
-  bool Patch(const std::vector<std::string>& url_sub_matches,
-             const std::string& request_content,
-             std::string* response_content) final;
+  bool Put(const std::vector<std::string>& url_sub_matches,
+           const std::string& request_content,
+           std::string* response_content) final;
 
   bool Delete(const std::vector<std::string>& url_sub_matches) final;
 };

@@ -8,17 +8,13 @@
 namespace webcc {
 
 class SoapRequestHandler : public HttpRequestHandler {
-public:
+ public:
   SoapRequestHandler() = default;
   ~SoapRequestHandler() override = default;
 
-  // Register a SOAP service to the given URL path.
-  // The |url| path must start with "/", e.g., "/calculator".
-  // Registering to the same URL multiple times is allowed, but only the last
-  // one takes effect.
-  bool RegisterService(SoapServicePtr service, const std::string& url);
+  bool Bind(SoapServicePtr service, const std::string& url);
 
-private:
+ private:
   void HandleSession(HttpSessionPtr session) override;
 
   SoapServicePtr GetServiceByUrl(const std::string& url);

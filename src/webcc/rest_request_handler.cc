@@ -5,9 +5,10 @@
 
 namespace webcc {
 
-bool RestRequestHandler::RegisterService(RestServicePtr service,
-                                         const std::string& url) {
-  return service_manager_.AddService(service, url);
+bool RestRequestHandler::Bind(RestServicePtr service,
+                              const std::string& url,
+                              bool is_regex) {
+  return service_manager_.AddService(service, url, is_regex);
 }
 
 void RestRequestHandler::HandleSession(HttpSessionPtr session) {

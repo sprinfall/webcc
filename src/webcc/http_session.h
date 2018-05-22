@@ -16,7 +16,7 @@ namespace webcc {
 class HttpRequestHandler;
 
 class HttpSession : public std::enable_shared_from_this<HttpSession> {
-public:
+ public:
   HttpSession(const HttpSession&) = delete;
   HttpSession& operator=(const HttpSession&) = delete;
 
@@ -41,14 +41,13 @@ public:
   // Send response to client with the given status.
   void SendResponse(HttpStatus::Enum status);
 
-private:
+ private:
   void AsyncRead();
   void ReadHandler(boost::system::error_code ec, std::size_t length);
 
   void AsyncWrite();
   void WriteHandler(boost::system::error_code ec, std::size_t length);
 
-private:
   // Socket for the connection.
   boost::asio::ip::tcp::socket socket_;
 

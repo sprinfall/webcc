@@ -23,7 +23,7 @@ bool RestClient::Request(const std::string& method,
   request.Build();
 
   HttpClient http_client;
-  Error error = http_client.MakeRequest(request, response);
+  Error error = http_client.Request(request, response);
 
   return error == kNoError;
 }

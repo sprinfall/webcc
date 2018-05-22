@@ -10,6 +10,7 @@
 #include "boost/scoped_ptr.hpp"
 #include "boost/thread/thread.hpp"
 
+#include "webcc/globals.h"
 #include "webcc/http_session.h"
 
 namespace webcc {
@@ -19,10 +20,7 @@ class HttpRequestHandler;
 // HTTP server accepts TCP connections from TCP clients.
 // NOTE: Only support IPv4.
 class HttpServer {
-public:
-  HttpServer(const HttpServer&) = delete;
-  HttpServer& operator=(const HttpServer&) = delete;
-
+ public:
   HttpServer(unsigned short port, std::size_t workers);
 
   virtual ~HttpServer() = default;
@@ -30,7 +28,7 @@ public:
   // Run the server's io_service loop.
   void Run();
 
-private:
+ private:
   // Initiate an asynchronous accept operation.
   void AsyncAccept();
 
@@ -40,7 +38,6 @@ private:
   // Get the handler for incoming requests.
   virtual HttpRequestHandler* GetRequestHandler() = 0;
 
-private:
   // The number of worker threads.
   std::size_t workers_;
 
@@ -52,6 +49,8 @@ private:
 
   // Acceptor used to listen for incoming connections.
   boost::scoped_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
+
+  DISALLOW_COPY_AND_ASSIGN(HttpServer);
 };
 
 }  // namespace webcc

@@ -14,7 +14,7 @@ namespace webcc {
 
 template <typename T>
 class Queue {
-public:
+ public:
   Queue() = default;
 
   Queue(const Queue&) = delete;
@@ -51,7 +51,7 @@ public:
     not_empty_cv_.notify_one();
   }
 
-private:
+ private:
   std::list<T> message_list_;
   boost::mutex mutex_;
   boost::condition_variable not_empty_cv_;

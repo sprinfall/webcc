@@ -24,8 +24,7 @@ int main(int argc, char* argv[]) {
   try {
     webcc::SoapServer server(port, workers);
 
-    server.RegisterService(std::make_shared<CalcService>(),
-                           "/calculator");
+    server.Bind(std::make_shared<CalcService>(), "/calculator");
 
     server.Run();
 

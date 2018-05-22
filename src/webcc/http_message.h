@@ -9,14 +9,14 @@
 namespace webcc {
 
 class HttpHeader {
-public:
+ public:
   std::string name;
   std::string value;
 };
 
 // Base class for HTTP request and response messages.
 class HttpMessage {
-public:
+ public:
   virtual ~HttpMessage() = default;
 
   const std::string& start_line() const {
@@ -51,13 +51,12 @@ public:
     SetContentLength(content_.size());
   }
 
-private:
+ protected:
   void SetContentLength(std::size_t content_length) {
     content_length_ = content_length;
     SetHeader(kContentLength, std::to_string(content_length));
   }
 
-protected:
   // Start line with trailing "\r\n".
   std::string start_line_;
 

@@ -19,7 +19,7 @@ namespace webcc {
 
 // URL query parameters.
 class UrlQuery {
-public:
+ public:
   typedef std::vector<Parameter> Parameters;
 
   UrlQuery() = default;
@@ -49,18 +49,17 @@ public:
   // E.g., "item=12731&color=blue&size=large".
   std::string ToString() const;
 
-private:
+ private:
   typedef Parameters::const_iterator ConstIterator;
   ConstIterator Find(const std::string& key) const;
 
-private:
   Parameters parameters_;
 };
 
 // -----------------------------------------------------------------------------
 
 class Url {
-public:
+ public:
   Url() = default;
   Url(const std::string& str, bool decode);
 
@@ -88,7 +87,7 @@ public:
   // Split query string into key-value parameters.
   static void SplitQuery(const std::string& str, UrlQuery* query);
 
-private:
+ private:
   void Init(const std::string& str);
 
   std::string path_;

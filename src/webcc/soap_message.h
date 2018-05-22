@@ -12,7 +12,7 @@ namespace webcc {
 // XML namespace name/url pair.
 // E.g., { "soap", "http://schemas.xmlsoap.org/soap/envelope/" }
 class SoapNamespace {
-public:
+ public:
   std::string name;
   std::string url;
 
@@ -26,7 +26,7 @@ extern const SoapNamespace kSoapEnvNamespace;
 
 // Base class for SOAP request and response.
 class SoapMessage {
-public:
+ public:
   virtual ~SoapMessage() {}
 
   // E.g., set as kSoapEnvNamespace.
@@ -52,14 +52,13 @@ public:
   // Parse from SOAP request XML.
   bool FromXml(const std::string& xml_string);
 
-protected:
+ protected:
   // Convert to SOAP body XML.
   virtual void ToXmlBody(pugi::xml_node xbody) = 0;
 
   // Parse from SOAP body XML.
   virtual bool FromXmlBody(pugi::xml_node xbody) = 0;
 
-protected:
   SoapNamespace soapenv_ns_;  // SOAP envelope namespace.
   SoapNamespace service_ns_;  // Namespace for your web service.
 

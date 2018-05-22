@@ -8,12 +8,12 @@ namespace webcc {
 class HttpRequest;
 
 class HttpRequestParser : public HttpParser {
-public:
+ public:
   explicit HttpRequestParser(HttpRequest* request);
 
   ~HttpRequestParser() override = default;
 
-private:
+ private:
   Error ParseStartLine(const std::string& line) override;
 
   HttpRequest* request_;

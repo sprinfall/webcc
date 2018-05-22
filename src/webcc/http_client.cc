@@ -36,8 +36,7 @@ HttpClient::HttpClient()
   CheckDeadline();
 }
 
-Error HttpClient::MakeRequest(const HttpRequest& request,
-                              HttpResponse* response) {
+Error HttpClient::Request(const HttpRequest& request, HttpResponse* response) {
   assert(response != NULL);
 
   Error error = kNoError;

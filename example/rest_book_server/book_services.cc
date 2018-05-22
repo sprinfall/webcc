@@ -62,6 +62,7 @@ public:
     if (it != books_.end()) {
       it->title = book.title;
       it->price = book.price;
+      return true;
     }
     return false;
   }
@@ -162,10 +163,10 @@ bool BookDetailService::Get(const std::vector<std::string>& url_sub_matches,
   return false;
 }
 
-// Update a book partially.
-bool BookDetailService::Patch(const std::vector<std::string>& url_sub_matches,
-                              const std::string& request_content,
-                              std::string* response_content) {
+// Update a book.
+bool BookDetailService::Put(const std::vector<std::string>& url_sub_matches,
+                            const std::string& request_content,
+                            std::string* response_content) {
   if (url_sub_matches.size() != 1) {
     return false;
   }

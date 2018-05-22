@@ -13,10 +13,10 @@ namespace webcc {
 // Set URL, host, port, etc. in your sub-class before make the call.
 //
 class SoapClient {
-public:
+ public:
   virtual ~SoapClient() = default;
 
-protected:
+ protected:
   SoapClient() = default;
 
   // A generic wrapper to make a call.
@@ -25,7 +25,6 @@ protected:
              std::vector<Parameter>&& parameters,
              std::string* result);
 
-protected:
   // -1 means default timeout (normally 30s) will be used.
   int timeout_seconds_ = -1;
 
