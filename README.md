@@ -41,12 +41,13 @@ class BookDetailService : public webcc::RestDetailService {
  protected:
   // Get the detailed information of a book.
   bool Get(const std::vector<std::string>& url_sub_matches,
+           const webcc::UrlQuery& query,
            std::string* response_content) final;
 
   // Update the information of a book.
-  bool Patch(const std::vector<std::string>& url_sub_matches,
-             const std::string& request_content,
-             std::string* response_content) final;
+  bool Put(const std::vector<std::string>& url_sub_matches,
+           const std::string& request_content,
+           std::string* response_content) final;
 
   // Delete a book.
   bool Delete(const std::vector<std::string>& url_sub_matches) final;
@@ -59,6 +60,7 @@ The detailed implementation is out of the scope of this document, but here is an
 
 ```cpp
 bool BookDetailService::Get(const std::vector<std::string>& url_sub_matches,
+                            const webcc::UrlQuery& query,
                             std::string* response_content) {
   if (url_sub_matches.size() != 1) {
     return false;
@@ -76,11 +78,8 @@ Last step, register the services and run the server:
 ```cpp
 webcc::RestServer server(8080, 2);
 
-server.RegisterService(std::make_shared<BookListService>(),
-                       "/books");
-
-server.RegisterService(std::make_shared<BookDetailService>(),
-                       "/book/(\\d+)");
+server.Bind(std::make_shared<BookListService>(), "/books", false);
+server.Bind(std::make_shared<BookDetailService>(), "/book/(\\d+)", true);
 
 server.Run();
 ```
