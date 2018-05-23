@@ -38,17 +38,18 @@ std::string GetNameNoPrefix(const pugi::xml_node& xnode) {
   return name;
 }
 
-pugi::xml_node AddChild(pugi::xml_node& xnode, const std::string& ns,
-                        const std::string& name) {
-  return xnode.append_child((ns + ":" + name).c_str());
+pugi::xml_node AddChild(const std::string& ns, const std::string& name,
+                        pugi::xml_node* xnode) {
+  return xnode->append_child((ns + ":" + name).c_str());
 }
 
-pugi::xml_node GetChild(pugi::xml_node& xnode, const std::string& ns,
+pugi::xml_node GetChild(const pugi::xml_node& xnode, const std::string& ns,
                         const std::string& name) {
   return xnode.child((ns + ":" + name).c_str());
 }
 
-pugi::xml_node GetChildNoNS(pugi::xml_node& xnode, const std::string& name) {
+pugi::xml_node GetChildNoNS(const pugi::xml_node& xnode,
+                            const std::string& name) {
   pugi::xml_node xchild = xnode.first_child();
   while (xchild) {
     std::string child_name = xchild.name();
@@ -80,7 +81,7 @@ void AddNSAttr(pugi::xml_node& xnode, const std::string& ns_name,
   AddAttr(xnode, "xmlns", ns_name, ns_url);
 }
 
-std::string GetNSAttr(pugi::xml_node& xnode, const std::string& ns_name) {
+std::string GetNSAttr(const pugi::xml_node& xnode, const std::string& ns_name) {
   std::string attr_name = "xmlns:" + ns_name;
   return xnode.attribute(attr_name.c_str()).as_string();
 }

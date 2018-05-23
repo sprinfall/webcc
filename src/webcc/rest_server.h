@@ -3,6 +3,8 @@
 
 // HTTP server handling REST requests.
 
+#include <string>
+
 #include "webcc/http_server.h"
 #include "webcc/rest_request_handler.h"
 #include "webcc/rest_service.h"

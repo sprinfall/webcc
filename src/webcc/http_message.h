@@ -3,6 +3,8 @@
 
 #include <cassert>
 #include <string>
+#include <utility>  // for move()
+#include <vector>
 
 #include "webcc/globals.h"
 

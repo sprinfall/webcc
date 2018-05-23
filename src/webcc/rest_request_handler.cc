@@ -1,5 +1,8 @@
 #include "webcc/rest_request_handler.h"
 
+#include <utility>  // for move()
+#include <vector>
+
 #include "webcc/logger.h"
 #include "webcc/url.h"
 
@@ -28,7 +31,6 @@ void RestRequestHandler::HandleSession(HttpSessionPtr session) {
     return;
   }
 
-  // TODO: Only for GET?
   UrlQuery query;
   Url::SplitQuery(url.query(), &query);
 
@@ -39,7 +41,6 @@ void RestRequestHandler::HandleSession(HttpSessionPtr session) {
                             session->request().content(),
                             &content);
   if (!ok) {
-    // TODO: Could be other than kBadRequest.
     session->SendResponse(HttpStatus::kBadRequest);
     return;
   }

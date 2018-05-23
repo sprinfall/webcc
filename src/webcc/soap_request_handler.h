@@ -2,6 +2,7 @@
 #define WEBCC_SOAP_REQUEST_HANDLER_H_
 
 #include <map>
+#include <string>
 
 #include "webcc/http_request_handler.h"
 

@@ -8,12 +8,12 @@
 namespace webcc {
 
 HttpParser::HttpParser(HttpMessage* message)
-    : message_(message)
-    , content_length_(kInvalidLength)
-    , start_line_parsed_(false)
-    , content_length_parsed_(false)
-    , header_parsed_(false)
-    , finished_(false) {
+    : message_(message),
+      content_length_(kInvalidLength),
+      start_line_parsed_(false),
+      content_length_parsed_(false),
+      header_parsed_(false),
+      finished_(false) {
 }
 
 Error HttpParser::Parse(const char* data, std::size_t len) {
@@ -71,7 +71,7 @@ Error HttpParser::Parse(const char* data, std::size_t len) {
       Finish();
       return kNoError;
     } else {
-      // Invalid Content-Length in the request. 
+      // Invalid Content-Length in the request.
       if (content_length_ == kInvalidLength) {
         return kHttpContentLengthError;
       }

@@ -1,5 +1,7 @@
 #include "webcc/soap_request_handler.h"
 
+#include <utility>  // for move()
+
 #include "webcc/logger.h"
 #include "webcc/soap_request.h"
 #include "webcc/soap_response.h"

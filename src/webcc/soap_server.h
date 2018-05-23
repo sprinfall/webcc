@@ -3,6 +3,8 @@
 
 // HTTP server handling SOAP requests.
 
+#include <string>
+
 #include "webcc/soap_request_handler.h"
 #include "webcc/http_server.h"
 

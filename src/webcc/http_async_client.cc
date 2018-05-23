@@ -1,14 +1,9 @@
 #include "webcc/http_async_client.h"
 
-#if WEBCC_DEBUG_OUTPUT
-#include <iostream>
-#endif
-
 #if 0
 #include "boost/asio.hpp"
 #else
 #include "boost/asio/connect.hpp"
-//#include "boost/asio/ip/tcp.hpp"
 #include "boost/asio/read.hpp"
 #include "boost/asio/write.hpp"
 #endif
@@ -119,11 +114,6 @@ void HttpAsyncClient::HandleRead(boost::system::error_code ec,
     return;
   }
 
-#if WEBCC_DEBUG_OUTPUT
-  // NOTE: the content XML might not be well formated.
-  std::cout.write(buffer_.data(), length);
-#endif
-
   // Parse the response piece just read.
   // If the content has been fully received, next time flag "finished_"
   // will be set.
@@ -158,12 +148,6 @@ void HttpAsyncClient::HandleRead(boost::system::error_code ec,
     //  return error;
     //}
   //}
-
-//#if WEBCC_DEBUG_OUTPUT
-//  std::cout << std::endl;
-//  std::cout << "--- RESPONSE (PARSED) ---" << std::endl;
-//  std::cout << *response << std::endl;
-//#endif
 }
 
 }  // namespace webcc

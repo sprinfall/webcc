@@ -11,7 +11,7 @@ class HttpMessage;
 
 // HttpParser parses HTTP request and response.
 class HttpParser {
-public:
+ public:
   explicit HttpParser(HttpMessage* message);
 
   virtual ~HttpParser() = default;
@@ -22,7 +22,7 @@ public:
 
   Error Parse(const char* data, std::size_t len);
 
-protected:
+ protected:
   // Parse HTTP start line.
   virtual Error ParseStartLine(const std::string& line) = 0;
 
@@ -35,7 +35,6 @@ protected:
 
   bool IsContentFull() const;
 
-protected:
   // The result HTTP message.
   HttpMessage* message_;
 

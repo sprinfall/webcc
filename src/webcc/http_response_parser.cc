@@ -7,16 +7,15 @@
 namespace webcc {
 
 HttpResponseParser::HttpResponseParser(HttpResponse* response)
-    : HttpParser(response)
-    , response_(response) {
+    : HttpParser(response), response_(response) {
 }
 
 Error HttpResponseParser::ParseStartLine(const std::string& line) {
   response_->set_start_line(line + "\r\n");
 
-  size_t off = 0;
+  std::size_t off = 0;
 
-  size_t pos = line.find(' ');
+  std::size_t pos = line.find(' ');
   if (pos == std::string::npos) {
     return kHttpStartLineError;
   }
@@ -38,8 +37,6 @@ Error HttpResponseParser::ParseStartLine(const std::string& line) {
   } catch (boost::bad_lexical_cast&) {
     return kHttpStartLineError;
   }
-
-  off = pos + 1;  // Skip space.
 
   if (response_->status() != HttpStatus::kOK) {
     return kHttpStatusError;

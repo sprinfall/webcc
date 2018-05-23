@@ -1,6 +1,7 @@
 #include "webcc/http_server.h"
 
 #include <csignal>
+#include <utility>
 
 #include "webcc/http_request_handler.h"
 #include "webcc/logger.h"
@@ -12,13 +13,10 @@ using tcp = boost::asio::ip::tcp;
 namespace webcc {
 
 HttpServer::HttpServer(unsigned short port, std::size_t workers)
-    : signals_(io_context_)
-    , workers_(workers) {
-
+    : signals_(io_context_) , workers_(workers) {
   // Register to handle the signals that indicate when the server should exit.
   // It is safe to register for the same signal multiple times in a program,
   // provided all registration for the specified signal is made through asio.
-  // TODO: Verify if this works for Windows.
   signals_.add(SIGINT);
   signals_.add(SIGTERM);
 #if defined(SIGQUIT)
@@ -32,7 +30,6 @@ HttpServer::HttpServer(unsigned short port, std::size_t workers)
   // For more details about SO_REUSEADDR, see:
   // https://msdn.microsoft.com/en-us/library/windows/desktop/ms740621(v=vs.85).aspx
   // http://www.andy-pearce.com/blog/posts/2013/Feb/so_reuseaddr-on-windows/
-  // TODO: SO_EXCLUSIVEADDRUSE
   acceptor_.reset(new tcp::acceptor(io_context_,
                                     tcp::endpoint(tcp::v4(), port),
                                     true));  // reuse_addr

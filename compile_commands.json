@@ -6,8 +6,8 @@
 },
 {
   "directory": "/home/adam/github/webcc/build/src/webcc",
-  "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party    -std=c++11 -o CMakeFiles/webcc.dir/common.cc.o -c /home/adam/github/webcc/src/webcc/common.cc",
-  "file": "/home/adam/github/webcc/src/webcc/common.cc"
+  "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party    -std=c++11 -o CMakeFiles/webcc.dir/globals.cc.o -c /home/adam/github/webcc/src/webcc/globals.cc",
+  "file": "/home/adam/github/webcc/src/webcc/globals.cc"
 },
 {
   "directory": "/home/adam/github/webcc/build/src/webcc",
@@ -66,8 +66,18 @@
 },
 {
   "directory": "/home/adam/github/webcc/build/src/webcc",
-  "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party    -std=c++11 -o CMakeFiles/webcc.dir/rest_server.cc.o -c /home/adam/github/webcc/src/webcc/rest_server.cc",
-  "file": "/home/adam/github/webcc/src/webcc/rest_server.cc"
+  "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party    -std=c++11 -o CMakeFiles/webcc.dir/rest_client.cc.o -c /home/adam/github/webcc/src/webcc/rest_client.cc",
+  "file": "/home/adam/github/webcc/src/webcc/rest_client.cc"
+},
+{
+  "directory": "/home/adam/github/webcc/build/src/webcc",
+  "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party    -std=c++11 -o CMakeFiles/webcc.dir/rest_request_handler.cc.o -c /home/adam/github/webcc/src/webcc/rest_request_handler.cc",
+  "file": "/home/adam/github/webcc/src/webcc/rest_request_handler.cc"
+},
+{
+  "directory": "/home/adam/github/webcc/build/src/webcc",
+  "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party    -std=c++11 -o CMakeFiles/webcc.dir/rest_service_manager.cc.o -c /home/adam/github/webcc/src/webcc/rest_service_manager.cc",
+  "file": "/home/adam/github/webcc/src/webcc/rest_service_manager.cc"
 },
 {
   "directory": "/home/adam/github/webcc/build/src/webcc",
@@ -86,6 +96,16 @@
 },
 {
   "directory": "/home/adam/github/webcc/build/src/webcc",
+  "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party    -std=c++11 -o CMakeFiles/webcc.dir/soap_request_handler.cc.o -c /home/adam/github/webcc/src/webcc/soap_request_handler.cc",
+  "file": "/home/adam/github/webcc/src/webcc/soap_request_handler.cc"
+},
+{
+  "directory": "/home/adam/github/webcc/build/src/webcc",
+  "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party    -std=c++11 -o CMakeFiles/webcc.dir/soap_xml.cc.o -c /home/adam/github/webcc/src/webcc/soap_xml.cc",
+  "file": "/home/adam/github/webcc/src/webcc/soap_xml.cc"
+},
+{
+  "directory": "/home/adam/github/webcc/build/src/webcc",
   "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party    -std=c++11 -o CMakeFiles/webcc.dir/soap_message.cc.o -c /home/adam/github/webcc/src/webcc/soap_message.cc",
   "file": "/home/adam/github/webcc/src/webcc/soap_message.cc"
 },
@@ -98,16 +118,6 @@
   "directory": "/home/adam/github/webcc/build/src/webcc",
   "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party    -std=c++11 -o CMakeFiles/webcc.dir/soap_response.cc.o -c /home/adam/github/webcc/src/webcc/soap_response.cc",
   "file": "/home/adam/github/webcc/src/webcc/soap_response.cc"
-},
-{
-  "directory": "/home/adam/github/webcc/build/src/webcc",
-  "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party    -std=c++11 -o CMakeFiles/webcc.dir/soap_xml.cc.o -c /home/adam/github/webcc/src/webcc/soap_xml.cc",
-  "file": "/home/adam/github/webcc/src/webcc/soap_xml.cc"
-},
-{
-  "directory": "/home/adam/github/webcc/build/src/webcc",
-  "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -I/home/adam/github/webcc/src -I/home/adam/github/webcc/third_party    -std=c++11 -o CMakeFiles/webcc.dir/soap_server.cc.o -c /home/adam/github/webcc/src/webcc/soap_server.cc",
-  "file": "/home/adam/github/webcc/src/webcc/soap_server.cc"
 },
 {
   "directory": "/home/adam/github/webcc/build/src/webcc",

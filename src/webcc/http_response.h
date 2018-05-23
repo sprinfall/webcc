@@ -2,6 +2,7 @@
 #define WEBCC_HTTP_RESPONSE_H_
 
 #include <string>
+#include <vector>
 
 #include "boost/asio/buffer.hpp"  // for const_buffer
 

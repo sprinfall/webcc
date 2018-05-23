@@ -1,6 +1,8 @@
 #ifndef WEBCC_HTTP_RESPONSE_PARSER_H_
 #define WEBCC_HTTP_RESPONSE_PARSER_H_
 
+#include <string>
+
 #include "webcc/http_parser.h"
 
 namespace webcc {

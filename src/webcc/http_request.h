@@ -2,6 +2,7 @@
 #define WEBCC_HTTP_REQUEST_H_
 
 #include <string>
+#include <vector>
 
 #include "boost/asio/buffer.hpp"  // for const_buffer
 
@@ -14,7 +15,7 @@ class HttpRequest;
 std::ostream& operator<<(std::ostream& os, const HttpRequest& request);
 
 class HttpRequest : public HttpMessage {
-public:
+ public:
   HttpRequest() = default;
   HttpRequest(const HttpRequest&) = default;
   HttpRequest& operator=(const HttpRequest&) = default;
@@ -62,7 +63,7 @@ public:
   // Dump as string, only used by logger.
   std::string Dump() const;
 
-private:
+ private:
   friend std::ostream& operator<<(std::ostream& os, const HttpRequest& request);
 
   // HTTP method.

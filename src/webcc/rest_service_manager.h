@@ -1,7 +1,9 @@
 #ifndef WEBCC_REST_SERVICE_MANAGER_H_
 #define WEBCC_REST_SERVICE_MANAGER_H_
 
-#include <regex>
+#include <regex>  // NOLINT
+#include <string>
+#include <utility>  // for move()
 #include <vector>
 
 #include "webcc/rest_service.h"

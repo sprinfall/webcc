@@ -26,14 +26,15 @@ std::string GetNameNoPrefix(const pugi::xml_node& xnode);
 // Add a child with the given name which is prefixed by a namespace.
 // E.g., AppendChild(xnode, "soapenv", "Envelope") will append a child with
 // name "soapenv:Envelope".
-pugi::xml_node AddChild(pugi::xml_node& xnode, const std::string& ns,
-                        const std::string& name);
+pugi::xml_node AddChild(const std::string& ns, const std::string& name,
+                        pugi::xml_node* xnode);
 
-pugi::xml_node GetChild(pugi::xml_node& xnode, const std::string& ns,
+pugi::xml_node GetChild(const pugi::xml_node& xnode, const std::string& ns,
                         const std::string& name);
 
 // TODO: Remove
-pugi::xml_node GetChildNoNS(pugi::xml_node& xnode, const std::string& name);
+pugi::xml_node GetChildNoNS(const pugi::xml_node& xnode,
+                            const std::string& name);
 
 // Add an attribute with the given name which is prefixed by a namespace.
 void AddAttr(pugi::xml_node& xnode, const std::string& ns,
@@ -50,7 +51,8 @@ void AddNSAttr(pugi::xml_node& xnode, const std::string& ns_name,
 // Get namespace attribute value.
 // E.g., if the given namespace name is "soapenv", the value of
 // attribute "xmlns:soapenv" will be returned.
-std::string GetNSAttr(pugi::xml_node& xnode, const std::string& ns_name);
+std::string GetNSAttr(const pugi::xml_node& xnode,
+                      const std::string& ns_name);
 
 // An XML writer writing to a referenced string.
 // Example:
@@ -60,7 +62,7 @@ std::string GetNSAttr(pugi::xml_node& xnode, const std::string& ns_name);
 //   XmlStrRefWriter writer(&xml_string);
 //   xdoc.save(writer, "\t", pugi::format_default, pugi::encoding_utf8);
 class XmlStrRefWriter : public pugi::xml_writer {
-public:
+ public:
   explicit XmlStrRefWriter(std::string* result) : result_(result) {
     result_->clear();
   }
@@ -69,7 +71,7 @@ public:
     result_->append(static_cast<const char*>(data), size);
   }
 
-private:
+ private:
   std::string* result_;
 };
 

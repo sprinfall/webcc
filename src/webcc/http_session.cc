@@ -1,5 +1,6 @@
 #include "webcc/http_session.h"
 
+#include <utility>  // for move()
 #include <vector>
 
 #include "boost/asio/write.hpp"
@@ -12,9 +13,9 @@ namespace webcc {
 
 HttpSession::HttpSession(boost::asio::ip::tcp::socket socket,
                          HttpRequestHandler* handler)
-    : socket_(std::move(socket))
-    , request_handler_(handler)
-    , request_parser_(&request_) {
+    : socket_(std::move(socket)),
+      request_handler_(handler),
+      request_parser_(&request_) {
 }
 
 void HttpSession::Start() {

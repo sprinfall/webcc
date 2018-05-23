@@ -1,6 +1,7 @@
 #include "webcc/soap_client.h"
 
 #include <cassert>
+#include <utility>  // for move()
 
 #include "webcc/http_client.h"
 #include "webcc/http_request.h"

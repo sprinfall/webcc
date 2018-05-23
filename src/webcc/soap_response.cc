@@ -6,14 +6,12 @@
 namespace webcc {
 
 void SoapResponse::ToXmlBody(pugi::xml_node xbody) {
-  pugi::xml_node xop = soap_xml::AddChild(xbody,
-                                          service_ns_.name,
-                                          operation_ + "Response");
+  pugi::xml_node xop = soap_xml::AddChild(service_ns_.name,
+                                          operation_ + "Response", &xbody);
   soap_xml::AddNSAttr(xop, service_ns_.name, service_ns_.url);
 
-  pugi::xml_node xresult = soap_xml::AddChild(xop,
-                                              service_ns_.name,
-                                              result_name_);
+  pugi::xml_node xresult = soap_xml::AddChild(service_ns_.name, result_name_,
+                                              &xop);
   xresult.text().set(result_.c_str());
 }
 

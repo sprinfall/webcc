@@ -1,11 +1,13 @@
 #include "webcc/http_client.h"
 
-#include "boost/date_time/posix_time/posix_time.hpp"
-#include "boost/lambda/bind.hpp"
-#include "boost/lambda/lambda.hpp"
+#include <string>
+
 #include "boost/asio/connect.hpp"
 #include "boost/asio/read.hpp"
 #include "boost/asio/write.hpp"
+#include "boost/date_time/posix_time/posix_time.hpp"
+#include "boost/lambda/bind.hpp"
+#include "boost/lambda/lambda.hpp"
 
 #include "webcc/logger.h"
 #include "webcc/http_request.h"
@@ -26,10 +28,9 @@ static const int kReceiveMaxSeconds = 30;
 ////////////////////////////////////////////////////////////////////////////////
 
 HttpClient::HttpClient()
-    : socket_(io_context_)
-    , timeout_seconds_(kReceiveMaxSeconds)
-    , deadline_timer_(io_context_) {
-
+    : socket_(io_context_),
+      timeout_seconds_(kReceiveMaxSeconds),
+      deadline_timer_(io_context_) {
   deadline_timer_.expires_at(boost::posix_time::pos_infin);
 
   // Start the persistent actor that checks for deadline expiry.

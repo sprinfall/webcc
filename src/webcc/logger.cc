@@ -4,7 +4,8 @@
 
 #include <cassert>
 #include <cstdarg>
-#include <mutex>
+#include <mutex>  // NOLINT
+#include <string>
 
 #include "boost/thread.hpp"  // For thread ID.
 

@@ -2,10 +2,11 @@
 
 #include <algorithm>
 #include <sstream>
+#include <utility>  // for move()
 
 namespace webcc {
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 // Helper functions to decode URL string.
 
 // Convert a hex character digit to a decimal character value.
@@ -58,7 +59,7 @@ static bool Decode(const std::string& encoded, std::string* raw) {
   return true;
 }
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 UrlQuery::UrlQuery(const std::map<std::string, std::string>& map) {
   for (auto& pair : map) {
@@ -116,7 +117,7 @@ UrlQuery::ConstIterator UrlQuery::Find(const std::string& key) const {
                       [&key](const Parameter& p) { return p.key() == key; });
 }
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 Url::Url(const std::string& str, bool decode) {
   if (!decode || str.find('%') == std::string::npos) {
@@ -128,7 +129,7 @@ Url::Url(const std::string& str, bool decode) {
   if (Decode(str, &decoded)) {
     Init(decoded);
   } else {
-    // TODO: Exception?
+    // TODO(Adam): Exception?
     Init(str);
   }
 }

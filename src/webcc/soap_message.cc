@@ -18,17 +18,18 @@ void SoapMessage::ToXml(std::string* xml_string) {
 
   pugi::xml_document xdoc;
 
-  // TODO:
+  // TODO(Adam):
   // When save with format_default, declaration will be generated
   // automatically but without encoding.
   //   pugi::xml_node xdecl = xdoc.prepend_child(pugi::node_declaration);
   //   xdecl.append_attribute("version").set_value("1.0");
 
-  pugi::xml_node xroot = soap_xml::AddChild(xdoc, soapenv_ns_.name, "Envelope");
+  pugi::xml_node xroot = soap_xml::AddChild(soapenv_ns_.name, "Envelope",
+                                            &xdoc);
 
   soap_xml::AddNSAttr(xroot, soapenv_ns_.name, soapenv_ns_.url);
 
-  pugi::xml_node xbody = soap_xml::AddChild(xroot, soapenv_ns_.name, "Body");
+  pugi::xml_node xbody = soap_xml::AddChild(soapenv_ns_.name, "Body", &xroot);
 
   ToXmlBody(xbody);
 

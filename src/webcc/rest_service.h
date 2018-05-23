@@ -3,7 +3,7 @@
 
 // NOTE:
 // The design of RestListService and RestDetailService is very similar to
-// XxxListView and XxxDetailView in Django Rest Framework.
+// XxxListView and XxxDetailView in Python Django Rest Framework.
 // Deriving from them instead of RestService can simplify your own REST services
 // a lot. But if you find the filtered parameters cannot meet your needs, feel
 // free to derive from RestService directly.
@@ -19,7 +19,7 @@ namespace webcc {
 
 class UrlQuery;
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 // Base class for your REST service.
 class RestService {
@@ -40,7 +40,7 @@ class RestService {
 
 typedef std::shared_ptr<RestService> RestServicePtr;
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 class RestListService : public RestService {
  public:
@@ -64,7 +64,7 @@ class RestListService : public RestService {
   }
 };
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 class RestDetailService : public RestService {
  public:

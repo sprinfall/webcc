@@ -7,7 +7,8 @@ namespace webcc {
 
 // Print the resolved endpoints.
 // NOTE: Endpoint is one word, don't use "end point".
-void DumpEndpoints(boost::asio::ip::tcp::resolver::results_type& endpoints);
+void DumpEndpoints(
+    const boost::asio::ip::tcp::resolver::results_type& endpoints);
 
 }  // namespace webcc
 

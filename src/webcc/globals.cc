@@ -1,5 +1,7 @@
 #include "webcc/globals.h"
 
+#include <utility>  // for move()
+
 namespace webcc {
 
 // NOTE:

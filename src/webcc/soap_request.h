@@ -1,6 +1,7 @@
 #ifndef WEBCC_SOAP_REQUEST_H_
 #define WEBCC_SOAP_REQUEST_H_
 
+#include <string>
 #include <vector>
 
 #include "webcc/soap_message.h"

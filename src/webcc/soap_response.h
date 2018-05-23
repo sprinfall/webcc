@@ -1,6 +1,9 @@
 #ifndef WEBCC_SOAP_RESPONSE_H_
 #define WEBCC_SOAP_RESPONSE_H_
 
+#include <string>
+#include <utility>  // for move()
+
 #include "webcc/soap_message.h"
 
 namespace webcc {
