@@ -81,8 +81,6 @@ const char CRLF[] = { '\r', '\n' };
 
 }  // misc_strings
 
-////////////////////////////////////////////////////////////////////////////////
-
 // ATTENTION: The buffers don't hold the memory!
 std::vector<boost::asio::const_buffer> HttpResponse::ToBuffers() const {
   std::vector<boost::asio::const_buffer> buffers;

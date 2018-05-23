@@ -11,16 +11,12 @@
 
 namespace webcc {
 
-////////////////////////////////////////////////////////////////////////////////
-
 static std::string GetThreadId() {
   boost::thread::id thread_id = boost::this_thread::get_id();
   std::stringstream ss;
   ss << thread_id;
   return ss.str();
 }
-
-////////////////////////////////////////////////////////////////////////////////
 
 static const char* kLevelNames[] = {
   "VERB", "INFO", "WARN", "ERRO", "FATA"
@@ -34,8 +30,6 @@ struct Logger {
 
 // Global logger.
 static Logger g_logger{ VERB };
-
-////////////////////////////////////////////////////////////////////////////////
 
 void LogInit(int level, int modes) {
   g_logger.modes = modes;

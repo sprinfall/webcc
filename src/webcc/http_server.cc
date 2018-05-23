@@ -38,7 +38,7 @@ HttpServer::HttpServer(unsigned short port, std::size_t workers)
 }
 
 void HttpServer::Run() {
-  assert(GetRequestHandler() != NULL);
+  assert(GetRequestHandler() != nullptr);
 
   LOG_INFO("Server is going to run...");
 

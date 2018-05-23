@@ -9,7 +9,7 @@
 #include "webcc/http_response.h"
 #include "webcc/rest_client.h"
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 // Write a JSON object to string.
 std::string JsonToString(const Json::Value& json) {
@@ -17,7 +17,7 @@ std::string JsonToString(const Json::Value& json) {
   return Json::writeString(builder, json);
 }
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 class BookListClient {
 public:
@@ -62,7 +62,7 @@ private:
   webcc::RestClient rest_client_;
 };
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 class BookDetailClient {
 public:
@@ -118,7 +118,7 @@ private:
   webcc::RestClient rest_client_;
 };
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 void Help(const char* argv0) {
   std::cout << "Usage: " << argv0 << " <host> <port>" << std::endl;

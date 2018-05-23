@@ -13,8 +13,8 @@ namespace soap_xml {
 // Split the node name into namespace prefix and real name.
 // E.g., if the node name is "soapenv:Envelope", it will be splitted to
 // "soapenv" and "Envelope".
-void SplitName(const pugi::xml_node& xnode, std::string* prefix = NULL,
-               std::string* name = NULL);
+void SplitName(const pugi::xml_node& xnode, std::string* prefix = nullptr,
+               std::string* name = nullptr);
 
 // Get the namespace prefix from node name.
 // E.g., if the node name is "soapenv:Envelope", NS prefix will be "soapenv".
@@ -26,18 +26,17 @@ std::string GetNameNoPrefix(const pugi::xml_node& xnode);
 // Add a child with the given name which is prefixed by a namespace.
 // E.g., AppendChild(xnode, "soapenv", "Envelope") will append a child with
 // name "soapenv:Envelope".
-pugi::xml_node AddChild(const std::string& ns, const std::string& name,
-                        pugi::xml_node* xnode);
+pugi::xml_node AddChild(pugi::xml_node xnode,
+                        const std::string& ns, const std::string& name);
 
 pugi::xml_node GetChild(const pugi::xml_node& xnode, const std::string& ns,
                         const std::string& name);
 
-// TODO: Remove
 pugi::xml_node GetChildNoNS(const pugi::xml_node& xnode,
                             const std::string& name);
 
 // Add an attribute with the given name which is prefixed by a namespace.
-void AddAttr(pugi::xml_node& xnode, const std::string& ns,
+void AddAttr(pugi::xml_node xnode, const std::string& ns,
              const std::string& name, const std::string& value);
 
 // Append "xmlns" attribute.
@@ -45,7 +44,7 @@ void AddAttr(pugi::xml_node& xnode, const std::string& ns,
 //   { "soapenv", "http://schemas.xmlsoap.org/soap/envelope/" }
 // the attribute added will be
 //   xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-void AddNSAttr(pugi::xml_node& xnode, const std::string& ns_name,
+void AddNSAttr(pugi::xml_node xnode, const std::string& ns_name,
                const std::string& ns_url);
 
 // Get namespace attribute value.
@@ -67,7 +66,7 @@ class XmlStrRefWriter : public pugi::xml_writer {
     result_->clear();
   }
 
-  void write(const void* data, size_t size) override {
+  void write(const void* data, std::size_t size) override {
     result_->append(static_cast<const char*>(data), size);
   }
 

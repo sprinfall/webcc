@@ -2,10 +2,11 @@
 
 #include <list>
 #include <iostream>
-#include "boost/lexical_cast.hpp"
-#include "json/json.h"  // jsoncpp
 
-////////////////////////////////////////////////////////////////////////////////
+#include "boost/lexical_cast.hpp"
+#include "json/json.h"
+
+// -----------------------------------------------------------------------------
 
 // In-memory test data.
 // There should be some database in a real product.
@@ -97,7 +98,7 @@ private:
 
 static BookStore g_book_store;
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 static bool BookFromJson(const std::string& json, Book* book) {
   Json::Value root;
@@ -142,7 +143,7 @@ bool BookListService::Post(const std::string& request_content,
   return false;
 }
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 bool BookDetailService::Get(const std::vector<std::string>& url_sub_matches,
                             const webcc::UrlQuery& query,
@@ -182,7 +183,8 @@ bool BookDetailService::Put(const std::vector<std::string>& url_sub_matches,
   return false;
 }
 
-bool BookDetailService::Delete(const std::vector<std::string>& url_sub_matches) {
+bool BookDetailService::Delete(
+    const std::vector<std::string>& url_sub_matches) {
   if (url_sub_matches.size() != 1) {
     return false;
   }

@@ -3,7 +3,7 @@
 #include "calc_client.h"
 
 int main() {
-  LOG_INIT(webcc::INFO, 0);
+  LOG_INIT(webcc::VERB, 0);
 
   CalcClient calc;
 

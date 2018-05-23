@@ -10,17 +10,17 @@ void SplitName(const pugi::xml_node& xnode, std::string* prefix,
   size_t pos = full_name.find(':');
 
   if (pos != std::string::npos) {
-    if (prefix != NULL) {
+    if (prefix != nullptr) {
       *prefix = full_name.substr(0, pos);
     }
-    if (name != NULL) {
+    if (name != nullptr) {
       *name = full_name.substr(pos + 1);
     }
   } else {
-    if (prefix != NULL) {
+    if (prefix != nullptr) {
       *prefix = "";
     }
-    if (name != NULL) {
+    if (name != nullptr) {
       *name = full_name;
     }
   }
@@ -38,9 +38,9 @@ std::string GetNameNoPrefix(const pugi::xml_node& xnode) {
   return name;
 }
 
-pugi::xml_node AddChild(const std::string& ns, const std::string& name,
-                        pugi::xml_node* xnode) {
-  return xnode->append_child((ns + ":" + name).c_str());
+pugi::xml_node AddChild(pugi::xml_node xnode,
+                        const std::string& ns, const std::string& name) {
+  return xnode.append_child((ns + ":" + name).c_str());
 }
 
 pugi::xml_node GetChild(const pugi::xml_node& xnode, const std::string& ns,
@@ -70,13 +70,13 @@ pugi::xml_node GetChildNoNS(const pugi::xml_node& xnode,
   return pugi::xml_node();
 }
 
-void AddAttr(pugi::xml_node& xnode, const std::string& ns,
+void AddAttr(pugi::xml_node xnode, const std::string& ns,
              const std::string& name, const std::string& value) {
   std::string ns_name = ns + ":" + name;
   xnode.append_attribute(ns_name.c_str()) = value.c_str();
 }
 
-void AddNSAttr(pugi::xml_node& xnode, const std::string& ns_name,
+void AddNSAttr(pugi::xml_node xnode, const std::string& ns_name,
                const std::string& ns_url) {
   AddAttr(xnode, "xmlns", ns_name, ns_url);
 }

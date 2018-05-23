@@ -4,6 +4,8 @@
 
 namespace webcc {
 
+// -----------------------------------------------------------------------------
+
 bool RestListService::Handle(const std::string& http_method,
                              const std::vector<std::string>& url_sub_matches,
                              const UrlQuery& query,
@@ -22,7 +24,7 @@ bool RestListService::Handle(const std::string& http_method,
   return false;
 }
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 bool RestDetailService::Handle(const std::string& http_method,
                                const std::vector<std::string>& url_sub_matches,

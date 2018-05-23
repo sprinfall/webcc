@@ -3,7 +3,7 @@
 
 #include "webcc/rest_service.h"
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 // BookListService handles the HTTP GET and returns the book list based on
 // query parameters specified in the URL.
@@ -25,7 +25,7 @@ class BookListService : public webcc::RestListService {
             std::string* response_content) final;
 };
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 // The URL is like '/books/{BookID}', and the 'url_sub_matches' parameter
 // contains the matched book ID.

@@ -24,11 +24,11 @@ const std::string& SoapRequest::GetParameter(const std::string& key) const {
 }
 
 void SoapRequest::ToXmlBody(pugi::xml_node xbody) {
-  pugi::xml_node xop = soap_xml::AddChild(service_ns_.name, operation_, &xbody);
+  pugi::xml_node xop = soap_xml::AddChild(xbody, service_ns_.name, operation_);
   soap_xml::AddNSAttr(xop, service_ns_.name, service_ns_.url);
 
   for (Parameter& p : parameters_) {
-    pugi::xml_node xparam = soap_xml::AddChild(service_ns_.name, p.key(), &xop);
+    pugi::xml_node xparam = soap_xml::AddChild(xop, service_ns_.name, p.key());
     xparam.text().set(p.value().c_str());
   }
 }

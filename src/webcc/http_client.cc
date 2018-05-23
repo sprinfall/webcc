@@ -19,13 +19,9 @@
 
 namespace webcc {
 
-////////////////////////////////////////////////////////////////////////////////
-
 static const int kConnectMaxSeconds = 10;
 static const int kSendMaxSeconds = 10;
 static const int kReceiveMaxSeconds = 30;
-
-////////////////////////////////////////////////////////////////////////////////
 
 HttpClient::HttpClient()
     : socket_(io_context_),
@@ -38,7 +34,7 @@ HttpClient::HttpClient()
 }
 
 Error HttpClient::Request(const HttpRequest& request, HttpResponse* response) {
-  assert(response != NULL);
+  assert(response != nullptr);
 
   Error error = kNoError;
 

@@ -4,6 +4,8 @@
 
 namespace webcc {
 
+// -----------------------------------------------------------------------------
+
 // NOTE:
 // Field names are case-insensitive.
 // See: https://stackoverflow.com/a/5259004
@@ -27,7 +29,7 @@ const std::string kHttpPatch = "PATCH";
 const std::string kHttpPut = "PUT";
 const std::string kHttpDelete = "DELETE";
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 const char* GetErrorMessage(Error error) {
   switch (error) {
@@ -63,7 +65,7 @@ const char* GetErrorMessage(Error error) {
   }
 }
 
-////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 Parameter::Parameter(const std::string& key, const char* value)
     : key_(key), value_(value) {
