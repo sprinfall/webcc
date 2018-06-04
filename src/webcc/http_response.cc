@@ -1,25 +1,6 @@
 #include "webcc/http_response.h"
 
-#include <iostream>
-#include <sstream>
-
 namespace webcc {
-
-std::ostream& operator<<(std::ostream& os, const HttpResponse& response) {
-  os << response.start_line();
-
-  for (const HttpHeader& h : response.headers_) {
-    os << h.name << ": " << h.value << std::endl;
-  }
-
-  os << std::endl;
-
-  if (!response.content().empty()) {
-    os << response.content() << std::endl;
-  }
-
-  return os;
-}
 
 namespace status_strings {
 
@@ -113,12 +94,6 @@ HttpResponse HttpResponse::Fault(HttpStatus::Enum status) {
   response.set_status(status);
 
   return response;
-}
-
-std::string HttpResponse::Dump() const {
-  std::stringstream ss;
-  ss << *this;
-  return ss.str();
 }
 
 }  // namespace webcc

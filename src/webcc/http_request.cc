@@ -1,26 +1,6 @@
 #include "webcc/http_request.h"
 
-#include <sstream>
-
-#include "boost/algorithm/string.hpp"
-
 namespace webcc {
-
-std::ostream& operator<<(std::ostream& os, const HttpRequest& request) {
-  os << request.start_line();
-
-  for (const HttpHeader& h : request.headers_) {
-    os << h.name << ": " << h.value << std::endl;
-  }
-
-  os << std::endl;
-
-  if (!request.content().empty()) {
-    os << request.content() << std::endl;
-  }
-
-  return os;
-}
 
 void HttpRequest::SetHost(const std::string& host, const std::string& port) {
   host_ = host;
@@ -71,12 +51,6 @@ std::vector<boost::asio::const_buffer> HttpRequest::ToBuffers() const {
   }
 
   return buffers;
-}
-
-std::string HttpRequest::Dump() const {
-  std::stringstream ss;
-  ss << *this;
-  return ss.str();
 }
 
 }  // namespace webcc

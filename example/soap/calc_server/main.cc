@@ -1,9 +1,9 @@
 #include <iostream>
 
 #include "webcc/logger.h"
-#include "webcc/rest_server.h"
+#include "webcc/soap_server.h"
 
-#include "book_services.h"
+#include "calc_service.h"
 
 static void Help(const char* argv0) {
   std::cout << "Usage: " << argv0 << " <port>" << std::endl;
@@ -17,18 +17,16 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  LOG_INIT(webcc::VERB, 0);
+  LOG_INIT(webcc::INFO, 0);
 
   unsigned short port = std::atoi(argv[1]);
 
   std::size_t workers = 2;
 
   try {
-    webcc::RestServer server(port, workers);
+    webcc::SoapServer server(port, workers);
 
-    server.Bind(std::make_shared<BookListService>(), "/books", false);
-
-    server.Bind(std::make_shared<BookDetailService>(), "/book/(\\d+)", true);
+    server.Bind(std::make_shared<CalcService>(), "/calculator");
 
     server.Run();
 

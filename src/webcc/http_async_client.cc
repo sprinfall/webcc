@@ -1,41 +1,42 @@
 #include "webcc/http_async_client.h"
 
-#if 0
-#include "boost/asio.hpp"
-#else
 #include "boost/asio/connect.hpp"
 #include "boost/asio/read.hpp"
 #include "boost/asio/write.hpp"
-#endif
 
-#include "webcc/http_response_parser.h"
-#include "webcc/http_request.h"
-#include "webcc/http_response.h"
-
-using boost::asio::ip::tcp;
+#include "webcc/logger.h"
 
 namespace webcc {
 
 HttpAsyncClient::HttpAsyncClient(boost::asio::io_context& io_context)
-    : socket_(io_context) {
-
+    : socket_(io_context),
+      timeout_seconds_(kMaxReceiveSeconds),
+      deadline_timer_(io_context) {
   resolver_.reset(new tcp::resolver(io_context));
-
   response_.reset(new HttpResponse());
-  parser_.reset(new HttpResponseParser(response_.get()));
+  response_parser_.reset(new HttpResponseParser(response_.get()));
+
+  deadline_timer_.expires_at(boost::posix_time::pos_infin);
+
+  // Start the persistent actor that checks for deadline expiry.
+  CheckDeadline();
 }
 
-Error HttpAsyncClient::SendRequest(std::shared_ptr<HttpRequest> request,
-                                   HttpResponseHandler response_handler) {
+Error HttpAsyncClient::Request(std::shared_ptr<HttpRequest> request,
+                               HttpResponseHandler response_handler) {
+  assert(request);
+  assert(response_handler);
+
   request_ = request;
+  response_handler_ = response_handler;
 
   std::string port = request->port();
   if (port.empty()) {
     port = "80";
   }
 
-  auto handler = std::bind(&HttpAsyncClient::HandleResolve,
-                           this,
+  auto handler = std::bind(&HttpAsyncClient::ResolveHandler,
+                           shared_from_this(),
                            std::placeholders::_1,
                            std::placeholders::_2);
 
@@ -44,110 +45,113 @@ Error HttpAsyncClient::SendRequest(std::shared_ptr<HttpRequest> request,
   return kNoError;
 }
 
-void HttpAsyncClient::HandleResolve(boost::system::error_code ec,
-                                    tcp::resolver::results_type results) {
+void HttpAsyncClient::ResolveHandler(boost::system::error_code ec,
+                                     tcp::resolver::results_type results) {
   if (ec) {
-    std::cerr << "Resolve: " << ec.message() << std::endl;
-    //  return kHostResolveError;
+    LOG_ERRO("Can't resolve host (%s): %s, %s", ec.message().c_str(),
+             request_->host().c_str(), request_->port().c_str());
+    response_handler_(response_, kHostResolveError);
   } else {
     endpoints_ = results;
-    DoConnect(endpoints_.begin());
+    AsyncConnect(endpoints_.begin());
   }
 }
 
-void HttpAsyncClient::DoConnect(tcp::resolver::results_type::iterator endpoint_it) {
+void HttpAsyncClient::AsyncConnect(tcp::resolver::results_type::iterator endpoint_it) {
   if (endpoint_it != endpoints_.end()) {
+    deadline_timer_.expires_from_now(
+        boost::posix_time::seconds(kMaxConnectSeconds));
+
     socket_.async_connect(endpoint_it->endpoint(),
-                          std::bind(&HttpAsyncClient::HandleConnect,
-                          this,
-                          std::placeholders::_1,
-                          endpoint_it));
+                          std::bind(&HttpAsyncClient::ConnectHandler,
+                                    shared_from_this(),
+                                    std::placeholders::_1,
+                                    endpoint_it));
   }
 }
 
-void HttpAsyncClient::HandleConnect(boost::system::error_code ec,
-                                    tcp::resolver::results_type::iterator endpoint_it) {
+void HttpAsyncClient::ConnectHandler(
+    boost::system::error_code ec,
+    tcp::resolver::results_type::iterator endpoint_it) {
   if (ec) {
-    // Will be here if the end point is v6.
-    std::cout << "Connect error: " << ec.message() << std::endl;
-    //  return kEndpointConnectError;
-
+    // Will be here if the endpoint is IPv6.
+    response_handler_(response_, kEndpointConnectError);
     socket_.close();
-
     // Try the next available endpoint.
-    DoConnect(++endpoint_it);
+    AsyncConnect(++endpoint_it);
   } else {
-    DoWrite();
+    AsyncWrite();
   }
 }
 
-// Send HTTP request.
-void HttpAsyncClient::DoWrite() {
+void HttpAsyncClient::AsyncWrite() {
+  deadline_timer_.expires_from_now(boost::posix_time::seconds(kMaxSendSeconds));
+
   boost::asio::async_write(socket_,
                            request_->ToBuffers(),
-                           std::bind(&HttpAsyncClient::HandleWrite,
-                           this,
-                           std::placeholders::_1));
+                           std::bind(&HttpAsyncClient::WriteHandler,
+                                     shared_from_this(),
+                                     std::placeholders::_1));
 }
 
-void HttpAsyncClient::HandleWrite(boost::system::error_code ec) {
+void HttpAsyncClient::WriteHandler(boost::system::error_code ec) {
   if (ec) {
-    //return kSocketWriteError;
-    return;
+    response_handler_(response_, kSocketWriteError);
+  } else {
+    AsyncRead();
   }
-
-  DoRead();
 }
 
-void HttpAsyncClient::DoRead() {
+void HttpAsyncClient::AsyncRead() {
+  deadline_timer_.expires_from_now(
+      boost::posix_time::seconds(timeout_seconds_));
+
   socket_.async_read_some(boost::asio::buffer(buffer_),
-                          std::bind(&HttpAsyncClient::HandleRead,
-                          this,
-                          std::placeholders::_1,
-                          std::placeholders::_2));
+                          std::bind(&HttpAsyncClient::ReadHandler,
+                                    shared_from_this(),
+                                    std::placeholders::_1,
+                                    std::placeholders::_2));
 }
 
-void HttpAsyncClient::HandleRead(boost::system::error_code ec,
-                                 std::size_t length) {
+void HttpAsyncClient::ReadHandler(boost::system::error_code ec,
+                                  std::size_t length) {
   if (ec || length == 0) {
-    //return kSocketReadError;
+    response_handler_(response_, kSocketReadError);
     return;
   }
 
   // Parse the response piece just read.
-  // If the content has been fully received, next time flag "finished_"
-  // will be set.
-  Error error = parser_->Parse(buffer_.data(), length);
+  // If the content has been fully received, |finished()| will be true.
+  Error error = response_parser_->Parse(buffer_.data(), length);
 
   if (error != kNoError) {
-    //return error;
-  }
-
-  if (parser_->finished()) {
+    response_handler_(response_, error);
     return;
   }
 
-  // Read and parse HTTP response.
+  if (response_parser_->finished()) {
+    response_handler_(response_, error);
+    return;
+  }
 
-  // NOTE:
-  // We must stop trying to read once all content has been received,
-  // because some servers will block extra call to read_some().
-  //while (!parser_.finished()) {
-  //  size_t length = socket_.read_some(boost::asio::buffer(buffer_), ec);
+  AsyncRead();
+}
 
-    //if (length == 0 || ec) {
-    //  return kSocketReadError;
-    //}
+void HttpAsyncClient::CheckDeadline() {
+  if (deadline_timer_.expires_at() <=
+      boost::asio::deadline_timer::traits_type::now()) {
+    // The deadline has passed.
+    // The socket is closed so that any outstanding asynchronous operations
+    // are canceled.
+    boost::system::error_code ignored_ec;
+    socket_.close(ignored_ec);
 
-    // Parse the response piece just read.
-    // If the content has been fully received, next time flag "finished_"
-    // will be set.
-    //Error error = parser_.Parse(buffer_.data(), length);
+    deadline_timer_.expires_at(boost::posix_time::pos_infin);
+  }
 
-    //if (error != kNoError) {
-    //  return error;
-    //}
-  //}
+  // Put the actor back to sleep.
+  deadline_timer_.async_wait(std::bind(&HttpAsyncClient::CheckDeadline,
+                                       shared_from_this()));
 }
 
 }  // namespace webcc

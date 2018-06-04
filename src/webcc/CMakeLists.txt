@@ -4,6 +4,8 @@ add_definitions(-DBOOST_ASIO_NO_DEPRECATED)
 set(SRCS
 	globals.cc
 	globals.h
+	http_async_client.cc
+	http_async_client.h
 	http_client.cc
 	http_client.h
 	http_message.cc
@@ -27,6 +29,8 @@ set(SRCS
 	logger.cc
 	logger.h
 	queue.h
+	rest_async_client.cc
+	rest_async_client.h
 	rest_client.cc
 	rest_client.h
 	rest_request_handler.cc

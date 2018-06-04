@@ -21,6 +21,8 @@ class HttpRequestHandler {
   HttpRequestHandler() = default;
   virtual ~HttpRequestHandler() = default;
 
+  DELETE_COPY_AND_ASSIGN(HttpRequestHandler);
+
   // Put the session into the queue.
   void Enqueue(HttpSessionPtr session);
 
@@ -38,8 +40,6 @@ class HttpRequestHandler {
 
   Queue<HttpSessionPtr> queue_;
   boost::thread_group workers_;
-
-  DISALLOW_COPY_AND_ASSIGN(HttpRequestHandler);
 };
 
 }  // namespace webcc

@@ -16,6 +16,8 @@ class HttpParser {
 
   virtual ~HttpParser() = default;
 
+  DELETE_COPY_AND_ASSIGN(HttpParser);
+
   bool finished() const {
     return finished_;
   }
@@ -50,8 +52,6 @@ class HttpParser {
   bool content_length_parsed_;
   bool header_parsed_;
   bool finished_;
-
-  DISALLOW_COPY_AND_ASSIGN(HttpParser);
 };
 
 }  // namespace webcc

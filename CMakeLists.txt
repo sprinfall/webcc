@@ -4,8 +4,7 @@ project(webcc)
 option(WEBCC_ENABLE_LOG "Enable console logger?" ON)
 option(WEBCC_ENABLE_SOAP "Enable SOAP support (need pugixml)?" ON)
 option(WEBCC_BUILD_UNITTEST "Build unit test?" ON)
-option(WEBCC_BUILD_REST_EXAMPLE "Build REST example?" ON)
-option(WEBCC_BUILD_SOAP_EXAMPLE "Build SOAP example?" ON)
+option(WEBCC_BUILD_EXAMPLE "Build examples?" ON)
 
 if(WEBCC_ENABLE_LOG)
     add_definitions(-DWEBCC_ENABLE_LOG)
@@ -45,7 +44,12 @@ if(WIN32)
 	message(STATUS "_WIN32_WINNT=${ver}")
     # Asio needs this!
 	add_definitions(-D_WIN32_WINNT=${ver})
-endif(WIN32)
+endif()
+
+if(WIN32)
+	# Disable warning on boost string algorithms.
+	add_definitions(-D_SCL_SECURE_NO_WARNINGS)
+endif()
 
 # Group sources by dir.
 # Usage: source_group_by_dir(SRCS)
@@ -104,18 +108,22 @@ endif()
 
 add_subdirectory(src/webcc)
 
-if(WEBCC_BUILD_REST_EXAMPLE)
+if(WEBCC_BUILD_EXAMPLE)
+	add_subdirectory(${PROJECT_SOURCE_DIR}/example/http/client)
+	add_subdirectory(${PROJECT_SOURCE_DIR}/example/http/async_client)
+
 	# REST example needs jsoncpp to parse and create JSON.
 	add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/jsoncpp)
 	include_directories(${PROJECT_SOURCE_DIR}/third_party/jsoncpp)
 
-	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_book_server)
-	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_book_client)
-endif()
+	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest/book_server)
+	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest/book_client)
+	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest/book_async_client)
 
-if(WEBCC_BUILD_SOAP_EXAMPLE)
-	add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_calc_server)
-	add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_calc_client)
+	if(WEBCC_ENABLE_SOAP)
+		add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap/calc_server)
+		add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap/calc_client)
+	endif()
 endif()
 
 if(WEBCC_BUILD_UNITTEST)

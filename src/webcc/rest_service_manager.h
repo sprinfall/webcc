@@ -14,6 +14,8 @@ class RestServiceManager {
  public:
   RestServiceManager() = default;
 
+  DELETE_COPY_AND_ASSIGN(RestServiceManager);
+
   // Add a service and bind it with the given URL.
   // The |url| should start with "/" and will be treated as a regular expression
   // if |regex| is true.
@@ -59,8 +61,6 @@ class RestServiceManager {
   };
 
   std::vector<ServiceItem> service_items_;
-
-  DISALLOW_COPY_AND_ASSIGN(RestServiceManager);
 };
 
 }  // namespace webcc

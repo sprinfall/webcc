@@ -117,7 +117,8 @@ void HttpParser::ParseContentLength(const std::string& line) {
 }
 
 void HttpParser::Finish() {
-  message_->SetContent(content_);
+  // Move temp content to message.
+  message_->SetContent(std::move(content_));
   finished_ = true;
 }
 

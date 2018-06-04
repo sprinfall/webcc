@@ -1,6 +1,7 @@
 #ifndef WEBCC_HTTP_RESPONSE_H_
 #define WEBCC_HTTP_RESPONSE_H_
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -9,10 +10,6 @@
 #include "webcc/http_message.h"
 
 namespace webcc {
-
-class HttpResponse;
-
-std::ostream& operator<<(std::ostream& os, const HttpResponse& response);
 
 class HttpResponse : public HttpMessage {
  public:
@@ -32,18 +29,14 @@ class HttpResponse : public HttpMessage {
   // and not be changed until the write operation has completed.
   std::vector<boost::asio::const_buffer> ToBuffers() const;
 
-  // Dump as string, only used by logger.
-  std::string Dump() const;
-
   // Get a fault response when HTTP status is not OK.
   static HttpResponse Fault(HttpStatus::Enum status);
 
  private:
-  friend std::ostream& operator<<(std::ostream& os,
-                                  const HttpResponse& response);
-
   int status_ = HttpStatus::kOK;
 };
+
+typedef std::shared_ptr<HttpResponse> HttpResponsePtr;
 
 }  // namespace webcc
 

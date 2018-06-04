@@ -25,6 +25,8 @@ class HttpServer {
 
   virtual ~HttpServer() = default;
 
+  DELETE_COPY_AND_ASSIGN(HttpServer);
+
   // Run the server's io_service loop.
   void Run();
 
@@ -49,8 +51,6 @@ class HttpServer {
 
   // Acceptor used to listen for incoming connections.
   boost::scoped_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
-
-  DISALLOW_COPY_AND_ASSIGN(HttpServer);
 };
 
 }  // namespace webcc

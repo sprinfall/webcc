@@ -8,8 +8,7 @@ namespace webcc {
 
 bool RestClient::Request(const std::string& method,
                          const std::string& url,
-                         const std::string& content,
-                         HttpResponse* response) {
+                         const std::string& content) {
   HttpRequest request;
 
   request.set_method(method);
@@ -23,9 +22,17 @@ bool RestClient::Request(const std::string& method,
   request.Build();
 
   HttpClient http_client;
-  Error error = http_client.Request(request, response);
+  http_client.set_timeout_seconds(timeout_seconds_);
 
-  return error == kNoError;
+  error_ = kNoError;
+
+  if (!http_client.Request(request)) {
+    error_ = http_client.error();
+    return false;
+  }
+
+  response_ = http_client.response();
+  return true;
 }
 
 }  // namespace webcc

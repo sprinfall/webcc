@@ -18,13 +18,12 @@ class HttpRequestHandler;
 
 class HttpSession : public std::enable_shared_from_this<HttpSession> {
  public:
-  HttpSession(const HttpSession&) = delete;
-  HttpSession& operator=(const HttpSession&) = delete;
-
   HttpSession(boost::asio::ip::tcp::socket socket,
               HttpRequestHandler* handler);
 
   ~HttpSession() = default;
+
+  DELETE_COPY_AND_ASSIGN(HttpSession);
 
   const HttpRequest& request() const {
     return request_;

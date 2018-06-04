@@ -74,7 +74,7 @@ bool CalcClient::Calc(const std::string& operation,
   if (error != webcc::kNoError) {
     LOG_ERRO("Operation '%s' failed: %s",
              operation.c_str(),
-             webcc::GetErrorMessage(error));
+             webcc::DescribeError(error));
     return false;
   }
 

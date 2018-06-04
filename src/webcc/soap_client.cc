@@ -54,16 +54,14 @@ Error SoapClient::Call(const std::string& operation,
     http_client.set_timeout_seconds(timeout_seconds_);
   }
 
-  Error error = http_client.Request(http_request, &http_response);
-
-  if (error != kNoError) {
-    return error;
+  if (!http_client.Request(http_request)) {
+    return http_client.error();
   }
 
   SoapResponse soap_response;
   soap_response.set_result_name(result_name_);
 
-  if (!soap_response.FromXml(http_response.content())) {
+  if (!soap_response.FromXml(http_client.response()->content())) {
     return kXmlError;
   }
 

@@ -31,7 +31,7 @@ const std::string kHttpDelete = "DELETE";
 
 // -----------------------------------------------------------------------------
 
-const char* GetErrorMessage(Error error) {
+const char* DescribeError(Error error) {
   switch (error) {
     case kHostResolveError:
       return "Cannot resolve the host.";

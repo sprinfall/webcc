@@ -12,6 +12,7 @@ namespace webcc {
 
 class RestRequestHandler : public HttpRequestHandler {
  public:
+  RestRequestHandler() = default;
   ~RestRequestHandler() override = default;
 
   bool Bind(RestServicePtr service, const std::string& url, bool is_regex);

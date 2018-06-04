@@ -53,6 +53,14 @@ class HttpMessage {
     SetContentLength(content_.size());
   }
 
+  // Dump to output stream.
+  void Dump(std::ostream& os, std::size_t indent = 0,
+            const std::string& prefix = "") const;
+
+  // Dump to string, only used by logger.
+  std::string Dump(std::size_t indent = 0,
+                   const std::string& prefix = "") const;
+
  protected:
   void SetContentLength(std::size_t content_length) {
     content_length_ = content_length;
@@ -68,6 +76,8 @@ class HttpMessage {
 
   std::string content_;
 };
+
+std::ostream& operator<<(std::ostream& os, const HttpMessage& message);
 
 }  // namespace webcc
 

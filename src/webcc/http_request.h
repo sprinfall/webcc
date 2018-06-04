@@ -1,6 +1,7 @@
 #ifndef WEBCC_HTTP_REQUEST_H_
 #define WEBCC_HTTP_REQUEST_H_
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -9,10 +10,6 @@
 #include "webcc/http_message.h"
 
 namespace webcc {
-
-class HttpRequest;
-
-std::ostream& operator<<(std::ostream& os, const HttpRequest& request);
 
 class HttpRequest : public HttpMessage {
  public:
@@ -60,12 +57,7 @@ class HttpRequest : public HttpMessage {
   // and not be changed until the write operation has completed.
   std::vector<boost::asio::const_buffer> ToBuffers() const;
 
-  // Dump as string, only used by logger.
-  std::string Dump() const;
-
  private:
-  friend std::ostream& operator<<(std::ostream& os, const HttpRequest& request);
-
   // HTTP method.
   std::string method_;
 
@@ -77,6 +69,8 @@ class HttpRequest : public HttpMessage {
   std::string host_;
   std::string port_;
 };
+
+typedef std::shared_ptr<HttpRequest> HttpRequestPtr;
 
 }  // namespace webcc
 

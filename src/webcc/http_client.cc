@@ -19,43 +19,33 @@
 
 namespace webcc {
 
-static const int kConnectMaxSeconds = 10;
-static const int kSendMaxSeconds = 10;
-static const int kReceiveMaxSeconds = 30;
-
 HttpClient::HttpClient()
     : socket_(io_context_),
-      timeout_seconds_(kReceiveMaxSeconds),
+      timeout_seconds_(kMaxReceiveSeconds),
       deadline_timer_(io_context_) {
   deadline_timer_.expires_at(boost::posix_time::pos_infin);
+
+  response_.reset(new HttpResponse());
+  response_parser_.reset(new HttpResponseParser(response_.get()));
 
   // Start the persistent actor that checks for deadline expiry.
   CheckDeadline();
 }
 
-Error HttpClient::Request(const HttpRequest& request, HttpResponse* response) {
-  assert(response != nullptr);
-
-  Error error = kNoError;
-
-  if ((error = Connect(request)) != kNoError) {
-    return error;
+bool HttpClient::Request(const HttpRequest& request) {
+  if ((error_ = Connect(request)) != kNoError) {
+    return false;
   }
 
-  // Send HTTP request.
-
-  if ((error = SendReqeust(request)) != kNoError) {
-    return error;
+  if ((error_ = SendReqeust(request)) != kNoError) {
+    return false;
   }
 
-  // Read and parse HTTP response.
+  if ((error_ = ReadResponse()) != kNoError) {
+    return false;
+  }
 
-  // NOTE: Don't use make_unique because it's since C++14.
-  parser_.reset(new HttpResponseParser(response));
-
-  error = ReadResponse(response);
-
-  return error;
+  return true;
 }
 
 Error HttpClient::Connect(const HttpRequest& request) {
@@ -72,15 +62,13 @@ Error HttpClient::Connect(const HttpRequest& request) {
   auto endpoints = resolver.resolve(tcp::v4(), request.host(), port, ec);
 
   if (ec) {
-    LOG_ERRO("cannot resolve host: %s, %s",
-             request.host().c_str(),
-             port.c_str());
-
+    LOG_ERRO("Can't resolve host (%s): %s, %s", ec.message().c_str(),
+             request.host().c_str(), port.c_str());
     return kHostResolveError;
   }
 
   deadline_timer_.expires_from_now(
-      boost::posix_time::seconds(kConnectMaxSeconds));
+      boost::posix_time::seconds(kMaxConnectSeconds));
 
   ec = boost::asio::error::would_block;
 
@@ -110,9 +98,9 @@ Error HttpClient::Connect(const HttpRequest& request) {
 }
 
 Error HttpClient::SendReqeust(const HttpRequest& request) {
-  LOG_VERB("http request:\n{\n%s}", request.Dump().c_str());
+  LOG_VERB("HTTP request:\n%s", request.Dump(4, "> ").c_str());
 
-  deadline_timer_.expires_from_now(boost::posix_time::seconds(kSendMaxSeconds));
+  deadline_timer_.expires_from_now(boost::posix_time::seconds(kMaxSendSeconds));
 
   boost::system::error_code ec = boost::asio::error::would_block;
 
@@ -132,7 +120,7 @@ Error HttpClient::SendReqeust(const HttpRequest& request) {
   return kNoError;
 }
 
-Error HttpClient::ReadResponse(HttpResponse* response) {
+Error HttpClient::ReadResponse() {
   deadline_timer_.expires_from_now(
       boost::posix_time::seconds(timeout_seconds_));
 
@@ -141,31 +129,33 @@ Error HttpClient::ReadResponse(HttpResponse* response) {
 
   socket_.async_read_some(
       boost::asio::buffer(buffer_),
-      [this, &ec, &error, response](boost::system::error_code inner_ec,
-                                    std::size_t length) {
+      [this, &ec, &error](boost::system::error_code inner_ec,
+                          std::size_t length) {
         ec = inner_ec;
 
         if (inner_ec || length == 0) {
+          LOG_ERRO("Socket read error.");
           error = kSocketReadError;
-        } else {
-          // Parse the response piece just read.
-          // If the content has been fully received, next time flag "finished_"
-          // will be set.
-          error = parser_->Parse(buffer_.data(), length);
-
-          if (error != kNoError) {
-            LOG_ERRO("failed to parse http response.");
-            return;
-          }
-
-          if (parser_->finished()) {
-            // Stop trying to read once all content has been received,
-            // because some servers will block extra call to read_some().
-            return;
-          }
-
-          ReadResponse(response);
+          return;
         }
+
+        // Parse the response piece just read.
+        // If the content has been fully received, next time flag "finished_"
+        // will be set.
+        error = response_parser_->Parse(buffer_.data(), length);
+
+        if (error != kNoError) {
+          LOG_ERRO("Failed to parse HTTP response.");
+          return;
+        }
+
+        if (response_parser_->finished()) {
+          // Stop trying to read once all content has been received,
+          // because some servers will block extra call to read_some().
+          return;
+        }
+
+        ReadResponse();
       });
 
   // Block until the asynchronous operation has completed.
@@ -174,7 +164,7 @@ Error HttpClient::ReadResponse(HttpResponse* response) {
   } while (ec == boost::asio::error::would_block);
 
   if (error == kNoError) {
-    LOG_VERB("http response:\n{\n%s}", response->Dump().c_str());
+    LOG_VERB("HTTP response:\n%s", response_->Dump(4, "> ").c_str());
   }
 
   return error;
