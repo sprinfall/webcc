@@ -11,7 +11,7 @@
 #include "boost/thread/thread.hpp"
 
 #include "webcc/globals.h"
-#include "webcc/http_session.h"
+#include "webcc/http_connection.h"
 
 namespace webcc {
 

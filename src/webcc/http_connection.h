@@ -1,5 +1,5 @@
-#ifndef WEBCC_HTTP_SESSION_H_
-#define WEBCC_HTTP_SESSION_H_
+#ifndef WEBCC_HTTP_CONNECTION_H_
+#define WEBCC_HTTP_CONNECTION_H_
 
 #include <array>
 #include <memory>
@@ -16,14 +16,14 @@ namespace webcc {
 
 class HttpRequestHandler;
 
-class HttpSession : public std::enable_shared_from_this<HttpSession> {
+class HttpConnection : public std::enable_shared_from_this<HttpConnection> {
  public:
-  HttpSession(boost::asio::ip::tcp::socket socket,
-              HttpRequestHandler* handler);
+  HttpConnection(boost::asio::ip::tcp::socket socket,
+                 HttpRequestHandler* handler);
 
-  ~HttpSession() = default;
+  ~HttpConnection() = default;
 
-  DELETE_COPY_AND_ASSIGN(HttpSession);
+  DELETE_COPY_AND_ASSIGN(HttpConnection);
 
   const HttpRequest& request() const {
     return request_;
@@ -67,8 +67,8 @@ class HttpSession : public std::enable_shared_from_this<HttpSession> {
   HttpResponse response_;
 };
 
-typedef std::shared_ptr<HttpSession> HttpSessionPtr;
+typedef std::shared_ptr<HttpConnection> HttpConnectionPtr;
 
 }  // namespace webcc
 
-#endif  // WEBCC_HTTP_SESSION_H_
+#endif  // WEBCC_HTTP_CONNECTION_H_

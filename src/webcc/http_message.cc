@@ -31,7 +31,7 @@ void HttpMessage::Dump(std::ostream& os, std::size_t indent,
     os << indent_str << h.name << ": " << h.value << std::endl;
   }
 
-  os << std::endl;
+  os << indent_str << std::endl;
 
   if (!content_.empty()) {
     if (indent == 0) {

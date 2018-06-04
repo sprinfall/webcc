@@ -32,7 +32,7 @@ bool CalcClient::Divide(double x, double y, double* result) {
 }
 
 bool CalcClient::NotExist(double x, double y, double* result) {
-  return Calc("notexist", "x", "y", x, y, result);
+  return Calc("not_exist", "x", "y", x, y, result);
 }
 
 void CalcClient::Init() {

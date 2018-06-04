@@ -1,4 +1,4 @@
-#include "webcc/http_session.h"
+#include "webcc/http_connection.h"
 
 #include <utility>  // for move()
 #include <vector>
@@ -11,42 +11,42 @@
 
 namespace webcc {
 
-HttpSession::HttpSession(boost::asio::ip::tcp::socket socket,
+HttpConnection::HttpConnection(boost::asio::ip::tcp::socket socket,
                          HttpRequestHandler* handler)
     : socket_(std::move(socket)),
       request_handler_(handler),
       request_parser_(&request_) {
 }
 
-void HttpSession::Start() {
+void HttpConnection::Start() {
   AsyncRead();
 }
 
-void HttpSession::Close() {
+void HttpConnection::Close() {
   boost::system::error_code ec;
   socket_.close(ec);
 }
 
-void HttpSession::SetResponseContent(std::string&& content,
+void HttpConnection::SetResponseContent(std::string&& content,
                                      const std::string& content_type) {
   response_.SetContent(std::move(content));
   response_.SetContentType(content_type);
 }
 
-void HttpSession::SendResponse(HttpStatus::Enum status) {
+void HttpConnection::SendResponse(HttpStatus::Enum status) {
   response_.set_status(status);
   AsyncWrite();
 }
 
-void HttpSession::AsyncRead() {
+void HttpConnection::AsyncRead() {
   socket_.async_read_some(boost::asio::buffer(buffer_),
-                          std::bind(&HttpSession::ReadHandler,
+                          std::bind(&HttpConnection::ReadHandler,
                                     shared_from_this(),
                                     std::placeholders::_1,
                                     std::placeholders::_2));
 }
 
-void HttpSession::ReadHandler(boost::system::error_code ec,
+void HttpConnection::ReadHandler(boost::system::error_code ec,
                               std::size_t length) {
   if (ec) {
     if (ec != boost::asio::error::operation_aborted) {
@@ -70,16 +70,16 @@ void HttpSession::ReadHandler(boost::system::error_code ec,
     return;
   }
 
-  // Enqueue this session.
+  // Enqueue this connection.
   // Some worker thread will handle it later.
   // And DoWrite() will be called in the worker thread.
   request_handler_->Enqueue(shared_from_this());
 }
 
-void HttpSession::AsyncWrite() {
+void HttpConnection::AsyncWrite() {
   boost::asio::async_write(socket_,
                            response_.ToBuffers(),
-                           std::bind(&HttpSession::WriteHandler,
+                           std::bind(&HttpConnection::WriteHandler,
                                      shared_from_this(),
                                      std::placeholders::_1,
                                      std::placeholders::_2));
@@ -89,7 +89,7 @@ void HttpSession::AsyncWrite() {
 // This write handler will be called from main thread (the thread calling
 // io_context.run), even though DoWrite() is invoked by worker threads. This is
 // ensured by Asio.
-void HttpSession::WriteHandler(boost::system::error_code ec,
+void HttpConnection::WriteHandler(boost::system::error_code ec,
                                std::size_t length) {
   if (!ec) {
     LOG_INFO("Response has been sent back.");

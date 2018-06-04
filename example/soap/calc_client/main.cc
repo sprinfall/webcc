@@ -29,7 +29,7 @@ int main() {
 
   // Try to call a non-existing operation.
   if (calc.NotExist(x, y, &result)) {
-    printf("notexist: %.1f\n", result);
+    printf("not_exist: %.1f\n", result);
   }
 
   return 0;

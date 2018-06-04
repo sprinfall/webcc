@@ -64,10 +64,10 @@ void HttpServer::AsyncAccept() {
         if (!ec) {
           LOG_INFO("Accepted a connection.");
 
-          HttpSessionPtr session{
-            new HttpSession(std::move(socket), GetRequestHandler())
+          HttpConnectionPtr connection{
+            new HttpConnection(std::move(socket), GetRequestHandler())
           };
-          session->Start();
+          connection->Start();
         }
 
         AsyncAccept();

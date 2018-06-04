@@ -8,6 +8,8 @@ set(SRCS
 	http_async_client.h
 	http_client.cc
 	http_client.h
+	http_connection.cc
+	http_connection.h
 	http_message.cc
 	http_message.h
 	http_parser.cc
@@ -24,8 +26,6 @@ set(SRCS
 	http_response_parser.h
 	http_server.cc
 	http_server.h
-	http_session.cc
-	http_session.h
 	logger.cc
 	logger.h
 	queue.h
