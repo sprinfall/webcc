@@ -17,7 +17,7 @@ class HttpResponseParser : public HttpParser {
 
  private:
   // Parse HTTP start line; E.g., "HTTP/1.1 200 OK".
-  Error ParseStartLine(const std::string& line) override;
+  bool ParseStartLine(const std::string& line) override;
 
   // The result response message.
   HttpResponse* response_;

@@ -34,34 +34,19 @@ const std::string kHttpDelete = "DELETE";
 const char* DescribeError(Error error) {
   switch (error) {
     case kHostResolveError:
-      return "Cannot resolve the host.";
-
+      return "Host resolve error";
     case kEndpointConnectError:
-      return "Cannot connect to remote endpoint.";
-
-    case kSocketTimeoutError:
-      return "Operation timeout.";
-
+      return "Endpoint connect error";
     case kSocketReadError:
-      return "Socket read error.";
-
+      return "Socket read error";
     case kSocketWriteError:
-      return "Socket write error.";
-
-    case kHttpStartLineError:
-      return "[HTTP Response] Start line is invalid.";
-
-    case kHttpStatusError:
-      return "[HTTP Response] Status is not OK.";
-
-    case kHttpContentLengthError:
-      return "[HTTP Response] Content-Length is invalid or missing.";
-
+      return "Socket write error";
+    case kHttpError:
+      return "HTTP error";
     case kXmlError:
       return "XML error";
-
     default:
-      return "No error";
+      return "";
   }
 }
 

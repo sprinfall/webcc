@@ -16,7 +16,7 @@ HttpParser::HttpParser(HttpMessage* message)
       finished_(false) {
 }
 
-Error HttpParser::Parse(const char* data, std::size_t len) {
+bool HttpParser::Parse(const char* data, std::size_t len) {
   if (header_parsed_) {
     // Add the data to the content.
     AppendContent(data, len);
@@ -26,7 +26,7 @@ Error HttpParser::Parse(const char* data, std::size_t len) {
       Finish();
     }
 
-    return kNoError;
+    return true;
   }
 
   pending_data_.append(data, len);
@@ -48,9 +48,8 @@ Error HttpParser::Parse(const char* data, std::size_t len) {
 
     if (!start_line_parsed_) {
       start_line_parsed_ = true;
-      Error error = ParseStartLine(line);
-      if (error != kNoError) {
-        return error;
+      if (!ParseStartLine(line)) {
+        return false;
       }
     } else {
       // Currently, only Content-Length is important to us.
@@ -69,11 +68,11 @@ Error HttpParser::Parse(const char* data, std::size_t len) {
     if (!content_length_parsed_) {
       // No Content-Length, no content. (TODO: Support chucked data)
       Finish();
-      return kNoError;
+      return true;
     } else {
       // Invalid Content-Length in the request.
       if (content_length_ == kInvalidLength) {
-        return kHttpContentLengthError;
+        return false;
       }
     }
 
@@ -88,7 +87,7 @@ Error HttpParser::Parse(const char* data, std::size_t len) {
     pending_data_ = pending_data_.substr(off);
   }
 
-  return kNoError;
+  return true;
 }
 
 void HttpParser::ParseContentLength(const std::string& line) {

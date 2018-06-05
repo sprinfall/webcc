@@ -19,13 +19,13 @@ class BookListClient {
  public:
   BookListClient(boost::asio::io_context& io_context,
                  const std::string& host, const std::string& port)
-      : client_(io_context, host, port) {
+      : rest_client_(io_context, host, port) {
   }
 
   void ListBooks(webcc::HttpResponseHandler handler) {
     std::cout << "ListBooks" << std::endl;
 
-    client_.Get("/books", handler);
+    rest_client_.Get("/books", handler);
   }
 
   void CreateBook(const std::string& id,
@@ -40,11 +40,11 @@ class BookListClient {
     json["title"] = title;
     json["price"] = price;
 
-    client_.Post("/books", JsonToString(json), handler);
+    rest_client_.Post("/books", JsonToString(json), handler);
   }
 
  private:
-  webcc::RestAsyncClient client_;
+  webcc::RestAsyncClient rest_client_;
 };
 
 // -----------------------------------------------------------------------------

@@ -122,15 +122,13 @@ void HttpAsyncClient::ReadHandler(boost::system::error_code ec,
 
   // Parse the response piece just read.
   // If the content has been fully received, |finished()| will be true.
-  Error error = response_parser_->Parse(buffer_.data(), length);
-
-  if (error != kNoError) {
-    response_handler_(response_, error);
+  if (!response_parser_->Parse(buffer_.data(), length)) {
+    response_handler_(response_, kHttpError);
     return;
   }
 
   if (response_parser_->finished()) {
-    response_handler_(response_, error);
+    response_handler_(response_, kHttpError);
     return;
   }
 

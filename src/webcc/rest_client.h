@@ -1,6 +1,7 @@
 #ifndef WEBCC_REST_CLIENT_H_
 #define WEBCC_REST_CLIENT_H_
 
+#include <cassert>
 #include <string>
 
 #include "webcc/globals.h"
@@ -19,10 +20,20 @@ class RestClient {
   }
 
   HttpResponsePtr response() const { return response_; }
-  int response_status() const { return response_->status(); }
-  const std::string& response_content() const { return response_->content(); }
+
+  int response_status() const {
+    assert(response_);
+    return response_->status();
+  }
+
+  const std::string& response_content() const {
+    assert(response_);
+    return response_->content();
+  }
 
   Error error() const { return error_; }
+
+  bool timeout_occurred() const { return timeout_occurred_; }
 
   bool Get(const std::string& url) {
     return Request(kHttpGet, url, "");
@@ -58,6 +69,9 @@ class RestClient {
   HttpResponsePtr response_;
 
   Error error_ = kNoError;
+
+  // If the error was caused by timeout or not.
+  bool timeout_occurred_ = false;
 };
 
 }  // namespace webcc

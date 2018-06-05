@@ -55,9 +55,7 @@ void HttpConnection::ReadHandler(boost::system::error_code ec,
     return;
   }
 
-  Error error = request_parser_.Parse(buffer_.data(), length);
-
-  if (error != kNoError) {
+  if (!request_parser_.Parse(buffer_.data(), length)) {
     // Bad request.
     response_ = HttpResponse::Fault(HttpStatus::kBadRequest);
     AsyncWrite();

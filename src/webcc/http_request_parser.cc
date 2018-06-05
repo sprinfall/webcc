@@ -11,20 +11,20 @@ HttpRequestParser::HttpRequestParser(HttpRequest* request)
     : HttpParser(request), request_(request) {
 }
 
-Error HttpRequestParser::ParseStartLine(const std::string& line) {
+bool HttpRequestParser::ParseStartLine(const std::string& line) {
   std::vector<std::string> strs;
   boost::split(strs, line, boost::is_any_of(" "), boost::token_compress_on);
 
   if (strs.size() != 3) {
-    return kHttpStartLineError;
+    return false;
   }
 
   request_->set_method(strs[0]);
   request_->set_url(strs[1]);
 
-  // HTTP version is currently ignored.
+  // HTTP version is ignored.
 
-  return kNoError;
+  return true;
 }
 
 }  // namespace webcc

@@ -31,6 +31,8 @@ class HttpClient {
 
   Error error() const { return error_; }
 
+  bool timeout_occurred() const { return timeout_occurred_; }
+
   // Connect to server, send request, wait until response is received.
   bool Request(const HttpRequest& request);
 
@@ -40,6 +42,8 @@ class HttpClient {
   Error SendReqeust(const HttpRequest& request);
 
   Error ReadResponse();
+
+  void DoReadResponse(Error* error);
 
   void CheckDeadline();
 
@@ -53,6 +57,9 @@ class HttpClient {
   std::unique_ptr<HttpResponseParser> response_parser_;
 
   Error error_ = kNoError;
+
+  // If the error was caused by timeout or not.
+  bool timeout_occurred_ = false;
 
   // Maximum seconds to wait before the client cancels the operation.
   // Only for receiving response from server.

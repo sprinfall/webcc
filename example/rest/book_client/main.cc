@@ -15,29 +15,60 @@ std::string JsonToString(const Json::Value& json) {
 
 // -----------------------------------------------------------------------------
 
-class BookListClient {
+class BookClientBase {
+public:
+  BookClientBase(const std::string& host, const std::string& port,
+                 int timeout_seconds)
+      : rest_client_(host, port) {
+    rest_client_.set_timeout_seconds(timeout_seconds);
+  }
+
+  virtual ~BookClientBase() = default;
+
+protected:
+  void PrintSeparateLine() {
+    std::cout << "--------------------------------";
+    std::cout << "--------------------------------";
+    std::cout << std::endl;
+  }
+
+  void PrintError() {
+    std::cout << webcc::DescribeError(rest_client_.error());
+    if (rest_client_.timeout_occurred()) {
+      std::cout << " (timeout)";
+    }
+    std::cout << std::endl;
+  }
+
+  webcc::RestClient rest_client_;
+};
+
+// -----------------------------------------------------------------------------
+
+class BookListClient : public BookClientBase {
 public:
   BookListClient(const std::string& host, const std::string& port,
                  int timeout_seconds)
-      : client_(host, port) {
-    client_.set_timeout_seconds(timeout_seconds);
+      : BookClientBase(host, port, timeout_seconds) {
   }
 
   bool ListBooks() {
+    PrintSeparateLine();
     std::cout << "ListBooks" << std::endl;
 
-    if (!client_.Get("/books")) {
-      std::cout << webcc::DescribeError(client_.error()) << std::endl;
+    if (!rest_client_.Get("/books")) {
+      PrintError();
       return false;
     }
 
-    std::cout << client_.response_content() << std::endl;
+    std::cout << rest_client_.response_content() << std::endl;
     return true;
   }
 
   bool CreateBook(const std::string& id,
                   const std::string& title,
                   double price) {
+    PrintSeparateLine();
     std::cout << "CreateBook: " << id << ", " << title << ", " << price
               << std::endl;
 
@@ -46,35 +77,32 @@ public:
     json["title"] = title;
     json["price"] = price;
 
-    if (!client_.Post("/books", JsonToString(json))) {
-      std::cout << webcc::DescribeError(client_.error()) << std::endl;
+    if (!rest_client_.Post("/books", JsonToString(json))) {
+      PrintError();
       return false;
     }
 
-    std::cout << client_.response_status() << std::endl;
+    std::cout << rest_client_.response_status() << std::endl;
 
     return true;
   }
-
-private:
-  webcc::RestClient client_;
 };
 
 // -----------------------------------------------------------------------------
 
-class BookDetailClient {
+class BookDetailClient : public BookClientBase {
 public:
   BookDetailClient(const std::string& host, const std::string& port,
                    int timeout_seconds)
-      : rest_client_(host, port) {
-    rest_client_.set_timeout_seconds(timeout_seconds);
+      : BookClientBase(host, port, timeout_seconds) {
   }
 
   bool GetBook(const std::string& id) {
+    PrintSeparateLine();
     std::cout << "GetBook: " << id << std::endl;
 
     if (!rest_client_.Get("/book/" + id)) {
-      std::cout << webcc::DescribeError(rest_client_.error()) << std::endl;
+      PrintError();
       return false;
     }
 
@@ -85,6 +113,7 @@ public:
   bool UpdateBook(const std::string& id,
                   const std::string& title,
                   double price) {
+    PrintSeparateLine();
     std::cout << "UpdateBook: " << id << ", " << title << ", " << price
               << std::endl;
 
@@ -94,7 +123,7 @@ public:
     json["price"] = price;
 
     if (!rest_client_.Put("/book/" + id, JsonToString(json))) {
-      std::cout << webcc::DescribeError(rest_client_.error()) << std::endl;
+      PrintError();
       return false;
     }
 
@@ -103,19 +132,17 @@ public:
   }
 
   bool DeleteBook(const std::string& id) {
+    PrintSeparateLine();
     std::cout << "DeleteBook: " << id << std::endl;
 
     if (!rest_client_.Delete("/book/" + id)) {
-      std::cout << webcc::DescribeError(rest_client_.error()) << std::endl;
+      PrintError();
       return false;
     }
 
     std::cout << rest_client_.response_status() << std::endl;
     return true;
   }
-
-private:
-  webcc::RestClient rest_client_;
 };
 
 // -----------------------------------------------------------------------------

@@ -67,24 +67,11 @@ struct HttpStatus {
 // Error codes.
 enum Error {
   kNoError = 0,
-
   kHostResolveError,
   kEndpointConnectError,
-
-  kSocketTimeoutError,
-
   kSocketReadError,
   kSocketWriteError,
-
-  // Invalid start line in the HTTP response.
-  kHttpStartLineError,
-
-  // Status is not 200 in the HTTP response.
-  kHttpStatusError,
-
-  // Invalid or missing Content-Length in the HTTP response.
-  kHttpContentLengthError,
-
+  kHttpError,
   kXmlError,
 };
 

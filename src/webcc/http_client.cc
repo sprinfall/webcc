@@ -24,15 +24,17 @@ HttpClient::HttpClient()
       timeout_seconds_(kMaxReceiveSeconds),
       deadline_timer_(io_context_) {
   deadline_timer_.expires_at(boost::posix_time::pos_infin);
-
-  response_.reset(new HttpResponse());
-  response_parser_.reset(new HttpResponseParser(response_.get()));
-
-  // Start the persistent actor that checks for deadline expiry.
-  CheckDeadline();
 }
 
 bool HttpClient::Request(const HttpRequest& request) {
+  response_.reset(new HttpResponse());
+  response_parser_.reset(new HttpResponseParser(response_.get()));
+
+  timeout_occurred_ = false;
+
+  // Start the persistent actor that checks for deadline expiry.
+  CheckDeadline();
+
   if ((error_ = Connect(request)) != kNoError) {
     return false;
   }
@@ -87,11 +89,10 @@ Error HttpClient::Connect(const HttpRequest& request) {
   // check whether the socket is still open before deciding if we succeeded
   // or failed.
   if (ec || !socket_.is_open()) {
-    if (ec) {
-      return kEndpointConnectError;
-    } else {
-      return kSocketTimeoutError;
+    if (!ec) {
+      timeout_occurred_ = true;
     }
+    return kEndpointConnectError;
   }
 
   return kNoError;
@@ -113,6 +114,7 @@ Error HttpClient::SendReqeust(const HttpRequest& request) {
     io_context_.run_one();
   } while (ec == boost::asio::error::would_block);
 
+  // TODO: timeout_occurred_
   if (ec) {
     return kSocketWriteError;
   }
@@ -121,30 +123,39 @@ Error HttpClient::SendReqeust(const HttpRequest& request) {
 }
 
 Error HttpClient::ReadResponse() {
+  Error error = kNoError;
+  DoReadResponse(&error);
+
+  if (error == kNoError) {
+    LOG_VERB("HTTP response:\n%s", response_->Dump(4, "> ").c_str());
+  }
+
+  return error;
+}
+
+void HttpClient::DoReadResponse(Error* error) {
   deadline_timer_.expires_from_now(
       boost::posix_time::seconds(timeout_seconds_));
 
   boost::system::error_code ec = boost::asio::error::would_block;
-  Error error = kNoError;
 
   socket_.async_read_some(
       boost::asio::buffer(buffer_),
-      [this, &ec, &error](boost::system::error_code inner_ec,
-                          std::size_t length) {
+      [this, &ec, error](boost::system::error_code inner_ec,
+                         std::size_t length) {
         ec = inner_ec;
 
         if (inner_ec || length == 0) {
+          *error = kSocketReadError;
           LOG_ERRO("Socket read error.");
-          error = kSocketReadError;
           return;
         }
 
         // Parse the response piece just read.
         // If the content has been fully received, next time flag "finished_"
         // will be set.
-        error = response_parser_->Parse(buffer_.data(), length);
-
-        if (error != kNoError) {
+        if (!response_parser_->Parse(buffer_.data(), length)) {
+          *error = kHttpError;
           LOG_ERRO("Failed to parse HTTP response.");
           return;
         }
@@ -155,19 +166,13 @@ Error HttpClient::ReadResponse() {
           return;
         }
 
-        ReadResponse();
+        DoReadResponse(error);
       });
 
   // Block until the asynchronous operation has completed.
   do {
     io_context_.run_one();
   } while (ec == boost::asio::error::would_block);
-
-  if (error == kNoError) {
-    LOG_VERB("HTTP response:\n%s", response_->Dump(4, "> ").c_str());
-  }
-
-  return error;
 }
 
 void HttpClient::CheckDeadline() {
@@ -178,6 +183,9 @@ void HttpClient::CheckDeadline() {
     // are canceled.
     boost::system::error_code ignored_ec;
     socket_.close(ignored_ec);
+
+    // TODO
+    timeout_occurred_ = true;
 
     deadline_timer_.expires_at(boost::posix_time::pos_infin);
   }

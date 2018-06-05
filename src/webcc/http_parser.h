@@ -22,11 +22,10 @@ class HttpParser {
     return finished_;
   }
 
-  Error Parse(const char* data, std::size_t len);
+  bool Parse(const char* data, std::size_t len);
 
  protected:
-  // Parse HTTP start line.
-  virtual Error ParseStartLine(const std::string& line) = 0;
+  virtual bool ParseStartLine(const std::string& line) = 0;
 
   void ParseContentLength(const std::string& line);
 

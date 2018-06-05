@@ -2,13 +2,16 @@
 
 #include "webcc/http_client.h"
 #include "webcc/http_request.h"
-#include "webcc/http_response.h"
 
 namespace webcc {
 
 bool RestClient::Request(const std::string& method,
                          const std::string& url,
                          const std::string& content) {
+  response_.reset();
+  error_ = kNoError;
+  timeout_occurred_ = false;
+
   HttpRequest request;
 
   request.set_method(method);
@@ -24,10 +27,9 @@ bool RestClient::Request(const std::string& method,
   HttpClient http_client;
   http_client.set_timeout_seconds(timeout_seconds_);
 
-  error_ = kNoError;
-
   if (!http_client.Request(request)) {
     error_ = http_client.error();
+    timeout_occurred_ = http_client.timeout_occurred();
     return false;
   }
 

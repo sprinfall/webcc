@@ -2,6 +2,7 @@
 
 #include "boost/lexical_cast.hpp"
 
+#include "webcc/logger.h"
 #include "webcc/http_response.h"
 
 namespace webcc {
@@ -10,14 +11,14 @@ HttpResponseParser::HttpResponseParser(HttpResponse* response)
     : HttpParser(response), response_(response) {
 }
 
-Error HttpResponseParser::ParseStartLine(const std::string& line) {
+bool HttpResponseParser::ParseStartLine(const std::string& line) {
   response_->set_start_line(line + "\r\n");
 
   std::size_t off = 0;
 
   std::size_t pos = line.find(' ');
   if (pos == std::string::npos) {
-    return kHttpStartLineError;
+    return false;
   }
 
   // HTTP version
@@ -26,7 +27,7 @@ Error HttpResponseParser::ParseStartLine(const std::string& line) {
 
   pos = line.find(' ', off);
   if (pos == std::string::npos) {
-    return kHttpStartLineError;
+    return false;
   }
 
   // Status code
@@ -35,14 +36,15 @@ Error HttpResponseParser::ParseStartLine(const std::string& line) {
   try {
     response_->set_status(boost::lexical_cast<int>(status_str));
   } catch (boost::bad_lexical_cast&) {
-    return kHttpStartLineError;
+    LOG_ERRO("Invalid HTTP status: %s", status_str.c_str());
+    return false;
   }
 
   if (response_->status() != HttpStatus::kOK) {
-    return kHttpStatusError;
+    return false;
   }
 
-  return kNoError;
+  return true;
 }
 
 }  // namespace webcc
