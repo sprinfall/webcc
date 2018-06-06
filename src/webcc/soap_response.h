@@ -18,16 +18,8 @@ class SoapResponse : public SoapMessage {
     result_name_ = result_name;
   }
 
-  const std::string& result() const {
-    return result_;
-  }
-
-  void set_result(const std::string& result) {
-    result_ = result;
-  }
-
-  void set_result(std::string&& result) {
-    result_ = std::move(result);
+  std::string result_moved() {
+    return std::move(result_);
   }
 
  protected:

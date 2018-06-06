@@ -16,6 +16,8 @@ class SoapClient {
  public:
   virtual ~SoapClient() = default;
 
+  bool timeout_occurred() const { return timeout_occurred_; }
+
  protected:
   SoapClient() = default;
 
@@ -27,6 +29,9 @@ class SoapClient {
 
   // -1 means default timeout (normally 30s) will be used.
   int timeout_seconds_ = -1;
+
+  // If the error was caused by timeout or not.
+  bool timeout_occurred_ = false;
 
   SoapNamespace soapenv_ns_;  // SOAP envelope namespace.
   SoapNamespace service_ns_;  // Namespace for your web service.

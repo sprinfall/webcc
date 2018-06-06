@@ -55,6 +55,7 @@ Error SoapClient::Call(const std::string& operation,
   }
 
   if (!http_client.Request(http_request)) {
+    timeout_occurred_ = http_client.timeout_occurred();
     return http_client.error();
   }
 
@@ -65,7 +66,7 @@ Error SoapClient::Call(const std::string& operation,
     return kXmlError;
   }
 
-  *result = soap_response.result();
+  *result = soap_response.result_moved();
 
   return kNoError;
 }
