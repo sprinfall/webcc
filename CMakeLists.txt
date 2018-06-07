@@ -6,9 +6,25 @@ option(WEBCC_ENABLE_SOAP "Enable SOAP support (need pugixml)?" ON)
 option(WEBCC_BUILD_UNITTEST "Build unit test?" ON)
 option(WEBCC_BUILD_EXAMPLE "Build examples?" ON)
 
+set(WEBCC_LOG_LEVEL "VERB" CACHE STRING "Log level (VERB, INFO, WARN, ERRO or FATA)")
+
 if(WEBCC_ENABLE_LOG)
     add_definitions(-DWEBCC_ENABLE_LOG)
-    add_definitions(-DWEBCC_LOG_LEVEL=0)
+
+    message(STATUS "WEBCC_LOG_LEVEL: ${WEBCC_LOG_LEVEL}")
+
+    # Add definition of WEBCC_LOG_LEVEL according variable WEBCC_LOG_LEVEL.
+    if(WEBCC_LOG_LEVEL MATCHES "^VERB$")
+    	add_definitions(-DWEBCC_LOG_LEVEL=0)
+    elseif(WEBCC_LOG_LEVEL MATCHES "^INFO$")
+    	add_definitions(-DWEBCC_LOG_LEVEL=1)
+    elseif(WEBCC_LOG_LEVEL MATCHES "^WARN$")
+    	add_definitions(-DWEBCC_LOG_LEVEL=2)
+    elseif(WEBCC_LOG_LEVEL MATCHES "^ERRO$")
+    	add_definitions(-DWEBCC_LOG_LEVEL=3)
+    elseif(WEBCC_LOG_LEVEL MATCHES "^FATA$")
+    	add_definitions(-DWEBCC_LOG_LEVEL=4)
+    endif()
 endif()
 
 if(WEBCC_ENABLE_SOAP)
