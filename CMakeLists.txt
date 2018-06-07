@@ -8,6 +8,7 @@ option(WEBCC_BUILD_EXAMPLE "Build examples?" ON)
 
 if(WEBCC_ENABLE_LOG)
     add_definitions(-DWEBCC_ENABLE_LOG)
+    add_definitions(-DWEBCC_LOG_LEVEL=0)
 endif()
 
 if(WEBCC_ENABLE_SOAP)

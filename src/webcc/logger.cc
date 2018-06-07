@@ -14,13 +14,12 @@
 namespace webcc {
 
 struct Logger {
-  int level;
   int modes;
   std::mutex mutex;
 };
 
 // Global logger.
-static Logger g_logger{ VERB };
+static Logger g_logger{ 0 };
 
 static std::thread::id g_main_thread_id;
 
@@ -28,9 +27,8 @@ static const char* kLevelNames[] = {
   "VERB", "INFO", "WARN", "ERRO", "FATA"
 };
 
-void LogInit(int level, int modes) {
+void LogInit(int modes) {
   g_logger.modes = modes;
-  g_logger.level = level;
 
   // Suppose LogInit() is called from the main thread.
   g_main_thread_id = std::this_thread::get_id();
@@ -75,10 +73,6 @@ static std::string GetThreadID() {
 
 void LogWrite(int level, const char* file, int line, const char* format, ...) {
   assert(format != nullptr);
-
-  if (g_logger.level > level) {
-    return;
-  }
 
   std::lock_guard<std::mutex> lock(g_logger.mutex);
 

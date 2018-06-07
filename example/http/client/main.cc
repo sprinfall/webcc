@@ -28,7 +28,7 @@ void Test() {
 }
 
 int main() {
-  LOG_INIT(webcc::ERRO, 0);
+  LOG_INIT(0);
 
   Test();
   Test();

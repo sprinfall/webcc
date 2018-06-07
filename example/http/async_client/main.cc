@@ -35,7 +35,7 @@ void Test(boost::asio::io_context& ioc) {
 }
 
 int main() {
-  LOG_INIT(webcc::ERRO, 0);
+  LOG_INIT(0);
 
   boost::asio::io_context ioc;
 

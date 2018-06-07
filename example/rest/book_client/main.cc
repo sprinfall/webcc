@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  LOG_INIT(webcc::VERB, 0);
+  LOG_INIT(0);
 
   std::string host = argv[1];
   std::string port = argv[2];
