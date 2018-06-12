@@ -17,7 +17,7 @@ HttpServer::HttpServer(unsigned short port, std::size_t workers)
   // Register to handle the signals that indicate when the server should exit.
   // It is safe to register for the same signal multiple times in a program,
   // provided all registration for the specified signal is made through asio.
-  signals_.add(SIGINT);
+  signals_.add(SIGINT);  // Ctrl+C
   signals_.add(SIGTERM);
 #if defined(SIGQUIT)
   signals_.add(SIGQUIT);
@@ -29,7 +29,9 @@ HttpServer::HttpServer(unsigned short port, std::size_t workers)
   // "reuse_addr=true" means option SO_REUSEADDR will be set.
   // For more details about SO_REUSEADDR, see:
   // https://msdn.microsoft.com/en-us/library/windows/desktop/ms740621(v=vs.85).aspx
+  // https://stackoverflow.com/a/3233022
   // http://www.andy-pearce.com/blog/posts/2013/Feb/so_reuseaddr-on-windows/
+  // When |reuse_addr| is true, multiple servers can listen on the same port.
   acceptor_.reset(new tcp::acceptor(io_context_,
                                     tcp::endpoint(tcp::v4(), port),
                                     true));  // reuse_addr
@@ -76,10 +78,11 @@ void HttpServer::AsyncAccept() {
 
 void HttpServer::AsyncAwaitStop() {
   signals_.async_wait(
-      [this](boost::system::error_code, int /*signo*/) {
+      [this](boost::system::error_code, int signo) {
         // The server is stopped by canceling all outstanding asynchronous
         // operations. Once all operations have finished the io_context::run()
         // call will exit.
+        LOG_INFO("On signal %d, stopping the server...", signo);
         acceptor_->close();
         GetRequestHandler()->Stop();
       });
