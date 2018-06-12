@@ -2,7 +2,7 @@
 
 A lightweight C++ REST and SOAP client and server library based on *Boost.Asio*.
 
-## A Quick Look
+## Quick Start
 
 ### REST Server
 
@@ -22,13 +22,13 @@ class BookListService : public webcc::RestListService {
   // Query books based on some criterias.
   // GET /books?<query>
   bool Get(const webcc::UrlQuery& query,
-           std::string* response_content) final;
+           std::string* response_content) override;
 
   // Add a new book.
   // POST /books
   // The new book's data is attached as request content in JSON format.
   bool Post(const std::string& request_content,
-            std::string* response_content) final;
+            std::string* response_content) override;
 };
 ```
 
@@ -42,15 +42,15 @@ class BookDetailService : public webcc::RestDetailService {
   // Get the detailed information of a book.
   bool Get(const std::vector<std::string>& url_sub_matches,
            const webcc::UrlQuery& query,
-           std::string* response_content) final;
+           std::string* response_content) override;
 
   // Update the information of a book.
   bool Put(const std::vector<std::string>& url_sub_matches,
            const std::string& request_content,
-           std::string* response_content) final;
+           std::string* response_content) override;
 
   // Delete a book.
-  bool Delete(const std::vector<std::string>& url_sub_matches) final;
+  bool Delete(const std::vector<std::string>& url_sub_matches) override;
 };
 ```
 
@@ -73,7 +73,7 @@ bool BookDetailService::Get(const std::vector<std::string>& url_sub_matches,
 }
 ```
 
-Last step, register the services and run the server:
+Last step, bind the services and run the server:
 
 ```cpp
 webcc::RestServer server(8080, 2);
@@ -84,7 +84,7 @@ server.Bind(std::make_shared<BookDetailService>(), "/book/(\\d+)", true);
 server.Run();
 ```
 
-**Please see the `example` folder for the complete examples (including the client).**
+**Please see the `example/rest` folder for the complete examples (including the client).**
 
 ## Build Instructions
 
@@ -103,8 +103,7 @@ The following CMake options determine how you build the projects. They are quite
 option(WEBCC_ENABLE_LOG "Enable console logger?" ON)
 option(WEBCC_ENABLE_SOAP "Enable SOAP support (need pugixml)?" ON)
 option(WEBCC_BUILD_UNITTEST "Build unit test?" ON)
-option(WEBCC_BUILD_REST_EXAMPLE "Build REST example?" ON)
-option(WEBCC_BUILD_SOAP_EXAMPLE "Build SOAP example?" ON)
+option(WEBCC_BUILD_EXAMPLE "Build examples?" ON)
 ```
 
 If `WEBCC_ENABLE_SOAP` is `ON`, **pugixml** (already included) is used to parse and compose XML strings.
@@ -122,8 +121,7 @@ cmake -G"Unix Makefiles" \
     -DWEBCC_ENABLE_LOG=ON \
     -DWEBCC_ENABLE_SOAP=ON \
     -DWEBCC_BUILD_UNITTEST=OFF \
-    -DWEBCC_BUILD_REST_EXAMPLE=ON \
-    -DWEBCC_BUILD_SOAP_EXAMPLE=OFF \
+    -DWEBCC_BUILD_EXAMPLE=ON \
     ..
 ```
 Feel free to change the build options (`ON` or `OFF`).
