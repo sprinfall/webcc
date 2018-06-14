@@ -1,28 +1,37 @@
 #include "webcc/utility.h"
 
-#include <iostream>
+#include <ostream>
+#include <sstream>
 
 using tcp = boost::asio::ip::tcp;
 
 namespace webcc {
 
-// Print the resolved endpoints.
-// NOTE: Endpoint is one word, don't use "end point".
-void DumpEndpoints(const tcp::resolver::results_type& endpoints) {
-  std::cout << "Endpoints: " << endpoints.size() << std::endl;
+void PrintEndpoint(std::ostream& ostream,
+                   const boost::asio::ip::tcp::endpoint& endpoint) {
+  ostream << endpoint;
+  if (endpoint.protocol() == tcp::v4()) {
+    ostream << ", v4";
+  } else if (endpoint.protocol() == tcp::v6()) {
+    ostream << ", v6";
+  }
+}
 
+void PrintEndpoints(std::ostream& ostream,
+                    const tcp::resolver::results_type& endpoints) {
+  ostream << "Endpoints: " << endpoints.size() << std::endl;
   tcp::resolver::results_type::iterator it = endpoints.begin();
   for (; it != endpoints.end(); ++it) {
-    std::cout << "  - " << it->endpoint();
-
-    if (it->endpoint().protocol() == tcp::v4()) {
-      std::cout << ", v4";
-    } else if (it->endpoint().protocol() == tcp::v6()) {
-      std::cout << ", v6";
-    }
-
-    std::cout << std::endl;
+    ostream << "  - ";
+    PrintEndpoint(ostream, it->endpoint());
+    ostream << std::endl;
   }
+}
+
+std::string EndpointToString(const boost::asio::ip::tcp::endpoint& endpoint) {
+  std::stringstream ss;
+  PrintEndpoint(ss, endpoint);
+  return ss.str();
 }
 
 }  // namespace webcc

@@ -55,7 +55,7 @@ Error SoapClient::Call(const std::string& operation,
   }
 
   if (!http_client.Request(http_request)) {
-    timeout_occurred_ = http_client.timeout_occurred();
+    timed_out_ = http_client.timed_out();
     return http_client.error();
   }
 

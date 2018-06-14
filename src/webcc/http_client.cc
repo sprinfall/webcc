@@ -22,15 +22,15 @@ namespace webcc {
 HttpClient::HttpClient()
     : socket_(io_context_),
       timeout_seconds_(kMaxReceiveSeconds),
-      deadline_timer_(io_context_) {
-  deadline_timer_.expires_at(boost::posix_time::pos_infin);
+      deadline_(io_context_) {
+  deadline_.expires_at(boost::posix_time::pos_infin);
 }
 
 bool HttpClient::Request(const HttpRequest& request) {
   response_.reset(new HttpResponse());
   response_parser_.reset(new HttpResponseParser(response_.get()));
 
-  timeout_occurred_ = false;
+  timed_out_ = false;
 
   // Start the persistent actor that checks for deadline expiry.
   CheckDeadline();
@@ -69,8 +69,7 @@ Error HttpClient::Connect(const HttpRequest& request) {
     return kHostResolveError;
   }
 
-  deadline_timer_.expires_from_now(
-      boost::posix_time::seconds(kMaxConnectSeconds));
+  deadline_.expires_from_now(boost::posix_time::seconds(kMaxConnectSeconds));
 
   ec = boost::asio::error::would_block;
 
@@ -90,7 +89,7 @@ Error HttpClient::Connect(const HttpRequest& request) {
   // or failed.
   if (ec || !socket_.is_open()) {
     if (!ec) {
-      timeout_occurred_ = true;
+      timed_out_ = true;
     }
     return kEndpointConnectError;
   }
@@ -101,7 +100,7 @@ Error HttpClient::Connect(const HttpRequest& request) {
 Error HttpClient::SendReqeust(const HttpRequest& request) {
   LOG_VERB("HTTP request:\n%s", request.Dump(4, "> ").c_str());
 
-  deadline_timer_.expires_from_now(boost::posix_time::seconds(kMaxSendSeconds));
+  deadline_.expires_from_now(boost::posix_time::seconds(kMaxSendSeconds));
 
   boost::system::error_code ec = boost::asio::error::would_block;
 
@@ -114,7 +113,6 @@ Error HttpClient::SendReqeust(const HttpRequest& request) {
     io_context_.run_one();
   } while (ec == boost::asio::error::would_block);
 
-  // TODO: timeout_occurred_
   if (ec) {
     return kSocketWriteError;
   }
@@ -134,8 +132,7 @@ Error HttpClient::ReadResponse() {
 }
 
 void HttpClient::DoReadResponse(Error* error) {
-  deadline_timer_.expires_from_now(
-      boost::posix_time::seconds(timeout_seconds_));
+  deadline_.expires_from_now(boost::posix_time::seconds(timeout_seconds_));
 
   boost::system::error_code ec = boost::asio::error::would_block;
 
@@ -176,7 +173,7 @@ void HttpClient::DoReadResponse(Error* error) {
 }
 
 void HttpClient::CheckDeadline() {
-  if (deadline_timer_.expires_at() <=
+  if (deadline_.expires_at() <=
       boost::asio::deadline_timer::traits_type::now()) {
     // The deadline has passed.
     // The socket is closed so that any outstanding asynchronous operations
@@ -184,14 +181,13 @@ void HttpClient::CheckDeadline() {
     boost::system::error_code ignored_ec;
     socket_.close(ignored_ec);
 
-    // TODO
-    timeout_occurred_ = true;
+    deadline_.expires_at(boost::posix_time::pos_infin);
 
-    deadline_timer_.expires_at(boost::posix_time::pos_infin);
+    timed_out_ = true;
   }
 
   // Put the actor back to sleep.
-  deadline_timer_.async_wait(std::bind(&HttpClient::CheckDeadline, this));
+  deadline_.async_wait(std::bind(&HttpClient::CheckDeadline, this));
 }
 
 }  // namespace webcc

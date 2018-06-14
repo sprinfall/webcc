@@ -33,7 +33,7 @@ class RestClient {
 
   Error error() const { return error_; }
 
-  bool timeout_occurred() const { return timeout_occurred_; }
+  bool timed_out() const { return timed_out_; }
 
   bool Get(const std::string& url) {
     return Request(kHttpGet, url, "");
@@ -71,7 +71,7 @@ class RestClient {
   Error error_ = kNoError;
 
   // If the error was caused by timeout or not.
-  bool timeout_occurred_ = false;
+  bool timed_out_ = false;
 };
 
 }  // namespace webcc

@@ -3,7 +3,7 @@
 #include "boost/asio/io_context.hpp"
 
 #include "webcc/logger.h"
-#include "webcc/http_async_client.h"
+#include "webcc/async_http_client.h"
 
 // In order to test this client, create a file index.html whose content is
 // simply "Hello, World!", then start a HTTP server with Python 3:
@@ -19,15 +19,20 @@ void Test(boost::asio::io_context& ioc) {
 
   request->Build();
 
-  webcc::HttpAsyncClientPtr client(new webcc::HttpAsyncClient(ioc));
+  webcc::HttpAsyncClientPtr client(new webcc::AsyncHttpClient(ioc));
 
   // Response handler.
   auto handler = [](std::shared_ptr<webcc::HttpResponse> response,
-                    webcc::Error error) {
+                    webcc::Error error,
+                    bool timed_out) {
     if (error == webcc::kNoError) {
       std::cout << response->content() << std::endl;
     } else {
-      std::cout << webcc::DescribeError(error) << std::endl;
+      std::cout << webcc::DescribeError(error);
+      if (timed_out) {
+        std::cout << " (timed out)";
+      }
+      std::cout << std::endl;
     }
   };
 

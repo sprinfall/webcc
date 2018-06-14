@@ -1,8 +1,8 @@
-#include "webcc/rest_async_client.h"
+#include "webcc/async_rest_client.h"
 
 namespace webcc {
 
-void RestAsyncClient::Request(const std::string& method,
+void AsyncRestClient::Request(const std::string& method,
                               const std::string& url,
                               const std::string& content,
                               HttpResponseHandler response_handler) {
@@ -20,7 +20,7 @@ void RestAsyncClient::Request(const std::string& method,
 
   request->Build();
 
-  HttpAsyncClientPtr http_client(new HttpAsyncClient(io_context_));
+  HttpAsyncClientPtr http_client(new AsyncHttpClient(io_context_));
   http_client->Request(request, response_handler_);
 }
 

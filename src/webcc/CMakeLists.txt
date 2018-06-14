@@ -2,10 +2,12 @@
 add_definitions(-DBOOST_ASIO_NO_DEPRECATED)
 
 set(SRCS
+	async_http_client.cc
+	async_http_client.h
+	async_rest_client.cc
+	async_rest_client.h
 	globals.cc
 	globals.h
-	http_async_client.cc
-	http_async_client.h
 	http_client.cc
 	http_client.h
 	http_connection.cc
@@ -29,8 +31,6 @@ set(SRCS
 	logger.cc
 	logger.h
 	queue.h
-	rest_async_client.cc
-	rest_async_client.h
 	rest_client.cc
 	rest_client.h
 	rest_request_handler.cc
@@ -48,7 +48,23 @@ set(SRCS
 
 if(WEBCC_ENABLE_SOAP)
 	# SOAP specific sources.
-	file(GLOB SOAP_SRCS soap_*.cc soap_*.h)
+	set(SOAP_SRCS
+		soap_client.cc
+		soap_message.h
+		soap_request_handler.cc
+		soap_response.h
+		soap_xml.cc
+		soap_client.h
+		soap_request.cc
+		soap_request_handler.h
+		soap_server.h
+		soap_xml.h
+		soap_message.cc
+		soap_request.h
+		soap_response.cc
+		soap_service.h
+		)
+
 	set(SRCS ${SRCS} ${SOAP_SRCS})
 endif()
 

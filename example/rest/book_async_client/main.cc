@@ -3,7 +3,7 @@
 #include "json/json.h"
 
 #include "webcc/logger.h"
-#include "webcc/rest_async_client.h"
+#include "webcc/async_rest_client.h"
 
 // -----------------------------------------------------------------------------
 
@@ -44,7 +44,7 @@ class BookListClient {
   }
 
  private:
-  webcc::RestAsyncClient rest_client_;
+  webcc::AsyncRestClient rest_client_;
 };
 
 // -----------------------------------------------------------------------------
@@ -84,7 +84,7 @@ public:
   }
 
 private:
-  webcc::RestAsyncClient rest_client_;
+  webcc::AsyncRestClient rest_client_;
 };
 
 // -----------------------------------------------------------------------------
@@ -113,7 +113,8 @@ int main(int argc, char* argv[]) {
 
   // Response handler.
   auto handler = [](std::shared_ptr<webcc::HttpResponse> response,
-                    webcc::Error error) {
+                    webcc::Error error,
+                    bool timed_out) {
     if (error == webcc::kNoError) {
       std::cout << response->content() << std::endl;
     } else {

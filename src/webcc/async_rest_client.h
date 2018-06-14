@@ -1,17 +1,17 @@
-#ifndef WEBCC_REST_ASYNC_CLIENT_H_
-#define WEBCC_REST_ASYNC_CLIENT_H_
+#ifndef WEBCC_ASYNC_REST_CLIENT_H_
+#define WEBCC_ASYNC_REST_CLIENT_H_
 
 #include <string>
 
 #include "webcc/globals.h"
-#include "webcc/http_async_client.h"
+#include "webcc/async_http_client.h"
 
 namespace webcc {
 
-class RestAsyncClient {
+class AsyncRestClient {
  public:
-  RestAsyncClient(boost::asio::io_context& io_context,
-                   const std::string& host, const std::string& port)
+  AsyncRestClient(boost::asio::io_context& io_context,
+                  const std::string& host, const std::string& port)
       : io_context_(io_context), host_(host), port_(port) {
   }
 
@@ -57,4 +57,4 @@ class RestAsyncClient {
 
 }  // namespace webcc
 
-#endif  // WEBCC_REST_ASYNC_CLIENT_H_
+#endif  // WEBCC_ASYNC_REST_CLIENT_H_

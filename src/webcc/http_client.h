@@ -31,7 +31,7 @@ class HttpClient {
 
   Error error() const { return error_; }
 
-  bool timeout_occurred() const { return timeout_occurred_; }
+  bool timed_out() const { return timed_out_; }
 
   // Connect to server, send request, wait until response is received.
   bool Request(const HttpRequest& request);
@@ -59,14 +59,13 @@ class HttpClient {
   Error error_ = kNoError;
 
   // If the error was caused by timeout or not.
-  bool timeout_occurred_ = false;
+  bool timed_out_ = false;
 
   // Maximum seconds to wait before the client cancels the operation.
   // Only for receiving response from server.
   int timeout_seconds_;
 
-  // Timer for the timeout control.
-  boost::asio::deadline_timer deadline_timer_;
+  boost::asio::deadline_timer deadline_;
 };
 
 }  // namespace webcc

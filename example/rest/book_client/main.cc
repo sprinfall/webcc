@@ -34,8 +34,8 @@ protected:
 
   void PrintError() {
     std::cout << webcc::DescribeError(rest_client_.error());
-    if (rest_client_.timeout_occurred()) {
-      std::cout << " (timeout)";
+    if (rest_client_.timed_out()) {
+      std::cout << " (timed out)";
     }
     std::cout << std::endl;
   }

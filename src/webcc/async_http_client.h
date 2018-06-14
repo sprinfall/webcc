@@ -1,5 +1,5 @@
-#ifndef WEBCC_HTTP_ASYNC_CLIENT_H_
-#define WEBCC_HTTP_ASYNC_CLIENT_H_
+#ifndef WEBCC_ASYNC_HTTP_CLIENT_H_
+#define WEBCC_ASYNC_HTTP_CLIENT_H_
 
 #include <array>
 #include <functional>
@@ -16,13 +16,13 @@
 
 namespace webcc {
 
-typedef std::function<void(HttpResponsePtr, Error)> HttpResponseHandler;
+typedef std::function<void(HttpResponsePtr, Error, bool)> HttpResponseHandler;
 
-class HttpAsyncClient : public std::enable_shared_from_this<HttpAsyncClient> {
+class AsyncHttpClient : public std::enable_shared_from_this<AsyncHttpClient> {
  public:
-  explicit HttpAsyncClient(boost::asio::io_context& io_context);
+  explicit AsyncHttpClient(boost::asio::io_context& io_context);
 
-  DELETE_COPY_AND_ASSIGN(HttpAsyncClient);
+  DELETE_COPY_AND_ASSIGN(AsyncHttpClient);
 
   void set_timeout_seconds(int timeout_seconds) {
     timeout_seconds_ = timeout_seconds;
@@ -32,16 +32,22 @@ class HttpAsyncClient : public std::enable_shared_from_this<HttpAsyncClient> {
   // and call the |response_handler| when all these finish.
   Error Request(HttpRequestPtr request, HttpResponseHandler response_handler);
 
+  // Terminate all the actors to shut down the connection. It may be called by
+  // the user of the client class, or by the class itself in response to
+  // graceful termination or an unrecoverable error.
+  void Stop();
+
  private:
   using tcp = boost::asio::ip::tcp;
+  typedef tcp::resolver::results_type::iterator EndpointIterator;
 
   void ResolveHandler(boost::system::error_code ec,
                       tcp::resolver::results_type results);
 
-  void AsyncConnect(tcp::resolver::results_type::iterator endpoint_it);
+  void AsyncConnect(EndpointIterator endpoint_iter);
 
   void ConnectHandler(boost::system::error_code ec,
-                      tcp::resolver::results_type::iterator endpoint_it);
+                      EndpointIterator endpoint_iter);
 
   void AsyncWrite();
   void WriteHandler(boost::system::error_code ec);
@@ -50,6 +56,9 @@ class HttpAsyncClient : public std::enable_shared_from_this<HttpAsyncClient> {
   void ReadHandler(boost::system::error_code ec, std::size_t length);
 
   void CheckDeadline();
+
+  bool stopped_ = false;
+  bool timed_out_ = false;
 
   tcp::socket socket_;
 
@@ -70,11 +79,11 @@ class HttpAsyncClient : public std::enable_shared_from_this<HttpAsyncClient> {
   int timeout_seconds_;
 
   // Timer for the timeout control.
-  boost::asio::deadline_timer deadline_timer_;
+  boost::asio::deadline_timer deadline_;
 };
 
-typedef std::shared_ptr<HttpAsyncClient> HttpAsyncClientPtr;
+typedef std::shared_ptr<AsyncHttpClient> HttpAsyncClientPtr;
 
 }  // namespace webcc
 
-#endif  // WEBCC_HTTP_ASYNC_CLIENT_H_
+#endif  // WEBCC_ASYNC_HTTP_CLIENT_H_

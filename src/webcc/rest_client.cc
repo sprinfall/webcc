@@ -10,7 +10,7 @@ bool RestClient::Request(const std::string& method,
                          const std::string& content) {
   response_.reset();
   error_ = kNoError;
-  timeout_occurred_ = false;
+  timed_out_ = false;
 
   HttpRequest request;
 
@@ -29,7 +29,7 @@ bool RestClient::Request(const std::string& method,
 
   if (!http_client.Request(request)) {
     error_ = http_client.error();
-    timeout_occurred_ = http_client.timeout_occurred();
+    timed_out_ = http_client.timed_out();
     return false;
   }
 
