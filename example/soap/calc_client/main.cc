@@ -1,9 +1,11 @@
 #include <iostream>
+
 #include "webcc/logger.h"
+
 #include "calc_client.h"
 
 int main() {
-  LOG_INIT(0);
+  LOG_INIT("", webcc::LOG_CONSOLE);
 
   CalcClient calc;
 

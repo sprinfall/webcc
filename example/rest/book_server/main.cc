@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  LOG_INIT(0);
+  LOG_INIT("", webcc::LOG_FILE | webcc::LOG_CONSOLE | webcc::LOG_OVERWRITE);
 
   unsigned short port = std::atoi(argv[1]);
 

@@ -6,6 +6,7 @@
 #if WEBCC_ENABLE_LOG
 
 #include <cstring>  // for strrchr()
+#include <string>
 
 #define WEBCC_VERB 0
 #define WEBCC_INFO 1
@@ -18,13 +19,20 @@
 #define WEBCC_LOG_LEVEL WEBCC_WARN
 #endif
 
+#define WEBCC_LOG_FILE "webcc.log"
+
 namespace webcc {
 
 enum LogMode {
-  FLUSH = 1,
+  LOG_FILE        = 1,  // Log to file.
+  LOG_CONSOLE     = 2,  // Log to console.
+  LOG_FLUSH       = 4,  // Flush on each log.
+  LOG_OVERWRITE   = 8,  // Overwrite any existing log file.
 };
 
-void LogInit(int modes);
+// Initialize logger.
+// If |dir| is empty, log file will be generated in current directory.
+void LogInit(const std::string& dir, int modes);
 
 void LogWrite(int level, const char* file, int line, const char* format, ...);
 
@@ -32,7 +40,7 @@ void LogWrite(int level, const char* file, int line, const char* format, ...);
 
 // Initialize the logger with a level.
 // E.g., LOG_INIT(FLUSH)
-#define LOG_INIT(modes) webcc::LogInit(modes);
+#define LOG_INIT(dir, modes) webcc::LogInit(dir, modes);
 
 #if (defined(WIN32) || defined(_WIN64))
 
