@@ -6,7 +6,6 @@
 #include <chrono>
 #include <cstdarg>
 #include <ctime>
-#include <memory>
 #include <mutex>
 #include <sstream>
 #include <string>
@@ -17,7 +16,12 @@
 namespace webcc {
 
 struct Logger {
-  Logger(const std::string& path, int modes) : file(nullptr), modes(modes) {
+  Logger() : file(nullptr), modes(0) {
+  }
+
+  void Init(const std::string& path, int _modes) {
+    modes = _modes;
+
     if (!path.empty()) {
       if ((modes & LOG_OVERWRITE) != 0) {
         file = fopen(path.c_str(), "w+");
@@ -40,7 +44,7 @@ struct Logger {
 };
 
 // Global logger.
-static std::shared_ptr<Logger> g_logger;
+static Logger g_logger;
 
 static std::thread::id g_main_thread_id;
 
@@ -69,7 +73,7 @@ static bfs::path InitLogPath(const std::string& dir) {
 
 void LogInit(const std::string& dir, int modes) {
   bfs::path path = InitLogPath(dir);
-  g_logger.reset(new Logger(path.string(), modes));
+  g_logger.Init(path.string(), modes);
 
   // Suppose LogInit() is called from the main thread.
   g_main_thread_id = std::this_thread::get_id();
@@ -115,45 +119,41 @@ static std::string GetThreadID() {
 void LogWrite(int level, const char* file, int line, const char* format, ...) {
   assert(format != nullptr);
 
-  va_list va_ptr_file;
-  va_list va_ptr_console;
+  va_list args;
+  va_start(args, format);
 
-  va_start(va_ptr_file, format);
-  va_start(va_ptr_console, format);
+  if ((g_logger.modes & LOG_FILE) != 0 && g_logger.file != nullptr) {
+    std::lock_guard<std::mutex> lock(g_logger.mutex);
 
-  if ((g_logger->modes & LOG_FILE) != 0 && g_logger->file != nullptr) {
-    std::lock_guard<std::mutex> lock(g_logger->mutex);
-
-    fprintf(g_logger->file, "%s, %s, %5s, %24s, %4d, ",
+    fprintf(g_logger.file, "%s, %s, %5s, %24s, %4d, ",
             GetTimestamp().c_str(), kLevelNames[level], GetThreadID().c_str(),
             file, line);
 
-    vfprintf(g_logger->file, format, va_ptr_console);
+    vfprintf(g_logger.file, format, args);
 
-    fprintf(g_logger->file, "\n");
+    fprintf(g_logger.file, "\n");
 
-    if ((g_logger->modes & LOG_FLUSH) != 0) {
-      fflush(g_logger->file);
+    if ((g_logger.modes & LOG_FLUSH) != 0) {
+      fflush(g_logger.file);
     }
   }
 
-  if ((g_logger->modes & LOG_CONSOLE) != 0) {
-    std::lock_guard<std::mutex> lock(g_logger->mutex);
+  if ((g_logger.modes & LOG_CONSOLE) != 0) {
+    std::lock_guard<std::mutex> lock(g_logger.mutex);
 
     fprintf(stderr, "%s, %s, %5s, %24s, %4d, ",
             GetTimestamp().c_str(), kLevelNames[level], GetThreadID().c_str(),
             file, line);
 
-    vfprintf(stderr, format, va_ptr_console);
+    vfprintf(stderr, format, args);
     fprintf(stderr, "\n");
 
-    if ((g_logger->modes & LOG_FLUSH) != 0) {
+    if ((g_logger.modes & LOG_FLUSH) != 0) {
       fflush(stderr);
     }
   }
 
-  va_end(va_ptr_file);
-  va_end(va_ptr_console);
+  va_end(args);
 }
 
 }  // namespace webcc

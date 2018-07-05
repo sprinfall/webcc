@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
+  WEBCC_LOG_INIT("", webcc::LOG_CONSOLE_FILE_OVERWRITE);
 
   std::string host = argv[1];
   std::string port = argv[2];
