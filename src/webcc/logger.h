@@ -30,6 +30,10 @@ enum LogMode {
   LOG_OVERWRITE   = 8,  // Overwrite any existing log file.
 };
 
+// Commonly used modes.
+const int LOG_CONSOLE_FILE_APPEND = LOG_CONSOLE | LOG_FILE;
+const int LOG_CONSOLE_FILE_OVERWRITE = LOG_CONSOLE | LOG_FILE | LOG_OVERWRITE;
+
 // Initialize logger.
 // If |dir| is empty, log file will be generated in current directory.
 void LogInit(const std::string& dir, int modes);
@@ -39,8 +43,7 @@ void LogWrite(int level, const char* file, int line, const char* format, ...);
 }  // namespace webcc
 
 // Initialize the logger with a level.
-// E.g., LOG_INIT(FLUSH)
-#define LOG_INIT(dir, modes) webcc::LogInit(dir, modes);
+#define WEBCC_LOG_INIT(dir, modes) webcc::LogInit(dir, modes);
 
 #if (defined(WIN32) || defined(_WIN64))
 
@@ -126,7 +129,7 @@ void LogWrite(int level, const char* file, int line, const char* format, ...);
 
 #else  // WEBCC_ENABLE_LOG == 0
 
-#define LOG_INIT(modes)
+#define WEBCC_LOG_INIT(modes)
 
 #if (defined(WIN32) || defined(_WIN64))
 #define LOG_VERB(format, ...)

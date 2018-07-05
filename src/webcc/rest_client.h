@@ -63,8 +63,8 @@ class RestClient {
   std::string host_;
   std::string port_;
 
-  // -1 means default timeout (normally 30s) will be used.
-  int timeout_seconds_ = -1;
+  // Timeout in seconds; only effective when > 0.
+  int timeout_seconds_ = 0;
 
   HttpResponsePtr response_;
 

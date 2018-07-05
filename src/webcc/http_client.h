@@ -1,8 +1,9 @@
 #ifndef WEBCC_HTTP_CLIENT_H_
 #define WEBCC_HTTP_CLIENT_H_
 
-#include <array>
+#include <cassert>
 #include <memory>
+#include <vector>
 
 #include "boost/asio/deadline_timer.hpp"
 #include "boost/asio/io_context.hpp"
@@ -24,6 +25,7 @@ class HttpClient {
   DELETE_COPY_AND_ASSIGN(HttpClient);
 
   void set_timeout_seconds(int timeout_seconds) {
+    assert(timeout_seconds > 0);
     timeout_seconds_ = timeout_seconds;
   }
 
@@ -37,6 +39,9 @@ class HttpClient {
   bool Request(const HttpRequest& request);
 
  private:
+  // Terminate all the actors to shut down the connection.
+  void Stop();
+
   Error Connect(const HttpRequest& request);
 
   Error SendReqeust(const HttpRequest& request);
@@ -51,12 +56,14 @@ class HttpClient {
 
   boost::asio::ip::tcp::socket socket_;
 
-  std::array<char, kBufferSize> buffer_;
+  std::vector<char> buffer_;
 
   HttpResponsePtr response_;
   std::unique_ptr<HttpResponseParser> response_parser_;
 
   Error error_ = kNoError;
+
+  bool stopped_ = false;
 
   // If the error was caused by timeout or not.
   bool timed_out_ = false;

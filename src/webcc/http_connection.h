@@ -1,9 +1,9 @@
 #ifndef WEBCC_HTTP_CONNECTION_H_
 #define WEBCC_HTTP_CONNECTION_H_
 
-#include <array>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "boost/asio/ip/tcp.hpp"  // for ip::tcp::socket
 
@@ -51,11 +51,11 @@ class HttpConnection : public std::enable_shared_from_this<HttpConnection> {
   // Socket for the connection.
   boost::asio::ip::tcp::socket socket_;
 
+  // Buffer for incoming data.
+  std::vector<char> buffer_;
+
   // The handler used to process the incoming request.
   HttpRequestHandler* request_handler_;
-
-  // Buffer for incoming data.
-  std::array<char, kBufferSize> buffer_;
 
   // The incoming request.
   HttpRequest request_;

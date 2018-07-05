@@ -5,6 +5,19 @@
 #include "webcc/logger.h"
 #include "webcc/rest_client.h"
 
+// In order to run with VLD, please copy the following files to the example
+// output folder from "third_party\win32\bin":
+//   - dbghelp.dll
+//   - Microsoft.DTfW.DHL.manifest
+//   - vld_x86.dll
+#if (defined(WIN32) || defined(_WIN64))
+#if defined(_DEBUG) && defined(WEBCC_ENABLE_VLD)
+#pragma message ("< include vld.h >")
+#include "vld/vld.h"
+#pragma comment(lib, "vld")
+#endif
+#endif
+
 // -----------------------------------------------------------------------------
 
 // Write a JSON object to string.
@@ -160,7 +173,7 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  LOG_INIT("", webcc::LOG_CONSOLE);
+  WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
   std::string host = argv[1];
   std::string port = argv[2];

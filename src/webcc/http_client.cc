@@ -19,20 +19,43 @@
 
 namespace webcc {
 
+// Adjust buffer size according to content length.
+// This is to avoid reading too many times.
+// Also used by AsyncHttpClient.
+void AdjustBufferSize(std::size_t content_length, std::vector<char>* buffer) {
+  const std::size_t kMaxTimes = 10;
+
+  // According to test, a client never read more than 200000 bytes a time.
+  // So it doesn't make sense to set any larger size, e.g., 1MB.
+  const std::size_t kMaxBufferSize = 200000;
+
+  LOG_INFO("Adjust buffer size according to content length.");
+
+  std::size_t min_buffer_size = content_length / kMaxTimes;
+  if (min_buffer_size > buffer->size()) {
+    buffer->resize(std::min(min_buffer_size, kMaxBufferSize));
+    LOG_INFO("Resize read buffer to %d.", buffer->size());
+  } else {
+    LOG_INFO("Keep the current buffer size (%d).", buffer->size());
+  }
+}
+
 HttpClient::HttpClient()
     : socket_(io_context_),
+      buffer_(kBufferSize),
       timeout_seconds_(kMaxReceiveSeconds),
       deadline_(io_context_) {
-  deadline_.expires_at(boost::posix_time::pos_infin);
 }
 
 bool HttpClient::Request(const HttpRequest& request) {
   response_.reset(new HttpResponse());
   response_parser_.reset(new HttpResponseParser(response_.get()));
 
+  stopped_ = false;
   timed_out_ = false;
 
   // Start the persistent actor that checks for deadline expiry.
+  deadline_.expires_at(boost::posix_time::pos_infin);
   CheckDeadline();
 
   if ((error_ = Connect(request)) != kNoError) {
@@ -48,6 +71,15 @@ bool HttpClient::Request(const HttpRequest& request) {
   }
 
   return true;
+}
+
+void HttpClient::Stop() {
+  stopped_ = true;
+
+  boost::system::error_code ignored_ec;
+  socket_.close(ignored_ec);
+
+  deadline_.cancel();
 }
 
 Error HttpClient::Connect(const HttpRequest& request) {
@@ -88,6 +120,7 @@ Error HttpClient::Connect(const HttpRequest& request) {
   // check whether the socket is still open before deciding if we succeeded
   // or failed.
   if (ec || !socket_.is_open()) {
+    Stop();
     if (!ec) {
       timed_out_ = true;
     }
@@ -114,6 +147,7 @@ Error HttpClient::SendReqeust(const HttpRequest& request) {
   } while (ec == boost::asio::error::would_block);
 
   if (ec) {
+    Stop();
     return kSocketWriteError;
   }
 
@@ -121,6 +155,8 @@ Error HttpClient::SendReqeust(const HttpRequest& request) {
 }
 
 Error HttpClient::ReadResponse() {
+  deadline_.expires_from_now(boost::posix_time::seconds(timeout_seconds_));
+
   Error error = kNoError;
   DoReadResponse(&error);
 
@@ -132,8 +168,6 @@ Error HttpClient::ReadResponse() {
 }
 
 void HttpClient::DoReadResponse(Error* error) {
-  deadline_.expires_from_now(boost::posix_time::seconds(timeout_seconds_));
-
   boost::system::error_code ec = boost::asio::error::would_block;
 
   socket_.async_read_some(
@@ -142,24 +176,42 @@ void HttpClient::DoReadResponse(Error* error) {
                          std::size_t length) {
         ec = inner_ec;
 
+        LOG_VERB("Socket async read handler.");
+
+        if (stopped_) {
+          return;
+        }
+
         if (inner_ec || length == 0) {
+          Stop();
           *error = kSocketReadError;
           LOG_ERRO("Socket read error.");
           return;
         }
 
+        LOG_INFO("Read data, length: %d.", length);
+
+        bool content_length_parsed = response_parser_->content_length_parsed();
+
         // Parse the response piece just read.
-        // If the content has been fully received, next time flag "finished_"
-        // will be set.
         if (!response_parser_->Parse(buffer_.data(), length)) {
+          Stop();
           *error = kHttpError;
           LOG_ERRO("Failed to parse HTTP response.");
           return;
         }
 
+        if (!content_length_parsed &&
+            response_parser_->content_length_parsed()) {
+          // Content length just has been parsed.
+          AdjustBufferSize(response_parser_->content_length(), &buffer_);
+        }
+
         if (response_parser_->finished()) {
           // Stop trying to read once all content has been received,
           // because some servers will block extra call to read_some().
+          Stop();
+          LOG_INFO("Finished to read and parse HTTP response.");
           return;
         }
 
@@ -173,16 +225,17 @@ void HttpClient::DoReadResponse(Error* error) {
 }
 
 void HttpClient::CheckDeadline() {
+  if (stopped_) {
+    return;
+  }
+
   if (deadline_.expires_at() <=
       boost::asio::deadline_timer::traits_type::now()) {
     // The deadline has passed.
     // The socket is closed so that any outstanding asynchronous operations
     // are canceled.
-    boost::system::error_code ignored_ec;
-    socket_.close(ignored_ec);
-
-    deadline_.expires_at(boost::posix_time::pos_infin);
-
+    LOG_WARN("HTTP client timed out.");
+    Stop();
     timed_out_ = true;
   }
 

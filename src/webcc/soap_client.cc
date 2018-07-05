@@ -50,7 +50,7 @@ Error SoapClient::Call(const std::string& operation,
 
   HttpClient http_client;
 
-  if (timeout_seconds_ != -1) {
+  if (timeout_seconds_ > 0) {
     http_client.set_timeout_seconds(timeout_seconds_);
   }
 

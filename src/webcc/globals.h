@@ -17,8 +17,7 @@ namespace webcc {
 // -----------------------------------------------------------------------------
 // Constants
 
-// Buffer size for sending HTTP request and receiving HTTP response.
-// TODO: Configurable
+// Default buffer size for socket reading.
 const std::size_t kBufferSize = 1024;
 
 const std::size_t kInvalidLength = static_cast<std::size_t>(-1);

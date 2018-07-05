@@ -1,9 +1,9 @@
 #ifndef WEBCC_ASYNC_HTTP_CLIENT_H_
 #define WEBCC_ASYNC_HTTP_CLIENT_H_
 
-#include <array>
 #include <functional>
 #include <memory>
+#include <vector>
 
 #include "boost/asio/deadline_timer.hpp"
 #include "boost/asio/io_context.hpp"
@@ -67,7 +67,7 @@ class AsyncHttpClient : public std::enable_shared_from_this<AsyncHttpClient> {
   std::unique_ptr<tcp::resolver> resolver_;
   tcp::resolver::results_type endpoints_;
 
-  std::array<char, kBufferSize> buffer_;
+  std::vector<char> buffer_;
 
   std::unique_ptr<HttpResponseParser> response_parser_;
 

@@ -6,6 +6,13 @@ option(WEBCC_ENABLE_SOAP "Enable SOAP support (need pugixml)?" ON)
 option(WEBCC_BUILD_UNITTEST "Build unit test?" ON)
 option(WEBCC_BUILD_EXAMPLE "Build examples?" ON)
 
+if(WIN32)
+    option(WEBCC_ENABLE_VLD "Enable VLD (Visual Leak Detector)?" OFF)
+    if(WEBCC_ENABLE_VLD)
+        add_definitions(-DWEBCC_ENABLE_VLD)
+    endif()
+endif()
+
 set(WEBCC_LOG_LEVEL "VERB" CACHE STRING "Log level (VERB, INFO, WARN, ERRO or FATA)")
 
 if(WEBCC_ENABLE_LOG)
@@ -96,13 +103,17 @@ endif()
 # For including its own headers as "webcc/http_client.h".
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
+if(WIN32)
+    include_directories(${PROJECT_SOURCE_DIR}/third_party/win32/include)
+    link_directories(${PROJECT_SOURCE_DIR}/third_party/win32/lib)
+endif()
+
 # SOAP support needs pugixml to parse and create XML.
 if(WEBCC_ENABLE_SOAP)
-	add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/pugixml)
+	add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/src/pugixml)
 
 	# For including pugixml as "pugixml/pugixml.hpp".
-	# TODO: Remove "pugixml" prefix?
-	include_directories(${PROJECT_SOURCE_DIR}/third_party)
+	include_directories(${PROJECT_SOURCE_DIR}/third_party/src)
 endif()
 
 add_subdirectory(src/webcc)
@@ -112,8 +123,8 @@ if(WEBCC_BUILD_EXAMPLE)
 	add_subdirectory(${PROJECT_SOURCE_DIR}/example/http/async_client)
 
 	# REST example needs jsoncpp to parse and create JSON.
-	add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/jsoncpp)
-	include_directories(${PROJECT_SOURCE_DIR}/third_party/jsoncpp)
+	add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/src/jsoncpp)
+	include_directories(${PROJECT_SOURCE_DIR}/third_party/src/jsoncpp)
 
 	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest/book_server)
 	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest/book_client)
@@ -126,6 +137,6 @@ if(WEBCC_BUILD_EXAMPLE)
 endif()
 
 if(WEBCC_BUILD_UNITTEST)
-    add_subdirectory(third_party/gtest)
+    add_subdirectory(third_party/src/gtest)
     add_subdirectory(unittest)
 endif()

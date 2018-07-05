@@ -28,7 +28,7 @@ void Test() {
 }
 
 int main() {
-  LOG_INIT("", webcc::LOG_CONSOLE);
+  WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
   Test();
   Test();

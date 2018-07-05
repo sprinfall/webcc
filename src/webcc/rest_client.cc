@@ -25,7 +25,10 @@ bool RestClient::Request(const std::string& method,
   request.Build();
 
   HttpClient http_client;
-  http_client.set_timeout_seconds(timeout_seconds_);
+
+  if (timeout_seconds_ > 0) {
+    http_client.set_timeout_seconds(timeout_seconds_);
+  }
 
   if (!http_client.Request(request)) {
     error_ = http_client.error();

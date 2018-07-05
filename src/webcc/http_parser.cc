@@ -4,6 +4,7 @@
 #include "boost/lexical_cast.hpp"
 
 #include "webcc/http_message.h"
+#include "webcc/logger.h"
 
 namespace webcc {
 
@@ -16,10 +17,10 @@ HttpParser::HttpParser(HttpMessage* message)
       finished_(false) {
 }
 
-bool HttpParser::Parse(const char* data, std::size_t len) {
+bool HttpParser::Parse(const char* data, std::size_t length) {
   if (header_parsed_) {
     // Add the data to the content.
-    AppendContent(data, len);
+    AppendContent(data, length);
 
     if (IsContentFull()) {
       // All content has been read.
@@ -29,7 +30,7 @@ bool HttpParser::Parse(const char* data, std::size_t len) {
     return true;
   }
 
-  pending_data_.append(data, len);
+  pending_data_.append(data, length);
   std::size_t off = 0;
 
   while (true) {
@@ -64,9 +65,10 @@ bool HttpParser::Parse(const char* data, std::size_t len) {
 
   if (header_parsed_) {
     // Headers just ended.
+    LOG_INFO("HTTP headers parsed.");
 
     if (!content_length_parsed_) {
-      // No Content-Length, no content. (TODO: Support chucked data)
+      // No Content-Length, no content.
       Finish();
       return true;
     } else {
@@ -110,7 +112,16 @@ void HttpParser::ParseContentLength(const std::string& line) {
 
     try {
       content_length_ = boost::lexical_cast<std::size_t>(value);
+      LOG_INFO("Content length: %d", content_length_);
+
+      // Reserve memory to avoid frequent reallocation when append.
+      try {
+        content_.reserve(content_length_);
+      } catch (std::exception& e) {
+        LOG_ERRO("Failed to reserve content memory: %s.", e.what());
+      }
     } catch (boost::bad_lexical_cast&) {
+      LOG_ERRO("Invalid content length: %s.", value.c_str());
     }
   }
 }

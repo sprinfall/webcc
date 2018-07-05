@@ -13,8 +13,12 @@
 
 namespace webcc {
 
+extern void AdjustBufferSize(std::size_t content_length,
+                             std::vector<char>* buffer);
+
 AsyncHttpClient::AsyncHttpClient(boost::asio::io_context& io_context)
     : socket_(io_context),
+      buffer_(kBufferSize),
       timeout_seconds_(kMaxReceiveSeconds),
       deadline_(io_context) {
   resolver_.reset(new tcp::resolver(io_context));
@@ -165,21 +169,36 @@ void AsyncHttpClient::ReadHandler(boost::system::error_code ec,
     return;
   }
 
+  LOG_VERB("Socket async read handler.");
+
   if (ec || length == 0) {
     Stop();
+    LOG_ERRO("Socket read error.");
     response_handler_(response_, kSocketReadError, timed_out_);
     return;
   }
+
+  LOG_INFO("Read data, length: %d.", length);
+
+  bool content_length_parsed = response_parser_->content_length_parsed();
 
   // Parse the response piece just read.
   // If the content has been fully received, |finished()| will be true.
   if (!response_parser_->Parse(buffer_.data(), length)) {
     Stop();
+    LOG_ERRO("Failed to parse HTTP response.");
     response_handler_(response_, kHttpError, timed_out_);
     return;
   }
 
+  if (!content_length_parsed &&
+      response_parser_->content_length_parsed()) {
+    // Content length just has been parsed.
+    AdjustBufferSize(response_parser_->content_length(), &buffer_);
+  }
+
   if (response_parser_->finished()) {
+    LOG_INFO("Finished to read and parse HTTP response.");
     LOG_VERB("HTTP response:\n%s", response_->Dump(4, "> ").c_str());
     Stop();
     response_handler_(response_, kNoError, timed_out_);
@@ -199,11 +218,8 @@ void AsyncHttpClient::CheckDeadline() {
     // The deadline has passed.
     // The socket is closed so that any outstanding asynchronous operations
     // are canceled.
-    boost::system::error_code ignored_ec;
-    socket_.close(ignored_ec);
-
-    deadline_.expires_at(boost::posix_time::pos_infin);
-
+    LOG_WARN("HTTP client timed out.");
+    Stop();
     timed_out_ = true;
   }
 

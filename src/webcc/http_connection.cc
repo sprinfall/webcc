@@ -12,8 +12,9 @@
 namespace webcc {
 
 HttpConnection::HttpConnection(boost::asio::ip::tcp::socket socket,
-                         HttpRequestHandler* handler)
+                               HttpRequestHandler* handler)
     : socket_(std::move(socket)),
+      buffer_(kBufferSize),
       request_handler_(handler),
       request_parser_(&request_) {
 }
@@ -28,7 +29,7 @@ void HttpConnection::Close() {
 }
 
 void HttpConnection::SetResponseContent(std::string&& content,
-                                     const std::string& content_type) {
+                                        const std::string& content_type) {
   response_.SetContent(std::move(content));
   response_.SetContentType(content_type);
 }
@@ -47,7 +48,7 @@ void HttpConnection::AsyncRead() {
 }
 
 void HttpConnection::ReadHandler(boost::system::error_code ec,
-                              std::size_t length) {
+                                 std::size_t length) {
   if (ec) {
     if (ec != boost::asio::error::operation_aborted) {
       Close();
@@ -88,7 +89,7 @@ void HttpConnection::AsyncWrite() {
 // io_context.run), even though DoWrite() is invoked by worker threads. This is
 // ensured by Asio.
 void HttpConnection::WriteHandler(boost::system::error_code ec,
-                               std::size_t length) {
+                                  std::size_t length) {
   if (!ec) {
     LOG_INFO("Response has been sent back.");
 

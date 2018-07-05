@@ -18,11 +18,12 @@ class HttpParser {
 
   DELETE_COPY_AND_ASSIGN(HttpParser);
 
-  bool finished() const {
-    return finished_;
-  }
+  bool finished() const { return finished_; }
 
-  bool Parse(const char* data, std::size_t len);
+  bool content_length_parsed() const { return content_length_parsed_; }
+  std::size_t content_length() const { return content_length_; }
+
+  bool Parse(const char* data, std::size_t length);
 
  protected:
   virtual bool ParseStartLine(const std::string& line) = 0;
