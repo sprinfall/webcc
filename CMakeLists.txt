@@ -101,7 +101,7 @@ if(Boost_FOUND)
 endif()
 
 # For including its own headers as "webcc/http_client.h".
-include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR})
 
 if(WIN32)
     include_directories(${PROJECT_SOURCE_DIR}/third_party/win32/include)
@@ -116,23 +116,23 @@ if(WEBCC_ENABLE_SOAP)
 	include_directories(${PROJECT_SOURCE_DIR}/third_party/src)
 endif()
 
-add_subdirectory(src/webcc)
+add_subdirectory(webcc)
 
 if(WEBCC_BUILD_EXAMPLE)
-	add_subdirectory(${PROJECT_SOURCE_DIR}/example/http/client)
-	add_subdirectory(${PROJECT_SOURCE_DIR}/example/http/async_client)
+	add_subdirectory(${PROJECT_SOURCE_DIR}/example/http_hello_client)
+	add_subdirectory(${PROJECT_SOURCE_DIR}/example/http_hello_async_client)
 
 	# REST example needs jsoncpp to parse and create JSON.
 	add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/src/jsoncpp)
 	include_directories(${PROJECT_SOURCE_DIR}/third_party/src/jsoncpp)
 
-	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest/book_server)
-	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest/book_client)
-	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest/book_async_client)
+	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_book_server)
+	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_book_client)
+	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_book_async_client)
 
 	if(WEBCC_ENABLE_SOAP)
-		add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap/calc_server)
-		add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap/calc_client)
+		add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_calc_server)
+		add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_calc_client)
 	endif()
 endif()
 

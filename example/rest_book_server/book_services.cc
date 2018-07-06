@@ -1,7 +1,7 @@
-#include "book_services.h"
+#include "example/rest_book_server/book_services.h"
 
-#include <list>
 #include <iostream>
+#include <list>
 
 #include "boost/thread/thread.hpp"
 #include "json/json.h"

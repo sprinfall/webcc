@@ -1,9 +1,7 @@
 #include "webcc/rest_service_manager.h"
 #include "gtest/gtest.h"
 
-using namespace webcc;
-
-class TestRestService : public RestService {
+class TestRestService : public webcc::RestService {
 public:
   bool Handle(const std::string& http_method,
               const std::vector<std::string>& url_sub_matches,
@@ -15,10 +13,10 @@ public:
 };
 
 TEST(RestServiceManager, URL_RegexBasic) {
-  RestServiceManager service_manager;
+  webcc::RestServiceManager service_manager;
 
   {
-    RestServicePtr service = std::make_shared<TestRestService>();
+    webcc::RestServicePtr service = std::make_shared<TestRestService>();
 
     service_manager.AddService(service, "/instances/(\\d+)", true);
   }
@@ -26,7 +24,7 @@ TEST(RestServiceManager, URL_RegexBasic) {
   std::vector<std::string> sub_matches;
 
   std::string url = "/instances/12345";
-  RestServicePtr service = service_manager.GetService(url, &sub_matches);
+  webcc::RestServicePtr service = service_manager.GetService(url, &sub_matches);
 
   EXPECT_TRUE(!!service);
 
@@ -41,17 +39,16 @@ TEST(RestServiceManager, URL_RegexBasic) {
 }
 
 TEST(RestServiceManager, URL_NonRegex) {
-  RestServiceManager service_manager;
+  webcc::RestServiceManager service_manager;
 
   {
-    RestServicePtr service = std::make_shared<TestRestService>();
-
+    webcc::RestServicePtr service = std::make_shared<TestRestService>();
     service_manager.AddService(service, "/instances", false);
   }
 
   std::vector<std::string> sub_matches;
   std::string url = "/instances";
-  RestServicePtr service = service_manager.GetService(url, &sub_matches);
+  webcc::RestServicePtr service = service_manager.GetService(url, &sub_matches);
 
   EXPECT_TRUE(!!service);
   EXPECT_EQ(0, sub_matches.size());

@@ -13,8 +13,7 @@ public:
 
 private:
   bool GetParameters(const webcc::SoapRequest& soap_request,
-                     double* x,
-                     double* y);
+                     double* x, double* y);
 };
 
 #endif  // CALC_SERVICE_H_

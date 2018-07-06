@@ -1,4 +1,4 @@
-#include "calc_service.h"
+#include "example/soap_calc_server/calc_service.h"
 
 #include <functional>
 #include <string>
@@ -80,12 +80,10 @@ bool CalcService::Handle(const webcc::SoapRequest& soap_request,
 }
 
 bool CalcService::GetParameters(const webcc::SoapRequest& soap_request,
-                                double* x,
-                                double* y) {
+                                double* x, double* y) {
   try {
     *x = std::stod(soap_request.GetParameter("x"));
     *y = std::stod(soap_request.GetParameter("y"));
-
   } catch (const std::exception& e) {
     LOG_ERRO("Parameter cast error: %s", e.what());
     return false;

@@ -2,7 +2,7 @@
 
 #include "webcc/logger.h"
 
-#include "calc_client.h"
+#include "example/soap_calc_client/calc_client.h"
 
 int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);

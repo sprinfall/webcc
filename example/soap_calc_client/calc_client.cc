@@ -1,4 +1,4 @@
-#include "calc_client.h"
+#include "example/soap_calc_client/calc_client.h"
 
 #include <iostream>
 
@@ -73,8 +73,7 @@ bool CalcClient::Calc(const std::string& operation,
 
   // Error handling if any.
   if (error != webcc::kNoError) {
-    LOG_ERRO("Operation '%s' failed: %s",
-             operation.c_str(),
+    LOG_ERRO("Operation '%s' failed: %s", operation.c_str(),
              webcc::DescribeError(error));
     return false;
   }

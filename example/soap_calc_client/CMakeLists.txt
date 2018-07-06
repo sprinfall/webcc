@@ -1,4 +1,4 @@
-file(GLOB SRCS *.cc *.h)
+set(SRCS calc_client.cc calc_client.h main.cc)
 
 add_executable(soap_calc_client ${SRCS})
 

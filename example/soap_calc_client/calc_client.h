@@ -2,6 +2,7 @@
 #define CALC_CLIENT_H_
 
 #include <string>
+
 #include "webcc/soap_client.h"
 
 class CalcClient : public webcc::SoapClient {

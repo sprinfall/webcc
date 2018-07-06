@@ -1,4 +1,4 @@
-file(GLOB SRCS *.cc *.h)
+set(SRCS book_services.cc book_services.h main.cc)
 
 add_executable(rest_book_server ${SRCS})
 
