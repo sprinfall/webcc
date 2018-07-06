@@ -6,27 +6,31 @@ namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-// NOTE:
-// Field names are case-insensitive.
-// See: https://stackoverflow.com/a/5259004
+// NOTE: Field names are case-insensitive.
+//   See https://stackoverflow.com/a/5259004 for more details.
+const std::string kHost = "Host";
 const std::string kContentType = "Content-Type";
 const std::string kContentLength = "Content-Length";
-const std::string kSoapAction = "SOAPAction";
-const std::string kHost = "Host";
 
+#ifdef WEBCC_ENABLE_SOAP
+const std::string kSoapAction = "SOAPAction";
+#endif  // WEBCC_ENABLE_SOAP
+
+const std::string kTextJsonUtf8 = "text/json; charset=utf-8";
+
+#ifdef WEBCC_ENABLE_SOAP
 // According to www.w3.org when placing SOAP messages in HTTP bodies, the HTTP
 // Content-type header must be chosen as "application/soap+xml" [RFC 3902].
 // But in practice, many web servers cannot understand it.
 // See: https://www.w3.org/TR/2007/REC-soap12-part0-20070427/#L26854
 const std::string kTextXmlUtf8 = "text/xml; charset=utf-8";
+#endif  // WEBCC_ENABLE_SOAP
 
-const std::string kTextJsonUtf8 = "text/json; charset=utf-8";
-
-const std::string kHttpHead = "HEAD";
-const std::string kHttpGet = "GET";
-const std::string kHttpPost = "POST";
-const std::string kHttpPatch = "PATCH";
-const std::string kHttpPut = "PUT";
+const std::string kHttpHead   = "HEAD";
+const std::string kHttpGet    = "GET";
+const std::string kHttpPost   = "POST";
+const std::string kHttpPatch  = "PATCH";
+const std::string kHttpPut    = "PUT";
 const std::string kHttpDelete = "DELETE";
 
 // -----------------------------------------------------------------------------
@@ -65,35 +69,27 @@ Parameter::Parameter(const std::string& key, std::string&& value)
 }
 
 Parameter::Parameter(const std::string& key, int value)
-    : key_(key) {
-  value_ = std::to_string(value);
+    : key_(key), value_(std::to_string(value)) {
 }
 
 Parameter::Parameter(const std::string& key, double value)
-    : key_(key) {
-  value_ = std::to_string(value);
+    : key_(key), value_(std::to_string(value)) {
 }
 
 Parameter::Parameter(const std::string& key, bool value)
-    : key_(key) {
-  value_ = value ? "true" : "false";
+    : key_(key), value_(value ? "true" : "false") {
 }
 
 Parameter::Parameter(Parameter&& rhs)
-    : key_(std::move(rhs.key_)),
-      value_(std::move(rhs.value_)) {
+    : key_(std::move(rhs.key_)), value_(std::move(rhs.value_)) {
 }
 
 Parameter& Parameter::operator=(Parameter&& rhs) {
-  if (this != &rhs) {
+  if (&rhs != this) {
     key_ = std::move(rhs.key_);
     value_ = std::move(rhs.value_);
   }
   return *this;
-}
-
-std::string Parameter::ToString() const {
-  return key_ + "=" + value_;
 }
 
 }  // namespace webcc

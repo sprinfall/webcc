@@ -1,7 +1,5 @@
 #include "webcc/http_response_parser.h"
 
-#include "boost/lexical_cast.hpp"
-
 #include "webcc/logger.h"
 #include "webcc/http_response.h"
 
@@ -34,8 +32,8 @@ bool HttpResponseParser::ParseStartLine(const std::string& line) {
   std::string status_str = line.substr(off, pos - off);
 
   try {
-    response_->set_status(boost::lexical_cast<int>(status_str));
-  } catch (boost::bad_lexical_cast&) {
+    response_->set_status(std::stoi(status_str));
+  } catch (const std::exception&) {
     LOG_ERRO("Invalid HTTP status: %s", status_str.c_str());
     return false;
   }

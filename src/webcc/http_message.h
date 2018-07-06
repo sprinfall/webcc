@@ -10,8 +10,7 @@
 
 namespace webcc {
 
-class HttpHeader {
- public:
+struct HttpHeader {
   std::string name;
   std::string value;
 };
@@ -21,20 +20,15 @@ class HttpMessage {
  public:
   virtual ~HttpMessage() = default;
 
-  const std::string& start_line() const {
-    return start_line_;
-  }
+  const std::string& start_line() const { return start_line_; }
+
   void set_start_line(const std::string& start_line) {
     start_line_ = start_line;
   }
 
-  std::size_t content_length() const {
-    return content_length_;
-  }
+  std::size_t content_length() const { return content_length_; }
 
-  const std::string& content() const {
-    return content_;
-  }
+  const std::string& content() const { return content_; }
 
   void SetHeader(const std::string& name, const std::string& value);
 

@@ -40,8 +40,6 @@ class HttpParser {
   // The result HTTP message.
   HttpMessage* message_;
 
-  Error error_;
-
   // Data waiting to be parsed.
   std::string pending_data_;
 

@@ -53,8 +53,7 @@ class RestListService : public RestService {
  protected:
   RestListService() = default;
 
-  virtual bool Get(const UrlQuery& query,
-                   std::string* response_content) {
+  virtual bool Get(const UrlQuery& query, std::string* response_content) {
     return false;
   }
 

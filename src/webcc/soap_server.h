@@ -12,7 +12,7 @@ namespace webcc {
 
 class SoapServer : public HttpServer {
  public:
-  SoapServer(unsigned short port, std::size_t workers)
+  SoapServer(std::uint16_t port, std::size_t workers)
       : HttpServer(port, workers) {
   }
 

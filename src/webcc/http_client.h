@@ -19,7 +19,6 @@ namespace webcc {
 class HttpClient {
  public:
   HttpClient();
-
   ~HttpClient() = default;
 
   DELETE_COPY_AND_ASSIGN(HttpClient);
@@ -31,9 +30,9 @@ class HttpClient {
 
   HttpResponsePtr response() const { return response_; }
 
-  Error error() const { return error_; }
-
   bool timed_out() const { return timed_out_; }
+
+  Error error() const { return error_; }
 
   // Connect to server, send request, wait until response is received.
   bool Request(const HttpRequest& request);
@@ -53,7 +52,6 @@ class HttpClient {
   void CheckDeadline();
 
   boost::asio::io_context io_context_;
-
   boost::asio::ip::tcp::socket socket_;
 
   std::vector<char> buffer_;
@@ -61,18 +59,18 @@ class HttpClient {
   HttpResponsePtr response_;
   std::unique_ptr<HttpResponseParser> response_parser_;
 
-  Error error_ = kNoError;
-
-  bool stopped_ = false;
-
-  // If the error was caused by timeout or not.
-  bool timed_out_ = false;
+  boost::asio::deadline_timer deadline_;
 
   // Maximum seconds to wait before the client cancels the operation.
   // Only for receiving response from server.
   int timeout_seconds_;
 
-  boost::asio::deadline_timer deadline_;
+  bool stopped_;
+
+  // If the error was caused by timeout or not.
+  bool timed_out_;
+
+  Error error_;
 };
 
 }  // namespace webcc

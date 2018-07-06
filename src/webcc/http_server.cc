@@ -12,7 +12,7 @@ using tcp = boost::asio::ip::tcp;
 
 namespace webcc {
 
-HttpServer::HttpServer(unsigned short port, std::size_t workers)
+HttpServer::HttpServer(std::uint16_t port, std::size_t workers)
     : signals_(io_context_) , workers_(workers) {
   // Register to handle the signals that indicate when the server should exit.
   // It is safe to register for the same signal multiple times in a program,

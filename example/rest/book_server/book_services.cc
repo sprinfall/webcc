@@ -3,7 +3,6 @@
 #include <list>
 #include <iostream>
 
-#include "boost/lexical_cast.hpp"
 #include "boost/thread/thread.hpp"
 #include "json/json.h"
 #include "webcc/logger.h"

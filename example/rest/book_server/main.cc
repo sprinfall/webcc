@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
 
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
-  unsigned short port = std::atoi(argv[1]);
+  std::uint16_t port = static_cast<std::uint16_t>(std::atoi(argv[1]));
 
   int sleep_seconds = 0;
   if (argc >= 3) {
@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
 
     server.Run();
 
-  } catch (std::exception& e) {
+  } catch (const std::exception& e) {
     std::cerr << "Exception: " << e.what() << std::endl;
     return 1;
   }

@@ -8,18 +8,21 @@
 #include <cstring>  // for strrchr()
 #include <string>
 
-#define WEBCC_VERB 0
+// Log levels.
+#define WEBCC_VERB 0  // Similar to DEBUG in other projects.
 #define WEBCC_INFO 1
 #define WEBCC_WARN 2
 #define WEBCC_ERRO 3
 #define WEBCC_FATA 4
 
 // Default log level.
+// You have to define a proper log level in CMakeLists.txt, e.g.,
+//   add_definitions(-DWEBCC_LOG_LEVEL=2)
 #ifndef WEBCC_LOG_LEVEL
 #define WEBCC_LOG_LEVEL WEBCC_WARN
 #endif
 
-#define WEBCC_LOG_FILE "webcc.log"
+#define WEBCC_LOG_FILE_NAME "webcc.log"
 
 namespace webcc {
 
@@ -129,7 +132,7 @@ void LogWrite(int level, const char* file, int line, const char* format, ...);
 
 #else  // WEBCC_ENABLE_LOG == 0
 
-#define WEBCC_LOG_INIT(modes)
+#define WEBCC_LOG_INIT(dir, modes)
 
 #if (defined(WIN32) || defined(_WIN64))
 #define LOG_VERB(format, ...)

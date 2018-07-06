@@ -3,16 +3,18 @@
 
 #include <string>
 
-#include "webcc/globals.h"
 #include "webcc/async_http_client.h"
 
 namespace webcc {
 
 class AsyncRestClient {
  public:
-  AsyncRestClient(boost::asio::io_context& io_context,
-                  const std::string& host, const std::string& port)
-      : io_context_(io_context), host_(host), port_(port) {
+  AsyncRestClient(boost::asio::io_context& io_context,  // NOLINT
+                  const std::string& host,
+                  const std::string& port);
+
+  void set_timeout_seconds(int timeout_seconds) {
+    timeout_seconds_ = timeout_seconds;
   }
 
   void Get(const std::string& url,
@@ -50,9 +52,14 @@ class AsyncRestClient {
                HttpResponseHandler response_handler);
 
   boost::asio::io_context& io_context_;
+
   std::string host_;
   std::string port_;
+
   HttpResponseHandler response_handler_;
+
+  // Timeout in seconds; only effective when > 0.
+  int timeout_seconds_;
 };
 
 }  // namespace webcc

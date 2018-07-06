@@ -1,6 +1,7 @@
 #include "calc_client.h"
+
 #include <iostream>
-#include "boost/lexical_cast.hpp"
+
 #include "webcc/logger.h"
 
 // Set to 0 to test our own calculator server created with webcc.
@@ -80,8 +81,8 @@ bool CalcClient::Calc(const std::string& operation,
 
   // Convert the result from string to double.
   try {
-    *result = boost::lexical_cast<double>(result_str);
-  } catch (boost::bad_lexical_cast&) {
+    *result = std::stod(result_str);
+  } catch (const std::exception&) {
     return false;
   }
 

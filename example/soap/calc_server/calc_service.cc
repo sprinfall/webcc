@@ -1,9 +1,10 @@
 #include "calc_service.h"
 
+#include <functional>
+#include <string>
+
 // Sleep several seconds for the client to test timeout control.
 #define SLEEP_FOR_TIMEOUT_TEST 0
-
-#include "boost/lexical_cast.hpp"
 
 #if SLEEP_FOR_TIMEOUT_TEST
 #include "boost/thread/thread.hpp"
@@ -82,10 +83,10 @@ bool CalcService::GetParameters(const webcc::SoapRequest& soap_request,
                                 double* x,
                                 double* y) {
   try {
-    *x = boost::lexical_cast<double>(soap_request.GetParameter("x"));
-    *y = boost::lexical_cast<double>(soap_request.GetParameter("y"));
+    *x = std::stod(soap_request.GetParameter("x"));
+    *y = std::stod(soap_request.GetParameter("y"));
 
-  } catch (boost::bad_lexical_cast& e) {
+  } catch (const std::exception& e) {
     LOG_ERRO("Parameter cast error: %s", e.what());
     return false;
   }

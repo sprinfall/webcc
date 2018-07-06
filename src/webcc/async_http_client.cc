@@ -18,18 +18,21 @@ extern void AdjustBufferSize(std::size_t content_length,
 
 AsyncHttpClient::AsyncHttpClient(boost::asio::io_context& io_context)
     : socket_(io_context),
+      resolver_(new tcp::resolver(io_context)),
       buffer_(kBufferSize),
+      deadline_(io_context),
       timeout_seconds_(kMaxReceiveSeconds),
-      deadline_(io_context) {
-  resolver_.reset(new tcp::resolver(io_context));
-  response_.reset(new HttpResponse());
-  response_parser_.reset(new HttpResponseParser(response_.get()));
+      stopped_(false),
+      timed_out_(false) {
 }
 
 Error AsyncHttpClient::Request(std::shared_ptr<HttpRequest> request,
                                HttpResponseHandler response_handler) {
   assert(request);
   assert(response_handler);
+
+  response_.reset(new HttpResponse());
+  response_parser_.reset(new HttpResponseParser(response_.get()));
 
   LOG_VERB("HTTP request:\n%s", request->Dump(4, "> ").c_str());
 
@@ -53,8 +56,10 @@ Error AsyncHttpClient::Request(std::shared_ptr<HttpRequest> request,
 
 void AsyncHttpClient::Stop() {
   stopped_ = true;
+
   boost::system::error_code ignored_ec;
   socket_.close(ignored_ec);
+
   deadline_.cancel();
 }
 
@@ -72,7 +77,8 @@ void AsyncHttpClient::ResolveHandler(boost::system::error_code ec,
     // Start the deadline actor. You will note that we're not setting any
     // particular deadline here. Instead, the connect and input actors will
     // update the deadline prior to each asynchronous operation.
-    deadline_.async_wait(std::bind(&AsyncHttpClient::CheckDeadline, this));
+    deadline_.async_wait(std::bind(&AsyncHttpClient::CheckDeadline,
+                                   shared_from_this()));
   }
 }
 
@@ -110,7 +116,6 @@ void AsyncHttpClient::ConnectHandler(boost::system::error_code ec,
     // of the asynchronous operation. If the socket is closed at this time then
     // the timeout handler must have run first.
     LOG_WARN("Connect timed out.");
-
     // Try the next available endpoint.
     AsyncConnect(++endpoint_iter);
   } else if (ec) {    
@@ -118,7 +123,6 @@ void AsyncHttpClient::ConnectHandler(boost::system::error_code ec,
     // We need to close the socket used in the previous connection attempt
     // before starting a new one.
     socket_.close();
-
     // Try the next available endpoint.
     AsyncConnect(++endpoint_iter);
   } else {

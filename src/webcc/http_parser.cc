@@ -1,7 +1,6 @@
 #include "webcc/http_parser.h"
 
 #include "boost/algorithm/string.hpp"
-#include "boost/lexical_cast.hpp"
 
 #include "webcc/http_message.h"
 #include "webcc/logger.h"
@@ -111,23 +110,24 @@ void HttpParser::ParseContentLength(const std::string& line) {
     std::string value = line.substr(pos);
 
     try {
-      content_length_ = boost::lexical_cast<std::size_t>(value);
-      LOG_INFO("Content length: %d", content_length_);
-
-      // Reserve memory to avoid frequent reallocation when append.
-      try {
-        content_.reserve(content_length_);
-      } catch (std::exception& e) {
-        LOG_ERRO("Failed to reserve content memory: %s.", e.what());
-      }
-    } catch (boost::bad_lexical_cast&) {
+      content_length_ = static_cast<std::size_t>(std::stoul(value));
+    } catch (const std::exception& e) {
       LOG_ERRO("Invalid content length: %s.", value.c_str());
+    }
+
+    LOG_INFO("Content length: %u.", content_length_);
+
+    try {
+      // Reserve memory to avoid frequent reallocation when append.
+      content_.reserve(content_length_);
+    } catch (const std::exception& e) {
+      LOG_ERRO("Failed to reserve content memory: %s.", e.what());
     }
   }
 }
 
 void HttpParser::Finish() {
-  // Move temp content to message.
+  // Move content to message.
   message_->SetContent(std::move(content_));
   finished_ = true;
 }

@@ -5,10 +5,19 @@
 
 namespace webcc {
 
+RestClient::RestClient(const std::string& host, const std::string& port)
+    : host_(host),
+      port_(port),
+      timeout_seconds_(0),
+      timed_out_(false),
+      error_(kNoError) {
+}
+
 bool RestClient::Request(const std::string& method,
                          const std::string& url,
                          const std::string& content) {
   response_.reset();
+
   error_ = kNoError;
   timed_out_ = false;
 

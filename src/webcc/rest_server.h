@@ -13,7 +13,7 @@ namespace webcc {
 
 class RestServer : public HttpServer {
  public:
-  RestServer(unsigned short port, std::size_t workers)
+  RestServer(std::uint16_t port, std::size_t workers)
       : HttpServer(port, workers) {
   }
 

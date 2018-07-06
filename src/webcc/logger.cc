@@ -56,7 +56,7 @@ namespace bfs = boost::filesystem;
 
 static bfs::path InitLogPath(const std::string& dir) {
   if (dir.empty()) {
-    return bfs::current_path() / WEBCC_LOG_FILE;
+    return bfs::current_path() / WEBCC_LOG_FILE_NAME;
   }
 
   bfs::path path = bfs::path(dir);
@@ -67,7 +67,7 @@ static bfs::path InitLogPath(const std::string& dir) {
     }
   }
 
-  path /= WEBCC_LOG_FILE;
+  path /= WEBCC_LOG_FILE_NAME;
   return path;
 }
 

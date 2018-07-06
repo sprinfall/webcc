@@ -16,6 +16,7 @@
 
 namespace webcc {
 
+// Request handler/callback.
 typedef std::function<void(HttpResponsePtr, Error, bool)> HttpResponseHandler;
 
 class AsyncHttpClient : public std::enable_shared_from_this<AsyncHttpClient> {
@@ -57,29 +58,26 @@ class AsyncHttpClient : public std::enable_shared_from_this<AsyncHttpClient> {
 
   void CheckDeadline();
 
-  bool stopped_ = false;
-  bool timed_out_ = false;
-
   tcp::socket socket_;
-
-  std::shared_ptr<HttpRequest> request_;
-
   std::unique_ptr<tcp::resolver> resolver_;
   tcp::resolver::results_type endpoints_;
 
+  std::shared_ptr<HttpRequest> request_;
   std::vector<char> buffer_;
 
-  std::unique_ptr<HttpResponseParser> response_parser_;
-
   HttpResponsePtr response_;
+  std::unique_ptr<HttpResponseParser> response_parser_;
   HttpResponseHandler response_handler_;
+
+  // Timer for the timeout control.
+  boost::asio::deadline_timer deadline_;
 
   // Maximum seconds to wait before the client cancels the operation.
   // Only for receiving response from server.
   int timeout_seconds_;
 
-  // Timer for the timeout control.
-  boost::asio::deadline_timer deadline_;
+  bool stopped_;
+  bool timed_out_;
 };
 
 typedef std::shared_ptr<AsyncHttpClient> HttpAsyncClientPtr;

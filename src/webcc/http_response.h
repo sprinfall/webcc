@@ -13,16 +13,13 @@ namespace webcc {
 
 class HttpResponse : public HttpMessage {
  public:
-  HttpResponse() = default;
+  HttpResponse() : status_(HttpStatus::kOK) {
+  }
+
   ~HttpResponse() override = default;
 
-  int status() const {
-    return status_;
-  }
-
-  void set_status(int status) {
-    status_ = status;
-  }
+  int status() const { return status_; }
+  void set_status(int status) { status_ = status; }
 
   // Convert the response into a vector of buffers. The buffers do not own the
   // underlying memory blocks, therefore the response object must remain valid
@@ -33,7 +30,7 @@ class HttpResponse : public HttpMessage {
   static HttpResponse Fault(HttpStatus::Enum status);
 
  private:
-  int status_ = HttpStatus::kOK;
+  int status_;
 };
 
 typedef std::shared_ptr<HttpResponse> HttpResponsePtr;

@@ -18,7 +18,8 @@ class SoapClient {
   bool timed_out() const { return timed_out_; }
 
  protected:
-  SoapClient() = default;
+  SoapClient() : timeout_seconds_(0), timed_out_(false) {
+  }
 
   // A generic wrapper to make a call.
   // NOTE: The parameters should be movable.
@@ -27,10 +28,10 @@ class SoapClient {
              std::string* result);
 
   // Timeout in seconds; only effective when > 0.
-  int timeout_seconds_ = 0;
+  int timeout_seconds_;
 
   // If the error was caused by timeout or not.
-  bool timed_out_ = false;
+  bool timed_out_;
 
   SoapNamespace soapenv_ns_;  // SOAP envelope namespace.
   SoapNamespace service_ns_;  // Namespace for your web service.

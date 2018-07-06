@@ -10,8 +10,6 @@
 #include "boost/lambda/lambda.hpp"
 
 #include "webcc/logger.h"
-#include "webcc/http_request.h"
-#include "webcc/http_response.h"
 
 // NOTE:
 // The timeout control is inspired by the following Asio example:
@@ -34,17 +32,20 @@ void AdjustBufferSize(std::size_t content_length, std::vector<char>* buffer) {
   std::size_t min_buffer_size = content_length / kMaxTimes;
   if (min_buffer_size > buffer->size()) {
     buffer->resize(std::min(min_buffer_size, kMaxBufferSize));
-    LOG_INFO("Resize read buffer to %d.", buffer->size());
+    LOG_INFO("Resize read buffer to %u.", buffer->size());
   } else {
-    LOG_INFO("Keep the current buffer size (%d).", buffer->size());
+    LOG_INFO("Keep the current buffer size: %u.", buffer->size());
   }
 }
 
 HttpClient::HttpClient()
     : socket_(io_context_),
       buffer_(kBufferSize),
+      deadline_(io_context_),
       timeout_seconds_(kMaxReceiveSeconds),
-      deadline_(io_context_) {
+      stopped_(false),
+      timed_out_(false),
+      error_(kNoError) {
 }
 
 bool HttpClient::Request(const HttpRequest& request) {
@@ -189,7 +190,7 @@ void HttpClient::DoReadResponse(Error* error) {
           return;
         }
 
-        LOG_INFO("Read data, length: %d.", length);
+        LOG_INFO("Read data, length: %u.", length);
 
         bool content_length_parsed = response_parser_->content_length_parsed();
 

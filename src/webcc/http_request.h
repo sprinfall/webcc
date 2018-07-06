@@ -19,29 +19,14 @@ class HttpRequest : public HttpMessage {
 
   virtual ~HttpRequest() = default;
 
-  const std::string& method() const {
-    return method_;
-  }
+  const std::string& method() const { return method_; }
+  void set_method(const std::string& method) { method_ = method; }
 
-  void set_method(const std::string& method) {
-    method_ = method;
-  }
+  const std::string& url() const { return url_; }
+  void set_url(const std::string& url) { url_ = url; }
 
-  const std::string& url() const {
-    return url_;
-  }
-
-  void set_url(const std::string& url) {
-    url_ = url;
-  }
-
-  const std::string& host() const {
-    return host_;
-  }
-
-  const std::string& port() const {
-    return port_;
-  }
+  const std::string& host() const { return host_; }
+  const std::string& port() const { return port_; }
 
   // Set host name and port number.
   // The |host| is a descriptive name or a numeric IP address. The |port| is

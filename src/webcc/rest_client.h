@@ -11,9 +11,11 @@ namespace webcc {
 
 class RestClient {
  public:
-  RestClient(const std::string& host, const std::string& port)
-      : host_(host), port_(port) {
-  }
+  RestClient(const std::string& host, const std::string& port);
+
+  ~RestClient() = default;
+
+  DELETE_COPY_AND_ASSIGN(RestClient);
 
   void set_timeout_seconds(int timeout_seconds) {
     timeout_seconds_ = timeout_seconds;
@@ -31,27 +33,27 @@ class RestClient {
     return response_->content();
   }
 
-  Error error() const { return error_; }
-
   bool timed_out() const { return timed_out_; }
 
-  bool Get(const std::string& url) {
+  Error error() const { return error_; }
+
+  inline bool Get(const std::string& url) {
     return Request(kHttpGet, url, "");
   }
 
-  bool Post(const std::string& url, const std::string& content) {
+  inline bool Post(const std::string& url, const std::string& content) {
     return Request(kHttpPost, url, content);
   }
 
-  bool Put(const std::string& url, const std::string& content) {
+  inline bool Put(const std::string& url, const std::string& content) {
     return Request(kHttpPut, url, content);
   }
 
-  bool Patch(const std::string& url, const std::string& content) {
+  inline bool Patch(const std::string& url, const std::string& content) {
     return Request(kHttpPatch, url, content);
   }
 
-  bool Delete(const std::string& url) {
+  inline bool Delete(const std::string& url) {
     return Request(kHttpDelete, url, "");
   }
 
@@ -64,14 +66,14 @@ class RestClient {
   std::string port_;
 
   // Timeout in seconds; only effective when > 0.
-  int timeout_seconds_ = 0;
+  int timeout_seconds_;
 
   HttpResponsePtr response_;
 
-  Error error_ = kNoError;
-
   // If the error was caused by timeout or not.
-  bool timed_out_ = false;
+  bool timed_out_;
+
+  Error error_;
 };
 
 }  // namespace webcc

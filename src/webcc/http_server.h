@@ -21,7 +21,7 @@ class HttpRequestHandler;
 // NOTE: Only support IPv4.
 class HttpServer {
  public:
-  HttpServer(unsigned short port, std::size_t workers);
+  HttpServer(std::uint16_t port, std::size_t workers);
 
   virtual ~HttpServer() = default;
 

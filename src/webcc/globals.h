@@ -23,17 +23,24 @@ const std::size_t kBufferSize = 1024;
 const std::size_t kInvalidLength = static_cast<std::size_t>(-1);
 
 // Timeout seconds.
+// TODO
 const int kMaxConnectSeconds = 10;
-const int kMaxSendSeconds = 10;
+const int kMaxSendSeconds = 30;
 const int kMaxReceiveSeconds = 30;
 
+extern const std::string kHost;
 extern const std::string kContentType;
 extern const std::string kContentLength;
-extern const std::string kSoapAction;
-extern const std::string kHost;
 
-extern const std::string kTextXmlUtf8;
+#ifdef WEBCC_ENABLE_SOAP
+extern const std::string kSoapAction;
+#endif  // WEBCC_ENABLE_SOAP
+
 extern const std::string kTextJsonUtf8;
+
+#ifdef WEBCC_ENABLE_SOAP
+extern const std::string kTextXmlUtf8;
+#endif  // WEBCC_ENABLE_SOAP
 
 // HTTP methods (verbs) in string ("HEAD", "GET", etc.).
 // NOTE: Don't use enum to avoid converting back and forth.
@@ -99,24 +106,15 @@ class Parameter {
   // Use "= default" if drop the support of VS 2013.
   Parameter& operator=(Parameter&& rhs);
 
-  const std::string& key() const {
-    return key_;
-  }
+  const std::string& key() const { return key_; }
+  const std::string& value() const { return value_; }
 
-  const std::string& value() const {
-    return value_;
-  }
+  const char* c_key() const { return key_.c_str(); }
+  const char* c_value() const { return value_.c_str(); }
 
-  const char* c_key() const {
-    return key_.c_str();
+  std::string ToString() const {
+    return key_ + "=" + value_;
   }
-
-  const char* c_value() const {
-    return value_.c_str();
-  }
-
-  // Return "key=value" string.
-  std::string ToString() const;
 
  private:
   std::string key_;

@@ -91,7 +91,7 @@ void HttpConnection::AsyncWrite() {
 void HttpConnection::WriteHandler(boost::system::error_code ec,
                                   std::size_t length) {
   if (!ec) {
-    LOG_INFO("Response has been sent back.");
+    LOG_INFO("Response has been sent back, length: %u.", length);
 
     // Initiate graceful connection closure.
     boost::system::error_code ec;

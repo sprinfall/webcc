@@ -18,7 +18,7 @@ class HttpRequestHandler;
 
 class HttpConnection : public std::enable_shared_from_this<HttpConnection> {
  public:
-  HttpConnection(boost::asio::ip::tcp::socket socket,
+  HttpConnection(boost::asio::ip::tcp::socket socket,  // Will be moved
                  HttpRequestHandler* handler);
 
   ~HttpConnection() = default;
