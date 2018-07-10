@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "webcc/logger.h"
 #include "webcc/http_client.h"
+#include "webcc/logger.h"
 
 // In order to test this client, create a file index.html whose content is
 // simply "Hello, World!", then start a HTTP server with Python 3:
@@ -10,21 +10,21 @@
 
 void Test() {
   webcc::HttpRequest request;
-
   request.set_method(webcc::kHttpGet);
   request.set_url("/index.html");
   request.SetHost("localhost", "8000");
-
-  request.Build();
-
-  webcc::HttpResponse response;
+  request.UpdateStartLine();
 
   webcc::HttpClient client;
-  if (!client.Request(request)) {
-    return;
+  if (client.Request(request)) {
+    std::cout << client.response()->content() << std::endl;
+  } else {
+    std::cout << webcc::DescribeError(client.error());
+    if (client.timed_out()) {
+      std::cout << " (timed out)";
+    }
+    std::cout << std::endl;
   }
-
-  std::cout << response.content() << std::endl;
 }
 
 int main() {

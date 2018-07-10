@@ -2,8 +2,8 @@
 
 #include "json/json.h"
 
-#include "webcc/logger.h"
 #include "webcc/async_rest_client.h"
+#include "webcc/logger.h"
 
 // -----------------------------------------------------------------------------
 
@@ -118,7 +118,11 @@ int main(int argc, char* argv[]) {
     if (error == webcc::kNoError) {
       std::cout << response->content() << std::endl;
     } else {
-      std::cout << webcc::DescribeError(error) << std::endl;
+      std::cout << webcc::DescribeError(error);
+      if (timed_out) {
+        std::cout << " (timed out)";
+      }
+      std::cout << std::endl;
     }
   };
 

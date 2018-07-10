@@ -17,6 +17,8 @@ namespace webcc {
 // -----------------------------------------------------------------------------
 // Constants
 
+const char* const CRLF = "\r\n";
+
 // Default buffer size for socket reading.
 const std::size_t kBufferSize = 1024;
 

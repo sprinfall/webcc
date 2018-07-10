@@ -33,7 +33,7 @@ bool HttpParser::Parse(const char* data, std::size_t length) {
   std::size_t off = 0;
 
   while (true) {
-    std::size_t pos = pending_data_.find("\r\n", off);
+    std::size_t pos = pending_data_.find(CRLF, off);
     if (pos == std::string::npos) {
       break;
     }
@@ -48,6 +48,7 @@ bool HttpParser::Parse(const char* data, std::size_t length) {
 
     if (!start_line_parsed_) {
       start_line_parsed_ = true;
+      message_->set_start_line(line + CRLF);
       if (!ParseStartLine(line)) {
         return false;
       }
@@ -111,7 +112,7 @@ void HttpParser::ParseContentLength(const std::string& line) {
 
     try {
       content_length_ = static_cast<std::size_t>(std::stoul(value));
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
       LOG_ERRO("Invalid content length: %s.", value.c_str());
     }
 

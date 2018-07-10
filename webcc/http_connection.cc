@@ -24,8 +24,8 @@ void HttpConnection::Start() {
 }
 
 void HttpConnection::Close() {
-  boost::system::error_code ec;
-  socket_.close(ec);
+  boost::system::error_code ignored_ec;
+  socket_.close(ignored_ec);
 }
 
 void HttpConnection::SetResponseContent(std::string&& content,
@@ -36,6 +36,7 @@ void HttpConnection::SetResponseContent(std::string&& content,
 
 void HttpConnection::SendResponse(HttpStatus::Enum status) {
   response_.set_status(status);
+  response_.UpdateStartLine();
   AsyncWrite();
 }
 
@@ -58,6 +59,7 @@ void HttpConnection::ReadHandler(boost::system::error_code ec,
 
   if (!request_parser_.Parse(buffer_.data(), length)) {
     // Bad request.
+    LOG_ERRO("Failed to parse HTTP request.");
     response_ = HttpResponse::Fault(HttpStatus::kBadRequest);
     AsyncWrite();
     return;
@@ -69,13 +71,16 @@ void HttpConnection::ReadHandler(boost::system::error_code ec,
     return;
   }
 
+  LOG_VERB("HTTP request:\n%s", request_.Dump(4, "> ").c_str());
+
   // Enqueue this connection.
   // Some worker thread will handle it later.
-  // And DoWrite() will be called in the worker thread.
   request_handler_->Enqueue(shared_from_this());
 }
 
 void HttpConnection::AsyncWrite() {
+  LOG_VERB("HTTP response:\n%s", response_.Dump(4, "> ").c_str());
+
   boost::asio::async_write(socket_,
                            response_.ToBuffers(),
                            std::bind(&HttpConnection::WriteHandler,
@@ -86,8 +91,8 @@ void HttpConnection::AsyncWrite() {
 
 // NOTE:
 // This write handler will be called from main thread (the thread calling
-// io_context.run), even though DoWrite() is invoked by worker threads. This is
-// ensured by Asio.
+// io_context.run), even though AsyncWrite() is invoked by worker threads.
+// This is ensured by Asio.
 void HttpConnection::WriteHandler(boost::system::error_code ec,
                                   std::size_t length) {
   if (!ec) {

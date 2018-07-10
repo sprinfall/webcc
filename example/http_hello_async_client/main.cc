@@ -2,8 +2,8 @@
 
 #include "boost/asio/io_context.hpp"
 
-#include "webcc/logger.h"
 #include "webcc/async_http_client.h"
+#include "webcc/logger.h"
 
 // In order to test this client, create a file index.html whose content is
 // simply "Hello, World!", then start a HTTP server with Python 3:
@@ -11,13 +11,12 @@
 // The default port number should be 8000.
 
 void Test(boost::asio::io_context& ioc) {
-  std::shared_ptr<webcc::HttpRequest> request(new webcc::HttpRequest());
+  webcc::HttpRequestPtr request(new webcc::HttpRequest());
 
   request->set_method(webcc::kHttpGet);
   request->set_url("/index.html");
   request->SetHost("localhost", "8000");
-
-  request->Build();
+  request->UpdateStartLine();
 
   webcc::HttpAsyncClientPtr client(new webcc::AsyncHttpClient(ioc));
 

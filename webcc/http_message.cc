@@ -6,6 +6,17 @@
 
 namespace webcc {
 
+// -----------------------------------------------------------------------------
+
+namespace misc_strings {
+
+const char NAME_VALUE_SEPARATOR[] = { ':', ' ' };
+const char CRLF[] = { '\r', '\n' };
+
+}  // misc_strings
+
+// -----------------------------------------------------------------------------
+
 void HttpMessage::SetHeader(const std::string& name, const std::string& value) {
   for (HttpHeader& h : headers_) {
     if (h.name == name) {
@@ -15,6 +26,30 @@ void HttpMessage::SetHeader(const std::string& name, const std::string& value) {
   }
 
   headers_.push_back({ name, value });
+}
+
+// ATTENTION: The buffers don't hold the memory!
+std::vector<boost::asio::const_buffer> HttpMessage::ToBuffers() const {
+  assert(!start_line_.empty());
+
+  std::vector<boost::asio::const_buffer> buffers;
+
+  buffers.push_back(boost::asio::buffer(start_line_));
+
+  for (const HttpHeader& h : headers_) {
+    buffers.push_back(boost::asio::buffer(h.name));
+    buffers.push_back(boost::asio::buffer(misc_strings::NAME_VALUE_SEPARATOR));
+    buffers.push_back(boost::asio::buffer(h.value));
+    buffers.push_back(boost::asio::buffer(misc_strings::CRLF));
+  }
+
+  buffers.push_back(boost::asio::buffer(misc_strings::CRLF));
+
+  if (content_length_ > 0) {
+    buffers.push_back(boost::asio::buffer(content_));
+  }
+
+  return buffers;
 }
 
 void HttpMessage::Dump(std::ostream& os, std::size_t indent,
@@ -38,7 +73,7 @@ void HttpMessage::Dump(std::ostream& os, std::size_t indent,
       os << content_ << std::endl;
     } else {
       std::vector<std::string> splitted;
-      boost::split(splitted, content_, boost::is_any_of("\r\n"));
+      boost::split(splitted, content_, boost::is_any_of(CRLF));
       for (const std::string& line : splitted) {
         os << indent_str << line << std::endl;
       }

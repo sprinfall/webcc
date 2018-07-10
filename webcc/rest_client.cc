@@ -31,7 +31,7 @@ bool RestClient::Request(const std::string& method,
     request.SetContent(content);
   }
 
-  request.Build();
+  request.UpdateStartLine();
 
   HttpClient http_client;
 

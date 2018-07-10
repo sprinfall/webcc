@@ -16,75 +16,47 @@ const std::string INTERNAL_SERVER_ERROR =
 const std::string NOT_IMPLEMENTED = "HTTP/1.1 501 Not Implemented\r\n";
 const std::string SERVICE_UNAVAILABLE = "HTTP/1.1 503 Service Unavailable\r\n";
 
-boost::asio::const_buffer ToBuffer(int status) {
+const std::string& ToString(int status) {
   switch (status) {
     case HttpStatus::kOK:
-      return boost::asio::buffer(OK);
+      return OK;
 
     case HttpStatus::kCreated:
-      return boost::asio::buffer(CREATED);
+      return CREATED;
 
     case HttpStatus::kAccepted:
-      return boost::asio::buffer(ACCEPTED);
+      return ACCEPTED;
 
     case HttpStatus::kNoContent:
-      return boost::asio::buffer(NO_CONTENT);
+      return NO_CONTENT;
 
     case HttpStatus::kNotModified:
-      return boost::asio::buffer(NOT_MODIFIED);
+      return NOT_MODIFIED;
 
     case HttpStatus::kBadRequest:
-      return boost::asio::buffer(BAD_REQUEST);
+      return BAD_REQUEST;
 
     case HttpStatus::kNotFound:
-      return boost::asio::buffer(NOT_FOUND);
+      return NOT_FOUND;
 
     case HttpStatus::InternalServerError:
-      return boost::asio::buffer(INTERNAL_SERVER_ERROR);
+      return INTERNAL_SERVER_ERROR;
 
     case HttpStatus::kNotImplemented:
-      return boost::asio::buffer(NOT_IMPLEMENTED);
+      return NOT_IMPLEMENTED;
 
     case HttpStatus::kServiceUnavailable:
-      return boost::asio::buffer(SERVICE_UNAVAILABLE);
+      return SERVICE_UNAVAILABLE;
 
     default:
-      return boost::asio::buffer(NOT_IMPLEMENTED);
+      return NOT_IMPLEMENTED;
   }
 }
 
 }  // namespace status_strings
 
-namespace misc_strings {
-
-const char NAME_VALUE_SEPARATOR[] = { ':', ' ' };
-const char CRLF[] = { '\r', '\n' };
-
-}  // misc_strings
-
-// ATTENTION: The buffers don't hold the memory!
-std::vector<boost::asio::const_buffer> HttpResponse::ToBuffers() const {
-  std::vector<boost::asio::const_buffer> buffers;
-
-  // Status line
-  buffers.push_back(status_strings::ToBuffer(status_));
-
-  // Header fields (optional)
-  for (const HttpHeader& h : headers_) {
-    buffers.push_back(boost::asio::buffer(h.name));
-    buffers.push_back(boost::asio::buffer(misc_strings::NAME_VALUE_SEPARATOR));
-    buffers.push_back(boost::asio::buffer(h.value));
-    buffers.push_back(boost::asio::buffer(misc_strings::CRLF));
-  }
-
-  buffers.push_back(boost::asio::buffer(misc_strings::CRLF));
-
-  // Content (optional)
-  if (!content_.empty()) {
-    buffers.push_back(boost::asio::buffer(content_));
-  }
-
-  return buffers;
+void HttpResponse::UpdateStartLine() {
+  start_line_ = status_strings::ToString(status_);
 }
 
 HttpResponse HttpResponse::Fault(HttpStatus::Enum status) {
@@ -92,6 +64,7 @@ HttpResponse HttpResponse::Fault(HttpStatus::Enum status) {
 
   HttpResponse response;
   response.set_status(status);
+  response.UpdateStartLine();
 
   return response;
 }

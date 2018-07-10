@@ -10,8 +10,6 @@ HttpResponseParser::HttpResponseParser(HttpResponse* response)
 }
 
 bool HttpResponseParser::ParseStartLine(const std::string& line) {
-  response_->set_start_line(line + "\r\n");
-
   std::size_t off = 0;
 
   std::size_t pos = line.find(' ');

@@ -3,9 +3,6 @@
 
 #include <memory>
 #include <string>
-#include <vector>
-
-#include "boost/asio/buffer.hpp"  // for const_buffer
 
 #include "webcc/http_message.h"
 
@@ -14,9 +11,6 @@ namespace webcc {
 class HttpRequest : public HttpMessage {
  public:
   HttpRequest() = default;
-  HttpRequest(const HttpRequest&) = default;
-  HttpRequest& operator=(const HttpRequest&) = default;
-
   virtual ~HttpRequest() = default;
 
   const std::string& method() const { return method_; }
@@ -33,14 +27,8 @@ class HttpRequest : public HttpMessage {
   // a numeric number (e.g., "9000") and "80" will be used if it's empty.
   void SetHost(const std::string& host, const std::string& port);
 
-  // Compose start line, etc.
-  // Must be called before ToBuffers()!
-  void Build();
-
-  // Convert the response into a vector of buffers. The buffers do not own the
-  // underlying memory blocks, therefore the request object must remain valid
-  // and not be changed until the write operation has completed.
-  std::vector<boost::asio::const_buffer> ToBuffers() const;
+  // Set start line according to HTTP method, URL, etc.
+  void UpdateStartLine() override;
 
  private:
   // HTTP method.
