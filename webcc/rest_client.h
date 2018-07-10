@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <string>
+#include <utility>  // for move()
 
 #include "webcc/globals.h"
 #include "webcc/http_response.h"
@@ -41,16 +42,16 @@ class RestClient {
     return Request(kHttpGet, url, "");
   }
 
-  inline bool Post(const std::string& url, const std::string& content) {
-    return Request(kHttpPost, url, content);
+  inline bool Post(const std::string& url, std::string&& content) {
+    return Request(kHttpPost, url, std::move(content));
   }
 
-  inline bool Put(const std::string& url, const std::string& content) {
-    return Request(kHttpPut, url, content);
+  inline bool Put(const std::string& url, std::string&& content) {
+    return Request(kHttpPut, url, std::move(content));
   }
 
-  inline bool Patch(const std::string& url, const std::string& content) {
-    return Request(kHttpPatch, url, content);
+  inline bool Patch(const std::string& url, std::string&& content) {
+    return Request(kHttpPatch, url, std::move(content));
   }
 
   inline bool Delete(const std::string& url) {
@@ -58,9 +59,8 @@ class RestClient {
   }
 
  private:
-  bool Request(const std::string& method,
-               const std::string& url,
-               const std::string& content);
+  bool Request(const std::string& method, const std::string& url,
+               std::string&& content);
 
   std::string host_;
   std::string port_;

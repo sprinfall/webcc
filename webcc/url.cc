@@ -151,8 +151,7 @@ std::vector<std::string> Url::SplitPath(const std::string& path) {
 }
 
 static bool SplitKeyValue(const std::string& kv,
-                          std::string* key,
-                          std::string* value) {
+                          std::string* key, std::string* value) {
   std::size_t i = kv.find_first_of('=');
   if (i == std::string::npos || i == 0) {
     return false;

@@ -36,6 +36,8 @@ class HttpMessage {
 
   void SetHeader(const std::string& name, const std::string& value);
 
+  void SetHeader(std::string&& name, std::string&& value);
+
   // E.g., "text/xml; charset=utf-8"
   void SetContentType(const std::string& content_type) {
     SetHeader(kContentType, content_type);

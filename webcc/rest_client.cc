@@ -13,9 +13,8 @@ RestClient::RestClient(const std::string& host, const std::string& port)
       error_(kNoError) {
 }
 
-bool RestClient::Request(const std::string& method,
-                         const std::string& url,
-                         const std::string& content) {
+bool RestClient::Request(const std::string& method, const std::string& url,
+                         std::string&& content) {
   response_.reset();
 
   error_ = kNoError;
@@ -28,7 +27,8 @@ bool RestClient::Request(const std::string& method,
   request.SetHost(host_, port_);
 
   if (!content.empty()) {
-    request.SetContent(content);
+    request.SetContent(std::move(content));
+    request.SetContentType(kTextJsonUtf8);
   }
 
   request.UpdateStartLine();

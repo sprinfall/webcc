@@ -28,7 +28,9 @@ class HttpParser {
  protected:
   virtual bool ParseStartLine(const std::string& line) = 0;
 
-  void ParseContentLength(const std::string& line);
+  bool ParseHeader(const std::string& line);
+
+  //void ParseContentLength(const std::string& line);
 
   void Finish();
 

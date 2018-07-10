@@ -18,7 +18,7 @@ HttpParser::HttpParser(HttpMessage* message)
 
 bool HttpParser::Parse(const char* data, std::size_t length) {
   if (header_parsed_) {
-    // Add the data to the content.
+    // Append the data to the content.
     AppendContent(data, length);
 
     if (IsContentFull()) {
@@ -29,6 +29,8 @@ bool HttpParser::Parse(const char* data, std::size_t length) {
     return true;
   }
 
+  // Continue to parse headers.
+   
   pending_data_.append(data, length);
   std::size_t off = 0;
 
@@ -53,11 +55,7 @@ bool HttpParser::Parse(const char* data, std::size_t length) {
         return false;
       }
     } else {
-      // Currently, only Content-Length is important to us.
-      // Other header fields are ignored.
-      if (!content_length_parsed_) {
-        ParseContentLength(line);
-      }
+      ParseHeader(line);
     }
 
     off = pos + 2;  // Skip CRLF.
@@ -92,28 +90,28 @@ bool HttpParser::Parse(const char* data, std::size_t length) {
   return true;
 }
 
-void HttpParser::ParseContentLength(const std::string& line) {
-  std::size_t pos = line.find(':');
-  if (pos == std::string::npos) {
-    return;
+bool HttpParser::ParseHeader(const std::string& line) {
+  std::vector<std::string> splitted;
+  boost::split(splitted, line, boost::is_any_of(":"));
+
+  if (splitted.size() != 2) {
+    return false;
   }
 
-  std::string name = line.substr(0, pos);
+  std::string& name = splitted[0];
+  std::string& value = splitted[1];
 
-  if (boost::iequals(name, kContentLength)) {
+  boost::trim(name);
+  boost::trim(value);
+
+  if (!content_length_parsed_ && boost::iequals(name, kContentLength)) {
     content_length_parsed_ = true;
-
-    ++pos;  // Skip ':'.
-    while (line[pos] == ' ') {  // Skip spaces.
-      ++pos;
-    }
-
-    std::string value = line.substr(pos);
 
     try {
       content_length_ = static_cast<std::size_t>(std::stoul(value));
     } catch (const std::exception&) {
       LOG_ERRO("Invalid content length: %s.", value.c_str());
+      return false;
     }
 
     LOG_INFO("Content length: %u.", content_length_);
@@ -123,9 +121,49 @@ void HttpParser::ParseContentLength(const std::string& line) {
       content_.reserve(content_length_);
     } catch (const std::exception& e) {
       LOG_ERRO("Failed to reserve content memory: %s.", e.what());
+      return false;
     }
+  } else {
+    message_->SetHeader(std::move(name), std::move(value));
   }
+
+  return true;
 }
+//
+//void HttpParser::ParseContentLength(const std::string& line) {
+//  std::size_t pos = line.find(':');
+//  if (pos == std::string::npos) {
+//    return;
+//  }
+//
+//  std::string name = line.substr(0, pos);
+//
+//  if (boost::iequals(name, kContentLength)) {
+//    content_length_parsed_ = true;
+//
+//    ++pos;  // Skip ':'.
+//    while (line[pos] == ' ') {  // Skip spaces.
+//      ++pos;
+//    }
+//
+//    std::string value = line.substr(pos);
+//
+//    try {
+//      content_length_ = static_cast<std::size_t>(std::stoul(value));
+//    } catch (const std::exception&) {
+//      LOG_ERRO("Invalid content length: %s.", value.c_str());
+//    }
+//
+//    LOG_INFO("Content length: %u.", content_length_);
+//
+//    try {
+//      // Reserve memory to avoid frequent reallocation when append.
+//      content_.reserve(content_length_);
+//    } catch (const std::exception& e) {
+//      LOG_ERRO("Failed to reserve content memory: %s.", e.what());
+//    }
+//  }
+//}
 
 void HttpParser::Finish() {
   // Move content to message.

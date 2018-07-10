@@ -19,13 +19,22 @@ const char CRLF[] = { '\r', '\n' };
 
 void HttpMessage::SetHeader(const std::string& name, const std::string& value) {
   for (HttpHeader& h : headers_) {
-    if (h.name == name) {
+    if (boost::iequals(h.name, name)) {
       h.value = value;
       return;
     }
   }
-
   headers_.push_back({ name, value });
+}
+
+void HttpMessage::SetHeader(std::string&& name, std::string&& value) {
+  for (HttpHeader& h : headers_) {
+    if (boost::iequals(h.name, name)) {
+      h.value = std::move(value);
+      return;
+    }
+  }
+  headers_.push_back({ std::move(name), std::move(value) });
 }
 
 // ATTENTION: The buffers don't hold the memory!
