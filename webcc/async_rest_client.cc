@@ -10,7 +10,7 @@ AsyncRestClient::AsyncRestClient(boost::asio::io_context& io_context,
 
 void AsyncRestClient::Request(const std::string& method,
                               const std::string& url,
-                              const std::string& content,
+                              std::string&& content,
                               HttpResponseHandler response_handler) {
   response_handler_ = response_handler;
 
@@ -21,7 +21,8 @@ void AsyncRestClient::Request(const std::string& method,
   request->SetHost(host_, port_);
 
   if (!content.empty()) {
-    request->SetContent(content);
+    request->SetContent(std::move(content), true);
+    request->SetContentType(kAppJsonUtf8);
   }
 
   request->UpdateStartLine();

@@ -29,9 +29,9 @@ void HttpConnection::Close() {
 }
 
 void HttpConnection::SetResponseContent(std::string&& content,
-                                        const std::string& content_type) {
-  response_.SetContent(std::move(content));
-  response_.SetContentType(content_type);
+                                        const std::string& type) {
+  response_.SetContent(std::move(content), true);
+  response_.SetContentType(type);
 }
 
 void HttpConnection::SendResponse(HttpStatus::Enum status) {

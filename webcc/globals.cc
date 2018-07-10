@@ -16,7 +16,7 @@ const std::string kContentLength = "Content-Length";
 const std::string kSoapAction = "SOAPAction";
 #endif  // WEBCC_ENABLE_SOAP
 
-const std::string kTextJsonUtf8 = "text/json; charset=utf-8";
+const std::string kAppJsonUtf8 = "application/json; charset=utf-8";
 
 #ifdef WEBCC_ENABLE_SOAP
 // According to www.w3.org when placing SOAP messages in HTTP bodies, the HTTP

@@ -38,7 +38,7 @@ extern const std::string kContentLength;
 extern const std::string kSoapAction;
 #endif  // WEBCC_ENABLE_SOAP
 
-extern const std::string kTextJsonUtf8;
+extern const std::string kAppJsonUtf8;
 
 #ifdef WEBCC_ENABLE_SOAP
 extern const std::string kTextXmlUtf8;

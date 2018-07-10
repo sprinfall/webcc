@@ -27,8 +27,8 @@ bool RestClient::Request(const std::string& method, const std::string& url,
   request.SetHost(host_, port_);
 
   if (!content.empty()) {
-    request.SetContent(std::move(content));
-    request.SetContentType(kTextJsonUtf8);
+    request.SetContent(std::move(content), true);
+    request.SetContentType(kAppJsonUtf8);
   }
 
   request.UpdateStartLine();

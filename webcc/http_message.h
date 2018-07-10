@@ -38,19 +38,16 @@ class HttpMessage {
 
   void SetHeader(std::string&& name, std::string&& value);
 
-  // E.g., "text/xml; charset=utf-8"
+  // E.g., "application/json; charset=utf-8"
   void SetContentType(const std::string& content_type) {
     SetHeader(kContentType, content_type);
   }
 
-  void SetContent(std::string&& content) {
+  void SetContent(std::string&& content, bool set_length) {
     content_ = std::move(content);
-    SetContentLength(content_.size());
-  }
-
-  void SetContent(const std::string& content) {
-    content_ = content;
-    SetContentLength(content_.size());
+    if (set_length) {
+      SetContentLength(content_.size());
+    }
   }
 
   // Set start line according to other informations.

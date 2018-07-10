@@ -30,8 +30,6 @@ class HttpParser {
 
   bool ParseHeader(const std::string& line);
 
-  //void ParseContentLength(const std::string& line);
-
   void Finish();
 
   void AppendContent(const char* data, std::size_t count);

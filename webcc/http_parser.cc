@@ -123,51 +123,19 @@ bool HttpParser::ParseHeader(const std::string& line) {
       LOG_ERRO("Failed to reserve content memory: %s.", e.what());
       return false;
     }
-  } else {
-    message_->SetHeader(std::move(name), std::move(value));
   }
+
+  message_->SetHeader(std::move(name), std::move(value));
 
   return true;
 }
-//
-//void HttpParser::ParseContentLength(const std::string& line) {
-//  std::size_t pos = line.find(':');
-//  if (pos == std::string::npos) {
-//    return;
-//  }
-//
-//  std::string name = line.substr(0, pos);
-//
-//  if (boost::iequals(name, kContentLength)) {
-//    content_length_parsed_ = true;
-//
-//    ++pos;  // Skip ':'.
-//    while (line[pos] == ' ') {  // Skip spaces.
-//      ++pos;
-//    }
-//
-//    std::string value = line.substr(pos);
-//
-//    try {
-//      content_length_ = static_cast<std::size_t>(std::stoul(value));
-//    } catch (const std::exception&) {
-//      LOG_ERRO("Invalid content length: %s.", value.c_str());
-//    }
-//
-//    LOG_INFO("Content length: %u.", content_length_);
-//
-//    try {
-//      // Reserve memory to avoid frequent reallocation when append.
-//      content_.reserve(content_length_);
-//    } catch (const std::exception& e) {
-//      LOG_ERRO("Failed to reserve content memory: %s.", e.what());
-//    }
-//  }
-//}
 
 void HttpParser::Finish() {
-  // Move content to message.
-  message_->SetContent(std::move(content_));
+  if (!content_.empty()) {
+    // Move content to message.
+    // "Content-Length" already set in ParseHeader().
+    message_->SetContent(std::move(content_), /*set_length*/false);
+  }
   finished_ = true;
 }
 

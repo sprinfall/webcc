@@ -8,8 +8,7 @@
 
 namespace webcc {
 
-bool RestRequestHandler::Bind(RestServicePtr service,
-                              const std::string& url,
+bool RestRequestHandler::Bind(RestServicePtr service, const std::string& url,
                               bool is_regex) {
   return service_manager_.AddService(service, url, is_regex);
 }
@@ -45,7 +44,9 @@ void RestRequestHandler::HandleConnection(HttpConnectionPtr connection) {
     return;
   }
 
-  connection->SetResponseContent(std::move(content), kTextJsonUtf8);
+  if (!content.empty()) {
+    connection->SetResponseContent(std::move(content), kAppJsonUtf8);
+  }
   connection->SendResponse(HttpStatus::kOK);
 }
 

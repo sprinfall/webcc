@@ -35,8 +35,7 @@ class HttpConnection : public std::enable_shared_from_this<HttpConnection> {
   // Close the socket.
   void Close();
 
-  void SetResponseContent(std::string&& content,
-                          const std::string& content_type);
+  void SetResponseContent(std::string&& content, const std::string& type);
 
   // Send response to client with the given status.
   void SendResponse(HttpStatus::Enum status);

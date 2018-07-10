@@ -40,8 +40,8 @@ Error SoapClient::Call(const std::string& operation,
 
   http_request.set_method(kHttpPost);
   http_request.set_url(url_);
+  http_request.SetContent(std::move(http_content), true);
   http_request.SetContentType(kTextXmlUtf8);
-  http_request.SetContent(std::move(http_content));
   http_request.SetHost(host_, port_);
   http_request.SetHeader(kSoapAction, operation);
   http_request.UpdateStartLine();
