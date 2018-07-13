@@ -1,5 +1,7 @@
 #include "webcc/http_response_parser.h"
 
+#include "boost/algorithm/string.hpp"
+
 #include "webcc/logger.h"
 #include "webcc/http_response.h"
 
@@ -10,33 +12,20 @@ HttpResponseParser::HttpResponseParser(HttpResponse* response)
 }
 
 bool HttpResponseParser::ParseStartLine(const std::string& line) {
-  std::size_t off = 0;
+  std::vector<std::string> splitted;
+  boost::split(splitted, line, boost::is_any_of(" "), boost::token_compress_on);
 
-  std::size_t pos = line.find(' ');
-  if (pos == std::string::npos) {
+  if (splitted.size() < 3) {
+    LOG_ERRO("Invalid HTTP response status line: %s", line.c_str());
     return false;
   }
 
-  // HTTP version
-
-  off = pos + 1;  // Skip space.
-
-  pos = line.find(' ', off);
-  if (pos == std::string::npos) {
-    return false;
-  }
-
-  // Status code
-  std::string status_str = line.substr(off, pos - off);
+  std::string& status_str = splitted[1];
 
   try {
     response_->set_status(std::stoi(status_str));
   } catch (const std::exception&) {
-    LOG_ERRO("Invalid HTTP status: %s", status_str.c_str());
-    return false;
-  }
-
-  if (response_->status() != HttpStatus::kOK) {
+    LOG_ERRO("Invalid HTTP status code: %s", status_str.c_str());
     return false;
   }
 

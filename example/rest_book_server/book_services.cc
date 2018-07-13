@@ -12,8 +12,7 @@
 // In-memory test data.
 // There should be some database in a real product.
 
-class Book {
-public:
+struct Book {
   std::string id;
   std::string title;
   double price;
@@ -39,12 +38,10 @@ std::ostream& operator<<(std::ostream& os, const Book& book) {
 static const Book kNullBook{};
 
 class BookStore {
-public:
+ public:
   BookStore() = default;
 
-  const std::list<Book>& books() const {
-    return books_;
-  }
+  const std::list<Book>& books() const { return books_; }
 
   const Book& GetBook(const std::string& id) const {
     auto it = FindBook(id);
@@ -80,20 +77,17 @@ public:
     return false;
   }
 
-private:
+ private:
   std::list<Book>::const_iterator FindBook(const std::string& id) const {
-    return std::find_if(books_.begin(),
-                        books_.end(),
+    return std::find_if(books_.begin(), books_.end(),
                         [&id](const Book& book) { return book.id == id; });
   }
 
   std::list<Book>::iterator FindBook(const std::string& id) {
-    return std::find_if(books_.begin(),
-                        books_.end(),
+    return std::find_if(books_.begin(), books_.end(),
                         [&id](Book& book) { return book.id == id; });
   }
 
-private:
   std::list<Book> books_;
 };
 

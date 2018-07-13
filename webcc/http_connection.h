@@ -25,9 +25,7 @@ class HttpConnection : public std::enable_shared_from_this<HttpConnection> {
 
   DELETE_COPY_AND_ASSIGN(HttpConnection);
 
-  const HttpRequest& request() const {
-    return request_;
-  }
+  const HttpRequest& request() const { return request_; }
 
   // Start to read and process the client request.
   void Start();

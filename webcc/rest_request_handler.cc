@@ -14,7 +14,9 @@ bool RestRequestHandler::Bind(RestServicePtr service, const std::string& url,
 }
 
 void RestRequestHandler::HandleConnection(HttpConnectionPtr connection) {
-  Url url(connection->request().url(), true);
+  const HttpRequest& request = connection->request();
+
+  Url url(request.url(), true);
 
   if (!url.IsValid()) {
     connection->SendResponse(HttpStatus::kBadRequest);
@@ -31,14 +33,14 @@ void RestRequestHandler::HandleConnection(HttpConnectionPtr connection) {
   }
 
   UrlQuery query;
-  Url::SplitQuery(url.query(), &query);
+  if (request.method() == kHttpGet) {
+    // Suppose URL query is only available for HTTP GET.
+    Url::SplitQuery(url.query(), &query);
+  }
 
   std::string content;
-  bool ok = service->Handle(connection->request().method(),
-                            sub_matches,
-                            query,
-                            connection->request().content(),
-                            &content);
+  bool ok = service->Handle(request.method(), sub_matches, query,
+                            request.content(), &content);
   if (!ok) {
     connection->SendResponse(HttpStatus::kBadRequest);
     return;
@@ -47,7 +49,12 @@ void RestRequestHandler::HandleConnection(HttpConnectionPtr connection) {
   if (!content.empty()) {
     connection->SetResponseContent(std::move(content), kAppJsonUtf8);
   }
-  connection->SendResponse(HttpStatus::kOK);
+
+  if (request.method() == kHttpPost) {
+    connection->SendResponse(HttpStatus::kCreated);
+  } else {
+    connection->SendResponse(HttpStatus::kOK);
+  }
 }
 
 }  // namespace webcc

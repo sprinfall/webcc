@@ -5,12 +5,12 @@ namespace webcc {
 namespace status_strings {
 
 const std::string OK = "HTTP/1.1 200 OK\r\n";
-const std::string CREATED = "HTTP/1.0 201 Created\r\n";
-const std::string ACCEPTED = "HTTP/1.0 202 Accepted\r\n";
-const std::string NO_CONTENT = "HTTP/1.0 204 No Content\r\n";
-const std::string NOT_MODIFIED = "HTTP/1.0 304 Not Modified\r\n";
+const std::string CREATED = "HTTP/1.1 201 Created\r\n";
+const std::string ACCEPTED = "HTTP/1.1 202 Accepted\r\n";
+const std::string NO_CONTENT = "HTTP/1.1 204 No Content\r\n";
+const std::string NOT_MODIFIED = "HTTP/1.1 304 Not Modified\r\n";
 const std::string BAD_REQUEST = "HTTP/1.1 400 Bad Request\r\n";
-const std::string NOT_FOUND = "HTTP/1.0 404 Not Found\r\n";
+const std::string NOT_FOUND = "HTTP/1.1 404 Not Found\r\n";
 const std::string INTERNAL_SERVER_ERROR =
     "HTTP/1.1 500 Internal Server Error\r\n";
 const std::string NOT_IMPLEMENTED = "HTTP/1.1 501 Not Implemented\r\n";

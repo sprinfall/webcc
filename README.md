@@ -100,7 +100,7 @@ A lot of C++11 features are used, e.g., `std::move`. But C++14 is not required.
 The following CMake options determine how you build the projects. They are quite self-explanatory.
 
 ```cmake
-option(WEBCC_ENABLE_LOG "Enable console logger?" ON)
+option(WEBCC_ENABLE_LOG "Enable logging?" ON)
 option(WEBCC_ENABLE_SOAP "Enable SOAP support (need pugixml)?" ON)
 option(WEBCC_BUILD_UNITTEST "Build unit test?" ON)
 option(WEBCC_BUILD_EXAMPLE "Build examples?" ON)
