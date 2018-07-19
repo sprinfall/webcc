@@ -13,19 +13,17 @@ namespace webcc {
 
 SoapClient::SoapClient(const std::string& host, const std::string& port)
     : host_(host), port_(port),
-      format_raw_(true), timeout_seconds_(0), timed_out_(false) {
+      soapenv_ns_(kSoapEnvNamespace),
+      format_raw_(true), timeout_seconds_(0), timed_out_(false),
+      error_(kNoError) {
 }
 
-Error SoapClient::Call(const std::string& operation,
-                       std::vector<SoapParameter>&& parameters,
-                       std::string* result) {
+bool SoapClient::Request(const std::string& operation,
+                         std::vector<SoapParameter>&& parameters,
+                         std::string* result) {
   assert(service_ns_.IsValid());
   assert(!url_.empty() && !host_.empty());
   assert(!result_name_.empty());
-
-  if (!soapenv_ns_.IsValid()) {
-    soapenv_ns_ = kSoapEnvNamespace;
-  }
 
   SoapRequest soap_request;
 
@@ -58,20 +56,22 @@ Error SoapClient::Call(const std::string& operation,
   }
 
   if (!http_client.Request(http_request)) {
+    error_ = http_client.error();
     timed_out_ = http_client.timed_out();
-    return http_client.error();
+    return false;
   }
 
   SoapResponse soap_response;
   soap_response.set_result_name(result_name_);
 
   if (!soap_response.FromXml(http_client.response()->content())) {
-    return kXmlError;
+    error_ = kXmlError;
+    return false;
   }
 
   *result = soap_response.result_moved();
 
-  return kNoError;
+  return true;
 }
 
 }  // namespace webcc

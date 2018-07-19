@@ -8,12 +8,10 @@
 
 #include "example/common/book.h"
 
-class BookClient : public webcc::SoapClient {
+class BookClient {
  public:
   BookClient(const std::string& host, const std::string& port);
   
-  ~BookClient() override = default;
-
   int code() const { return code_; }
   const std::string& message() const { return message_; }
 
@@ -37,13 +35,17 @@ class BookClient : public webcc::SoapClient {
   bool Call1(const std::string& operation, webcc::SoapParameter&& parameter,
              std::string* result_str);
 
-  // Simple wrapper of webcc::SoapClient::Call() to log error if any.
-  bool CallX(const std::string& operation,
-             std::vector<webcc::SoapParameter>&& parameters,
-             std::string* result_str);
+  // Simple wrapper of SoapClient::Request() to log error if any.
+  bool Call(const std::string& operation,
+            std::vector<webcc::SoapParameter>&& parameters,
+            std::string* result_str);
+
+  void PrintError();
 
   bool ParseResultXml(const std::string& result_xml,
                       std::function<bool(pugi::xml_node)> callback);
+
+  webcc::SoapClient soap_client_;
 
   // Last status.
   int code_;

@@ -9,13 +9,27 @@
 
 namespace webcc {
 
-// Base class for your SOAP client.
-// Set URL, host, port, etc. in your sub-class before make the call.
 class SoapClient {
  public:
-  virtual ~SoapClient() = default;
+  SoapClient(const std::string& host, const std::string& port);
 
-  bool timed_out() const { return timed_out_; }
+  ~SoapClient() = default;
+
+  DELETE_COPY_AND_ASSIGN(SoapClient);
+
+  void set_timeout_seconds(int timeout_seconds) {
+    timeout_seconds_ = timeout_seconds;
+  }
+
+  void set_url(const std::string& url) { url_ = url; }
+
+  void set_service_ns(const SoapNamespace& service_ns) {
+    service_ns_ = service_ns;
+  }
+
+  void set_result_name(const std::string& result_name) {
+    result_name_ = result_name;
+  }
 
   void set_format_raw(bool format_raw) { format_raw_ = format_raw; }
 
@@ -23,23 +37,23 @@ class SoapClient {
     indent_str_ = indent_str;
   }
 
- protected:
-  SoapClient(const std::string& host, const std::string& port);
+  bool timed_out() const { return timed_out_; }
 
-  // A generic wrapper to make a call.
-  // NOTE: The parameters should be movable.
-  Error Call(const std::string& operation,
-             std::vector<SoapParameter>&& parameters,
-             std::string* result);
+  Error error() const { return error_; }
 
-  SoapNamespace soapenv_ns_;  // SOAP envelope namespace.
-  SoapNamespace service_ns_;  // Namespace for your web service.
+  bool Request(const std::string& operation,
+               std::vector<SoapParameter>&& parameters,
+               std::string* result);
+
+ private:
+  std::string host_;
+  std::string port_;  // Leave this empty to use default 80.
 
   // Request URL.
   std::string url_;
 
-  std::string host_;
-  std::string port_;  // Leave this empty to use default 80.
+  SoapNamespace soapenv_ns_;  // SOAP envelope namespace.
+  SoapNamespace service_ns_;  // Namespace for your web service.
 
   // Response result XML node name.
   // E.g., "Result".
@@ -57,6 +71,8 @@ class SoapClient {
 
   // If the error was caused by timeout or not.
   bool timed_out_;
+
+  Error error_;
 };
 
 }  // namespace webcc

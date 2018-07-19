@@ -5,19 +5,21 @@
 
 // -----------------------------------------------------------------------------
 
-class CalcClient : public webcc::SoapClient {
+class CalcClient {
  public:
   CalcClient(const std::string& host, const std::string& port)
-      : webcc::SoapClient(host, port) {
-    timeout_seconds_ = 5;  // Override the default timeout.
+      : soap_client_(host, port) {
+    soap_client_.set_timeout_seconds(5);
 
-    url_ = "/calculator";
-    service_ns_ = { "ser", "http://www.example.com/calculator/" };
-    result_name_ = "Result";
+    soap_client_.set_url("/calculator");
+    soap_client_.set_service_ns({
+      "ser", "http://www.example.com/calculator/"
+    });
+    soap_client_.set_result_name("Result");
 
     // Customize request XML format.
-    format_raw_ = false;
-    indent_str_ = "  ";
+    soap_client_.set_format_raw(false);
+    soap_client_.set_indent_str("  ");
   }
 
   bool Add(double x, double y, double* result) {
@@ -41,7 +43,7 @@ class CalcClient : public webcc::SoapClient {
     return Calc("unknown", "x", "y", x, y, result);
   }
 
- protected:
+ private:
   bool Calc(const std::string& operation,
             const std::string& x_name, const std::string& y_name,
             double x, double y,
@@ -52,11 +54,8 @@ class CalcClient : public webcc::SoapClient {
     };
 
     std::string result_str;
-    webcc::Error error = Call(operation, std::move(parameters), &result_str);
-
-    if (error != webcc::kNoError) {
-      LOG_ERRO("Operation '%s' failed: %s", operation.c_str(),
-               webcc::DescribeError(error));
+    if (!soap_client_.Request(operation, std::move(parameters), &result_str)) {
+      PrintError();
       return false;
     }
 
@@ -68,6 +67,16 @@ class CalcClient : public webcc::SoapClient {
 
     return true;
   }
+
+  void PrintError() {
+    std::cout << webcc::DescribeError(soap_client_.error());
+    if (soap_client_.timed_out()) {
+      std::cout << " (timed out)";
+    }
+    std::cout << std::endl;
+  }
+
+  webcc::SoapClient soap_client_;
 };
 
 // -----------------------------------------------------------------------------

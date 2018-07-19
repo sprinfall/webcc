@@ -6,10 +6,8 @@
 namespace webcc {
 
 RestClient::RestClient(const std::string& host, const std::string& port)
-    : host_(host),
-      port_(port),
-      timeout_seconds_(0),
-      timed_out_(false),
+    : host_(host), port_(port),
+      timeout_seconds_(0), timed_out_(false),
       error_(kNoError) {
 }
 
@@ -20,18 +18,18 @@ bool RestClient::Request(const std::string& method, const std::string& url,
   error_ = kNoError;
   timed_out_ = false;
 
-  HttpRequest request;
+  HttpRequest http_request;
 
-  request.set_method(method);
-  request.set_url(url);
-  request.SetHost(host_, port_);
+  http_request.set_method(method);
+  http_request.set_url(url);
+  http_request.SetHost(host_, port_);
 
   if (!content.empty()) {
-    request.SetContent(std::move(content), true);
-    request.SetContentType(kAppJsonUtf8);
+    http_request.SetContent(std::move(content), true);
+    http_request.SetContentType(kAppJsonUtf8);
   }
 
-  request.UpdateStartLine();
+  http_request.UpdateStartLine();
 
   HttpClient http_client;
 
@@ -39,7 +37,7 @@ bool RestClient::Request(const std::string& method, const std::string& url,
     http_client.set_timeout_seconds(timeout_seconds_);
   }
 
-  if (!http_client.Request(request)) {
+  if (!http_client.Request(http_request)) {
     error_ = http_client.error();
     timed_out_ = http_client.timed_out();
     return false;

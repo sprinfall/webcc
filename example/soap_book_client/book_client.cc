@@ -13,14 +13,14 @@ static void PrintSeparateLine() {
 }
 
 BookClient::BookClient(const std::string& host, const std::string& port)
-    : webcc::SoapClient(host, port), code_(0) {
-  url_ = "/book";
-  service_ns_ = { "ser", "http://www.example.com/book/" };
-  result_name_ = "Result";
+    : soap_client_(host, port), code_(0) {
+  soap_client_.set_url("/book");
+  soap_client_.set_service_ns({ "ser", "http://www.example.com/book/" });
+  soap_client_.set_result_name("Result");
 
   // Customize response XML format.
-  format_raw_ = false;
-  indent_str_ = "  ";
+  soap_client_.set_format_raw(false);
+  soap_client_.set_indent_str("  ");
 }
 
 bool BookClient::CreateBook(const std::string& title, double price, std::string* id) {
@@ -87,7 +87,7 @@ bool BookClient::DeleteBook(const std::string& id) {
 }
 
 bool BookClient::Call0(const std::string& operation, std::string* result_str) {
-  return CallX(operation, {}, result_str);
+  return Call(operation, {}, result_str);
 }
 
 
@@ -96,23 +96,25 @@ bool BookClient::Call1(const std::string& operation, webcc::SoapParameter&& para
   std::vector<webcc::SoapParameter> parameters{
     { std::move(parameter) }
   };
-  return CallX(operation, std::move(parameters), result_str);
+  return Call(operation, std::move(parameters), result_str);
 }
 
-bool BookClient::CallX(const std::string& operation,
-                       std::vector<webcc::SoapParameter>&& parameters,
-                       std::string* result_str) {
-  webcc::Error error = webcc::SoapClient::Call(operation,
-                                               std::move(parameters),
-                                               result_str);
-
-  if (error != webcc::kNoError) {
-    LOG_ERRO("Operation '%s' failed: %s",
-             operation, webcc::DescribeError(error));
+bool BookClient::Call(const std::string& operation,
+                      std::vector<webcc::SoapParameter>&& parameters,
+                      std::string* result_str) {
+  if (!soap_client_.Request(operation, std::move(parameters), result_str)) {
+    PrintError();
     return false;
   }
-
   return true;
+}
+
+void BookClient::PrintError() {
+  std::cout << webcc::DescribeError(soap_client_.error());
+  if (soap_client_.timed_out()) {
+    std::cout << " (timed out)";
+  }
+  std::cout << std::endl;
 }
 
 bool BookClient::ParseResultXml(const std::string& result_xml,
