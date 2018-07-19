@@ -36,7 +36,7 @@ void SoapRequestHandler::HandleConnection(HttpConnectionPtr connection) {
   }
 
   std::string content;
-  soap_response.ToXml(&content);
+  soap_response.ToXml(format_raw_, indent_str_, &content);
   connection->SetResponseContent(std::move(content), kTextXmlUtf8);
   connection->SendResponse(HttpStatus::kOK);
 }

@@ -5,8 +5,8 @@
 
 #include <string>
 
-#include "webcc/soap_request_handler.h"
 #include "webcc/http_server.h"
+#include "webcc/soap_request_handler.h"
 
 namespace webcc {
 
@@ -17,6 +17,14 @@ class SoapServer : public HttpServer {
   }
 
   ~SoapServer() override = default;
+
+  void set_format_raw(bool format_raw) {
+    request_handler_.set_format_raw(format_raw);
+  }
+
+  void set_indent_str(const std::string& indent_str) {
+    request_handler_.set_indent_str(indent_str);
+  }
 
   // Bind a SOAP service to the given URL path.
   // The |url| path must start with "/", e.g., "/calculator".

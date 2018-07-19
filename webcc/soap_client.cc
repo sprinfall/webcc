@@ -11,8 +11,13 @@
 
 namespace webcc {
 
+SoapClient::SoapClient(const std::string& host, const std::string& port)
+    : host_(host), port_(port),
+      format_raw_(true), timeout_seconds_(0), timed_out_(false) {
+}
+
 Error SoapClient::Call(const std::string& operation,
-                       std::vector<Parameter>&& parameters,
+                       std::vector<SoapParameter>&& parameters,
                        std::string* result) {
   assert(service_ns_.IsValid());
   assert(!url_.empty() && !host_.empty());
@@ -29,12 +34,12 @@ Error SoapClient::Call(const std::string& operation,
 
   soap_request.set_operation(operation);
 
-  for (Parameter& p : parameters) {
+  for (SoapParameter& p : parameters) {
     soap_request.AddParameter(std::move(p));
   }
 
   std::string http_content;
-  soap_request.ToXml(&http_content);
+  soap_request.ToXml(format_raw_, indent_str_, &http_content);
 
   HttpRequest http_request;
 
@@ -45,8 +50,6 @@ Error SoapClient::Call(const std::string& operation,
   http_request.SetHost(host_, port_);
   http_request.SetHeader(kSoapAction, operation);
   http_request.UpdateStartLine();
-
-  HttpResponse http_response;
 
   HttpClient http_client;
 

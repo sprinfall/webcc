@@ -54,42 +54,4 @@ const char* DescribeError(Error error) {
   }
 }
 
-// -----------------------------------------------------------------------------
-
-Parameter::Parameter(const std::string& key, const char* value)
-    : key_(key), value_(value) {
-}
-
-Parameter::Parameter(const std::string& key, const std::string& value)
-    : key_(key), value_(value) {
-}
-
-Parameter::Parameter(const std::string& key, std::string&& value)
-    : key_(key), value_(std::move(value)) {
-}
-
-Parameter::Parameter(const std::string& key, int value)
-    : key_(key), value_(std::to_string(value)) {
-}
-
-Parameter::Parameter(const std::string& key, double value)
-    : key_(key), value_(std::to_string(value)) {
-}
-
-Parameter::Parameter(const std::string& key, bool value)
-    : key_(key), value_(value ? "true" : "false") {
-}
-
-Parameter::Parameter(Parameter&& rhs)
-    : key_(std::move(rhs.key_)), value_(std::move(rhs.value_)) {
-}
-
-Parameter& Parameter::operator=(Parameter&& rhs) {
-  if (&rhs != this) {
-    key_ = std::move(rhs.key_);
-    value_ = std::move(rhs.value_);
-  }
-  return *this;
-}
-
 }  // namespace webcc

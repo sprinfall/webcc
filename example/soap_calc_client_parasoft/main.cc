@@ -11,8 +11,8 @@ class CalcClient : public webcc::SoapClient {
       : webcc::SoapClient(host, port) {
     timeout_seconds_ = 5;  // Override the default timeout.
 
-    url_ = "/calculator";
-    service_ns_ = { "ser", "http://www.example.com/calculator/" };
+    url_ = "/glue/calculator";
+    service_ns_ = { "cal", "http://www.parasoft.com/wsdl/calculator/" };
     result_name_ = "Result";
 
     // Customize request XML format.
@@ -33,12 +33,7 @@ class CalcClient : public webcc::SoapClient {
   }
 
   bool Divide(double x, double y, double* result) {
-    return Calc("divide", "x", "y", x, y, result);
-  }
-
-  // Only for testing purpose.
-  bool Unknown(double x, double y, double* result) {
-    return Calc("unknown", "x", "y", x, y, result);
+    return Calc("divide", "numerator", "denominator", x, y, result);
   }
 
  protected:
@@ -72,24 +67,11 @@ class CalcClient : public webcc::SoapClient {
 
 // -----------------------------------------------------------------------------
 
-void Help(const char* argv0) {
-  std::cout << "Usage: " << argv0 << " <host> <port>" << std::endl;
-  std::cout << "  E.g.," << std::endl;
-  std::cout << "    " << argv0 << " localhost 8080" << std::endl;
-}
-
-int main(int argc, char* argv[]) {
-  if (argc < 3) {
-    Help(argv[0]);
-    return 1;
-  }
-
+int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
-  std::string host = argv[1];
-  std::string port = argv[2];
-
-  CalcClient calc(host, port);
+  // Default port 80.
+  CalcClient calc("ws1.parasoft.com", "");
 
   double x = 1.0;
   double y = 2.0;
@@ -110,8 +92,6 @@ int main(int argc, char* argv[]) {
   if (calc.Divide(x, y, &result)) {
     printf("divide: %.1f\n", result);
   }
-
-  calc.Unknown(x, y, &result);
 
   return 0;
 }

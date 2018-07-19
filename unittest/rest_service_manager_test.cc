@@ -2,7 +2,7 @@
 #include "gtest/gtest.h"
 
 class TestRestService : public webcc::RestService {
-public:
+ public:
   bool Handle(const std::string& http_method,
               const std::vector<std::string>& url_sub_matches,
               const webcc::UrlQuery& query,

@@ -10,8 +10,15 @@ namespace webcc {
 
 class SoapRequestHandler : public HttpRequestHandler {
  public:
-  SoapRequestHandler() = default;
+  SoapRequestHandler() : format_raw_(true) {}
+
   ~SoapRequestHandler() override = default;
+
+  void set_format_raw(bool format_raw) { format_raw_ = format_raw; }
+
+  void set_indent_str(const std::string& indent_str) {
+    indent_str_ = indent_str;
+  }
 
   bool Bind(SoapServicePtr service, const std::string& url);
 
@@ -22,6 +29,13 @@ class SoapRequestHandler : public HttpRequestHandler {
 
   typedef std::map<std::string, SoapServicePtr> UrlServiceMap;
   UrlServiceMap url_service_map_;
+
+  // Format response XML without any indentation or line breaks.
+  bool format_raw_;
+
+  // Indent string for response XML.
+  // Applicable when |format_raw_| is false.
+  std::string indent_str_;
 };
 
 }  // namespace webcc

@@ -2,7 +2,6 @@
 #define WEBCC_GLOBALS_H_
 
 #include <string>
-#include <vector>
 
 // -----------------------------------------------------------------------------
 // Macros
@@ -85,43 +84,6 @@ enum Error {
 
 // Return a descriptive message for the given error code.
 const char* DescribeError(Error error);
-
-// -----------------------------------------------------------------------------
-
-// Key-value parameter.
-class Parameter {
- public:
-  Parameter() = default;
-  Parameter(const Parameter&) = default;
-  Parameter& operator=(const Parameter&) = default;
-
-  Parameter(const std::string& key, const char* value);
-  Parameter(const std::string& key, const std::string& value);
-  Parameter(const std::string& key, std::string&& value);
-  Parameter(const std::string& key, int value);
-  Parameter(const std::string& key, double value);
-  Parameter(const std::string& key, bool value);
-
-  // Use "= default" if drop the support of VS 2013.
-  Parameter(Parameter&& rhs);
-
-  // Use "= default" if drop the support of VS 2013.
-  Parameter& operator=(Parameter&& rhs);
-
-  const std::string& key() const { return key_; }
-  const std::string& value() const { return value_; }
-
-  const char* c_key() const { return key_.c_str(); }
-  const char* c_value() const { return value_.c_str(); }
-
-  std::string ToString() const {
-    return key_ + "=" + value_;
-  }
-
- private:
-  std::string key_;
-  std::string value_;
-};
 
 }  // namespace webcc
 

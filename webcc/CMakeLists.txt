@@ -54,19 +54,20 @@ if(WEBCC_ENABLE_SOAP)
 	# SOAP specific sources.
 	set(SOAP_SRCS
 		soap_client.cc
-		soap_message.h
-		soap_request_handler.cc
-		soap_response.h
-		soap_xml.cc
 		soap_client.h
+		soap_message.cc
+		soap_message.h
+		soap_parameter.h
+		soap_response.cc
+		soap_response.h
 		soap_request.cc
+		soap_request.h
+		soap_request_handler.cc
 		soap_request_handler.h
 		soap_server.h
-		soap_xml.h
-		soap_message.cc
-		soap_request.h
-		soap_response.cc
 		soap_service.h
+		soap_xml.cc
+		soap_xml.h
 		)
 
 	set(SRCS ${SRCS} ${SOAP_SRCS})

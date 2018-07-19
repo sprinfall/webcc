@@ -1,5 +1,8 @@
-#ifndef BOOK_SERVICES_H_
-#define BOOK_SERVICES_H_
+#ifndef EXAMPLE_REST_BOOK_SERVER_SERVICES_H_
+#define EXAMPLE_REST_BOOK_SERVER_SERVICES_H_
+
+#include <string>
+#include <vector>
 
 #include "webcc/rest_service.h"
 
@@ -13,7 +16,7 @@
 // The query parameters could be regular expressions.
 class BookListService : public webcc::RestListService {
  public:
-  BookListService(int sleep_seconds) : sleep_seconds_(sleep_seconds) {
+  explicit BookListService(int sleep_seconds) : sleep_seconds_(sleep_seconds) {
   }
 
  protected:
@@ -39,7 +42,8 @@ class BookListService : public webcc::RestListService {
 // contains the matched book ID.
 class BookDetailService : public webcc::RestDetailService {
  public:
-  BookDetailService(int sleep_seconds) : sleep_seconds_(sleep_seconds) {
+  explicit BookDetailService(int sleep_seconds)
+      : sleep_seconds_(sleep_seconds) {
   }
 
  protected:
@@ -58,4 +62,4 @@ class BookDetailService : public webcc::RestDetailService {
   int sleep_seconds_ = 0;
 };
 
-#endif  // BOOK_SERVICE_H_
+#endif  // EXAMPLE_REST_BOOK_SERVER_SERVICES_H_

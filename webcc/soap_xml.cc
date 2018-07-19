@@ -94,7 +94,7 @@ bool PrettyPrint(std::ostream& os, const std::string& xml_string,
     return false;
   }
 
-  xdoc.save(os, indent);
+  xdoc.print(os, indent);
   return true;
 }
 

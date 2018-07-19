@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "webcc/soap_message.h"
+#include "webcc/soap_parameter.h"
 
 namespace webcc {
 
@@ -13,9 +14,9 @@ namespace webcc {
 // request body.
 class SoapRequest : public SoapMessage {
  public:
-  void AddParameter(const Parameter& parameter);
+  void AddParameter(const SoapParameter& parameter);
 
-  void AddParameter(Parameter&& parameter);
+  void AddParameter(SoapParameter&& parameter);
 
   // Get parameter value by key.
   const std::string& GetParameter(const std::string& key) const;
@@ -25,7 +26,7 @@ class SoapRequest : public SoapMessage {
   bool FromXmlBody(pugi::xml_node xbody) override;
 
  private:
-  std::vector<Parameter> parameters_;
+  std::vector<SoapParameter> parameters_;
 };
 
 }  // namespace webcc

@@ -11,8 +11,7 @@ namespace webcc {
 
 // XML namespace name/url pair.
 // E.g., { "soap", "http://schemas.xmlsoap.org/soap/envelope/" }
-class SoapNamespace {
- public:
+struct SoapNamespace {
   std::string name;
   std::string url;
 
@@ -47,7 +46,8 @@ class SoapMessage {
   }
 
   // Convert to SOAP request XML.
-  void ToXml(std::string* xml_string);
+  void ToXml(bool format_raw, const std::string& indent,
+             std::string* xml_string);
 
   // Parse from SOAP request XML.
   bool FromXml(const std::string& xml_string);

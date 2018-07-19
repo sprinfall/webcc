@@ -1,4 +1,4 @@
-set(TARGET_NAME soap_calc_client)
+set(TARGET_NAME soap_calc_client_parasoft)
 
 add_executable(${TARGET_NAME} main.cc)
 

@@ -9,9 +9,10 @@
 
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
-#include "webcc/globals.h"
+//#include "webcc/globals.h"
 
 namespace webcc {
 
@@ -20,7 +21,8 @@ namespace webcc {
 // URL query parameters.
 class UrlQuery {
  public:
-  typedef std::vector<Parameter> Parameters;
+  typedef std::pair<std::string, std::string> SoapParameter;
+  typedef std::vector<SoapParameter> Parameters;
 
   UrlQuery() = default;
 

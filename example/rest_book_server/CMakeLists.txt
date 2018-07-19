@@ -1,6 +1,13 @@
-set(SRCS book_services.cc book_services.h main.cc)
+set(TARGET_NAME rest_book_server)
 
-add_executable(rest_book_server ${SRCS})
+set(SRCS
+	../common/book.cc
+	../common/book.h
+ 	services.cc
+ 	services.h
+ 	main.cc)
 
-target_link_libraries(rest_book_server webcc jsoncpp ${Boost_LIBRARIES})
-target_link_libraries(rest_book_server "${CMAKE_THREAD_LIBS_INIT}")
+add_executable(${TARGET_NAME} ${SRCS})
+
+target_link_libraries(${TARGET_NAME} webcc jsoncpp ${Boost_LIBRARIES})
+target_link_libraries(${TARGET_NAME} "${CMAKE_THREAD_LIBS_INIT}")

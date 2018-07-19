@@ -11,18 +11,11 @@ const SoapNamespace kSoapEnvNamespace{
   "http://schemas.xmlsoap.org/soap/envelope/"
 };
 
-void SoapMessage::ToXml(std::string* xml_string) {
-  assert(soapenv_ns_.IsValid() &&
-         service_ns_.IsValid() &&
-         !operation_.empty());
+void SoapMessage::ToXml(bool format_raw, const std::string& indent,
+                        std::string* xml_string) {
+  assert(soapenv_ns_.IsValid() && service_ns_.IsValid() && !operation_.empty());
 
   pugi::xml_document xdoc;
-
-  // TODO(Adam):
-  // When save with format_default, declaration will be generated
-  // automatically but without encoding.
-  //   pugi::xml_node xdecl = xdoc.prepend_child(pugi::node_declaration);
-  //   xdecl.append_attribute("version").set_value("1.0");
 
   pugi::xml_node xroot = soap_xml::AddChild(xdoc, soapenv_ns_.name, "Envelope");
 
@@ -32,8 +25,12 @@ void SoapMessage::ToXml(std::string* xml_string) {
 
   ToXmlBody(xbody);
 
-  soap_xml::XmlStrRefWriter writer(xml_string);
-  xdoc.save(writer, "\t", pugi::format_default, pugi::encoding_utf8);
+  soap_xml::XmlStringWriter writer(xml_string);
+
+  unsigned int flags = format_raw ? pugi::format_raw : pugi::format_indent;
+
+  // Use print() instead of save() for no declaration or BOM.
+  xdoc.print(writer, indent.c_str(), flags, pugi::encoding_utf8);
 }
 
 bool SoapMessage::FromXml(const std::string& xml_string) {

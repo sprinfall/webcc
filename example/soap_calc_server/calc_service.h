@@ -4,14 +4,14 @@
 #include "webcc/soap_service.h"
 
 class CalcService : public webcc::SoapService {
-public:
+ public:
   CalcService() = default;
   ~CalcService() override = default;
 
   bool Handle(const webcc::SoapRequest& soap_request,
               webcc::SoapResponse* soap_response) override;
 
-private:
+ private:
   bool GetParameters(const webcc::SoapRequest& soap_request,
                      double* x, double* y);
 };

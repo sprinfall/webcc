@@ -58,11 +58,11 @@ std::string GetNSAttr(const pugi::xml_node& xnode,
 //   pugi::xml_document xdoc;
 //   ...
 //   std::string xml_string;
-//   XmlStrRefWriter writer(&xml_string);
-//   xdoc.save(writer, "\t", pugi::format_default, pugi::encoding_utf8);
-class XmlStrRefWriter : public pugi::xml_writer {
+//   XmlStringWriter writer(&xml_string);
+//   xdoc.save/print(writer);
+class XmlStringWriter : public pugi::xml_writer {
  public:
-  explicit XmlStrRefWriter(std::string* result) : result_(result) {
+  explicit XmlStringWriter(std::string* result) : result_(result) {
     result_->clear();
   }
 

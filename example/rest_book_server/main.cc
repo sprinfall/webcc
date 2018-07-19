@@ -3,7 +3,7 @@
 #include "webcc/logger.h"
 #include "webcc/rest_server.h"
 
-#include "example/rest_book_server/book_services.h"
+#include "example/rest_book_server/services.h"
 
 // In order to run with VLD, please copy the following files to the example
 // output folder from "third_party\win32\bin":

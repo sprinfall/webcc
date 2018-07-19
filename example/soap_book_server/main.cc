@@ -3,7 +3,7 @@
 #include "webcc/logger.h"
 #include "webcc/soap_server.h"
 
-#include "example/soap_calc_server/calc_service.h"
+#include "example/soap_book_server/book_service.h"
 
 void Help(const char* argv0) {
   std::cout << "Usage: " << argv0 << " <port>" << std::endl;
@@ -12,7 +12,7 @@ void Help(const char* argv0) {
 }
 
 int main(int argc, char* argv[]) {
-  if (argc != 2) {
+  if (argc < 2) {
     Help(argv[0]);
     return 1;
   }
@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
     server.set_format_raw(false);
     server.set_indent_str("  ");
 
-    server.Bind(std::make_shared<CalcService>(), "/calculator");
+    server.Bind(std::make_shared<BookService>(), "/book");
     server.Run();
   } catch (const std::exception& e) {
     std::cerr << "Exception: " << e.what() << std::endl;

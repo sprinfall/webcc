@@ -1,4 +1,8 @@
-add_executable(rest_book_client main.cc)
+set(TARGET_NAME rest_book_client)
 
-target_link_libraries(rest_book_client webcc jsoncpp ${Boost_LIBRARIES})
-target_link_libraries(rest_book_client "${CMAKE_THREAD_LIBS_INIT}")
+set(SRCS main.cc)
+
+add_executable(${TARGET_NAME} ${SRCS})
+
+target_link_libraries(${TARGET_NAME} webcc jsoncpp ${Boost_LIBRARIES})
+target_link_libraries(${TARGET_NAME} "${CMAKE_THREAD_LIBS_INIT}")

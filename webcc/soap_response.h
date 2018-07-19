@@ -8,9 +8,10 @@
 
 namespace webcc {
 
-// SOAP response.
 class SoapResponse : public SoapMessage {
  public:
+  SoapResponse() : is_cdata_(false) {}
+
   // Could be "Price" for an operation/method like "GetXyzPrice".
   // Really depend on the service.
   // Most services use a general name "Result".
@@ -18,12 +19,14 @@ class SoapResponse : public SoapMessage {
     result_name_ = result_name;
   }
 
-  void set_result(const std::string& result) {
+  void set_result(const std::string& result, bool is_cdata) {
     result_ = result;
+    is_cdata_ = is_cdata;
   }
 
-  void set_result(std::string&& result) {
+  void set_result_moved(std::string&& result, bool is_cdata) {
     result_ = std::move(result);
+    is_cdata_ = is_cdata;
   }
 
   std::string result_moved() {
@@ -46,6 +49,9 @@ class SoapResponse : public SoapMessage {
 
   // Result value.
   std::string result_;
+
+  // CDATA result.
+  bool is_cdata_;
 };
 
 }  // namespace webcc

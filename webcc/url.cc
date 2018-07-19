@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <sstream>
-#include <utility>  // for move()
 
 namespace webcc {
 
@@ -89,7 +88,7 @@ void UrlQuery::Remove(const std::string& key) {
 const std::string& UrlQuery::Get(const std::string& key) const {
   auto it = Find(key);
   if (it != parameters_.end()) {
-    return it->value();
+    return it->second;
   }
 
   static const std::string kEmptyValue;
@@ -101,11 +100,11 @@ std::string UrlQuery::ToString() const {
     return "";
   }
 
-  std::string str = parameters_[0].ToString();
+  std::string str = parameters_[0].first + "=" + parameters_[0].second;
 
   for (std::size_t i = 1; i < parameters_.size(); ++i) {
     str += "&";
-    str += parameters_[i].ToString();
+    str += parameters_[i].first + "=" + parameters_[i].second;
   }
 
   return str;
@@ -114,7 +113,7 @@ std::string UrlQuery::ToString() const {
 UrlQuery::ConstIterator UrlQuery::Find(const std::string& key) const {
   return std::find_if(parameters_.begin(),
                       parameters_.end(),
-                      [&key](const Parameter& p) { return p.key() == key; });
+                      [&key](const SoapParameter& p) { return p.first == key; });
 }
 
 // -----------------------------------------------------------------------------
