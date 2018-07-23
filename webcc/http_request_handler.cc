@@ -17,7 +17,7 @@ void HttpRequestHandler::Start(std::size_t count) {
   assert(count > 0 && workers_.size() == 0);
 
   for (std::size_t i = 0; i < count; ++i) {
-    workers_.create_thread(std::bind(&HttpRequestHandler::WorkerRoutine, this));
+    workers_.emplace_back(std::bind(&HttpRequestHandler::WorkerRoutine, this));
   }
 }
 
@@ -33,7 +33,11 @@ void HttpRequestHandler::Stop() {
   // Enqueue a null connection to trigger the first worker to stop.
   queue_.Push(HttpConnectionPtr());
 
-  workers_.join_all();
+  for (auto& worker : workers_) {
+    if (worker.joinable()) {
+      worker.join();
+    }
+  }
 
   LOG_INFO("All workers have been stopped.");
 }

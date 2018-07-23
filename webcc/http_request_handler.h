@@ -2,9 +2,8 @@
 #define WEBCC_HTTP_REQUEST_HANDLER_H_
 
 #include <list>
+#include <thread>
 #include <vector>
-
-#include "boost/thread/thread.hpp"
 
 #include "webcc/http_connection.h"
 #include "webcc/queue.h"
@@ -39,7 +38,7 @@ class HttpRequestHandler {
   virtual void HandleConnection(HttpConnectionPtr connection) = 0;
 
   Queue<HttpConnectionPtr> queue_;
-  boost::thread_group workers_;
+  std::vector<std::thread> workers_;
 };
 
 }  // namespace webcc

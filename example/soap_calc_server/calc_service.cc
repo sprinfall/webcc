@@ -11,7 +11,11 @@ bool CalcService::Handle(const webcc::SoapRequest& soap_request,
                          webcc::SoapResponse* soap_response) {
   double x = 0.0;
   double y = 0.0;
-  if (!GetParameters(soap_request, &x, &y)) {
+  try {
+    x = std::stod(soap_request.GetParameter("x"));
+    y = std::stod(soap_request.GetParameter("y"));
+  } catch (const std::exception& e) {
+    LOG_ERRO("SoapParameter cast error: %s", e.what());
     return false;
   }
 
@@ -58,19 +62,6 @@ bool CalcService::Handle(const webcc::SoapRequest& soap_request,
 
   soap_response->set_result_name("Result");
   soap_response->set_result_moved(std::to_string(result), false);
-
-  return true;
-}
-
-bool CalcService::GetParameters(const webcc::SoapRequest& soap_request,
-                                double* x, double* y) {
-  try {
-    *x = std::stod(soap_request.GetParameter("x"));
-    *y = std::stod(soap_request.GetParameter("y"));
-  } catch (const std::exception& e) {
-    LOG_ERRO("SoapParameter cast error: %s", e.what());
-    return false;
-  }
 
   return true;
 }

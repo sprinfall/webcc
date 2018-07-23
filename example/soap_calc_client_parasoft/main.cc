@@ -79,8 +79,7 @@ class CalcClient {
 int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
-  // Default port 80.
-  CalcClient calc("ws1.parasoft.com", "");
+  CalcClient calc("ws1.parasoft.com", "");  // Use default port 80
 
   double x = 1.0;
   double y = 2.0;

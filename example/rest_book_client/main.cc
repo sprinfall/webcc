@@ -20,10 +20,22 @@
 
 // -----------------------------------------------------------------------------
 
-// Write a JSON object to string.
-std::string JsonToString(const Json::Value& json) {
+static std::string JsonToString(const Json::Value& json) {
   Json::StreamWriterBuilder builder;
   return Json::writeString(builder, json);
+}
+
+static Json::Value StringToJson(const std::string& str) {
+  Json::Value json;
+
+  Json::CharReaderBuilder builder;
+  std::stringstream stream(str);
+  std::string errs;
+  if (!Json::parseFromStream(builder, stream, &json, &errs)) {
+    std::cerr << errs << std::endl;
+  }
+
+  return json;
 }
 
 // -----------------------------------------------------------------------------
@@ -78,26 +90,25 @@ public:
     return true;
   }
 
-  bool CreateBook(const std::string& id,
-                  const std::string& title,
-                  double price) {
+  bool CreateBook(const std::string& title, double price, std::string* id) {
     PrintSeparateLine();
-    std::cout << "CreateBook: " << id << ", " << title << ", " << price
-              << std::endl;
+    std::cout << "CreateBook: " << title << ", " << price << std::endl;
 
-    Json::Value json(Json::objectValue);
-    json["id"] = id;
-    json["title"] = title;
-    json["price"] = price;
+    Json::Value req_json(Json::objectValue);
+    req_json["title"] = title;
+    req_json["price"] = price;
 
-    if (!rest_client_.Post("/books", JsonToString(json))) {
+    if (!rest_client_.Post("/books", JsonToString(req_json))) {
       PrintError();
       return false;
     }
 
     std::cout << rest_client_.response_status() << std::endl;
 
-    return true;
+    Json::Value rsp_json = StringToJson(rest_client_.response_content());
+    *id = rsp_json["id"].asString();
+
+    return !id->empty();
   }
 };
 
@@ -123,8 +134,7 @@ public:
     return true;
   }
 
-  bool UpdateBook(const std::string& id,
-                  const std::string& title,
+  bool UpdateBook(const std::string& id, const std::string& title,
                   double price) {
     PrintSeparateLine();
     std::cout << "UpdateBook: " << id << ", " << title << ", " << price
@@ -187,12 +197,14 @@ int main(int argc, char* argv[]) {
   BookDetailClient detail_client(host, port, timeout_seconds);
 
   list_client.ListBooks();
-  list_client.CreateBook("1", "1984", 12.3);
 
-  detail_client.GetBook("1");
-  detail_client.UpdateBook("1", "1Q84", 32.1);
-  detail_client.GetBook("1");
-  detail_client.DeleteBook("1");
+  std::string id;
+  list_client.CreateBook("1984", 12.3, &id);
+
+  detail_client.GetBook(id);
+  detail_client.UpdateBook(id, "1Q84", 32.1);
+  detail_client.GetBook(id);
+  detail_client.DeleteBook(id);
 
   list_client.ListBooks();
 

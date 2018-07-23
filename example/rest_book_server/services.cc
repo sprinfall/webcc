@@ -2,8 +2,8 @@
 
 #include <iostream>
 #include <list>
+#include <thread>
 
-#include "boost/thread/thread.hpp"
 #include "json/json.h"
 #include "webcc/logger.h"
 
@@ -42,11 +42,11 @@ static bool JsonToBook(const std::string& json, Book* book) {
 
 // Return all books as a JSON array.
 // TODO: Support query parameters.
-bool BookListService::Get(const webcc::UrlQuery& /* query */,
+bool BookListService::Get(const webcc::UrlQuery& /*query*/,
                           std::string* response_content) {
   if (sleep_seconds_ > 0) {
     LOG_INFO("Sleep %d seconds...", sleep_seconds_);
-    boost::this_thread::sleep_for(boost::chrono::seconds(sleep_seconds_));
+    std::this_thread::sleep_for(std::chrono::seconds(sleep_seconds_));
   }
 
   Json::Value root(Json::arrayValue);
@@ -61,17 +61,23 @@ bool BookListService::Get(const webcc::UrlQuery& /* query */,
 }
 
 // Add a new book.
-// No response content.
 bool BookListService::Post(const std::string& request_content,
-                           std::string* /* response_content */) {
+                           std::string* response_content) {
   if (sleep_seconds_ > 0) {
     LOG_INFO("Sleep %d seconds...", sleep_seconds_);
-    boost::this_thread::sleep_for(boost::chrono::seconds(sleep_seconds_));
+    std::this_thread::sleep_for(std::chrono::seconds(sleep_seconds_));
   }
 
   Book book;
   if (JsonToBook(request_content, &book)) {
-    g_book_store.AddBook(book);  // TODO: return ID
+    std::string id = g_book_store.AddBook(book);
+
+    Json::Value root;
+    root["id"] = id;
+
+    Json::StreamWriterBuilder builder;
+    *response_content = Json::writeString(builder, root);
+
     return true;
   }
 
@@ -85,7 +91,7 @@ bool BookDetailService::Get(const std::vector<std::string>& url_sub_matches,
                             std::string* response_content) {
   if (sleep_seconds_ > 0) {
     LOG_INFO("Sleep %d seconds...", sleep_seconds_);
-    boost::this_thread::sleep_for(boost::chrono::seconds(sleep_seconds_));
+    std::this_thread::sleep_for(std::chrono::seconds(sleep_seconds_));
   }
 
   if (url_sub_matches.size() != 1) {
@@ -110,7 +116,7 @@ bool BookDetailService::Put(const std::vector<std::string>& url_sub_matches,
                             std::string* response_content) {
   if (sleep_seconds_ > 0) {
     LOG_INFO("Sleep %d seconds...", sleep_seconds_);
-    boost::this_thread::sleep_for(boost::chrono::seconds(sleep_seconds_));
+    std::this_thread::sleep_for(std::chrono::seconds(sleep_seconds_));
   }
 
   if (url_sub_matches.size() != 1) {
@@ -132,7 +138,7 @@ bool BookDetailService::Delete(
     const std::vector<std::string>& url_sub_matches) {
   if (sleep_seconds_ > 0) {
     LOG_INFO("Sleep %d seconds...", sleep_seconds_);
-    boost::this_thread::sleep_for(boost::chrono::seconds(sleep_seconds_));
+    std::this_thread::sleep_for(std::chrono::seconds(sleep_seconds_));
   }
 
   if (url_sub_matches.size() != 1) {
