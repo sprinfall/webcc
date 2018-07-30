@@ -76,6 +76,7 @@ enum Error {
   kNoError = 0,
   kHostResolveError,
   kEndpointConnectError,
+  kHandshakeError,
   kSocketReadError,
   kSocketWriteError,
   kHttpError,

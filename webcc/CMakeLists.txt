@@ -6,12 +6,10 @@ if(MSVC)
 endif()
 
 set(SRCS
-	async_http_client.cc
-	async_http_client.h
-	async_rest_client.cc
-	async_rest_client.h
 	globals.cc
 	globals.h
+	http_async_client.cc
+	http_async_client.h
 	http_client.cc
 	http_client.h
 	http_connection.cc
@@ -35,6 +33,8 @@ set(SRCS
 	logger.cc
 	logger.h
 	queue.h
+	rest_async_client.cc
+	rest_async_client.h
 	rest_client.cc
 	rest_client.h
 	rest_request_handler.cc
@@ -49,6 +49,13 @@ set(SRCS
 	utility.cc
 	utility.h
 	)
+
+if(WEBCC_ENABLE_SSL)
+	set(SRCS ${SRCS}
+		http_ssl_client.cc
+		http_ssl_client.h
+	 	)
+endif()
 
 if(WEBCC_ENABLE_SOAP)
 	# SOAP specific sources.

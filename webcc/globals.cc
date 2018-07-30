@@ -41,6 +41,8 @@ const char* DescribeError(Error error) {
       return "Host resolve error";
     case kEndpointConnectError:
       return "Endpoint connect error";
+    case kHandshakeError:
+      return "Handshake error";
     case kSocketReadError:
       return "Socket read error";
     case kSocketWriteError:

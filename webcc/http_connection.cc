@@ -24,8 +24,12 @@ void HttpConnection::Start() {
 }
 
 void HttpConnection::Close() {
-  boost::system::error_code ignored_ec;
-  socket_.close(ignored_ec);
+  LOG_INFO("Close socket...");
+  boost::system::error_code ec;
+  socket_.close(ec);
+  if (ec) {
+    LOG_ERRO("Failed to close socket.");
+  }
 }
 
 void HttpConnection::SetResponseContent(std::string&& content,
@@ -51,6 +55,7 @@ void HttpConnection::AsyncRead() {
 void HttpConnection::ReadHandler(boost::system::error_code ec,
                                  std::size_t length) {
   if (ec) {
+    LOG_ERRO("Socket read error: %s", ec.message().c_str());
     if (ec != boost::asio::error::operation_aborted) {
       Close();
     }
@@ -99,9 +104,13 @@ void HttpConnection::WriteHandler(boost::system::error_code ec,
     LOG_INFO("Response has been sent back, length: %u.", length);
 
     // Initiate graceful connection closure.
+    LOG_INFO("Close socket gracefully...");
+    // TODO: shutdown(both) should be identical to close().
     boost::system::error_code ec;
     socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
-
+    if (ec) {
+      LOG_ERRO("Failed to close socket.");
+    }
   } else {
     LOG_ERRO("Sending response error: %s", ec.message().c_str());
 

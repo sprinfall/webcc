@@ -1,5 +1,5 @@
-#ifndef WEBCC_ASYNC_HTTP_CLIENT_H_
-#define WEBCC_ASYNC_HTTP_CLIENT_H_
+#ifndef WEBCC_HTTP_ASYNC_CLIENT_H_
+#define WEBCC_HTTP_ASYNC_CLIENT_H_
 
 #include <functional>
 #include <memory>
@@ -19,11 +19,11 @@ namespace webcc {
 // Request handler/callback.
 typedef std::function<void(HttpResponsePtr, Error, bool)> HttpResponseHandler;
 
-class AsyncHttpClient : public std::enable_shared_from_this<AsyncHttpClient> {
+class HttpAsyncClient : public std::enable_shared_from_this<HttpAsyncClient> {
  public:
-  explicit AsyncHttpClient(boost::asio::io_context& io_context);
+  explicit HttpAsyncClient(boost::asio::io_context& io_context);
 
-  DELETE_COPY_AND_ASSIGN(AsyncHttpClient);
+  DELETE_COPY_AND_ASSIGN(HttpAsyncClient);
 
   void set_timeout_seconds(int timeout_seconds) {
     timeout_seconds_ = timeout_seconds;
@@ -31,7 +31,7 @@ class AsyncHttpClient : public std::enable_shared_from_this<AsyncHttpClient> {
 
   // Asynchronously connect to the server, send the request, read the response,
   // and call the |response_handler| when all these finish.
-  Error Request(HttpRequestPtr request, HttpResponseHandler response_handler);
+  void Request(HttpRequestPtr request, HttpResponseHandler response_handler);
 
   // Terminate all the actors to shut down the connection. It may be called by
   // the user of the client class, or by the class itself in response to
@@ -40,15 +40,11 @@ class AsyncHttpClient : public std::enable_shared_from_this<AsyncHttpClient> {
 
  private:
   using tcp = boost::asio::ip::tcp;
-  typedef tcp::resolver::results_type::iterator EndpointIterator;
 
   void ResolveHandler(boost::system::error_code ec,
                       tcp::resolver::results_type results);
 
-  void AsyncConnect(EndpointIterator endpoint_iter);
-
-  void ConnectHandler(boost::system::error_code ec,
-                      EndpointIterator endpoint_iter);
+  void ConnectHandler(boost::system::error_code ec, tcp::endpoint endpoint);
 
   void AsyncWrite();
   void WriteHandler(boost::system::error_code ec);
@@ -80,8 +76,8 @@ class AsyncHttpClient : public std::enable_shared_from_this<AsyncHttpClient> {
   bool timed_out_;
 };
 
-typedef std::shared_ptr<AsyncHttpClient> HttpAsyncClientPtr;
+typedef std::shared_ptr<HttpAsyncClient> HttpAsyncClientPtr;
 
 }  // namespace webcc
 
-#endif  // WEBCC_ASYNC_HTTP_CLIENT_H_
+#endif  // WEBCC_HTTP_ASYNC_CLIENT_H_

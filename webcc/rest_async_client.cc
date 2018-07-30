@@ -1,14 +1,14 @@
-#include "webcc/async_rest_client.h"
+#include "webcc/rest_async_client.h"
 
 namespace webcc {
 
-AsyncRestClient::AsyncRestClient(boost::asio::io_context& io_context,
+RestAsyncClient::RestAsyncClient(boost::asio::io_context& io_context,
                                  const std::string& host,
                                  const std::string& port)
     : io_context_(io_context), host_(host), port_(port), timeout_seconds_(0) {
 }
 
-void AsyncRestClient::Request(const std::string& method,
+void RestAsyncClient::Request(const std::string& method,
                               const std::string& url,
                               std::string&& content,
                               HttpResponseHandler response_handler) {
@@ -27,7 +27,7 @@ void AsyncRestClient::Request(const std::string& method,
 
   request->UpdateStartLine();
 
-  HttpAsyncClientPtr http_client(new AsyncHttpClient(io_context_));
+  HttpAsyncClientPtr http_client(new HttpAsyncClient(io_context_));
 
   if (timeout_seconds_ > 0) {
     http_client->set_timeout_seconds(timeout_seconds_);

@@ -23,8 +23,6 @@ HttpServer::HttpServer(std::uint16_t port, std::size_t workers)
   signals_.add(SIGQUIT);
 #endif
 
-  AsyncAwaitStop();
-
   // NOTE:
   // "reuse_addr=true" means option SO_REUSEADDR will be set.
   // For more details about SO_REUSEADDR, see:
@@ -35,14 +33,16 @@ HttpServer::HttpServer(std::uint16_t port, std::size_t workers)
   acceptor_.reset(new tcp::acceptor(io_context_,
                                     tcp::endpoint(tcp::v4(), port),
                                     true));  // reuse_addr
-
-  AsyncAccept();
 }
 
 void HttpServer::Run() {
   assert(GetRequestHandler() != nullptr);
 
   LOG_INFO("Server is going to run...");
+
+  AsyncAwaitStop();
+
+  AsyncAccept();
 
   // Start worker threads.
   GetRequestHandler()->Start(workers_);

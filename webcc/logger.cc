@@ -22,7 +22,8 @@ struct Logger {
   void Init(const std::string& path, int _modes) {
     modes = _modes;
 
-    if (!path.empty()) {
+    // Create log file only if necessary.
+    if ((modes & LOG_FILE) != 0 && !path.empty()) {
       if ((modes & LOG_OVERWRITE) != 0) {
         file = fopen(path.c_str(), "w+");
       } else {
@@ -72,8 +73,12 @@ static bfs::path InitLogPath(const std::string& dir) {
 }
 
 void LogInit(const std::string& dir, int modes) {
-  bfs::path path = InitLogPath(dir);
-  g_logger.Init(path.string(), modes);
+  if ((modes & LOG_FILE) != 0) {
+    bfs::path path = InitLogPath(dir);
+    g_logger.Init(path.string(), modes);
+  } else {
+    g_logger.Init("", modes);
+  }
 
   // Suppose LogInit() is called from the main thread.
   g_main_thread_id = std::this_thread::get_id();
@@ -116,6 +121,23 @@ static std::string GetThreadID() {
   return ss.str();
 }
 
+static void WriteToFile(FILE* fd, int level, const char* file, int line,
+                        const char* format, va_list args) {
+  std::lock_guard<std::mutex> lock(g_logger.mutex);
+
+  fprintf(fd, "%s, %s, %7s, %24s, %4d, ",
+          GetTimestamp().c_str(), kLevelNames[level], GetThreadID().c_str(),
+          file, line);
+
+  vfprintf(fd, format, args);
+
+  fprintf(fd, "\n");
+
+  if ((g_logger.modes & LOG_FLUSH) != 0) {
+    fflush(fd);
+  }
+}
+
 void LogWrite(int level, const char* file, int line, const char* format, ...) {
   assert(format != nullptr);
 
@@ -123,34 +145,11 @@ void LogWrite(int level, const char* file, int line, const char* format, ...) {
   va_start(args, format);
 
   if ((g_logger.modes & LOG_FILE) != 0 && g_logger.file != nullptr) {
-    std::lock_guard<std::mutex> lock(g_logger.mutex);
-
-    fprintf(g_logger.file, "%s, %s, %5s, %24s, %4d, ",
-            GetTimestamp().c_str(), kLevelNames[level], GetThreadID().c_str(),
-            file, line);
-
-    vfprintf(g_logger.file, format, args);
-
-    fprintf(g_logger.file, "\n");
-
-    if ((g_logger.modes & LOG_FLUSH) != 0) {
-      fflush(g_logger.file);
-    }
+    WriteToFile(g_logger.file, level, file, line, format, args);
   }
 
   if ((g_logger.modes & LOG_CONSOLE) != 0) {
-    std::lock_guard<std::mutex> lock(g_logger.mutex);
-
-    fprintf(stderr, "%s, %s, %5s, %24s, %4d, ",
-            GetTimestamp().c_str(), kLevelNames[level], GetThreadID().c_str(),
-            file, line);
-
-    vfprintf(stderr, format, args);
-    fprintf(stderr, "\n");
-
-    if ((g_logger.modes & LOG_FLUSH) != 0) {
-      fflush(stderr);
-    }
+    WriteToFile(stderr, level, file, line, format, args);
   }
 
   va_end(args);

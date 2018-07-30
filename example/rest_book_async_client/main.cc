@@ -2,7 +2,7 @@
 
 #include "json/json.h"
 
-#include "webcc/async_rest_client.h"
+#include "webcc/rest_async_client.h"
 #include "webcc/logger.h"
 
 // -----------------------------------------------------------------------------
@@ -44,7 +44,7 @@ class BookListClient {
   }
 
  private:
-  webcc::AsyncRestClient rest_client_;
+  webcc::RestAsyncClient rest_client_;
 };
 
 // -----------------------------------------------------------------------------
@@ -84,7 +84,7 @@ public:
   }
 
 private:
-  webcc::AsyncRestClient rest_client_;
+  webcc::RestAsyncClient rest_client_;
 };
 
 // -----------------------------------------------------------------------------

@@ -1,5 +1,5 @@
-#ifndef WEBCC_HTTP_CLIENT_H_
-#define WEBCC_HTTP_CLIENT_H_
+#ifndef WEBCC_HTTP_SSL_CLIENT_H_
+#define WEBCC_HTTP_SSL_CLIENT_H_
 
 #include <cassert>
 #include <memory>
@@ -8,6 +8,7 @@
 #include "boost/asio/deadline_timer.hpp"
 #include "boost/asio/io_context.hpp"
 #include "boost/asio/ip/tcp.hpp"
+#include "boost/asio/ssl.hpp"
 
 #include "webcc/globals.h"
 #include "webcc/http_request.h"
@@ -16,12 +17,13 @@
 
 namespace webcc {
 
-class HttpClient {
+class HttpSslClient {
  public:
-  HttpClient();
-  ~HttpClient() = default;
+  HttpSslClient();
 
-  DELETE_COPY_AND_ASSIGN(HttpClient);
+  ~HttpSslClient() = default;
+
+  DELETE_COPY_AND_ASSIGN(HttpSslClient);
 
   void set_timeout_seconds(int timeout_seconds) {
     assert(timeout_seconds > 0);
@@ -37,8 +39,10 @@ class HttpClient {
 
   Error error() const { return error_; }
 
- private:
+private:
   Error Connect(const HttpRequest& request);
+
+  Error Handshake(const std::string& host);
 
   Error SendReqeust(const HttpRequest& request);
 
@@ -52,7 +56,8 @@ class HttpClient {
 
   boost::asio::io_context io_context_;
 
-  boost::asio::ip::tcp::socket socket_;
+  boost::asio::ssl::context ssl_context_;
+  boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket_;
 
   std::vector<char> buffer_;
 
@@ -75,4 +80,4 @@ class HttpClient {
 
 }  // namespace webcc
 
-#endif  // WEBCC_HTTP_CLIENT_H_
+#endif  // WEBCC_HTTP_SSL_CLIENT_H_

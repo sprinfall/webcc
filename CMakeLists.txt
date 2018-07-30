@@ -3,6 +3,7 @@ project(webcc)
 
 option(WEBCC_ENABLE_LOG "Enable logging?" ON)
 option(WEBCC_ENABLE_SOAP "Enable SOAP support (need pugixml)?" ON)
+option(WEBCC_ENABLE_SSL "Enable SSL/HTTPS support (need OpenSSL)?" OFF)
 option(WEBCC_BUILD_UNITTEST "Build unit test?" ON)
 option(WEBCC_BUILD_EXAMPLE "Build examples?" ON)
 
@@ -36,6 +37,10 @@ endif()
 
 if(WEBCC_ENABLE_SOAP)
     add_definitions(-DWEBCC_ENABLE_SOAP)
+endif()
+
+if(WEBCC_ENABLE_SSL)
+    add_definitions(-DWEBCC_ENABLE_SSL)
 endif()
 
 if(WEBCC_BUILD_UNITTEST)
@@ -100,6 +105,15 @@ if(Boost_FOUND)
     message(STATUS ${Boost_LIBRARIES})
 endif()
 
+if(WEBCC_ENABLE_SSL)
+	set(OPENSSL_USE_STATIC_LIBS ON)
+	set(OPENSSL_MSVC_STATIC_RT ON)
+	find_package(OpenSSL)
+	if(OPENSSL_FOUND)
+		include_directories(${OPENSSL_INCLUDE_DIR})
+	endif()
+endif()
+
 # For including its own headers as "webcc/http_client.h".
 include_directories(${PROJECT_SOURCE_DIR})
 
@@ -136,6 +150,10 @@ if(WEBCC_BUILD_EXAMPLE)
 		add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_calc_client_parasoft)
 		add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_book_server)
 		add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_book_client)
+	endif()
+
+	if(WEBCC_ENABLE_SSL)
+		add_subdirectory(${PROJECT_SOURCE_DIR}/example/http_ssl_client)
 	endif()
 endif()
 

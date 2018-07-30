@@ -2,7 +2,7 @@
 
 #include "boost/asio/io_context.hpp"
 
-#include "webcc/async_http_client.h"
+#include "webcc/http_async_client.h"
 #include "webcc/logger.h"
 
 // In order to test this client, create a file index.html whose content is
@@ -10,7 +10,7 @@
 //     $ python -m http.server
 // The default port number should be 8000.
 
-void Test(boost::asio::io_context& ioc) {
+void Test(boost::asio::io_context& io_context) {
   webcc::HttpRequestPtr request(new webcc::HttpRequest());
 
   request->set_method(webcc::kHttpGet);
@@ -18,7 +18,7 @@ void Test(boost::asio::io_context& ioc) {
   request->SetHost("localhost", "8000");
   request->UpdateStartLine();
 
-  webcc::HttpAsyncClientPtr client(new webcc::AsyncHttpClient(ioc));
+  webcc::HttpAsyncClientPtr client(new webcc::HttpAsyncClient(io_context));
 
   // Response handler.
   auto handler = [](std::shared_ptr<webcc::HttpResponse> response,
@@ -41,13 +41,13 @@ void Test(boost::asio::io_context& ioc) {
 int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
-  boost::asio::io_context ioc;
+  boost::asio::io_context io_context;
 
-  Test(ioc);
-  Test(ioc);
-  Test(ioc);
+  Test(io_context);
+  Test(io_context);
+  Test(io_context);
 
-  ioc.run();
+  io_context.run();
 
   return 0;
 }

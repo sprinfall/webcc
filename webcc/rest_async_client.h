@@ -1,16 +1,16 @@
-#ifndef WEBCC_ASYNC_REST_CLIENT_H_
-#define WEBCC_ASYNC_REST_CLIENT_H_
+#ifndef WEBCC_REST_ASYNC_CLIENT_H_
+#define WEBCC_REST_ASYNC_CLIENT_H_
 
 #include <string>
 #include <utility>  // for move()
 
-#include "webcc/async_http_client.h"
+#include "webcc/http_async_client.h"
 
 namespace webcc {
 
-class AsyncRestClient {
+class RestAsyncClient {
  public:
-  AsyncRestClient(boost::asio::io_context& io_context,  // NOLINT
+  RestAsyncClient(boost::asio::io_context& io_context,  // NOLINT
                   const std::string& host, const std::string& port);
 
   void set_timeout_seconds(int timeout_seconds) {
@@ -59,4 +59,4 @@ class AsyncRestClient {
 
 }  // namespace webcc
 
-#endif  // WEBCC_ASYNC_REST_CLIENT_H_
+#endif  // WEBCC_REST_ASYNC_CLIENT_H_
