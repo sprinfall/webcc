@@ -100,23 +100,31 @@ void HttpConnection::AsyncWrite() {
 // This is ensured by Asio.
 void HttpConnection::WriteHandler(boost::system::error_code ec,
                                   std::size_t length) {
-  if (!ec) {
-    LOG_INFO("Response has been sent back, length: %u.", length);
-
-    // Initiate graceful connection closure.
-    LOG_INFO("Close socket gracefully...");
-    // TODO: shutdown(both) should be identical to close().
-    boost::system::error_code ec;
-    socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
-    if (ec) {
-      LOG_ERRO("Failed to close socket.");
-    }
-  } else {
-    LOG_ERRO("Sending response error: %s", ec.message().c_str());
+  if (ec) {
+    LOG_ERRO("Socket write error: %s", ec.message().c_str());
 
     if (ec != boost::asio::error::operation_aborted) {
       Close();
     }
+  } else {
+    LOG_INFO("Response has been sent back, length: %u.", length);
+
+    Shutdown();
+    Close();  // Necessary even after shutdown!
+  }
+}
+
+// Socket close VS. Shutdown:
+//   https://stackoverflow.com/questions/4160347/close-vs-shutdown-socket
+void HttpConnection::Shutdown() {
+  LOG_INFO("Shutdown socket...");
+
+  // Initiate graceful connection closure.
+  boost::system::error_code ec;
+  socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+
+  if (ec) {
+    LOG_ERRO("Socket shutdown error: %s", ec.message().c_str());
   }
 }
 

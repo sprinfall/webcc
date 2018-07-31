@@ -45,6 +45,9 @@ class HttpConnection : public std::enable_shared_from_this<HttpConnection> {
   void AsyncWrite();
   void WriteHandler(boost::system::error_code ec, std::size_t length);
 
+  // Shutdown the socket.
+  void Shutdown();
+
   // Socket for the connection.
   boost::asio::ip::tcp::socket socket_;
 

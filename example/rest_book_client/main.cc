@@ -208,7 +208,5 @@ int main(int argc, char* argv[]) {
 
   list_client.ListBooks();
 
-  getchar();
-
   return 0;
 }
