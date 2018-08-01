@@ -67,10 +67,7 @@ Error HttpSslClient::Connect(const HttpRequest& request) {
 
   tcp::resolver resolver(io_context_);
 
-  std::string port = request.port();
-  if (port.empty()) {
-    port = "443";  // 443 is the default port of HTTPs.
-  }
+  std::string port = request.port(kHttpsPort);
 
   boost::system::error_code ec;
   auto endpoints = resolver.resolve(tcp::v4(), request.host(), port, ec);

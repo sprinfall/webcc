@@ -26,6 +26,9 @@ const std::string kAppJsonUtf8 = "application/json; charset=utf-8";
 const std::string kTextXmlUtf8 = "text/xml; charset=utf-8";
 #endif  // WEBCC_ENABLE_SOAP
 
+const std::string kHttpPort   = "80";
+const std::string kHttpsPort  = "443";
+
 const std::string kHttpHead   = "HEAD";
 const std::string kHttpGet    = "GET";
 const std::string kHttpPost   = "POST";

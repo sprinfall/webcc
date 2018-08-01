@@ -9,6 +9,13 @@ RestClient::RestClient(const std::string& host, const std::string& port)
     : host_(host), port_(port),
       timeout_seconds_(0), timed_out_(false),
       error_(kNoError) {
+  if (port_.empty()) {
+    std::size_t i = host_.find_last_of(':');
+    if (i != std::string::npos) {
+      port_ = host_.substr(i + 1);
+      host_ = host_.substr(0, i);
+    }
+  }
 }
 
 bool RestClient::Request(const std::string& method, const std::string& url,

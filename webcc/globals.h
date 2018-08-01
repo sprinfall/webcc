@@ -43,6 +43,10 @@ extern const std::string kAppJsonUtf8;
 extern const std::string kTextXmlUtf8;
 #endif  // WEBCC_ENABLE_SOAP
 
+// Default ports.
+extern const std::string kHttpPort;
+extern const std::string kHttpsPort;
+
 // HTTP methods (verbs) in string ("HEAD", "GET", etc.).
 // NOTE: Don't use enum to avoid converting back and forth.
 extern const std::string kHttpHead;

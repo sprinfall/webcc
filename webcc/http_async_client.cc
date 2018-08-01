@@ -35,12 +35,7 @@ void HttpAsyncClient::Request(std::shared_ptr<HttpRequest> request,
   request_ = request;
   response_handler_ = response_handler;
 
-  std::string port = request->port();
-  if (port.empty()) {
-    port = "80";
-  }
-
-  resolver_->async_resolve(tcp::v4(), request->host(), port,
+  resolver_->async_resolve(tcp::v4(), request->host(), request->port(kHttpPort),
                            std::bind(&HttpAsyncClient::ResolveHandler,
                                      shared_from_this(),
                                      std::placeholders::_1,

@@ -11,7 +11,9 @@ namespace webcc {
 
 class SoapClient {
  public:
-  SoapClient(const std::string& host, const std::string& port);
+  // If |port| is empty, |host| will be checked to see if it contains port or
+  // not (separated by ':').
+  SoapClient(const std::string& host, const std::string& port = "");
 
   ~SoapClient() = default;
 

@@ -22,9 +22,15 @@ class HttpRequest : public HttpMessage {
   const std::string& host() const { return host_; }
   const std::string& port() const { return port_; }
 
+  std::string port(const std::string& default_port) const {
+    return port_.empty() ? default_port : port_;
+  }
+
   // Set host name and port number.
-  // The |host| is a descriptive name or a numeric IP address. The |port| is
-  // a numeric number (e.g., "9000") and "80" will be used if it's empty.
+  // The |host| is a descriptive name (e.g., www.google.com) or a numeric IP
+  // address (127.0.0.1).
+  // The |port| is a numeric number (e.g., 9000), the default (80 for HTTP and
+  // 443 for HTTPS) will be used if it's empty.
   void SetHost(const std::string& host, const std::string& port);
 
   // Set start line according to HTTP method, URL, etc.
