@@ -1,23 +1,29 @@
-#ifndef WEBCC_SOAP_CLIENT_H_
-#define WEBCC_SOAP_CLIENT_H_
+#ifndef WEBCC_SOAP_ASYNC_CLIENT_H_
+#define WEBCC_SOAP_ASYNC_CLIENT_H_
 
+#include <functional>
 #include <string>
 #include <vector>
 
+#include "webcc/http_async_client.h"
 #include "webcc/soap_message.h"
 #include "webcc/soap_parameter.h"
 
 namespace webcc {
 
-class SoapClient {
+// Response handler/callback.
+typedef std::function<void(std::string, Error, bool)> SoapResponseHandler;
+
+class SoapAsyncClient {
  public:
   // If |port| is empty, |host| will be checked to see if it contains port or
   // not (separated by ':').
-  SoapClient(const std::string& host, const std::string& port = "");
+  SoapAsyncClient(boost::asio::io_context& io_context,  // NOLINT
+                  const std::string& host, const std::string& port = "");
 
-  ~SoapClient() = default;
+  ~SoapAsyncClient() = default;
 
-  DELETE_COPY_AND_ASSIGN(SoapClient);
+  DELETE_COPY_AND_ASSIGN(SoapAsyncClient);
 
   void set_timeout_seconds(int timeout_seconds) {
     timeout_seconds_ = timeout_seconds;
@@ -39,15 +45,17 @@ class SoapClient {
     indent_str_ = indent_str;
   }
 
-  bool Request(const std::string& operation,
+  void Request(const std::string& operation,
                std::vector<SoapParameter>&& parameters,
-               std::string* result);
-
-  bool timed_out() const { return timed_out_; }
-
-  Error error() const { return error_; }
+               SoapResponseHandler soap_response_handler);
 
  private:
+  void ResponseHandler(SoapResponseHandler soap_response_handler,
+                       HttpResponsePtr http_response,
+                       Error error, bool timed_out);
+
+  boost::asio::io_context& io_context_;
+
   std::string host_;
   std::string port_;  // Leave this empty to use default 80.
 
@@ -70,13 +78,8 @@ class SoapClient {
 
   // Timeout in seconds; only effective when > 0.
   int timeout_seconds_;
-
-  // If the error was caused by timeout or not.
-  bool timed_out_;
-
-  Error error_;
 };
 
 }  // namespace webcc
 
-#endif  // WEBCC_SOAP_CLIENT_H_
+#endif  // WEBCC_SOAP_ASYNC_CLIENT_H_

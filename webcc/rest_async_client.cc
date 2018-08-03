@@ -12,8 +12,6 @@ void RestAsyncClient::Request(const std::string& method,
                               const std::string& url,
                               std::string&& content,
                               HttpResponseHandler response_handler) {
-  response_handler_ = response_handler;
-
   HttpRequestPtr request(new webcc::HttpRequest());
 
   request->set_method(method);
@@ -33,7 +31,7 @@ void RestAsyncClient::Request(const std::string& method,
     http_client->set_timeout_seconds(timeout_seconds_);
   }
 
-  http_client->Request(request, response_handler_);
+  http_client->Request(request, response_handler);
 }
 
 }  // namespace webcc

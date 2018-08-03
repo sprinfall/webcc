@@ -23,7 +23,8 @@ BookClient::BookClient(const std::string& host, const std::string& port)
   soap_client_.set_indent_str("  ");
 }
 
-bool BookClient::CreateBook(const std::string& title, double price, std::string* id) {
+bool BookClient::CreateBook(const std::string& title, double price,
+                            std::string* id) {
   PrintSeparateLine();
   std::cout << "CreateBook: " << title << ", " << price << std::endl;
 
@@ -91,7 +92,8 @@ bool BookClient::Call0(const std::string& operation, std::string* result_str) {
 }
 
 
-bool BookClient::Call1(const std::string& operation, webcc::SoapParameter&& parameter,
+bool BookClient::Call1(const std::string& operation,
+                       webcc::SoapParameter&& parameter,
                        std::string* result_str) {
   std::vector<webcc::SoapParameter> parameters{
     { std::move(parameter) }

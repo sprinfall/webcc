@@ -24,21 +24,7 @@ class RestClient {
     timeout_seconds_ = timeout_seconds;
   }
 
-  HttpResponsePtr response() const { return response_; }
-
-  int response_status() const {
-    assert(response_);
-    return response_->status();
-  }
-
-  const std::string& response_content() const {
-    assert(response_);
-    return response_->content();
-  }
-
-  bool timed_out() const { return timed_out_; }
-
-  Error error() const { return error_; }
+  // Requests
 
   inline bool Get(const std::string& url) {
     return Request(kHttpGet, url, "");
@@ -59,6 +45,24 @@ class RestClient {
   inline bool Delete(const std::string& url) {
     return Request(kHttpDelete, url, "");
   }
+
+  // Response & Result
+
+  HttpResponsePtr response() const { return response_; }
+
+  int response_status() const {
+    assert(response_);
+    return response_->status();
+  }
+
+  const std::string& response_content() const {
+    assert(response_);
+    return response_->content();
+  }
+
+  bool timed_out() const { return timed_out_; }
+
+  Error error() const { return error_; }
 
  private:
   bool Request(const std::string& method, const std::string& url,

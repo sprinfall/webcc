@@ -51,8 +51,6 @@ class RestAsyncClient {
   std::string host_;
   std::string port_;
 
-  HttpResponseHandler response_handler_;
-
   // Timeout in seconds; only effective when > 0.
   int timeout_seconds_;
 };

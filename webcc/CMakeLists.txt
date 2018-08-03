@@ -65,6 +65,7 @@ endif()
 
 if(WEBCC_ENABLE_SOAP)
 	set(SOAP_HEADERS
+		soap_async_client.h
 		soap_client.h
 		soap_message.h
 		soap_parameter.h
@@ -77,6 +78,7 @@ if(WEBCC_ENABLE_SOAP)
 		)
 
 	set(SOAP_SOURCES
+		soap_async_client.cc
 		soap_client.cc
 		soap_message.cc
 		soap_response.cc

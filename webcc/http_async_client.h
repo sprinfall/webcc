@@ -16,7 +16,7 @@
 
 namespace webcc {
 
-// Request handler/callback.
+// Response handler/callback.
 typedef std::function<void(HttpResponsePtr, Error, bool)> HttpResponseHandler;
 
 class HttpAsyncClient : public std::enable_shared_from_this<HttpAsyncClient> {

@@ -2,8 +2,8 @@
 
 #include "json/json.h"
 
-#include "webcc/rest_async_client.h"
 #include "webcc/logger.h"
+#include "webcc/rest_async_client.h"
 
 // -----------------------------------------------------------------------------
 
@@ -50,7 +50,7 @@ class BookListClient {
 // -----------------------------------------------------------------------------
 
 class BookDetailClient {
-public:
+ public:
   BookDetailClient(boost::asio::io_context& io_context,
                    const std::string& host, const std::string& port)
       : rest_client_(io_context, host, port) {
@@ -83,7 +83,7 @@ public:
     rest_client_.Delete("/book/" + id, handler);
   }
 
-private:
+ private:
   webcc::RestAsyncClient rest_client_;
 };
 
@@ -112,8 +112,7 @@ int main(int argc, char* argv[]) {
   BookDetailClient detail_client(io_context, host, port);
 
   // Response handler.
-  auto handler = [](std::shared_ptr<webcc::HttpResponse> response,
-                    webcc::Error error,
+  auto handler = [](webcc::HttpResponsePtr response, webcc::Error error,
                     bool timed_out) {
     if (error == webcc::kNoError) {
       std::cout << response->content() << std::endl;
