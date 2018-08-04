@@ -106,7 +106,11 @@ option(WEBCC_ENABLE_LOG "Enable logging?" ON)
 option(WEBCC_ENABLE_SOAP "Enable SOAP support (need pugixml)?" ON)
 option(WEBCC_BUILD_UNITTEST "Build unit test?" ON)
 option(WEBCC_BUILD_EXAMPLE "Build examples?" ON)
+
+set(WEBCC_LOG_LEVEL "VERB" CACHE STRING "Log level (VERB, INFO, WARN, ERRO or FATA)")
 ```
+
+Options `WEBCC_ENABLE_LOG` and `WEBCC_LOG_LEVEL` together define how logging behaves. See (Wiki/Logging)[https://github.com/sprinfall/webcc/wiki/Logging] for more details.
 
 If `WEBCC_ENABLE_SOAP` is `ON`, **pugixml** (already included) is used to parse and compose XML strings.
 
@@ -120,14 +124,23 @@ cd build
 Generate Makefiles with the following command:
 ```bash
 cmake -G"Unix Makefiles" \
+    -DCMAKE_INSTALL_PREFIX=~ \
     -DWEBCC_ENABLE_LOG=ON \
+    -DWEBCC_LOG_LEVEL=VERB \
     -DWEBCC_ENABLE_SOAP=ON \
     -DWEBCC_BUILD_UNITTEST=OFF \
     -DWEBCC_BUILD_EXAMPLE=ON \
     ..
 ```
 Feel free to change the build options (`ON` or `OFF`).
-Then make:
+CMake variable `CMAKE_INSTALL_PREFIX` defines where to install the output library and header files. The default is `/usr/local`.
+
+If everything is OK, then you can build with `make`:
 ```bash
-$ make -j4
+$ make -j4  # or -j8, depending on how many CPU cores you have.
+```
+
+Then install:
+```bash
+$ make install
 ```
