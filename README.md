@@ -110,7 +110,7 @@ option(WEBCC_BUILD_EXAMPLE "Build examples?" ON)
 set(WEBCC_LOG_LEVEL "VERB" CACHE STRING "Log level (VERB, INFO, WARN, ERRO or FATA)")
 ```
 
-Options `WEBCC_ENABLE_LOG` and `WEBCC_LOG_LEVEL` together define how logging behaves. See (Wiki/Logging)[https://github.com/sprinfall/webcc/wiki/Logging] for more details.
+Options `WEBCC_ENABLE_LOG` and `WEBCC_LOG_LEVEL` together define how logging behaves. See [Wiki/Logging](https://github.com/sprinfall/webcc/wiki/Logging) for more details.
 
 If `WEBCC_ENABLE_SOAP` is `ON`, **pugixml** (already included) is used to parse and compose XML strings.
 
