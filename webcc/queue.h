@@ -3,12 +3,10 @@
 
 // A general message queue.
 
+#include <condition_variable>
 #include <list>
-#include <queue>
-
-#include "boost/thread/condition_variable.hpp"
-#include "boost/thread/locks.hpp"
-#include "boost/thread/mutex.hpp"
+#include <mutex>
+#include <thread>
 
 namespace webcc {
 
@@ -21,7 +19,7 @@ class Queue {
   Queue& operator=(const Queue&) = delete;
 
   T PopOrWait() {
-    boost::unique_lock<boost::mutex> lock(mutex_);
+    std::unique_lock<std::mutex> lock(mutex_);
 
     // Wait for a message.
     not_empty_cv_.wait(lock, [this] { return !message_list_.empty(); });
@@ -32,7 +30,7 @@ class Queue {
   }
 
   T Pop() {
-    boost::lock_guard<boost::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
 
     if (message_list_.empty()) {
       return T();
@@ -45,7 +43,7 @@ class Queue {
 
   void Push(const T& message) {
     {
-      boost::lock_guard<boost::mutex> lock(mutex_);
+      std::lock_guard<std::mutex> lock(mutex_);
       message_list_.push_back(message);
     }
     not_empty_cv_.notify_one();
@@ -53,8 +51,8 @@ class Queue {
 
  private:
   std::list<T> message_list_;
-  boost::mutex mutex_;
-  boost::condition_variable not_empty_cv_;
+  std::mutex mutex_;
+  std::condition_variable not_empty_cv_;
 };
 
 }  // namespace webcc

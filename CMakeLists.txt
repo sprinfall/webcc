@@ -23,15 +23,15 @@ if(WEBCC_ENABLE_LOG)
 
     # Add definition of WEBCC_LOG_LEVEL according variable WEBCC_LOG_LEVEL.
     if(WEBCC_LOG_LEVEL MATCHES "^VERB$")
-    	add_definitions(-DWEBCC_LOG_LEVEL=0)
+        add_definitions(-DWEBCC_LOG_LEVEL=0)
     elseif(WEBCC_LOG_LEVEL MATCHES "^INFO$")
-    	add_definitions(-DWEBCC_LOG_LEVEL=1)
+        add_definitions(-DWEBCC_LOG_LEVEL=1)
     elseif(WEBCC_LOG_LEVEL MATCHES "^WARN$")
-    	add_definitions(-DWEBCC_LOG_LEVEL=2)
+        add_definitions(-DWEBCC_LOG_LEVEL=2)
     elseif(WEBCC_LOG_LEVEL MATCHES "^ERRO$")
-    	add_definitions(-DWEBCC_LOG_LEVEL=3)
+        add_definitions(-DWEBCC_LOG_LEVEL=3)
     elseif(WEBCC_LOG_LEVEL MATCHES "^FATA$")
-    	add_definitions(-DWEBCC_LOG_LEVEL=4)
+        add_definitions(-DWEBCC_LOG_LEVEL=4)
     endif()
 endif()
 
@@ -53,34 +53,34 @@ include(GNUInstallDirs)
 # Automatically detect _WIN32_WINNT for Asio.
 # See: https://stackoverflow.com/a/40217291
 if(WIN32)
-	macro(get_WIN32_WINNT version)
-		if(CMAKE_SYSTEM_VERSION)
-			set(ver ${CMAKE_SYSTEM_VERSION})
-			string(REGEX MATCH "^([0-9]+).([0-9])" ver ${ver})
-			string(REGEX MATCH "^([0-9]+)" verMajor ${ver})
-			# Check for Windows 10, b/c we'll need to convert to hex 'A'.
-			if("${verMajor}" MATCHES "10")
-				set(verMajor "A")
-				string(REGEX REPLACE "^([0-9]+)" ${verMajor} ver ${ver})
-			endif("${verMajor}" MATCHES "10")
-			# Remove all remaining '.' characters.
-			string(REPLACE "." "" ver ${ver})
-			# Prepend each digit with a zero.
-			string(REGEX REPLACE "([0-9A-Z])" "0\\1" ver ${ver})
-			set(${version} "0x${ver}")
-		endif(CMAKE_SYSTEM_VERSION)
-	endmacro(get_WIN32_WINNT)
+    macro(get_WIN32_WINNT version)
+        if(CMAKE_SYSTEM_VERSION)
+            set(ver ${CMAKE_SYSTEM_VERSION})
+            string(REGEX MATCH "^([0-9]+).([0-9])" ver ${ver})
+            string(REGEX MATCH "^([0-9]+)" verMajor ${ver})
+            # Check for Windows 10, b/c we'll need to convert to hex 'A'.
+            if("${verMajor}" MATCHES "10")
+                set(verMajor "A")
+                string(REGEX REPLACE "^([0-9]+)" ${verMajor} ver ${ver})
+            endif("${verMajor}" MATCHES "10")
+            # Remove all remaining '.' characters.
+            string(REPLACE "." "" ver ${ver})
+            # Prepend each digit with a zero.
+            string(REGEX REPLACE "([0-9A-Z])" "0\\1" ver ${ver})
+            set(${version} "0x${ver}")
+        endif(CMAKE_SYSTEM_VERSION)
+    endmacro(get_WIN32_WINNT)
 
-	get_WIN32_WINNT(ver)
-	# E.g., 0x0601 for Win7.
-	message(STATUS "_WIN32_WINNT=${ver}")
+    get_WIN32_WINNT(ver)
+    # E.g., 0x0601 for Win7.
+    message(STATUS "_WIN32_WINNT=${ver}")
     # Asio needs this!
-	add_definitions(-D_WIN32_WINNT=${ver})
+    add_definitions(-D_WIN32_WINNT=${ver})
 endif()
 
 if(WIN32)
-	# Disable warning on boost string algorithms.
-	add_definitions(-D_SCL_SECURE_NO_WARNINGS)
+    # Disable warning on boost string algorithms.
+    add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 endif()
 
 # C++ standard requirements.
@@ -97,10 +97,9 @@ find_package(Threads REQUIRED)
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 if(WIN32)
-	# TODO: Fix COMPONENTS on Windows.
-	find_package(Boost 1.66.0 REQUIRED)
+    find_package(Boost 1.66.0 REQUIRED)
 else()
-	find_package(Boost 1.66.0 REQUIRED COMPONENTS system thread)
+    find_package(Boost 1.66.0 REQUIRED COMPONENTS system filesystem)
 endif()
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
@@ -109,12 +108,12 @@ if(Boost_FOUND)
 endif()
 
 if(WEBCC_ENABLE_SSL)
-	set(OPENSSL_USE_STATIC_LIBS ON)
-	set(OPENSSL_MSVC_STATIC_RT ON)
-	find_package(OpenSSL)
-	if(OPENSSL_FOUND)
-		include_directories(${OPENSSL_INCLUDE_DIR})
-	endif()
+    set(OPENSSL_USE_STATIC_LIBS ON)
+    set(OPENSSL_MSVC_STATIC_RT ON)
+    find_package(OpenSSL)
+    if(OPENSSL_FOUND)
+        include_directories(${OPENSSL_INCLUDE_DIR})
+    endif()
 endif()
 
 # For including its own headers as "webcc/http_client.h".
@@ -127,37 +126,37 @@ endif()
 
 # SOAP support needs pugixml to parse and create XML.
 if(WEBCC_ENABLE_SOAP)
-	add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/src/pugixml)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/src/pugixml)
 
-	# For including pugixml as "pugixml/pugixml.hpp".
-	include_directories(${PROJECT_SOURCE_DIR}/third_party/src)
+    # For including pugixml as "pugixml/pugixml.hpp".
+    include_directories(${PROJECT_SOURCE_DIR}/third_party/src)
 endif()
 
 add_subdirectory(webcc)
 
 if(WEBCC_BUILD_EXAMPLE)
-	add_subdirectory(${PROJECT_SOURCE_DIR}/example/http_hello_client)
-	add_subdirectory(${PROJECT_SOURCE_DIR}/example/http_hello_async_client)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/example/http_hello_client)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/example/http_hello_async_client)
 
-	# REST example needs jsoncpp to parse and create JSON.
-	add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/src/jsoncpp)
-	include_directories(${PROJECT_SOURCE_DIR}/third_party/src/jsoncpp)
+    # REST example needs jsoncpp to parse and create JSON.
+    add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/src/jsoncpp)
+    include_directories(${PROJECT_SOURCE_DIR}/third_party/src/jsoncpp)
 
-	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_book_server)
-	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_book_client)
-	add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_book_async_client)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_book_server)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_book_client)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_book_async_client)
 
-	if(WEBCC_ENABLE_SOAP)
-		add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_calc_server)
-		add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_calc_client)
-		add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_calc_client_parasoft)
-		add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_book_server)
-		add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_book_client)
-	endif()
+    if(WEBCC_ENABLE_SOAP)
+        add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_calc_server)
+        add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_calc_client)
+        add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_calc_client_parasoft)
+        add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_book_server)
+        add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_book_client)
+    endif()
 
-	if(WEBCC_ENABLE_SSL)
-		add_subdirectory(${PROJECT_SOURCE_DIR}/example/http_ssl_client)
-	endif()
+    if(WEBCC_ENABLE_SSL)
+        add_subdirectory(${PROJECT_SOURCE_DIR}/example/http_ssl_client)
+    endif()
 endif()
 
 if(WEBCC_BUILD_UNITTEST)

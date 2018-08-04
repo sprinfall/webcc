@@ -21,8 +21,7 @@ void Test(boost::asio::io_context& io_context) {
   webcc::HttpAsyncClientPtr client(new webcc::HttpAsyncClient(io_context));
 
   // Response handler.
-  auto handler = [](std::shared_ptr<webcc::HttpResponse> response,
-                    webcc::Error error,
+  auto handler = [](webcc::HttpResponsePtr response, webcc::Error error,
                     bool timed_out) {
     if (error == webcc::kNoError) {
       std::cout << response->content() << std::endl;
