@@ -12,8 +12,6 @@
 #include <utility>
 #include <vector>
 
-//#include "webcc/globals.h"
-
 namespace webcc {
 
 // -----------------------------------------------------------------------------

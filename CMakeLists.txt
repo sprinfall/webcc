@@ -47,9 +47,6 @@ if(WEBCC_BUILD_UNITTEST)
     enable_testing()
 endif()
 
-# Adhere to GNU filesystem layout conventions.
-include(GNUInstallDirs)
-
 # Automatically detect _WIN32_WINNT for Asio.
 # See: https://stackoverflow.com/a/40217291
 if(WIN32)

@@ -5,6 +5,9 @@ if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif()
 
+# Adhere to GNU filesystem layout conventions.
+include(GNUInstallDirs)
+
 set(HEADERS
     globals.h
     http_async_client.h
