@@ -220,7 +220,7 @@ std::string UrlQuery::ToString() const {
 UrlQuery::ConstIterator UrlQuery::Find(const std::string& key) const {
   return std::find_if(parameters_.begin(),
                       parameters_.end(),
-                      [&key](const SoapParameter& p) { return p.first == key; });
+                      [&key](const Parameter& p) { return p.first == key; });
 }
 
 // -----------------------------------------------------------------------------

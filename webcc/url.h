@@ -19,8 +19,8 @@ namespace webcc {
 // URL query parameters.
 class UrlQuery {
  public:
-  typedef std::pair<std::string, std::string> SoapParameter;
-  typedef std::vector<SoapParameter> Parameters;
+  typedef std::pair<std::string, std::string> Parameter;
+  typedef std::vector<Parameter> Parameters;
 
   UrlQuery() = default;
 
