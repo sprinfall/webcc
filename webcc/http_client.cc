@@ -107,7 +107,7 @@ Error HttpClient::Connect(const HttpRequest& request) {
     io_context_.run_one();
   } while (ec == boost::asio::error::would_block);
 
-  // Determine whether a connection was successfully established. 
+  // Determine whether a connection was successfully established.
   if (ec) {
     LOG_ERRO("Socket connect error: %s", ec.message().c_str());
     Stop();
@@ -115,7 +115,7 @@ Error HttpClient::Connect(const HttpRequest& request) {
   }
 
   LOG_VERB("Socket connected.");
-  
+
   // The deadline actor may have had a chance to run and close our socket, even
   // though the connect operation notionally succeeded.
   if (stopped_) {

@@ -121,38 +121,53 @@ static std::string GetThreadID() {
   return ss.str();
 }
 
-static void WriteToFile(FILE* fd, int level, const char* file, int line,
-                        const char* format, va_list args) {
-  std::lock_guard<std::mutex> lock(g_logger.mutex);
-
-  fprintf(fd, "%s, %s, %7s, %24s, %4d, ",
-          GetTimestamp().c_str(), kLevelNames[level], GetThreadID().c_str(),
-          file, line);
-
-  vfprintf(fd, format, args);
-
-  fprintf(fd, "\n");
-
-  if ((g_logger.modes & LOG_FLUSH) != 0) {
-    fflush(fd);
-  }
-}
-
 void LogWrite(int level, const char* file, int line, const char* format, ...) {
   assert(format != nullptr);
 
-  va_list args;
-  va_start(args, format);
+  std::string timestamp = GetTimestamp();
+  std::string thread_id = GetThreadID();
 
   if ((g_logger.modes & LOG_FILE) != 0 && g_logger.file != nullptr) {
-    WriteToFile(g_logger.file, level, file, line, format, args);
+    std::lock_guard<std::mutex> lock(g_logger.mutex);
+
+    va_list args;
+    va_start(args, format);
+
+    fprintf(g_logger.file, "%s, %s, %7s, %24s, %4d, ",
+            timestamp.c_str(), kLevelNames[level], thread_id.c_str(),
+            file, line);
+
+    vfprintf(g_logger.file, format, args);
+
+    fprintf(g_logger.file, "\n");
+
+    if ((g_logger.modes & LOG_FLUSH) != 0) {
+      fflush(g_logger.file);
+    }
+
+    va_end(args);
   }
 
   if ((g_logger.modes & LOG_CONSOLE) != 0) {
-    WriteToFile(stderr, level, file, line, format, args);
-  }
+    std::lock_guard<std::mutex> lock(g_logger.mutex);
 
-  va_end(args);
+    va_list args;
+    va_start(args, format);
+
+    fprintf(stderr, "%s, %s, %7s, %24s, %4d, ",
+            timestamp.c_str(), kLevelNames[level], thread_id.c_str(),
+            file, line);
+
+    vfprintf(stderr, format, args);
+
+    fprintf(stderr, "\n");
+
+    if ((g_logger.modes & LOG_FLUSH) != 0) {
+      fflush(stderr);
+    }
+
+    va_end(args);
+  }
 }
 
 }  // namespace webcc
