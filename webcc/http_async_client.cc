@@ -9,15 +9,12 @@
 
 namespace webcc {
 
-extern void AdjustBufferSize(std::size_t content_length,
-                             std::vector<char>* buffer);
-
 HttpAsyncClient::HttpAsyncClient(boost::asio::io_context& io_context)
     : socket_(io_context),
       resolver_(new tcp::resolver(io_context)),
       buffer_(kBufferSize),
       deadline_(io_context),
-      timeout_seconds_(kMaxReceiveSeconds),
+      timeout_seconds_(kMaxReadSeconds),
       stopped_(false),
       timed_out_(false) {
 }
@@ -29,6 +26,8 @@ void HttpAsyncClient::Request(std::shared_ptr<HttpRequest> request,
 
   response_.reset(new HttpResponse());
   response_parser_.reset(new HttpResponseParser(response_.get()));
+
+  stopped_ = timed_out_ = false;
 
   LOG_VERB("HTTP request:\n%s", request->Dump(4, "> ").c_str());
 
@@ -54,6 +53,7 @@ void HttpAsyncClient::Stop() {
       LOG_ERRO("Failed to close socket.");
     }
 
+    LOG_INFO("Cancel deadline timer...");
     deadline_.cancel();
   }
 }
@@ -68,28 +68,19 @@ void HttpAsyncClient::ResolveHandler(boost::system::error_code ec,
     // Start the connect actor.
     endpoints_ = endpoints;
 
-    // Set a deadline for the connect operation.
-    deadline_.expires_from_now(boost::posix_time::seconds(kMaxConnectSeconds));
-
     // ConnectHandler: void(boost::system::error_code, tcp::endpoint)
     boost::asio::async_connect(socket_, endpoints_,
                                std::bind(&HttpAsyncClient::ConnectHandler,
                                          shared_from_this(),
                                          std::placeholders::_1,
                                          std::placeholders::_2));
-
-    // Start the deadline actor. You will note that we're not setting any
-    // particular deadline here. Instead, the connect and input actors will
-    // update the deadline prior to each asynchronous operation.
-    deadline_.async_wait(std::bind(&HttpAsyncClient::CheckDeadline,
-                                   shared_from_this()));
   }
 }
 
 void HttpAsyncClient::ConnectHandler(boost::system::error_code ec,
                                      tcp::endpoint endpoint) {
   if (ec) {
-    LOG_ERRO("Socket connect error: %s", ec.message().c_str());
+    LOG_ERRO("Socket connect error (%s).", ec.message().c_str());
     Stop();
     response_handler_(response_, kEndpointConnectError, timed_out_);
     return;
@@ -115,8 +106,6 @@ void HttpAsyncClient::AsyncWrite() {
     return;
   }
 
-  deadline_.expires_from_now(boost::posix_time::seconds(kMaxSendSeconds));
-
   boost::asio::async_write(socket_,
                            request_->ToBuffers(),
                            std::bind(&HttpAsyncClient::WriteHandler,
@@ -134,6 +123,8 @@ void HttpAsyncClient::WriteHandler(boost::system::error_code ec) {
     response_handler_(response_, kSocketWriteError, timed_out_);
   } else {
     deadline_.expires_from_now(boost::posix_time::seconds(timeout_seconds_));
+    AsyncWaitDeadline();
+
     AsyncRead();
   }
 }
@@ -148,15 +139,11 @@ void HttpAsyncClient::AsyncRead() {
 
 void HttpAsyncClient::ReadHandler(boost::system::error_code ec,
                                   std::size_t length) {
-  if (stopped_) {
-    return;
-  }
-
   LOG_VERB("Socket async read handler.");
 
   if (ec || length == 0) {
     Stop();
-    LOG_ERRO("Socket read error.");
+    LOG_ERRO("Socket read error (%s).", ec.message().c_str());
     response_handler_(response_, kSocketReadError, timed_out_);
     return;
   }
@@ -188,27 +175,28 @@ void HttpAsyncClient::ReadHandler(boost::system::error_code ec,
     return;
   }
 
-  AsyncRead();
+  if (!stopped_) {
+    AsyncRead();
+  }
 }
 
-void HttpAsyncClient::CheckDeadline() {
-  if (stopped_) {
+void HttpAsyncClient::AsyncWaitDeadline() {
+  deadline_.async_wait(std::bind(&HttpAsyncClient::DeadlineHandler,
+                                 shared_from_this(), std::placeholders::_1));
+}
+
+void HttpAsyncClient::DeadlineHandler(boost::system::error_code ec) {
+  LOG_VERB("Deadline handler.");
+
+  if (ec == boost::asio::error::operation_aborted) {
+    LOG_VERB("Deadline timer canceled.");
     return;
   }
 
-  if (deadline_.expires_at() <=
-      boost::asio::deadline_timer::traits_type::now()) {
-    // The deadline has passed.
-    // The socket is closed so that any outstanding asynchronous operations
-    // are canceled.
-    LOG_WARN("HTTP client timed out.");
-    Stop();
-    timed_out_ = true;
-  }
+  LOG_WARN("HTTP client timed out.");
+  timed_out_ = true;
 
-  // Put the actor back to sleep.
-  deadline_.async_wait(std::bind(&HttpAsyncClient::CheckDeadline,
-                                 shared_from_this()));
+  Stop();
 }
 
 }  // namespace webcc

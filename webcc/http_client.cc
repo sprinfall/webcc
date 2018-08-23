@@ -1,5 +1,6 @@
 #include "webcc/http_client.h"
 
+#include <algorithm>  // for min
 #include <string>
 
 #include "boost/asio/connect.hpp"
@@ -10,35 +11,17 @@
 #include "boost/lambda/lambda.hpp"
 
 #include "webcc/logger.h"
+#include "webcc/utility.h"
+
+using boost::asio::ip::tcp;
 
 namespace webcc {
-
-// Adjust buffer size according to content length.
-// This is to avoid reading too many times.
-// Also used by AsyncHttpClient.
-void AdjustBufferSize(std::size_t content_length, std::vector<char>* buffer) {
-  const std::size_t kMaxTimes = 10;
-
-  // According to test, a client never read more than 200000 bytes a time.
-  // So it doesn't make sense to set any larger size, e.g., 1MB.
-  const std::size_t kMaxBufferSize = 200000;
-
-  LOG_INFO("Adjust buffer size according to content length.");
-
-  std::size_t min_buffer_size = content_length / kMaxTimes;
-  if (min_buffer_size > buffer->size()) {
-    buffer->resize(std::min(min_buffer_size, kMaxBufferSize));
-    LOG_INFO("Resize read buffer to %u.", buffer->size());
-  } else {
-    LOG_INFO("Keep the current buffer size: %u.", buffer->size());
-  }
-}
 
 HttpClient::HttpClient()
     : socket_(io_context_),
       buffer_(kBufferSize),
       deadline_(io_context_),
-      timeout_seconds_(kMaxReceiveSeconds),
+      timeout_seconds_(kMaxReadSeconds),
       stopped_(false),
       timed_out_(false),
       error_(kNoError) {
@@ -48,12 +31,7 @@ bool HttpClient::Request(const HttpRequest& request) {
   response_.reset(new HttpResponse());
   response_parser_.reset(new HttpResponseParser(response_.get()));
 
-  stopped_ = false;
-  timed_out_ = false;
-
-  // Start the persistent actor that checks for deadline expiry.
-  deadline_.expires_at(boost::posix_time::pos_infin);
-  CheckDeadline();
+  stopped_ = timed_out_ = false;
 
   if ((error_ = Connect(request)) != kNoError) {
     return false;
@@ -71,8 +49,6 @@ bool HttpClient::Request(const HttpRequest& request) {
 }
 
 Error HttpClient::Connect(const HttpRequest& request) {
-  using boost::asio::ip::tcp;
-
   tcp::resolver resolver(io_context_);
 
   std::string port = request.port(kHttpPort);
@@ -87,8 +63,6 @@ Error HttpClient::Connect(const HttpRequest& request) {
   }
 
   LOG_VERB("Connect to server...");
-
-  deadline_.expires_from_now(boost::posix_time::seconds(kMaxConnectSeconds));
 
   ec = boost::asio::error::would_block;
 
@@ -109,33 +83,28 @@ Error HttpClient::Connect(const HttpRequest& request) {
 
   // Determine whether a connection was successfully established.
   if (ec) {
-    LOG_ERRO("Socket connect error: %s", ec.message().c_str());
+    LOG_ERRO("Socket connect error (%s).", ec.message().c_str());
     Stop();
     return kEndpointConnectError;
   }
 
   LOG_VERB("Socket connected.");
 
-  // The deadline actor may have had a chance to run and close our socket, even
-  // though the connect operation notionally succeeded.
-  if (stopped_) {
-    // |timed_out_| should be true in this case.
-    LOG_ERRO("Socket connect timed out.");
-    return kEndpointConnectError;
-  }
+  // ISSUE: |async_connect| reports success on failure.
+  // See the following bugs:
+  //   - https://svn.boost.org/trac10/ticket/8795
+  //   - https://svn.boost.org/trac10/ticket/8995
 
   return kNoError;
 }
 
 Error HttpClient::SendReqeust(const HttpRequest& request) {
-  LOG_VERB("Send request (timeout: %ds)...", kMaxSendSeconds);
   LOG_VERB("HTTP request:\n%s", request.Dump(4, "> ").c_str());
 
   // NOTE:
   // It doesn't make much sense to set a timeout for socket write.
   // I find that it's almost impossible to simulate a situation in the server
   // side to test this timeout.
-  deadline_.expires_from_now(boost::posix_time::seconds(kMaxSendSeconds));
 
   boost::system::error_code ec = boost::asio::error::would_block;
 
@@ -149,14 +118,8 @@ Error HttpClient::SendReqeust(const HttpRequest& request) {
   } while (ec == boost::asio::error::would_block);
 
   if (ec) {
-    LOG_ERRO("Socket write error: %s", ec.message().c_str());
+    LOG_ERRO("Socket write error (%s).", ec.message().c_str());
     Stop();
-    return kSocketWriteError;
-  }
-
-  if (stopped_) {
-    // |timed_out_| should be true in this case.
-    LOG_ERRO("Socket write timed out.");
     return kSocketWriteError;
   }
 
@@ -167,6 +130,7 @@ Error HttpClient::ReadResponse() {
   LOG_VERB("Read response (timeout: %ds)...", timeout_seconds_);
 
   deadline_.expires_from_now(boost::posix_time::seconds(timeout_seconds_));
+  AsyncWaitDeadline();
 
   Error error = kNoError;
   DoReadResponse(&error);
@@ -190,14 +154,10 @@ void HttpClient::DoReadResponse(Error* error) {
 
         LOG_VERB("Socket async read handler.");
 
-        if (stopped_) {
-          return;
-        }
-
-        if (inner_ec || length == 0) {
+        if (ec || length == 0) {
           Stop();
           *error = kSocketReadError;
-          LOG_ERRO("Socket read error.");
+          LOG_ERRO("Socket read error (%s).", ec.message().c_str());
           return;
         }
 
@@ -227,7 +187,9 @@ void HttpClient::DoReadResponse(Error* error) {
           return;
         }
 
-        DoReadResponse(error);
+        if (!stopped_) {
+          DoReadResponse(error);
+        }
       });
 
   // Block until the asynchronous operation has completed.
@@ -236,25 +198,23 @@ void HttpClient::DoReadResponse(Error* error) {
   } while (ec == boost::asio::error::would_block);
 }
 
-void HttpClient::CheckDeadline() {
-  if (stopped_) {
+void HttpClient::AsyncWaitDeadline() {
+  deadline_.async_wait(std::bind(&HttpClient::DeadlineHandler, this,
+                                 std::placeholders::_1));
+}
+
+void HttpClient::DeadlineHandler(boost::system::error_code ec) {
+  LOG_VERB("Deadline handler.");
+
+  if (ec == boost::asio::error::operation_aborted) {
+    LOG_VERB("Deadline timer canceled.");
     return;
   }
 
-  LOG_VERB("Check deadline.");
+  LOG_WARN("HTTP client timed out.");
+  timed_out_ = true;
 
-  if (deadline_.expires_at() <=
-      boost::asio::deadline_timer::traits_type::now()) {
-    // The deadline has passed.
-    // The socket is closed so that any outstanding asynchronous operations
-    // are canceled.
-    LOG_WARN("HTTP client timed out.");
-    Stop();
-    timed_out_ = true;
-  }
-
-  // Put the actor back to sleep.
-  deadline_.async_wait(std::bind(&HttpClient::CheckDeadline, this));
+  Stop();
 }
 
 void HttpClient::Stop() {
@@ -269,6 +229,7 @@ void HttpClient::Stop() {
       LOG_ERRO("Failed to close socket.");
     }
 
+    LOG_INFO("Cancel deadline timer...");
     deadline_.cancel();
   }
 }

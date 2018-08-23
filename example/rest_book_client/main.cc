@@ -5,6 +5,9 @@
 #include "webcc/logger.h"
 #include "webcc/rest_client.h"
 
+#include "example/common/book.h"
+#include "example/common/book_json.h"
+
 // In order to run with VLD, please copy the following files to the example
 // output folder from "third_party\win32\bin":
 //   - dbghelp.dll
@@ -41,7 +44,7 @@ static Json::Value StringToJson(const std::string& str) {
 // -----------------------------------------------------------------------------
 
 class BookClientBase {
-public:
+ public:
   BookClientBase(const std::string& host, const std::string& port,
                  int timeout_seconds)
       : rest_client_(host, port) {
@@ -50,7 +53,7 @@ public:
 
   virtual ~BookClientBase() = default;
 
-protected:
+ protected:
   void PrintSeparateLine() {
     std::cout << "--------------------------------";
     std::cout << "--------------------------------";
@@ -121,17 +124,16 @@ public:
       : BookClientBase(host, port, timeout_seconds) {
   }
 
-  bool GetBook(const std::string& id) {
+  bool GetBook(const std::string& id, Book* book) {
     PrintSeparateLine();
     std::cout << "GetBook: " << id << std::endl;
 
-    if (!rest_client_.Get("/book/" + id)) {
+    if (!rest_client_.Get("/books/" + id)) {
       PrintError();
       return false;
     }
 
-    std::cout << rest_client_.response_content() << std::endl;
-    return true;
+    return JsonStringToBook(rest_client_.response_content(), book);
   }
 
   bool UpdateBook(const std::string& id, const std::string& title,
@@ -145,7 +147,7 @@ public:
     json["title"] = title;
     json["price"] = price;
 
-    if (!rest_client_.Put("/book/" + id, JsonToString(json))) {
+    if (!rest_client_.Put("/books/" + id, JsonToString(json))) {
       PrintError();
       return false;
     }
@@ -158,7 +160,7 @@ public:
     PrintSeparateLine();
     std::cout << "DeleteBook: " << id << std::endl;
 
-    if (!rest_client_.Delete("/book/" + id)) {
+    if (!rest_client_.Delete("/books/" + id)) {
       PrintError();
       return false;
     }
@@ -201,9 +203,14 @@ int main(int argc, char* argv[]) {
   std::string id;
   list_client.CreateBook("1984", 12.3, &id);
 
-  detail_client.GetBook(id);
+  Book book;
+  if (detail_client.GetBook(id, &book)) {
+    std::cout << "Book " << id << ": " << book << std::endl;
+  }
+
   detail_client.UpdateBook(id, "1Q84", 32.1);
-  detail_client.GetBook(id);
+  detail_client.GetBook(id, &book);
+
   detail_client.DeleteBook(id);
 
   list_client.ListBooks();

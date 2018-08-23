@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
                 "/books", false);
 
     server.Bind(std::make_shared<BookDetailService>(sleep_seconds),
-                "/book/(\\d+)", true);
+                "/books/(\\d+)", true);
 
     server.Run();
 

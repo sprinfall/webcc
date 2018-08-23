@@ -8,35 +8,11 @@
 #include "webcc/logger.h"
 
 #include "example/common/book.h"
+#include "example/common/book_json.h"
 
 // -----------------------------------------------------------------------------
 
 static BookStore g_book_store;
-
-static Json::Value BookToJson(const Book& book) {
-  Json::Value root;
-  root["id"] = book.id;
-  root["title"] = book.title;
-  root["price"] = book.price;
-  return root;
-}
-
-static bool JsonToBook(const std::string& json, Book* book) {
-  Json::Value root;
-  Json::CharReaderBuilder builder;
-  std::stringstream stream(json);
-  std::string errs;
-  if (!Json::parseFromStream(builder, stream, &root, &errs)) {
-    std::cerr << errs << std::endl;
-    return false;
-  }
-
-  book->id = root["id"].asString();
-  book->title = root["title"].asString();
-  book->price = root["price"].asDouble();
-
-  return true;
-}
 
 // -----------------------------------------------------------------------------
 
@@ -49,13 +25,12 @@ bool BookListService::Get(const webcc::UrlQuery& /*query*/,
     std::this_thread::sleep_for(std::chrono::seconds(sleep_seconds_));
   }
 
-  Json::Value root(Json::arrayValue);
+  Json::Value json(Json::arrayValue);
   for (const Book& book : g_book_store.books()) {
-    root.append(BookToJson(book));
+    json.append(BookToJson(book));
   }
 
-  Json::StreamWriterBuilder builder;
-  *response_content = Json::writeString(builder, root);
+  *response_content = JsonToString(json);
 
   return true;
 }
@@ -69,14 +44,13 @@ bool BookListService::Post(const std::string& request_content,
   }
 
   Book book;
-  if (JsonToBook(request_content, &book)) {
+  if (JsonStringToBook(request_content, &book)) {
     std::string id = g_book_store.AddBook(book);
 
-    Json::Value root;
-    root["id"] = id;
+    Json::Value json;
+    json["id"] = id;
 
-    Json::StreamWriterBuilder builder;
-    *response_content = Json::writeString(builder, root);
+    *response_content = JsonToString(json);
 
     return true;
   }
@@ -102,8 +76,7 @@ bool BookDetailService::Get(const std::vector<std::string>& url_sub_matches,
 
   const Book& book = g_book_store.GetBook(book_id);
   if (!book.IsNull()) {
-    Json::StreamWriterBuilder builder;
-    *response_content = Json::writeString(builder, BookToJson(book));
+    *response_content = BookToJsonString(book);
     return true;
   }
 
@@ -126,7 +99,7 @@ bool BookDetailService::Put(const std::vector<std::string>& url_sub_matches,
   const std::string& book_id = url_sub_matches[0];
 
   Book book;
-  if (JsonToBook(request_content, &book)) {
+  if (JsonStringToBook(request_content, &book)) {
     book.id = book_id;
     return g_book_store.UpdateBook(book);
   }

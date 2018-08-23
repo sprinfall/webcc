@@ -23,11 +23,8 @@ const std::size_t kBufferSize = 1024;
 
 const std::size_t kInvalidLength = static_cast<std::size_t>(-1);
 
-// Timeout seconds.
-// TODO
-const int kMaxConnectSeconds = 10;
-const int kMaxSendSeconds = 30;
-const int kMaxReceiveSeconds = 30;
+// Default timeout for reading response.
+const int kMaxReadSeconds = 30;
 
 extern const std::string kHost;
 extern const std::string kContentType;

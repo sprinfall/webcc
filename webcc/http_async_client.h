@@ -52,7 +52,8 @@ class HttpAsyncClient : public std::enable_shared_from_this<HttpAsyncClient> {
   void AsyncRead();
   void ReadHandler(boost::system::error_code ec, std::size_t length);
 
-  void CheckDeadline();
+  void AsyncWaitDeadline();
+  void DeadlineHandler(boost::system::error_code ec);
 
   tcp::socket socket_;
   std::unique_ptr<tcp::resolver> resolver_;

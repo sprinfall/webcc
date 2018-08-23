@@ -46,7 +46,8 @@ class HttpClient {
 
   void DoReadResponse(Error* error);
 
-  void CheckDeadline();
+  void AsyncWaitDeadline();
+  void DeadlineHandler(boost::system::error_code ec);
 
   void Stop();
 
@@ -62,7 +63,7 @@ class HttpClient {
   boost::asio::deadline_timer deadline_;
 
   // Maximum seconds to wait before the client cancels the operation.
-  // Only for receiving response from server.
+  // Only for reading response from server.
   int timeout_seconds_;
 
   bool stopped_;

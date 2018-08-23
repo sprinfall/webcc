@@ -3,6 +3,8 @@ set(TARGET_NAME rest_book_server)
 set(SRCS
 	../common/book.cc
 	../common/book.h
+	../common/book_json.cc
+	../common/book_json.h
  	services.cc
  	services.h
  	main.cc)

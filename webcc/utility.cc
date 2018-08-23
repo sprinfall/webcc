@@ -1,11 +1,32 @@
 #include "webcc/utility.h"
 
+#include <algorithm>
 #include <ostream>
 #include <sstream>
+
+#include "webcc/logger.h"
 
 using tcp = boost::asio::ip::tcp;
 
 namespace webcc {
+
+void AdjustBufferSize(std::size_t content_length, std::vector<char>* buffer) {
+  const std::size_t kMaxTimes = 10;
+
+  // According to test, a client never read more than 200000 bytes a time.
+  // So it doesn't make sense to set any larger size, e.g., 1MB.
+  const std::size_t kMaxBufferSize = 200000;
+
+  LOG_INFO("Adjust buffer size according to content length.");
+
+  std::size_t min_buffer_size = content_length / kMaxTimes;
+  if (min_buffer_size > buffer->size()) {
+    buffer->resize(std::min(min_buffer_size, kMaxBufferSize));
+    LOG_INFO("Resize read buffer to %u.", buffer->size());
+  } else {
+    LOG_INFO("Keep the current buffer size: %u.", buffer->size());
+  }
+}
 
 void PrintEndpoint(std::ostream& ostream,
                    const boost::asio::ip::tcp::endpoint& endpoint) {

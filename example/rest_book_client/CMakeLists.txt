@@ -1,6 +1,11 @@
 set(TARGET_NAME rest_book_client)
 
-set(SRCS main.cc)
+set(SRCS
+	../common/book.cc
+	../common/book.h
+	../common/book_json.cc
+	../common/book_json.h
+	main.cc)
 
 add_executable(${TARGET_NAME} ${SRCS})
 
