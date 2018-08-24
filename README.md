@@ -2,6 +2,8 @@
 
 A lightweight C++ REST and SOAP client and server library based on *Boost.Asio*.
 
+*Web* represents *Web Service*, and *cc* represents *C++* since it's a commonly used C++ source file extension name (especially in Google's source code). 
+
 Please turn to our [Wiki](https://github.com/sprinfall/webcc/wiki) for more tutorials and guides.
 
 ## Quick Start
