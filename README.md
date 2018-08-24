@@ -62,10 +62,11 @@ As you can see, all you have to do is to override the proper virtual functions w
 The detailed implementation is out of the scope of this document, but here is an example:
 
 ```cpp
-bool BookDetailService::Get(const std::vector<std::string>& url_sub_matches,
+void BookDetailService::Get(const std::vector<std::string>& url_sub_matches,
                             const webcc::UrlQuery& query,
                             webcc::RestResponse* response) {
   if (url_sub_matches.size() != 1) {
+    // Invalid URL.
     response->status = webcc::HttpStatus::kBadRequest;
     return;
   }
@@ -95,7 +96,7 @@ server.Bind(std::make_shared<BookDetailService>(), "/books/(\\d+)", true);
 server.Run();
 ```
 
-**Please see `example/rest_book_server` for the complete example.**
+Please see `example/rest_book_server` for the complete example.
 
 ## Build Instructions
 
