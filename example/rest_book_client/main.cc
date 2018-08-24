@@ -23,26 +23,6 @@
 
 // -----------------------------------------------------------------------------
 
-static std::string JsonToString(const Json::Value& json) {
-  Json::StreamWriterBuilder builder;
-  return Json::writeString(builder, json);
-}
-
-static Json::Value StringToJson(const std::string& str) {
-  Json::Value json;
-
-  Json::CharReaderBuilder builder;
-  std::stringstream stream(str);
-  std::string errs;
-  if (!Json::parseFromStream(builder, stream, &json, &errs)) {
-    std::cerr << errs << std::endl;
-  }
-
-  return json;
-}
-
-// -----------------------------------------------------------------------------
-
 class BookClientBase {
  public:
   BookClientBase(const std::string& host, const std::string& port,
@@ -54,18 +34,18 @@ class BookClientBase {
   virtual ~BookClientBase() = default;
 
  protected:
-  void PrintSeparateLine() {
-    std::cout << "--------------------------------";
-    std::cout << "--------------------------------";
-    std::cout << std::endl;
-  }
-
-  void PrintError() {
-    std::cout << webcc::DescribeError(rest_client_.error());
+  void LogError() {
     if (rest_client_.timed_out()) {
-      std::cout << " (timed out)";
+      LOG_ERRO("%s (timed out)", webcc::DescribeError(rest_client_.error()));
+    } else {
+      LOG_ERRO(webcc::DescribeError(rest_client_.error()));
     }
-    std::cout << std::endl;
+
+    //std::cout << webcc::DescribeError(rest_client_.error());
+    //if (rest_client_.timed_out()) {
+    //  std::cout << " (timed out)";
+    //}
+    //std::cout << std::endl;
   }
 
   webcc::RestClient rest_client_;
@@ -81,11 +61,8 @@ public:
   }
 
   bool ListBooks() {
-    PrintSeparateLine();
-    std::cout << "ListBooks" << std::endl;
-
     if (!rest_client_.Get("/books")) {
-      PrintError();
+      LogError();
       return false;
     }
 
@@ -94,19 +71,14 @@ public:
   }
 
   bool CreateBook(const std::string& title, double price, std::string* id) {
-    PrintSeparateLine();
-    std::cout << "CreateBook: " << title << ", " << price << std::endl;
-
-    Json::Value req_json(Json::objectValue);
+    Json::Value req_json;
     req_json["title"] = title;
     req_json["price"] = price;
 
     if (!rest_client_.Post("/books", JsonToString(req_json))) {
-      PrintError();
+      LogError();
       return false;
     }
-
-    std::cout << rest_client_.response_status() << std::endl;
 
     Json::Value rsp_json = StringToJson(rest_client_.response_content());
     *id = rsp_json["id"].asString();
@@ -125,11 +97,8 @@ public:
   }
 
   bool GetBook(const std::string& id, Book* book) {
-    PrintSeparateLine();
-    std::cout << "GetBook: " << id << std::endl;
-
     if (!rest_client_.Get("/books/" + id)) {
-      PrintError();
+      LogError();
       return false;
     }
 
@@ -138,39 +107,46 @@ public:
 
   bool UpdateBook(const std::string& id, const std::string& title,
                   double price) {
-    PrintSeparateLine();
-    std::cout << "UpdateBook: " << id << ", " << title << ", " << price
-              << std::endl;
-
     // NOTE: ID is already in the URL.
-    Json::Value json(Json::objectValue);
+    Json::Value json;
     json["title"] = title;
     json["price"] = price;
 
     if (!rest_client_.Put("/books/" + id, JsonToString(json))) {
-      PrintError();
+      LogError();
       return false;
     }
 
-    std::cout << rest_client_.response_status() << std::endl;
+    int status = rest_client_.response_status();
+    if (status != webcc::HttpStatus::kOK) {
+      LOG_ERRO("Failed to update book (status: %d).", status);
+      return false;
+    }
+
     return true;
   }
 
   bool DeleteBook(const std::string& id) {
-    PrintSeparateLine();
-    std::cout << "DeleteBook: " << id << std::endl;
-
-    if (!rest_client_.Delete("/books/" + id)) {
-      PrintError();
+    if (!rest_client_.Delete("/books/0" /*+ id*/)) {
+      LogError();
       return false;
     }
 
-    std::cout << rest_client_.response_status() << std::endl;
+    int status = rest_client_.response_status();
+    if (status != webcc::HttpStatus::kOK) {
+      LOG_ERRO("Failed to delete book (status: %d).", status);
+      return false;
+    }
+
     return true;
   }
 };
 
 // -----------------------------------------------------------------------------
+
+void PrintSeparator() {
+  std::cout << std::string(80, '-') << std::endl;
+}
 
 void Help(const char* argv0) {
   std::cout << "Usage: " << argv0 << " <host> <port> [timeout]" << std::endl;
@@ -198,20 +174,39 @@ int main(int argc, char* argv[]) {
   BookListClient list_client(host, port, timeout_seconds);
   BookDetailClient detail_client(host, port, timeout_seconds);
 
+  PrintSeparator();
+
   list_client.ListBooks();
 
+  PrintSeparator();
+
   std::string id;
-  list_client.CreateBook("1984", 12.3, &id);
+  if (!list_client.CreateBook("1984", 12.3, &id)) {
+    return 1;
+  }
+
+  PrintSeparator();
 
   Book book;
   if (detail_client.GetBook(id, &book)) {
-    std::cout << "Book " << id << ": " << book << std::endl;
+    std::cout << "Book: " << book << std::endl;
   }
 
+  PrintSeparator();
+
   detail_client.UpdateBook(id, "1Q84", 32.1);
-  detail_client.GetBook(id, &book);
+
+  PrintSeparator();
+
+  if (detail_client.GetBook(id, &book)) {
+    std::cout << "Book " << book << std::endl;
+  }
+
+  PrintSeparator();
 
   detail_client.DeleteBook(id);
+
+  PrintSeparator();
 
   list_client.ListBooks();
 

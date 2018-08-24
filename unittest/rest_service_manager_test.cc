@@ -3,12 +3,9 @@
 
 class TestRestService : public webcc::RestService {
  public:
-  bool Handle(const std::string& http_method,
-              const std::vector<std::string>& url_sub_matches,
-              const webcc::UrlQuery& query,
-              const std::string& request_content,
-              std::string* response_content) override {
-    return true;
+  void Handle(const webcc::RestRequest& request,
+              webcc::RestResponse* response) final {
+    response->status = webcc::HttpStatus::kOK;
   }
 };
 

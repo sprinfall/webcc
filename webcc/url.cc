@@ -166,6 +166,30 @@ bool SplitKeyValue(const std::string& kv, std::string* key,
 
 // -----------------------------------------------------------------------------
 
+UrlQuery::UrlQuery(const std::string& str) {
+  if (!str.empty()) {
+    // Split into key value pairs separated by '&'.
+    for (std::size_t i = 0; i != std::string::npos;) {
+      std::size_t j = str.find_first_of('&', i);
+
+      std::string kv;
+      if (j == std::string::npos) {
+        kv = str.substr(i);
+        i = std::string::npos;
+      } else {
+        kv = str.substr(i, j - i);
+        i = j + 1;
+      }
+
+      std::string key;
+      std::string value;
+      if (SplitKeyValue(kv, &key, &value)) {
+        Add(std::move(key), std::move(value));
+      }
+    }
+  }
+}
+
 UrlQuery::UrlQuery(const std::map<std::string, std::string>& map) {
   for (auto& pair : map) {
     Add(pair.first, pair.second);
@@ -254,32 +278,6 @@ std::vector<std::string> Url::SplitPath(const std::string& path) {
     }
   }
   return results;
-}
-
-// static
-void Url::SplitQuery(const std::string& str, UrlQuery* query) {
-  const std::size_t NPOS = std::string::npos;
-
-  // Split into key value pairs separated by '&'.
-  std::size_t i = 0;
-  while (i != NPOS) {
-    std::size_t j = str.find_first_of('&', i);
-
-    std::string kv;
-    if (j == NPOS) {
-      kv = str.substr(i);
-      i = NPOS;
-    } else {
-      kv = str.substr(i, j - i);
-      i = j + 1;
-    }
-
-    std::string key;
-    std::string value;
-    if (SplitKeyValue(kv, &key, &value)) {
-      query->Add(std::move(key), std::move(value));
-    }
-  }
 }
 
 void Url::Init(const std::string& str) {

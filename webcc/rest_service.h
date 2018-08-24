@@ -14,28 +14,40 @@
 #include <vector>
 
 #include "webcc/globals.h"
+#include "webcc/url.h"
 
 namespace webcc {
 
-class UrlQuery;
+// -----------------------------------------------------------------------------
+
+struct RestRequest {
+  // HTTP method (GET, POST, etc.).
+  const std::string& method;
+
+  // Request content (JSON string).
+  const std::string& content;
+
+  // Query string of the URL (only for GET).
+  const std::string& url_query_str;
+
+  // Regex sub-matches of the URL (usually resource ID's).
+  std::vector<std::string> url_sub_matches;
+};
+
+struct RestResponse {
+  HttpStatus::Enum status;
+  std::string content;
+};
 
 // -----------------------------------------------------------------------------
 
 // Base class for your REST service.
 class RestService {
  public:
-  virtual ~RestService() {
-  }
+  virtual ~RestService() = default;
 
-  // Handle REST request, output the response.
-  // The regex sub-matches of the URL (usually resource IDs) were stored in
-  // |url_sub_matches|. The |query| part of the URL is normally only for GET
-  // request. Both the request and response contents are JSON strings.
-  virtual bool Handle(const std::string& http_method,
-                      const std::vector<std::string>& url_sub_matches,
-                      const UrlQuery& query,
-                      const std::string& request_content,
-                      std::string* response_content) = 0;
+  // Handle REST request, output response.
+  virtual void Handle(const RestRequest& request, RestResponse* response) = 0;
 };
 
 typedef std::shared_ptr<RestService> RestServicePtr;
@@ -44,22 +56,16 @@ typedef std::shared_ptr<RestService> RestServicePtr;
 
 class RestListService : public RestService {
  public:
-  bool Handle(const std::string& http_method,
-              const std::vector<std::string>& url_sub_matches,
-              const UrlQuery& query,
-              const std::string& request_content,
-              std::string* response_content) final;
+  void Handle(const RestRequest& request, RestResponse* response) final;
 
  protected:
   RestListService() = default;
 
-  virtual bool Get(const UrlQuery& query, std::string* response_content) {
-    return false;
+  virtual void Get(const UrlQuery& query, RestResponse* response) {
   }
 
-  virtual bool Post(const std::string& request_content,
-                    std::string* response_content) {
-    return false;
+  virtual void Post(const std::string& request_content,
+                    RestResponse* response) {
   }
 };
 
@@ -67,33 +73,26 @@ class RestListService : public RestService {
 
 class RestDetailService : public RestService {
  public:
-  bool Handle(const std::string& http_method,
-              const std::vector<std::string>& url_sub_matches,
-              const UrlQuery& query,
-              const std::string& request_content,
-              std::string* response_content) final;
+  void Handle(const RestRequest& request, RestResponse* response) final;
 
  protected:
-  virtual bool Get(const std::vector<std::string>& url_sub_matches,
+  virtual void Get(const std::vector<std::string>& url_sub_matches,
                    const UrlQuery& query,
-                   std::string* response_content) {
-    return false;
+                   RestResponse* response) {
   }
 
-  virtual bool Put(const std::vector<std::string>& url_sub_matches,
+  virtual void Put(const std::vector<std::string>& url_sub_matches,
                    const std::string& request_content,
-                   std::string* response_content) {
-    return false;
+                   RestResponse* response) {
   }
 
-  virtual bool Patch(const std::vector<std::string>& url_sub_matches,
+  virtual void Patch(const std::vector<std::string>& url_sub_matches,
                      const std::string& request_content,
-                     std::string* response_content) {
-    return false;
+                     RestResponse* response) {
   }
 
-  virtual bool Delete(const std::vector<std::string>& url_sub_matches) {
-    return false;
+  virtual void Delete(const std::vector<std::string>& url_sub_matches,
+                      RestResponse* response) {
   }
 };
 

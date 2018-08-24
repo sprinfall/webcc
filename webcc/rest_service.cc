@@ -6,51 +6,34 @@ namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-bool RestListService::Handle(const std::string& http_method,
-                             const std::vector<std::string>& url_sub_matches,
-                             const UrlQuery& query,
-                             const std::string& request_content,
-                             std::string* response_content) {
-  if (http_method == kHttpGet) {
-    return Get(query, response_content);
+void RestListService::Handle(const RestRequest& request,
+                             RestResponse* response) {
+  if (request.method == kHttpGet) {
+    Get(UrlQuery(request.url_query_str), response);
+  } else if (request.method == kHttpPost) {
+    Post(request.content, response);
+  } else {
+    LOG_ERRO("RestListService doesn't support '%s' method.",
+             request.method.c_str());
   }
-
-  if (http_method == kHttpPost) {
-    return Post(request_content, response_content);
-  }
-
-  LOG_ERRO("RestListService doesn't support '%s' method.", http_method.c_str());
-
-  return false;
 }
 
 // -----------------------------------------------------------------------------
 
-bool RestDetailService::Handle(const std::string& http_method,
-                               const std::vector<std::string>& url_sub_matches,
-                               const UrlQuery& query,
-                               const std::string& request_content,
-                               std::string* response_content) {
-  if (http_method == kHttpGet) {
-    return Get(url_sub_matches, query, response_content);
+void RestDetailService::Handle(const RestRequest& request,
+                               RestResponse* response) {
+  if (request.method == kHttpGet) {
+    Get(request.url_sub_matches, UrlQuery(request.url_query_str), response);
+  } else if (request.method == kHttpPut) {
+    Put(request.url_sub_matches, request.content, response);
+  } else if (request.method == kHttpPatch) {
+    Patch(request.url_sub_matches, request.content, response);
+  } else if (request.method == kHttpDelete) {
+    Delete(request.url_sub_matches, response);
+  } else {
+    LOG_ERRO("RestDetailService doesn't support '%s' method.",
+             request.method.c_str());
   }
-
-  if (http_method == kHttpPut) {
-    return Put(url_sub_matches, request_content, response_content);
-  }
-
-  if (http_method == kHttpPatch) {
-    return Patch(url_sub_matches, request_content, response_content);
-  }
-
-  if (http_method == kHttpDelete) {
-    return Delete(url_sub_matches);
-  }
-
-  LOG_ERRO("RestDetailService doesn't support '%s' method.",
-           http_method.c_str());
-
-  return false;
 }
 
 }  // namespace webcc

@@ -18,8 +18,8 @@ static BookStore g_book_store;
 
 // Return all books as a JSON array.
 // TODO: Support query parameters.
-bool BookListService::Get(const webcc::UrlQuery& /*query*/,
-                          std::string* response_content) {
+void BookListService::Get(const webcc::UrlQuery& /*query*/,
+                          webcc::RestResponse* response) {
   if (sleep_seconds_ > 0) {
     LOG_INFO("Sleep %d seconds...", sleep_seconds_);
     std::this_thread::sleep_for(std::chrono::seconds(sleep_seconds_));
@@ -30,14 +30,12 @@ bool BookListService::Get(const webcc::UrlQuery& /*query*/,
     json.append(BookToJson(book));
   }
 
-  *response_content = JsonToString(json);
-
-  return true;
+  response->content = JsonToString(json);
+  response->status = webcc::HttpStatus::kOK;
 }
 
-// Add a new book.
-bool BookListService::Post(const std::string& request_content,
-                           std::string* response_content) {
+void BookListService::Post(const std::string& request_content,
+                           webcc::RestResponse* response) {
   if (sleep_seconds_ > 0) {
     LOG_INFO("Sleep %d seconds...", sleep_seconds_);
     std::this_thread::sleep_for(std::chrono::seconds(sleep_seconds_));
@@ -50,75 +48,91 @@ bool BookListService::Post(const std::string& request_content,
     Json::Value json;
     json["id"] = id;
 
-    *response_content = JsonToString(json);
-
-    return true;
+    response->content = JsonToString(json);
+    response->status = webcc::HttpStatus::kCreated;
+  } else {
+    // Invalid JSON
+    response->status = webcc::HttpStatus::kBadRequest;
   }
-
-  return false;
 }
 
 // -----------------------------------------------------------------------------
 
-bool BookDetailService::Get(const std::vector<std::string>& url_sub_matches,
+void BookDetailService::Get(const std::vector<std::string>& url_sub_matches,
                             const webcc::UrlQuery& query,
-                            std::string* response_content) {
+                            webcc::RestResponse* response) {
   if (sleep_seconds_ > 0) {
     LOG_INFO("Sleep %d seconds...", sleep_seconds_);
     std::this_thread::sleep_for(std::chrono::seconds(sleep_seconds_));
   }
 
   if (url_sub_matches.size() != 1) {
-    return false;
+    // TODO: kNotFound?
+    response->status = webcc::HttpStatus::kBadRequest;
+    return;
   }
 
   const std::string& book_id = url_sub_matches[0];
 
   const Book& book = g_book_store.GetBook(book_id);
-  if (!book.IsNull()) {
-    *response_content = BookToJsonString(book);
-    return true;
+  if (book.IsNull()) {
+    response->status = webcc::HttpStatus::kNotFound;
+    return;
   }
 
-  return false;
+  response->content = BookToJsonString(book);
+  response->status = webcc::HttpStatus::kOK;
 }
 
 // Update a book.
-bool BookDetailService::Put(const std::vector<std::string>& url_sub_matches,
+void BookDetailService::Put(const std::vector<std::string>& url_sub_matches,
                             const std::string& request_content,
-                            std::string* response_content) {
+                            webcc::RestResponse* response) {
   if (sleep_seconds_ > 0) {
     LOG_INFO("Sleep %d seconds...", sleep_seconds_);
     std::this_thread::sleep_for(std::chrono::seconds(sleep_seconds_));
   }
 
   if (url_sub_matches.size() != 1) {
-    return false;
+    // TODO: kNotFound?
+    response->status = webcc::HttpStatus::kBadRequest;
+    return;
   }
 
   const std::string& book_id = url_sub_matches[0];
 
   Book book;
-  if (JsonStringToBook(request_content, &book)) {
-    book.id = book_id;
-    return g_book_store.UpdateBook(book);
+  if (!JsonStringToBook(request_content, &book)) {
+    response->status = webcc::HttpStatus::kBadRequest;
+    return;
   }
 
-  return false;
+  book.id = book_id;
+  g_book_store.UpdateBook(book);
+
+  response->status = webcc::HttpStatus::kOK;
 }
 
-bool BookDetailService::Delete(
-    const std::vector<std::string>& url_sub_matches) {
+void BookDetailService::Delete(
+    const std::vector<std::string>& url_sub_matches,
+    webcc::RestResponse* response) {
   if (sleep_seconds_ > 0) {
     LOG_INFO("Sleep %d seconds...", sleep_seconds_);
     std::this_thread::sleep_for(std::chrono::seconds(sleep_seconds_));
   }
 
   if (url_sub_matches.size() != 1) {
-    return false;
+    // TODO: kNotFound?
+    response->status = webcc::HttpStatus::kBadRequest;
+    return;
   }
 
   const std::string& book_id = url_sub_matches[0];
 
-  return g_book_store.DeleteBook(book_id);
+  if (!g_book_store.DeleteBook(book_id)) {
+    response->status = webcc::HttpStatus::kNotFound;
+    return;
+  }
+
+  response->status = webcc::HttpStatus::kOK;
 }

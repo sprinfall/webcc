@@ -14,47 +14,39 @@ bool RestRequestHandler::Bind(RestServicePtr service, const std::string& url,
 }
 
 void RestRequestHandler::HandleConnection(HttpConnectionPtr connection) {
-  const HttpRequest& request = connection->request();
+  const HttpRequest& http_request = connection->request();
 
-  Url url(request.url(), true);
+  Url url(http_request.url(), /*decode*/true);
 
   if (!url.IsValid()) {
     connection->SendResponse(HttpStatus::kBadRequest);
     return;
   }
 
-  std::vector<std::string> sub_matches;
-  RestServicePtr service = service_manager_.GetService(url.path(),
-                                                       &sub_matches);
+  RestRequest rest_request{
+    http_request.method(), http_request.content(), url.query()
+  };
+
+  // Get service by URL path.
+  RestServicePtr service = service_manager_.GetService(
+      url.path(), &rest_request.url_sub_matches);
+
   if (!service) {
-    LOG_WARN("No service matches the URL: %s", url.path().c_str());
-    connection->SendResponse(HttpStatus::kBadRequest);
+    LOG_WARN("No service matches the URL path: %s", url.path().c_str());
+    connection->SendResponse(HttpStatus::kNotFound);
     return;
   }
 
-  UrlQuery query;
-  if (request.method() == kHttpGet) {
-    // Suppose URL query is only available for HTTP GET.
-    Url::SplitQuery(url.query(), &query);
+  RestResponse rest_response;
+  service->Handle(rest_request, &rest_response);
+
+  if (!rest_response.content.empty()) {
+    connection->SetResponseContent(std::move(rest_response.content),
+                                   kAppJsonUtf8);
   }
 
-  std::string content;
-  bool ok = service->Handle(request.method(), sub_matches, query,
-                            request.content(), &content);
-  if (!ok) {
-    connection->SendResponse(HttpStatus::kBadRequest);
-    return;
-  }
-
-  if (!content.empty()) {
-    connection->SetResponseContent(std::move(content), kAppJsonUtf8);
-  }
-
-  if (request.method() == kHttpPost) {
-    connection->SendResponse(HttpStatus::kCreated);
-  } else {
-    connection->SendResponse(HttpStatus::kOK);
-  }
+  // Send response back to client.
+  connection->SendResponse(rest_response.status);
 }
 
 }  // namespace webcc

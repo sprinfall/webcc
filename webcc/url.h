@@ -24,6 +24,9 @@ class UrlQuery {
 
   UrlQuery() = default;
 
+  // The query string should be key value pairs separated by '&'.
+  explicit UrlQuery(const std::string& str);
+
   // Construct from key-value pairs.
   explicit UrlQuery(const std::map<std::string, std::string>& map);
 
@@ -83,9 +86,6 @@ class Url {
 
   // Split a path into its hierarchical components.
   static std::vector<std::string> SplitPath(const std::string& path);
-
-  // Split query string into key-value parameters.
-  static void SplitQuery(const std::string& str, UrlQuery* query);
 
  private:
   void Init(const std::string& str);
