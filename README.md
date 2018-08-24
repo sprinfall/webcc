@@ -23,36 +23,37 @@ class BookListService : public webcc::RestListService {
  protected:
   // Query books based on some criterias.
   // GET /books?<query>
-  bool Get(const webcc::UrlQuery& query,
-           std::string* response_content) override;
+  void Get(const webcc::UrlQuery& query,
+           webcc::RestResponse* response) override;
 
   // Add a new book.
   // POST /books
   // The new book's data is attached as request content in JSON format.
-  bool Post(const std::string& request_content,
-            std::string* response_content) override;
+  void Post(const std::string& request_content,
+            webcc::RestResponse* response) override;
 };
 ```
 
 The others, derive from `webcc::RestDetailService`:
 
 ```cpp
-// The URL is like '/book/{BookID}', and the 'url_sub_matches' parameter
+// The URL is like '/books/{BookID}', and the 'url_sub_matches' parameter
 // contains the matched book ID.
 class BookDetailService : public webcc::RestDetailService {
  protected:
   // Get the detailed information of a book.
-  bool Get(const std::vector<std::string>& url_sub_matches,
+  void Get(const std::vector<std::string>& url_sub_matches,
            const webcc::UrlQuery& query,
-           std::string* response_content) override;
+           webcc::RestResponse* response) override;
 
   // Update the information of a book.
-  bool Put(const std::vector<std::string>& url_sub_matches,
+  void Put(const std::vector<std::string>& url_sub_matches,
            const std::string& request_content,
-           std::string* response_content) override;
+           webcc::RestResponse* response) override;
 
   // Delete a book.
-  bool Delete(const std::vector<std::string>& url_sub_matches) override;
+  void Delete(const std::vector<std::string>& url_sub_matches,
+              webcc::RestResponse* response) override;
 };
 ```
 
@@ -63,15 +64,23 @@ The detailed implementation is out of the scope of this document, but here is an
 ```cpp
 bool BookDetailService::Get(const std::vector<std::string>& url_sub_matches,
                             const webcc::UrlQuery& query,
-                            std::string* response_content) {
+                            webcc::RestResponse* response) {
   if (url_sub_matches.size() != 1) {
-    return false;
+    response->status = webcc::HttpStatus::kBadRequest;
+    return;
   }
+
   const std::string& book_id = url_sub_matches[0];
 
-  // Get the book by ID from database.
-  // Convert the book details to JSON string.
-  // Assign JSON string to response_content.
+  // Get the book by ID from, e.g., database.
+  // ...
+
+  if (<NotFound>) {
+    response->status = webcc::HttpStatus::kNotFound;
+  } else {
+    response->content = <JsonStringOfTheBook>;
+    response->status = webcc::HttpStatus::kOK;
+  }
 }
 ```
 
@@ -81,12 +90,12 @@ Last step, bind the services and run the server:
 webcc::RestServer server(8080, 2);
 
 server.Bind(std::make_shared<BookListService>(), "/books", false);
-server.Bind(std::make_shared<BookDetailService>(), "/book/(\\d+)", true);
+server.Bind(std::make_shared<BookDetailService>(), "/books/(\\d+)", true);
 
 server.Run();
 ```
 
-**Please see the `example/rest` folder for the complete examples (including the client).**
+**Please see `example/rest_book_server` for the complete example.**
 
 ## Build Instructions
 
