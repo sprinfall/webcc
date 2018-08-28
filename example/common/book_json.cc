@@ -26,11 +26,19 @@ Json::Value StringToJson(const std::string& str) {
 }
 
 Json::Value BookToJson(const Book& book) {
-  Json::Value root;
-  root["id"] = book.id;
-  root["title"] = book.title;
-  root["price"] = book.price;
-  return root;
+  Json::Value json;
+  json["id"] = book.id;
+  json["title"] = book.title;
+  json["price"] = book.price;
+  return json;
+}
+
+Book JsonToBook(const Json::Value& json) {
+  return {
+    json["id"].asString(),
+    json["title"].asString(),
+    json["price"].asDouble(),
+  };
 }
 
 std::string BookToJsonString(const Book& book) {
@@ -44,9 +52,6 @@ bool JsonStringToBook(const std::string& json_str, Book* book) {
     return false;
   }
 
-  book->id = json["id"].asString();
-  book->title = json["title"].asString();
-  book->price = json["price"].asDouble();
-
+  *book = JsonToBook(json);
   return true;
 }

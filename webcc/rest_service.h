@@ -20,6 +20,9 @@ namespace webcc {
 
 // -----------------------------------------------------------------------------
 
+// Regex sub-matches of the URL.
+typedef std::vector<std::string> UrlSubMatches;
+
 struct RestRequest {
   // HTTP method (GET, POST, etc.).
   const std::string& method;
@@ -31,7 +34,7 @@ struct RestRequest {
   const std::string& url_query_str;
 
   // Regex sub-matches of the URL (usually resource ID's).
-  std::vector<std::string> url_sub_matches;
+  UrlSubMatches url_sub_matches;
 };
 
 struct RestResponse {
@@ -76,22 +79,22 @@ class RestDetailService : public RestService {
   void Handle(const RestRequest& request, RestResponse* response) final;
 
  protected:
-  virtual void Get(const std::vector<std::string>& url_sub_matches,
+  virtual void Get(const UrlSubMatches& url_sub_matches,
                    const UrlQuery& query,
                    RestResponse* response) {
   }
 
-  virtual void Put(const std::vector<std::string>& url_sub_matches,
+  virtual void Put(const UrlSubMatches& url_sub_matches,
                    const std::string& request_content,
                    RestResponse* response) {
   }
 
-  virtual void Patch(const std::vector<std::string>& url_sub_matches,
+  virtual void Patch(const UrlSubMatches& url_sub_matches,
                      const std::string& request_content,
                      RestResponse* response) {
   }
 
-  virtual void Delete(const std::vector<std::string>& url_sub_matches,
+  virtual void Delete(const UrlSubMatches& url_sub_matches,
                       RestResponse* response) {
   }
 };

@@ -8,12 +8,6 @@
 
 // -----------------------------------------------------------------------------
 
-// BookListService handles the HTTP GET and returns the book list based on
-// query parameters specified in the URL.
-// The URL should be like:
-//   - /books
-//   - /books?name={BookName}
-// The query parameters could be regular expressions.
 class BookListService : public webcc::RestListService {
  public:
   explicit BookListService(int sleep_seconds)
@@ -22,19 +16,17 @@ class BookListService : public webcc::RestListService {
 
  protected:
   // Get a list of books based on query parameters.
-  // URL examples:
-  //   - /books
-  //   - /books?name={BookName}
-  void Get(const webcc::UrlQuery& query,
-           webcc::RestResponse* response) final;
+  // Support query parameters.
+  void Get(const webcc::UrlQuery& query, webcc::RestResponse* response) final;
 
   // Create a new book.
   void Post(const std::string& request_content,
             webcc::RestResponse* response) final;
 
  private:
-   // Sleep for the client to test timeout control.
-   int sleep_seconds_;
+  // Sleep some seconds before send back the response.
+  // For testing timeout control in client side.
+  int sleep_seconds_;
 };
 
 // -----------------------------------------------------------------------------
@@ -48,19 +40,23 @@ class BookDetailService : public webcc::RestDetailService {
   }
 
  protected:
-  void Get(const std::vector<std::string>& url_sub_matches,
+  // Get the detailed information of a book.
+  void Get(const webcc::UrlSubMatches& url_sub_matches,
            const webcc::UrlQuery& query,
            webcc::RestResponse* response) final;
 
-  void Put(const std::vector<std::string>& url_sub_matches,
+  // Update a book.
+  void Put(const webcc::UrlSubMatches& url_sub_matches,
            const std::string& request_content,
            webcc::RestResponse* response) final;
 
-  void Delete(const std::vector<std::string>& url_sub_matches,
+  // Delete a book.
+  void Delete(const webcc::UrlSubMatches& url_sub_matches,
               webcc::RestResponse* response) final;
 
  private:
-  // Sleep for the client to test timeout control.
+  // Sleep some seconds before send back the response.
+  // For testing timeout control in client side.
   int sleep_seconds_;
 };
 

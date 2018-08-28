@@ -24,29 +24,33 @@ class RestClient {
     timeout_seconds_ = timeout_seconds;
   }
 
-  // Requests
-
+  // HTTP GET request.
+  // The return value indicates if the socket communication is successful
+  // or not. If it's failed, check error() and timed_out() for more details.
+  // For HTTP status, check response_status() instead.
   inline bool Get(const std::string& url) {
     return Request(kHttpGet, url, "");
   }
 
+  // HTTP POST request.
   inline bool Post(const std::string& url, std::string&& content) {
     return Request(kHttpPost, url, std::move(content));
   }
 
+  // HTTP PUT request.
   inline bool Put(const std::string& url, std::string&& content) {
     return Request(kHttpPut, url, std::move(content));
   }
 
+  // HTTP PATCH request.
   inline bool Patch(const std::string& url, std::string&& content) {
     return Request(kHttpPatch, url, std::move(content));
   }
 
+  // HTTP DELETE request.
   inline bool Delete(const std::string& url) {
     return Request(kHttpDelete, url, "");
   }
-
-  // Response & Result
 
   HttpResponsePtr response() const { return response_; }
 
