@@ -6,6 +6,18 @@
 // -----------------------------------------------------------------------------
 // Macros
 
+// Does the compiler support "= default" for move copy constructor and
+// assignment operator?
+#ifdef _MSC_VER
+  #if _MSC_VER <= 1800  // VS 2013
+    #define WEBCC_DEFAULT_MOVE_COPY_ASSIGN 0
+  #else
+    #define WEBCC_DEFAULT_MOVE_COPY_ASSIGN 1
+  #endif  // _MSC_VER <= 1800
+#else
+  #define WEBCC_DEFAULT_MOVE_COPY_ASSIGN 1
+#endif  // _MSC_VER
+
 // Explicitly declare the copy constructor and assignment operator as deleted.
 #define DELETE_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName&) = delete; \
