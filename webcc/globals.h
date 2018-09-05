@@ -7,7 +7,7 @@
 // Macros
 
 // Does the compiler support "= default" for move copy constructor and
-// assignment operator?
+// move assignment operator?
 #ifdef _MSC_VER
   #if _MSC_VER <= 1800  // VS 2013
     #define WEBCC_DEFAULT_MOVE_COPY_ASSIGN 0
@@ -33,7 +33,7 @@ const char* const CRLF = "\r\n";
 // Default buffer size for socket reading.
 const std::size_t kBufferSize = 1024;
 
-const std::size_t kInvalidLength = static_cast<std::size_t>(-1);
+const std::size_t kInvalidLength = std::string::npos;
 
 // Default timeout for reading response.
 const int kMaxReadSeconds = 30;
@@ -42,19 +42,11 @@ extern const std::string kHost;
 extern const std::string kContentType;
 extern const std::string kContentLength;
 
-#ifdef WEBCC_ENABLE_SOAP
-extern const std::string kSoapAction;
-#endif  // WEBCC_ENABLE_SOAP
-
 extern const std::string kAppJsonUtf8;
-
-#ifdef WEBCC_ENABLE_SOAP
-extern const std::string kTextXmlUtf8;
-#endif  // WEBCC_ENABLE_SOAP
 
 // Default ports.
 extern const std::string kHttpPort;
-extern const std::string kHttpsPort;
+extern const std::string kHttpSslPort;
 
 // HTTP methods (verbs) in string ("HEAD", "GET", etc.).
 // NOTE: Don't use enum to avoid converting back and forth.

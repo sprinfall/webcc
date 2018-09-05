@@ -4,6 +4,7 @@
 #include <utility>  // for move()
 
 #include "webcc/http_async_client.h"
+#include "webcc/soap_globals.h"
 #include "webcc/soap_request.h"
 #include "webcc/soap_response.h"
 

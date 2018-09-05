@@ -3,6 +3,7 @@
 #include <utility>  // for move()
 
 #include "webcc/logger.h"
+#include "webcc/soap_globals.h"
 #include "webcc/soap_request.h"
 #include "webcc/soap_response.h"
 
@@ -10,7 +11,6 @@ namespace webcc {
 
 bool SoapRequestHandler::Bind(SoapServicePtr service, const std::string& url) {
   assert(service);
-
   url_service_map_[url] = service;
   return true;
 }
