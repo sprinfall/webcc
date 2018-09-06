@@ -3,8 +3,6 @@
 #include <cassert>
 #include <utility>  // for move()
 
-#include "webcc/http_client.h"
-#include "webcc/soap_globals.h"
 #include "webcc/soap_request.h"
 #include "webcc/soap_response.h"
 
@@ -13,8 +11,7 @@ namespace webcc {
 SoapClient::SoapClient(const std::string& host, const std::string& port)
     : host_(host), port_(port),
       soapenv_ns_(kSoapEnvNamespace),
-      format_raw_(true), timeout_seconds_(0), timed_out_(false),
-      error_(kNoError) {
+      format_raw_(true), error_(kNoError) {
   if (port_.empty()) {
     std::size_t i = host_.find_last_of(':');
     if (i != std::string::npos) {
@@ -30,6 +27,8 @@ bool SoapClient::Request(const std::string& operation,
   assert(service_ns_.IsValid());
   assert(!url_.empty() && !host_.empty());
   assert(!result_name_.empty());
+
+  error_ = kNoError;
 
   SoapRequest soap_request;
 
@@ -55,22 +54,15 @@ bool SoapClient::Request(const std::string& operation,
   http_request.SetHeader(kSoapAction, operation);
   http_request.UpdateStartLine();
 
-  HttpClient http_client;
-
-  if (timeout_seconds_ > 0) {
-    http_client.set_timeout_seconds(timeout_seconds_);
-  }
-
-  if (!http_client.Request(http_request)) {
-    error_ = http_client.error();
-    timed_out_ = http_client.timed_out();
+  if (!http_client_.Request(http_request)) {
+    error_ = http_client_.error();
     return false;
   }
 
   SoapResponse soap_response;
   soap_response.set_result_name(result_name_);
 
-  if (!soap_response.FromXml(http_client.response()->content())) {
+  if (!soap_response.FromXml(http_client_.response()->content())) {
     error_ = kXmlError;
     return false;
   }

@@ -9,7 +9,7 @@ class CalcClient {
  public:
   CalcClient(const std::string& host, const std::string& port)
       : soap_client_(host, port) {
-    soap_client_.set_timeout_seconds(5);
+    soap_client_.SetTimeout(5);
 
     soap_client_.set_url("/calculator");
     soap_client_.set_service_ns({

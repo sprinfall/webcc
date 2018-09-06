@@ -11,7 +11,7 @@ namespace webcc {
 
 HttpAsyncClient::HttpAsyncClient(boost::asio::io_context& io_context)
     : socket_(io_context),
-      resolver_(new tcp::resolver(io_context)),
+      resolver_(io_context),
       buffer_(kBufferSize),
       deadline_(io_context),
       timeout_seconds_(kMaxReadSeconds),
@@ -34,11 +34,11 @@ void HttpAsyncClient::Request(std::shared_ptr<HttpRequest> request,
   request_ = request;
   response_handler_ = response_handler;
 
-  resolver_->async_resolve(tcp::v4(), request->host(), request->port(kHttpPort),
-                           std::bind(&HttpAsyncClient::ResolveHandler,
-                                     shared_from_this(),
-                                     std::placeholders::_1,
-                                     std::placeholders::_2));
+  resolver_.async_resolve(tcp::v4(), request->host(), request->port(kHttpPort),
+                          std::bind(&HttpAsyncClient::ResolveHandler,
+                                    shared_from_this(),
+                                    std::placeholders::_1,
+                                    std::placeholders::_2));
 }
 
 void HttpAsyncClient::Stop() {
@@ -65,11 +65,8 @@ void HttpAsyncClient::ResolveHandler(boost::system::error_code ec,
              request_->host().c_str(), request_->port().c_str());
     response_handler_(response_, kHostResolveError, timed_out_);
   } else {
-    // Start the connect actor.
-    endpoints_ = endpoints;
-
     // ConnectHandler: void(boost::system::error_code, tcp::endpoint)
-    boost::asio::async_connect(socket_, endpoints_,
+    boost::asio::async_connect(socket_, endpoints,
                                std::bind(&HttpAsyncClient::ConnectHandler,
                                          shared_from_this(),
                                          std::placeholders::_1,

@@ -6,11 +6,6 @@
 
 namespace webcc {
 
-const SoapNamespace kSoapEnvNamespace{
-  "soap",
-  "http://schemas.xmlsoap.org/soap/envelope/"
-};
-
 void SoapMessage::ToXml(bool format_raw, const std::string& indent,
                         std::string* xml_string) {
   assert(soapenv_ns_.IsValid() && service_ns_.IsValid() && !operation_.empty());

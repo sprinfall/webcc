@@ -19,6 +19,10 @@ namespace webcc {
 // Response handler/callback.
 typedef std::function<void(HttpResponsePtr, Error, bool)> HttpResponseHandler;
 
+// HTTP client session in asynchronous mode.
+// A request will return without waiting for the response, the callback handler
+// will be invoked when the response is received or timeout occurs.
+// Don't use the same HttpAsyncClient object in multiple threads.
 class HttpAsyncClient : public std::enable_shared_from_this<HttpAsyncClient> {
  public:
   explicit HttpAsyncClient(boost::asio::io_context& io_context);
@@ -55,9 +59,8 @@ class HttpAsyncClient : public std::enable_shared_from_this<HttpAsyncClient> {
   void AsyncWaitDeadline();
   void DeadlineHandler(boost::system::error_code ec);
 
+  tcp::resolver resolver_;
   tcp::socket socket_;
-  std::unique_ptr<tcp::resolver> resolver_;
-  tcp::resolver::results_type endpoints_;
 
   std::shared_ptr<HttpRequest> request_;
   std::vector<char> buffer_;

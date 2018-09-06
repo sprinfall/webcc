@@ -29,7 +29,7 @@ class BookClientBase {
   BookClientBase(const std::string& host, const std::string& port,
                  int timeout_seconds)
       : rest_client_(host, port) {
-    rest_client_.set_timeout_seconds(timeout_seconds);
+    rest_client_.SetTimeout(timeout_seconds);
   }
 
   virtual ~BookClientBase() = default;

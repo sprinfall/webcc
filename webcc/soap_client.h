@@ -4,7 +4,8 @@
 #include <string>
 #include <vector>
 
-#include "webcc/soap_message.h"
+#include "webcc/http_client.h"
+#include "webcc/soap_globals.h"
 #include "webcc/soap_parameter.h"
 
 namespace webcc {
@@ -13,14 +14,14 @@ class SoapClient {
  public:
   // If |port| is empty, |host| will be checked to see if it contains port or
   // not (separated by ':').
-  SoapClient(const std::string& host, const std::string& port = "");
+  explicit SoapClient(const std::string& host, const std::string& port = "");
 
   ~SoapClient() = default;
 
   DELETE_COPY_AND_ASSIGN(SoapClient);
 
-  void set_timeout_seconds(int timeout_seconds) {
-    timeout_seconds_ = timeout_seconds;
+  void SetTimeout(int seconds) {
+    http_client_.SetTimeout(seconds);
   }
 
   void set_url(const std::string& url) { url_ = url; }
@@ -33,7 +34,9 @@ class SoapClient {
     result_name_ = result_name;
   }
 
-  void set_format_raw(bool format_raw) { format_raw_ = format_raw; }
+  void set_format_raw(bool format_raw) {
+    format_raw_ = format_raw;
+  }
 
   void set_indent_str(const std::string& indent_str) {
     indent_str_ = indent_str;
@@ -43,7 +46,9 @@ class SoapClient {
                std::vector<SoapParameter>&& parameters,
                std::string* result);
 
-  bool timed_out() const { return timed_out_; }
+  bool timed_out() const {
+    return http_client_.timed_out();
+  }
 
   Error error() const { return error_; }
 
@@ -68,11 +73,7 @@ class SoapClient {
   // Applicable when |format_raw_| is false.
   std::string indent_str_;
 
-  // Timeout in seconds; only effective when > 0.
-  int timeout_seconds_;
-
-  // If the error was caused by timeout or not.
-  bool timed_out_;
+  HttpClient http_client_;
 
   Error error_;
 };

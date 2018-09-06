@@ -10,4 +10,9 @@ const std::string kSoapAction = "SOAPAction";
 // See: https://www.w3.org/TR/2007/REC-soap12-part0-20070427/#L26854
 const std::string kTextXmlUtf8 = "text/xml; charset=utf-8";
 
+const SoapNamespace kSoapEnvNamespace{
+  "soap",
+  "http://schemas.xmlsoap.org/soap/envelope/"
+};
+
 }  // namespace webcc

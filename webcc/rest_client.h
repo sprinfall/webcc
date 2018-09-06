@@ -6,6 +6,7 @@
 #include <utility>  // for move()
 
 #include "webcc/globals.h"
+#include "webcc/http_client.h"
 #include "webcc/http_response.h"
 
 namespace webcc {
@@ -14,20 +15,23 @@ class RestClient {
  public:
   // If |port| is empty, |host| will be checked to see if it contains port or
   // not (separated by ':').
-  RestClient(const std::string& host, const std::string& port = "");
+  explicit RestClient(const std::string& host, const std::string& port = "");
 
   ~RestClient() = default;
 
   DELETE_COPY_AND_ASSIGN(RestClient);
 
-  void set_timeout_seconds(int timeout_seconds) {
-    timeout_seconds_ = timeout_seconds;
+  void SetTimeout(int seconds) {
+    http_client_.SetTimeout(seconds);
   }
 
+  // NOTE:
+  // The return value of the following methods (Get, Post, etc.) only indicates
+  // if the socket communication is successful or not. Check error() and
+  // timed_out() for more information if it's failed. Check response_status()
+  // instead for the HTTP status code.
+
   // HTTP GET request.
-  // The return value indicates if the socket communication is successful
-  // or not. If it's failed, check error() and timed_out() for more details.
-  // For HTTP status, check response_status() instead.
   inline bool Get(const std::string& url) {
     return Request(kHttpGet, url, "");
   }
@@ -52,21 +56,27 @@ class RestClient {
     return Request(kHttpDelete, url, "");
   }
 
-  HttpResponsePtr response() const { return response_; }
+  HttpResponsePtr response() const {
+    return http_client_.response();
+  }
 
   int response_status() const {
-    assert(response_);
-    return response_->status();
+    assert(response());
+    return response()->status();
   }
 
   const std::string& response_content() const {
-    assert(response_);
-    return response_->content();
+    assert(response());
+    return response()->content();
   }
 
-  bool timed_out() const { return timed_out_; }
+  bool timed_out() const {
+    return http_client_.timed_out();
+  }
 
-  Error error() const { return error_; }
+  Error error() const {
+    return http_client_.error();
+  }
 
  private:
   bool Request(const std::string& method, const std::string& url,
@@ -75,15 +85,7 @@ class RestClient {
   std::string host_;
   std::string port_;
 
-  // Timeout in seconds; only effective when > 0.
-  int timeout_seconds_;
-
-  HttpResponsePtr response_;
-
-  // If the error was caused by timeout or not.
-  bool timed_out_;
-
-  Error error_;
+  HttpClient http_client_;
 };
 
 }  // namespace webcc

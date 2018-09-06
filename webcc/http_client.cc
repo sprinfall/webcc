@@ -27,11 +27,19 @@ HttpClient::HttpClient()
       error_(kNoError) {
 }
 
+void HttpClient::SetTimeout(int seconds) {
+  if (seconds > 0) {
+    timeout_seconds_ = seconds;
+  }
+}
+
 bool HttpClient::Request(const HttpRequest& request) {
   response_.reset(new HttpResponse());
   response_parser_.reset(new HttpResponseParser(response_.get()));
 
-  stopped_ = timed_out_ = false;
+  stopped_ = false;
+  timed_out_ = false;
+  error_ = kNoError;
 
   if ((error_ = Connect(request)) != kNoError) {
     return false;

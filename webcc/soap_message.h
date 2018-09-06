@@ -5,28 +5,14 @@
 
 #include "pugixml/pugixml.hpp"
 
-#include "webcc/globals.h"
+#include "webcc/soap_globals.h"
 
 namespace webcc {
-
-// XML namespace name/url pair.
-// E.g., { "soap", "http://schemas.xmlsoap.org/soap/envelope/" }
-struct SoapNamespace {
-  std::string name;
-  std::string url;
-
-  bool IsValid() const {
-    return !name.empty() && !url.empty();
-  }
-};
-
-// CSoap's default namespace for SOAP Envelope.
-extern const SoapNamespace kSoapEnvNamespace;
 
 // Base class for SOAP request and response.
 class SoapMessage {
  public:
-  virtual ~SoapMessage() {}
+  virtual ~SoapMessage() = default;
 
   // E.g., set as kSoapEnvNamespace.
   void set_soapenv_ns(const SoapNamespace& soapenv_ns) {

@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 
+#include "pugixml/pugixml.hpp"
 #include "webcc/soap_client.h"
 
 #include "example/common/book.h"
