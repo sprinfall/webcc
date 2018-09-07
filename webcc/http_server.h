@@ -6,7 +6,6 @@
 #include "boost/asio/io_context.hpp"
 #include "boost/asio/ip/tcp.hpp"
 #include "boost/asio/signal_set.hpp"
-#include "boost/scoped_ptr.hpp"
 
 #include "webcc/globals.h"
 #include "webcc/http_connection.h"
@@ -29,6 +28,9 @@ class HttpServer {
   void Run();
 
  private:
+  // Register to handle the signals that indicate when the server should exit.
+  void RegisterSignals();
+
   // Initiate an asynchronous accept operation.
   void AsyncAccept();
 
@@ -38,17 +40,17 @@ class HttpServer {
   // Get the handler for incoming requests.
   virtual HttpRequestHandler* GetRequestHandler() = 0;
 
-  // The number of worker threads.
-  std::size_t workers_;
-
   // The io_context used to perform asynchronous operations.
   boost::asio::io_context io_context_;
+
+  // Acceptor used to listen for incoming connections.
+  boost::asio::ip::tcp::acceptor acceptor_;
 
   // The signal_set is used to register for process termination notifications.
   boost::asio::signal_set signals_;
 
-  // Acceptor used to listen for incoming connections.
-  boost::scoped_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
+  // The number of worker threads.
+  std::size_t workers_;
 };
 
 }  // namespace webcc
