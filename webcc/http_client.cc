@@ -131,6 +131,8 @@ Error HttpClient::SendReqeust(const HttpRequest& request) {
     return kSocketWriteError;
   }
 
+  LOG_INFO("Request sent.");
+
   return kNoError;
 }
 

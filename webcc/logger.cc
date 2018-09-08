@@ -11,6 +11,14 @@
 #include <string>
 #include <thread>
 
+#if (defined(WIN32) || defined(_WIN64))
+// Do nothing.
+#else
+// For getting thread ID.
+#include <sys/syscall.h>
+#include <sys/types.h>
+#endif
+
 #include "boost/filesystem.hpp"
 
 namespace webcc {
@@ -47,13 +55,35 @@ struct Logger {
 // Global logger.
 static Logger g_logger;
 
-static std::thread::id g_main_thread_id;
+static std::string g_main_thread_id;
 
 static const char* kLevelNames[] = {
   "VERB", "INFO", "WARN", "ERRO", "FATA"
 };
 
 namespace bfs = boost::filesystem;
+
+// std::this_thread::get_id() returns a very long ID (same as pthread_self())
+// on Linux, e.g., 140219133990656. syscall(SYS_gettid) is much prefered because
+// it's shorter and the same as `ps -T -p <pid>` output.
+static std::string DoGetThreadID() {
+#if (defined(WIN32) || defined(_WIN64))
+  auto thread_id = std::this_thread::get_id();
+  std::stringstream ss;
+  ss << thread_id;
+  return ss.str();
+#else
+  return std::to_string(syscall(SYS_gettid));
+#endif
+}
+
+static std::string GetThreadID() {
+  std::string thread_id = DoGetThreadID();
+  if (thread_id == g_main_thread_id) {
+    return "main";
+  }
+  return thread_id;
+}
 
 static bfs::path InitLogPath(const std::string& dir) {
   if (dir.empty()) {
@@ -81,7 +111,7 @@ void LogInit(const std::string& dir, int modes) {
   }
 
   // Suppose LogInit() is called from the main thread.
-  g_main_thread_id = std::this_thread::get_id();
+  g_main_thread_id = DoGetThreadID();
 }
 
 static std::string GetTimestamp() {
@@ -107,18 +137,6 @@ static std::string GetTimestamp() {
   timestamp.append(micro_seconds_str);
 
   return timestamp;
-}
-
-static std::string GetThreadID() {
-  std::thread::id thread_id = std::this_thread::get_id();
-
-  if (thread_id == g_main_thread_id) {
-    return "main";
-  }
-
-  std::stringstream ss;
-  ss << thread_id;
-  return ss.str();
 }
 
 void LogWrite(int level, const char* file, int line, const char* format, ...) {

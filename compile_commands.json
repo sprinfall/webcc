@@ -116,6 +116,11 @@
 },
 {
   "directory": "/home/adam/github/webcc/build/webcc",
+  "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -DWEBCC_LOG_LEVEL=0 -I/usr/local/include -I/home/adam/github/webcc -I/home/adam/github/webcc/third_party/src    -std=c++11 -o CMakeFiles/webcc.dir/soap_globals.cc.o -c /home/adam/github/webcc/webcc/soap_globals.cc",
+  "file": "/home/adam/github/webcc/webcc/soap_globals.cc"
+},
+{
+  "directory": "/home/adam/github/webcc/build/webcc",
   "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -DWEBCC_LOG_LEVEL=0 -I/usr/local/include -I/home/adam/github/webcc -I/home/adam/github/webcc/third_party/src    -std=c++11 -o CMakeFiles/webcc.dir/soap_message.cc.o -c /home/adam/github/webcc/webcc/soap_message.cc",
   "file": "/home/adam/github/webcc/webcc/soap_message.cc"
 },
@@ -161,6 +166,11 @@
 },
 {
   "directory": "/home/adam/github/webcc/build/example/rest_book_server",
+  "command": "/usr/bin/c++   -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -DWEBCC_LOG_LEVEL=0 -I/usr/local/include -I/home/adam/github/webcc -I/home/adam/github/webcc/third_party/src -I/home/adam/github/webcc/third_party/src/jsoncpp    -std=c++11 -o CMakeFiles/rest_book_server.dir/__/common/book_json.cc.o -c /home/adam/github/webcc/example/common/book_json.cc",
+  "file": "/home/adam/github/webcc/example/common/book_json.cc"
+},
+{
+  "directory": "/home/adam/github/webcc/build/example/rest_book_server",
   "command": "/usr/bin/c++   -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -DWEBCC_LOG_LEVEL=0 -I/usr/local/include -I/home/adam/github/webcc -I/home/adam/github/webcc/third_party/src -I/home/adam/github/webcc/third_party/src/jsoncpp    -std=c++11 -o CMakeFiles/rest_book_server.dir/services.cc.o -c /home/adam/github/webcc/example/rest_book_server/services.cc",
   "file": "/home/adam/github/webcc/example/rest_book_server/services.cc"
 },
@@ -171,8 +181,28 @@
 },
 {
   "directory": "/home/adam/github/webcc/build/example/rest_book_client",
+  "command": "/usr/bin/c++   -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -DWEBCC_LOG_LEVEL=0 -I/usr/local/include -I/home/adam/github/webcc -I/home/adam/github/webcc/third_party/src -I/home/adam/github/webcc/third_party/src/jsoncpp    -std=c++11 -o CMakeFiles/rest_book_client.dir/__/common/book.cc.o -c /home/adam/github/webcc/example/common/book.cc",
+  "file": "/home/adam/github/webcc/example/common/book.cc"
+},
+{
+  "directory": "/home/adam/github/webcc/build/example/rest_book_client",
+  "command": "/usr/bin/c++   -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -DWEBCC_LOG_LEVEL=0 -I/usr/local/include -I/home/adam/github/webcc -I/home/adam/github/webcc/third_party/src -I/home/adam/github/webcc/third_party/src/jsoncpp    -std=c++11 -o CMakeFiles/rest_book_client.dir/__/common/book_json.cc.o -c /home/adam/github/webcc/example/common/book_json.cc",
+  "file": "/home/adam/github/webcc/example/common/book_json.cc"
+},
+{
+  "directory": "/home/adam/github/webcc/build/example/rest_book_client",
   "command": "/usr/bin/c++   -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -DWEBCC_LOG_LEVEL=0 -I/usr/local/include -I/home/adam/github/webcc -I/home/adam/github/webcc/third_party/src -I/home/adam/github/webcc/third_party/src/jsoncpp    -std=c++11 -o CMakeFiles/rest_book_client.dir/main.cc.o -c /home/adam/github/webcc/example/rest_book_client/main.cc",
   "file": "/home/adam/github/webcc/example/rest_book_client/main.cc"
+},
+{
+  "directory": "/home/adam/github/webcc/build/example/rest_book_async_client",
+  "command": "/usr/bin/c++   -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -DWEBCC_LOG_LEVEL=0 -I/usr/local/include -I/home/adam/github/webcc -I/home/adam/github/webcc/third_party/src -I/home/adam/github/webcc/third_party/src/jsoncpp    -std=c++11 -o CMakeFiles/rest_book_async_client.dir/__/common/book.cc.o -c /home/adam/github/webcc/example/common/book.cc",
+  "file": "/home/adam/github/webcc/example/common/book.cc"
+},
+{
+  "directory": "/home/adam/github/webcc/build/example/rest_book_async_client",
+  "command": "/usr/bin/c++   -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -DWEBCC_LOG_LEVEL=0 -I/usr/local/include -I/home/adam/github/webcc -I/home/adam/github/webcc/third_party/src -I/home/adam/github/webcc/third_party/src/jsoncpp    -std=c++11 -o CMakeFiles/rest_book_async_client.dir/__/common/book_json.cc.o -c /home/adam/github/webcc/example/common/book_json.cc",
+  "file": "/home/adam/github/webcc/example/common/book_json.cc"
 },
 {
   "directory": "/home/adam/github/webcc/build/example/rest_book_async_client",
