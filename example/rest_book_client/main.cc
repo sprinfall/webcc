@@ -215,28 +215,33 @@ int main(int argc, char* argv[]) {
   PrintSeparator();
 
   std::list<Book> books;
-  list_client.ListBooks(&books);
-  PrintBookList(books);
+  if (list_client.ListBooks(&books)) {
+    PrintBookList(books);
+  }
 
   PrintSeparator();
 
   std::string id;
-  if (!list_client.CreateBook("1984", 12.3, &id)) {
-    return 1;
+  if (list_client.CreateBook("1984", 12.3, &id)) {
+    std::cout << "Book ID: " << id << std::endl;
+  } else {
+    id = "1";
+    std::cout << "Book ID: " << id << " (faked)"<< std::endl;
   }
-  std::cout << "Book ID: " << id << std::endl;
 
   PrintSeparator();
 
   books.clear();
-  list_client.ListBooks(&books);
-  PrintBookList(books);
+  if (list_client.ListBooks(&books)) {
+    PrintBookList(books);
+  }
 
   PrintSeparator();
 
   Book book;
-  detail_client.GetBook(id, &book);
-  PrintBook(book);
+  if (detail_client.GetBook(id, &book)) {
+    PrintBook(book);
+  }
 
   PrintSeparator();
 
@@ -244,8 +249,9 @@ int main(int argc, char* argv[]) {
 
   PrintSeparator();
 
-  detail_client.GetBook(id, &book);
-  PrintBook(book);
+  if (detail_client.GetBook(id, &book)) {
+    PrintBook(book);
+  }
 
   PrintSeparator();
 
@@ -254,8 +260,9 @@ int main(int argc, char* argv[]) {
   PrintSeparator();
 
   books.clear();
-  list_client.ListBooks(&books);
-  PrintBookList(books);
+  if (list_client.ListBooks(&books)) {
+    PrintBookList(books);
+  }
 
   return 0;
 }

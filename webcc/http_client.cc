@@ -34,6 +34,8 @@ void HttpClient::SetTimeout(int seconds) {
 }
 
 bool HttpClient::Request(const HttpRequest& request) {
+  io_context_.restart();
+
   response_.reset(new HttpResponse());
   response_parser_.reset(new HttpResponseParser(response_.get()));
 
@@ -72,22 +74,8 @@ Error HttpClient::Connect(const HttpRequest& request) {
 
   LOG_VERB("Connect to server...");
 
-  ec = boost::asio::error::would_block;
-
-  // ConnectHandler: void (boost::system::error_code, tcp::endpoint)
-  // Using |boost::lambda::var()| is identical to:
-  //   boost::asio::async_connect(
-  //       socket_, endpoints,
-  //       [this, &ec](boost::system::error_code inner_ec, tcp::endpoint) {
-  //         ec = inner_ec;
-  //       });
-  boost::asio::async_connect(socket_, endpoints,
-                             boost::lambda::var(ec) = boost::lambda::_1);
-
-  // Block until the asynchronous operation has completed.
-  do {
-    io_context_.run_one();
-  } while (ec == boost::asio::error::would_block);
+  // Use sync API directly since we don't need timeout control.
+  boost::asio::connect(socket_, endpoints, ec);
 
   // Determine whether a connection was successfully established.
   if (ec) {
@@ -97,11 +85,6 @@ Error HttpClient::Connect(const HttpRequest& request) {
   }
 
   LOG_VERB("Socket connected.");
-
-  // ISSUE: |async_connect| reports success on failure.
-  // See the following bugs:
-  //   - https://svn.boost.org/trac10/ticket/8795
-  //   - https://svn.boost.org/trac10/ticket/8995
 
   return kNoError;
 }
@@ -114,16 +97,10 @@ Error HttpClient::SendReqeust(const HttpRequest& request) {
   // I find that it's almost impossible to simulate a situation in the server
   // side to test this timeout.
 
-  boost::system::error_code ec = boost::asio::error::would_block;
+  boost::system::error_code ec;
 
-  // WriteHandler: void (boost::system::error_code, std::size_t)
-  boost::asio::async_write(socket_, request.ToBuffers(),
-                           boost::lambda::var(ec) = boost::lambda::_1);
-
-  // Block until the asynchronous operation has completed.
-  do {
-    io_context_.run_one();
-  } while (ec == boost::asio::error::would_block);
+  // Use sync API directly since we don't need timeout control.
+  boost::asio::write(socket_, request.ToBuffers(), ec);
 
   if (ec) {
     LOG_ERRO("Socket write error (%s).", ec.message().c_str());
@@ -140,7 +117,7 @@ Error HttpClient::ReadResponse() {
   LOG_VERB("Read response (timeout: %ds)...", timeout_seconds_);
 
   deadline_.expires_from_now(boost::posix_time::seconds(timeout_seconds_));
-  AsyncWaitDeadline();
+  DoWaitDeadline();
 
   Error error = kNoError;
   DoReadResponse(&error);
@@ -208,23 +185,37 @@ void HttpClient::DoReadResponse(Error* error) {
   } while (ec == boost::asio::error::would_block);
 }
 
-void HttpClient::AsyncWaitDeadline() {
-  deadline_.async_wait(std::bind(&HttpClient::DeadlineHandler, this,
+void HttpClient::DoWaitDeadline() {
+  deadline_.async_wait(std::bind(&HttpClient::OnDeadline, this,
                                  std::placeholders::_1));
 }
 
-void HttpClient::DeadlineHandler(boost::system::error_code ec) {
-  LOG_VERB("Deadline handler.");
-
-  if (ec == boost::asio::error::operation_aborted) {
-    LOG_VERB("Deadline timer canceled.");
+void HttpClient::OnDeadline(boost::system::error_code ec) {
+  if (stopped_) {
     return;
   }
 
-  LOG_WARN("HTTP client timed out.");
-  timed_out_ = true;
+  LOG_VERB("OnDeadline.");
 
-  Stop();
+  // NOTE: Can't check this:
+  // if (ec == boost::asio::error::operation_aborted) {
+  //   LOG_VERB("Deadline timer canceled.");
+  //   return;
+  // }
+
+  if (deadline_.expires_at() <=
+      boost::asio::deadline_timer::traits_type::now()) {
+    // The deadline has passed.
+    // The socket is closed so that any outstanding asynchronous operations
+    // are canceled.
+    LOG_WARN("HTTP client timed out.");
+    timed_out_ = true;
+    Stop();
+    return;
+  }
+
+  // Put the actor back to sleep.
+  DoWaitDeadline();
 }
 
 void HttpClient::Stop() {

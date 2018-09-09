@@ -48,8 +48,8 @@ class HttpClient {
 
   void DoReadResponse(Error* error);
 
-  void AsyncWaitDeadline();
-  void DeadlineHandler(boost::system::error_code ec);
+  void DoWaitDeadline();
+  void OnDeadline(boost::system::error_code ec);
 
   void Stop();
 
