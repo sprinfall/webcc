@@ -21,16 +21,14 @@ The first two operations can be implemented by deriving from `webcc::RestListSer
 ```cpp
 class BookListService : public webcc::RestListService {
  protected:
-  // Query books based on some criterias.
-  // GET /books?<query>
+  // Get a list of books based on query parameters.
   void Get(const webcc::UrlQuery& query,
-           webcc::RestResponse* response) override;
+           webcc::RestResponse* response) final;
 
-  // Add a new book.
-  // POST /books
+  // Create a new book.
   // The new book's data is attached as request content in JSON format.
   void Post(const std::string& request_content,
-            webcc::RestResponse* response) override;
+            webcc::RestResponse* response) final;
 };
 ```
 
@@ -42,18 +40,18 @@ The others, derive from `webcc::RestDetailService`:
 class BookDetailService : public webcc::RestDetailService {
  protected:
   // Get the detailed information of a book.
-  void Get(const std::vector<std::string>& url_sub_matches,
+  void Get(const webcc::UrlSubMatches& url_sub_matches,
            const webcc::UrlQuery& query,
-           webcc::RestResponse* response) override;
+           webcc::RestResponse* response) final;
 
-  // Update the information of a book.
-  void Put(const std::vector<std::string>& url_sub_matches,
+  // Update a book.
+  void Put(const webcc::UrlSubMatches& url_sub_matches,
            const std::string& request_content,
-           webcc::RestResponse* response) override;
+           webcc::RestResponse* response) final;
 
   // Delete a book.
-  void Delete(const std::vector<std::string>& url_sub_matches,
-              webcc::RestResponse* response) override;
+  void Delete(const webcc::UrlSubMatches& url_sub_matches,
+              webcc::RestResponse* response) final;
 };
 ```
 
@@ -62,7 +60,7 @@ As you can see, all you have to do is to override the proper virtual functions w
 The detailed implementation is out of the scope of this document, but here is an example:
 
 ```cpp
-void BookDetailService::Get(const std::vector<std::string>& url_sub_matches,
+void BookDetailService::Get(const webcc::UrlSubMatches& url_sub_matches,
                             const webcc::UrlQuery& query,
                             webcc::RestResponse* response) {
   if (url_sub_matches.size() != 1) {

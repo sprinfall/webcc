@@ -16,7 +16,6 @@ class BookListService : public webcc::RestListService {
 
  protected:
   // Get a list of books based on query parameters.
-  // Support query parameters.
   void Get(const webcc::UrlQuery& query, webcc::RestResponse* response) final;
 
   // Create a new book.
