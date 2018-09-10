@@ -27,7 +27,7 @@ class HttpAsyncClient : public std::enable_shared_from_this<HttpAsyncClient> {
  public:
   explicit HttpAsyncClient(boost::asio::io_context& io_context);
 
-  DELETE_COPY_AND_ASSIGN(HttpAsyncClient);
+  WEBCC_DELETE_COPY_ASSIGN(HttpAsyncClient);
 
   void set_timeout_seconds(int timeout_seconds) {
     timeout_seconds_ = timeout_seconds;

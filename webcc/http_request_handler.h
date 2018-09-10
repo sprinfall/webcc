@@ -5,7 +5,7 @@
 #include <thread>
 #include <vector>
 
-#include "webcc/http_connection.h"
+#include "webcc/http_session.h"
 #include "webcc/queue.h"
 #include "webcc/soap_service.h"
 
@@ -20,24 +20,24 @@ class HttpRequestHandler {
   HttpRequestHandler() = default;
   virtual ~HttpRequestHandler() = default;
 
-  DELETE_COPY_AND_ASSIGN(HttpRequestHandler);
+  WEBCC_DELETE_COPY_ASSIGN(HttpRequestHandler);
 
-  // Put the connection into the queue.
-  void Enqueue(HttpConnectionPtr connection);
+  // Put the session into the queue.
+  void Enqueue(HttpSessionPtr session);
 
   // Start worker threads.
   void Start(std::size_t count);
 
-  // Close pending connections and stop worker threads.
+  // Close pending sessions and stop worker threads.
   void Stop();
 
  private:
   void WorkerRoutine();
 
   // Called by the worker routine.
-  virtual void HandleConnection(HttpConnectionPtr connection) = 0;
+  virtual void HandleSession(HttpSessionPtr session) = 0;
 
-  Queue<HttpConnectionPtr> queue_;
+  Queue<HttpSessionPtr> queue_;
   std::vector<std::thread> workers_;
 };
 

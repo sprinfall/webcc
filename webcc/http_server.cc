@@ -22,7 +22,7 @@ HttpServer::HttpServer(std::uint16_t port, std::size_t workers)
   // Open the acceptor.
   acceptor_.open(endpoint.protocol(), ec);
   if (ec) {
-    LOG_ERRO("Acceptor open error: %s", ec.message().c_str());
+    LOG_ERRO("Acceptor open error (%s).", ec.message().c_str());
     return;
   }
 
@@ -37,7 +37,7 @@ HttpServer::HttpServer(std::uint16_t port, std::size_t workers)
   // Bind to the server address.
   acceptor_.bind(endpoint, ec);
   if (ec) {
-    LOG_ERRO("Acceptor bind error: %s", ec.message().c_str());
+    LOG_ERRO("Acceptor bind error (%s).", ec.message().c_str());
     return;
   }
 
@@ -46,7 +46,7 @@ HttpServer::HttpServer(std::uint16_t port, std::size_t workers)
   // has not started to accept the connection yet.
   acceptor_.listen(boost::asio::socket_base::max_listen_connections, ec);
   if (ec) {
-    LOG_ERRO("Acceptor listen error: %s", ec.message().c_str());
+    LOG_ERRO("Acceptor listen error (%s).", ec.message().c_str());
     return;
   }
 }
@@ -96,8 +96,8 @@ void HttpServer::DoAccept() {
         if (!ec) {
           LOG_INFO("Accepted a connection.");
 
-          std::make_shared<HttpConnection>(std::move(socket),
-                                           GetRequestHandler())->Start();
+          std::make_shared<HttpSession>(std::move(socket),
+                                        GetRequestHandler())->Start();
         }
 
         DoAccept();

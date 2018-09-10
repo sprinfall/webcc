@@ -27,7 +27,8 @@ void HttpAsyncClient::Request(std::shared_ptr<HttpRequest> request,
   response_.reset(new HttpResponse());
   response_parser_.reset(new HttpResponseParser(response_.get()));
 
-  stopped_ = timed_out_ = false;
+  stopped_ = false;
+  timed_out_ = false;
 
   LOG_VERB("HTTP request:\n%s", request->Dump(4, "> ").c_str());
 
@@ -42,20 +43,22 @@ void HttpAsyncClient::Request(std::shared_ptr<HttpRequest> request,
 }
 
 void HttpAsyncClient::Stop() {
-  if (!stopped_) {
-    stopped_ = true;
-
-    LOG_INFO("Close socket...");
-
-    boost::system::error_code ec;
-    socket_.close(ec);
-    if (ec) {
-      LOG_ERRO("Failed to close socket.");
-    }
-
-    LOG_INFO("Cancel deadline timer...");
-    deadline_.cancel();
+  if (stopped_) {
+    return;
   }
+
+  stopped_ = true;
+
+  LOG_INFO("Close socket...");
+
+  boost::system::error_code ec;
+  socket_.close(ec);
+  if (ec) {
+    LOG_ERRO("Socket close error (%s).", ec.message().c_str());
+  }
+
+  LOG_INFO("Cancel deadline timer...");
+  deadline_.cancel();
 }
 
 void HttpAsyncClient::OnResolve(boost::system::error_code ec,

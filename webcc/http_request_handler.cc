@@ -9,8 +9,8 @@
 
 namespace webcc {
 
-void HttpRequestHandler::Enqueue(HttpConnectionPtr connection) {
-  queue_.Push(connection);
+void HttpRequestHandler::Enqueue(HttpSessionPtr session) {
+  queue_.Push(session);
 }
 
 void HttpRequestHandler::Start(std::size_t count) {
@@ -24,14 +24,14 @@ void HttpRequestHandler::Start(std::size_t count) {
 void HttpRequestHandler::Stop() {
   LOG_INFO("Stopping workers...");
 
-  // Close pending connections.
-  for (HttpConnectionPtr conn = queue_.Pop(); conn; conn = queue_.Pop()) {
-    LOG_INFO("Closing pending connection...");
-    conn->Close();
+  // Close pending sessions.
+  for (HttpSessionPtr s = queue_.Pop(); s; s = queue_.Pop()) {
+    LOG_INFO("Closing pending session...");
+    s->Close();
   }
 
-  // Enqueue a null connection to trigger the first worker to stop.
-  queue_.Push(HttpConnectionPtr());
+  // Enqueue a null session to trigger the first worker to stop.
+  queue_.Push(HttpSessionPtr());
 
   for (auto& worker : workers_) {
     if (worker.joinable()) {
@@ -46,19 +46,19 @@ void HttpRequestHandler::WorkerRoutine() {
   LOG_INFO("Worker is running.");
 
   for (;;) {
-    HttpConnectionPtr connection = queue_.PopOrWait();
+    HttpSessionPtr session = queue_.PopOrWait();
 
-    if (!connection) {
+    if (!session) {
       LOG_INFO("Worker is going to stop.");
 
       // For stopping next worker.
-      queue_.Push(HttpConnectionPtr());
+      queue_.Push(HttpSessionPtr());
 
       // Stop the worker.
       break;
     }
 
-    HandleConnection(connection);
+    HandleSession(session);
   }
 }
 

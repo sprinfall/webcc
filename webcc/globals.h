@@ -19,7 +19,7 @@
 #endif  // _MSC_VER
 
 // Explicitly declare the copy constructor and assignment operator as deleted.
-#define DELETE_COPY_AND_ASSIGN(TypeName) \
+#define WEBCC_DELETE_COPY_ASSIGN(TypeName) \
   TypeName(const TypeName&) = delete; \
   TypeName& operator=(const TypeName&) = delete;
 

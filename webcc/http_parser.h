@@ -16,7 +16,7 @@ class HttpParser {
 
   virtual ~HttpParser() = default;
 
-  DELETE_COPY_AND_ASSIGN(HttpParser);
+  WEBCC_DELETE_COPY_ASSIGN(HttpParser);
 
   bool finished() const { return finished_; }
 

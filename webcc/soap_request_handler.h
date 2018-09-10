@@ -23,7 +23,7 @@ class SoapRequestHandler : public HttpRequestHandler {
   bool Bind(SoapServicePtr service, const std::string& url);
 
  private:
-  void HandleConnection(HttpConnectionPtr connection) override;
+  void HandleSession(HttpSessionPtr session) override;
 
   SoapServicePtr GetServiceByUrl(const std::string& url);
 

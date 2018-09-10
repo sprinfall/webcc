@@ -15,30 +15,30 @@ bool SoapRequestHandler::Bind(SoapServicePtr service, const std::string& url) {
   return true;
 }
 
-void SoapRequestHandler::HandleConnection(HttpConnectionPtr connection) {
-  SoapServicePtr service = GetServiceByUrl(connection->request().url());
+void SoapRequestHandler::HandleSession(HttpSessionPtr session) {
+  SoapServicePtr service = GetServiceByUrl(session->request().url());
   if (!service) {
-    connection->SendResponse(HttpStatus::kBadRequest);
+    session->SendResponse(HttpStatus::kBadRequest);
     return;
   }
 
   // Parse the SOAP request XML.
   SoapRequest soap_request;
-  if (!soap_request.FromXml(connection->request().content())) {
-    connection->SendResponse(HttpStatus::kBadRequest);
+  if (!soap_request.FromXml(session->request().content())) {
+    session->SendResponse(HttpStatus::kBadRequest);
     return;
   }
 
   SoapResponse soap_response;
   if (!service->Handle(soap_request, &soap_response)) {
-    connection->SendResponse(HttpStatus::kBadRequest);
+    session->SendResponse(HttpStatus::kBadRequest);
     return;
   }
 
   std::string content;
   soap_response.ToXml(format_raw_, indent_str_, &content);
-  connection->SetResponseContent(std::move(content), kTextXmlUtf8);
-  connection->SendResponse(HttpStatus::kOK);
+  session->SetResponseContent(std::move(content), kTextXmlUtf8);
+  session->SendResponse(HttpStatus::kOK);
 }
 
 SoapServicePtr SoapRequestHandler::GetServiceByUrl(const std::string& url) {

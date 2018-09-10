@@ -8,7 +8,7 @@
 #include "boost/asio/signal_set.hpp"
 
 #include "webcc/globals.h"
-#include "webcc/http_connection.h"
+#include "webcc/http_session.h"
 
 namespace webcc {
 
@@ -22,7 +22,7 @@ class HttpServer {
 
   virtual ~HttpServer() = default;
 
-  DELETE_COPY_AND_ASSIGN(HttpServer);
+  WEBCC_DELETE_COPY_ASSIGN(HttpServer);
 
   // Run the server's io_service loop.
   void Run();

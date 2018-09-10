@@ -23,7 +23,7 @@ class SoapAsyncClient {
 
   ~SoapAsyncClient() = default;
 
-  DELETE_COPY_AND_ASSIGN(SoapAsyncClient);
+  WEBCC_DELETE_COPY_ASSIGN(SoapAsyncClient);
 
   void set_timeout_seconds(int timeout_seconds) {
     timeout_seconds_ = timeout_seconds;

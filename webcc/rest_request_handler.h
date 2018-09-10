@@ -18,7 +18,7 @@ class RestRequestHandler : public HttpRequestHandler {
   bool Bind(RestServicePtr service, const std::string& url, bool is_regex);
 
  private:
-  void HandleConnection(HttpConnectionPtr connection) override;
+  void HandleSession(HttpSessionPtr session) override;
 
   RestServiceManager service_manager_;
 };

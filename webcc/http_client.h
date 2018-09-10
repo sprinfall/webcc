@@ -24,7 +24,7 @@ class HttpClient {
   HttpClient();
   ~HttpClient() = default;
 
-  DELETE_COPY_AND_ASSIGN(HttpClient);
+  WEBCC_DELETE_COPY_ASSIGN(HttpClient);
 
   // Set the timeout seconds for reading response.
   // The |seconds| is only effective when greater than 0.

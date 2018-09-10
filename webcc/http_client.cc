@@ -7,8 +7,6 @@
 #include "boost/asio/read.hpp"
 #include "boost/asio/write.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
-#include "boost/lambda/bind.hpp"
-#include "boost/lambda/lambda.hpp"
 
 #include "webcc/logger.h"
 #include "webcc/utility.h"
@@ -67,7 +65,7 @@ Error HttpClient::Connect(const HttpRequest& request) {
   auto endpoints = resolver.resolve(tcp::v4(), request.host(), port, ec);
 
   if (ec) {
-    LOG_ERRO("Can't resolve host (%s): %s, %s", ec.message().c_str(),
+    LOG_ERRO("Host resolve error (%s): %s, %s.", ec.message().c_str(),
              request.host().c_str(), port.c_str());
     return kHostResolveError;
   }
@@ -219,20 +217,22 @@ void HttpClient::OnDeadline(boost::system::error_code ec) {
 }
 
 void HttpClient::Stop() {
-  if (!stopped_) {
-    stopped_ = true;
-
-    LOG_INFO("Close socket...");
-
-    boost::system::error_code ec;
-    socket_.close(ec);
-    if (ec) {
-      LOG_ERRO("Failed to close socket.");
-    }
-
-    LOG_INFO("Cancel deadline timer...");
-    deadline_.cancel();
+  if (stopped_) {
+    return;
   }
+
+  stopped_ = true;
+
+  LOG_INFO("Close socket...");
+
+  boost::system::error_code ec;
+  socket_.close(ec);
+  if (ec) {
+    LOG_ERRO("Socket close error (%s).", ec.message().c_str());
+  }
+
+  LOG_INFO("Cancel deadline timer...");
+  deadline_.cancel();
 }
 
 }  // namespace webcc

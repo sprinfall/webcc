@@ -19,7 +19,7 @@ class RestClient {
 
   ~RestClient() = default;
 
-  DELETE_COPY_AND_ASSIGN(RestClient);
+  WEBCC_DELETE_COPY_ASSIGN(RestClient);
 
   void SetTimeout(int seconds) {
     http_client_.SetTimeout(seconds);
