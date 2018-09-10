@@ -45,19 +45,19 @@ class HttpAsyncClient : public std::enable_shared_from_this<HttpAsyncClient> {
  private:
   using tcp = boost::asio::ip::tcp;
 
-  void ResolveHandler(boost::system::error_code ec,
-                      tcp::resolver::results_type results);
+  void OnResolve(boost::system::error_code ec,
+                 tcp::resolver::results_type results);
 
-  void ConnectHandler(boost::system::error_code ec, tcp::endpoint endpoint);
+  void OnConnect(boost::system::error_code ec, tcp::endpoint endpoint);
 
-  void AsyncWrite();
-  void WriteHandler(boost::system::error_code ec);
+  void DoWrite();
+  void OnWrite(boost::system::error_code ec);
 
-  void AsyncRead();
-  void ReadHandler(boost::system::error_code ec, std::size_t length);
+  void DoRead();
+  void OnRead(boost::system::error_code ec, std::size_t length);
 
-  void AsyncWaitDeadline();
-  void DeadlineHandler(boost::system::error_code ec);
+  void DoWaitDeadline();
+  void OnDeadline(boost::system::error_code ec);
 
   tcp::resolver resolver_;
   tcp::socket socket_;

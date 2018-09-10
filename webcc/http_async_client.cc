@@ -35,7 +35,7 @@ void HttpAsyncClient::Request(std::shared_ptr<HttpRequest> request,
   response_handler_ = response_handler;
 
   resolver_.async_resolve(tcp::v4(), request->host(), request->port(kHttpPort),
-                          std::bind(&HttpAsyncClient::ResolveHandler,
+                          std::bind(&HttpAsyncClient::OnResolve,
                                     shared_from_this(),
                                     std::placeholders::_1,
                                     std::placeholders::_2));
@@ -58,8 +58,8 @@ void HttpAsyncClient::Stop() {
   }
 }
 
-void HttpAsyncClient::ResolveHandler(boost::system::error_code ec,
-                                     tcp::resolver::results_type endpoints) {
+void HttpAsyncClient::OnResolve(boost::system::error_code ec,
+                                tcp::resolver::results_type endpoints) {
   if (ec) {
     LOG_ERRO("Can't resolve host (%s): %s, %s", ec.message().c_str(),
              request_->host().c_str(), request_->port().c_str());
@@ -67,15 +67,15 @@ void HttpAsyncClient::ResolveHandler(boost::system::error_code ec,
   } else {
     // ConnectHandler: void(boost::system::error_code, tcp::endpoint)
     boost::asio::async_connect(socket_, endpoints,
-                               std::bind(&HttpAsyncClient::ConnectHandler,
+                               std::bind(&HttpAsyncClient::OnConnect,
                                          shared_from_this(),
                                          std::placeholders::_1,
                                          std::placeholders::_2));
   }
 }
 
-void HttpAsyncClient::ConnectHandler(boost::system::error_code ec,
-                                     tcp::endpoint endpoint) {
+void HttpAsyncClient::OnConnect(boost::system::error_code ec,
+                                tcp::endpoint endpoint) {
   if (ec) {
     LOG_ERRO("Socket connect error (%s).", ec.message().c_str());
     Stop();
@@ -95,22 +95,22 @@ void HttpAsyncClient::ConnectHandler(boost::system::error_code ec,
   }
 
   // Connection established.
-  AsyncWrite();
+  DoWrite();
 }
 
-void HttpAsyncClient::AsyncWrite() {
+void HttpAsyncClient::DoWrite() {
   if (stopped_) {
     return;
   }
 
   boost::asio::async_write(socket_,
                            request_->ToBuffers(),
-                           std::bind(&HttpAsyncClient::WriteHandler,
+                           std::bind(&HttpAsyncClient::OnWrite,
                                      shared_from_this(),
                                      std::placeholders::_1));
 }
 
-void HttpAsyncClient::WriteHandler(boost::system::error_code ec) {
+void HttpAsyncClient::OnWrite(boost::system::error_code ec) {
   if (stopped_) {
     return;
   }
@@ -120,22 +120,22 @@ void HttpAsyncClient::WriteHandler(boost::system::error_code ec) {
     response_handler_(response_, kSocketWriteError, timed_out_);
   } else {
     deadline_.expires_from_now(boost::posix_time::seconds(timeout_seconds_));
-    AsyncWaitDeadline();
+    DoWaitDeadline();
 
-    AsyncRead();
+    DoRead();
   }
 }
 
-void HttpAsyncClient::AsyncRead() {
+void HttpAsyncClient::DoRead() {
   socket_.async_read_some(boost::asio::buffer(buffer_),
-                          std::bind(&HttpAsyncClient::ReadHandler,
+                          std::bind(&HttpAsyncClient::OnRead,
                                     shared_from_this(),
                                     std::placeholders::_1,
                                     std::placeholders::_2));
 }
 
-void HttpAsyncClient::ReadHandler(boost::system::error_code ec,
-                                  std::size_t length) {
+void HttpAsyncClient::OnRead(boost::system::error_code ec,
+                             std::size_t length) {
   LOG_VERB("Socket async read handler.");
 
   if (ec || length == 0) {
@@ -173,16 +173,16 @@ void HttpAsyncClient::ReadHandler(boost::system::error_code ec,
   }
 
   if (!stopped_) {
-    AsyncRead();
+    DoRead();
   }
 }
 
-void HttpAsyncClient::AsyncWaitDeadline() {
-  deadline_.async_wait(std::bind(&HttpAsyncClient::DeadlineHandler,
+void HttpAsyncClient::DoWaitDeadline() {
+  deadline_.async_wait(std::bind(&HttpAsyncClient::OnDeadline,
                                  shared_from_this(), std::placeholders::_1));
 }
 
-void HttpAsyncClient::DeadlineHandler(boost::system::error_code ec) {
+void HttpAsyncClient::OnDeadline(boost::system::error_code ec) {
   LOG_VERB("Deadline handler.");
 
   if (ec == boost::asio::error::operation_aborted) {

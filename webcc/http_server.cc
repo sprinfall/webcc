@@ -61,9 +61,9 @@ void HttpServer::Run() {
 
   LOG_INFO("Server is going to run...");
 
-  AsyncAwaitStop();
+  DoAwaitStop();
 
-  AsyncAccept();
+  DoAccept();
 
   // Start worker threads.
   GetRequestHandler()->Start(workers_);
@@ -84,7 +84,7 @@ void HttpServer::RegisterSignals() {
 #endif
 }
 
-void HttpServer::AsyncAccept() {
+void HttpServer::DoAccept() {
   acceptor_.async_accept(
       [this](boost::system::error_code ec, tcp::socket socket) {
         // Check whether the server was stopped by a signal before this
@@ -96,17 +96,15 @@ void HttpServer::AsyncAccept() {
         if (!ec) {
           LOG_INFO("Accepted a connection.");
 
-          HttpConnectionPtr connection{
-            new HttpConnection(std::move(socket), GetRequestHandler())
-          };
-          connection->Start();
+          std::make_shared<HttpConnection>(std::move(socket),
+                                           GetRequestHandler())->Start();
         }
 
-        AsyncAccept();
+        DoAccept();
       });
 }
 
-void HttpServer::AsyncAwaitStop() {
+void HttpServer::DoAwaitStop() {
   signals_.async_wait(
       [this](boost::system::error_code, int signo) {
         // The server is stopped by canceling all outstanding asynchronous

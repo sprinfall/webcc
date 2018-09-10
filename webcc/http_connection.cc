@@ -20,7 +20,7 @@ HttpConnection::HttpConnection(boost::asio::ip::tcp::socket socket,
 }
 
 void HttpConnection::Start() {
-  AsyncRead();
+  DoRead();
 }
 
 void HttpConnection::Close() {
@@ -41,19 +41,19 @@ void HttpConnection::SetResponseContent(std::string&& content,
 void HttpConnection::SendResponse(HttpStatus::Enum status) {
   response_.set_status(status);
   response_.UpdateStartLine();
-  AsyncWrite();
+  DoWrite();
 }
 
-void HttpConnection::AsyncRead() {
+void HttpConnection::DoRead() {
   socket_.async_read_some(boost::asio::buffer(buffer_),
-                          std::bind(&HttpConnection::ReadHandler,
+                          std::bind(&HttpConnection::OnRead,
                                     shared_from_this(),
                                     std::placeholders::_1,
                                     std::placeholders::_2));
 }
 
-void HttpConnection::ReadHandler(boost::system::error_code ec,
-                                 std::size_t length) {
+void HttpConnection::OnRead(boost::system::error_code ec,
+                            std::size_t length) {
   if (ec) {
     LOG_ERRO("Socket read error: %s", ec.message().c_str());
     if (ec != boost::asio::error::operation_aborted) {
@@ -66,13 +66,13 @@ void HttpConnection::ReadHandler(boost::system::error_code ec,
     // Bad request.
     LOG_ERRO("Failed to parse HTTP request.");
     response_ = HttpResponse::Fault(HttpStatus::kBadRequest);
-    AsyncWrite();
+    DoWrite();
     return;
   }
 
   if (!request_parser_.finished()) {
     // Continue to read the request.
-    AsyncRead();
+    DoRead();
     return;
   }
 
@@ -83,12 +83,12 @@ void HttpConnection::ReadHandler(boost::system::error_code ec,
   request_handler_->Enqueue(shared_from_this());
 }
 
-void HttpConnection::AsyncWrite() {
+void HttpConnection::DoWrite() {
   LOG_VERB("HTTP response:\n%s", response_.Dump(4, "> ").c_str());
 
   boost::asio::async_write(socket_,
                            response_.ToBuffers(),
-                           std::bind(&HttpConnection::WriteHandler,
+                           std::bind(&HttpConnection::OnWrite,
                                      shared_from_this(),
                                      std::placeholders::_1,
                                      std::placeholders::_2));
@@ -98,8 +98,8 @@ void HttpConnection::AsyncWrite() {
 // This write handler will be called from main thread (the thread calling
 // io_context.run), even though AsyncWrite() is invoked by worker threads.
 // This is ensured by Asio.
-void HttpConnection::WriteHandler(boost::system::error_code ec,
-                                  std::size_t length) {
+void HttpConnection::OnWrite(boost::system::error_code ec,
+                             std::size_t length) {
   if (ec) {
     LOG_ERRO("Socket write error: %s", ec.message().c_str());
 

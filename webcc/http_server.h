@@ -32,10 +32,10 @@ class HttpServer {
   void RegisterSignals();
 
   // Initiate an asynchronous accept operation.
-  void AsyncAccept();
+  void DoAccept();
 
   // Wait for a request to stop the server.
-  void AsyncAwaitStop();
+  void DoAwaitStop();
 
   // Get the handler for incoming requests.
   virtual HttpRequestHandler* GetRequestHandler() = 0;

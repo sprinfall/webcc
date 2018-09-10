@@ -39,11 +39,11 @@ class HttpConnection : public std::enable_shared_from_this<HttpConnection> {
   void SendResponse(HttpStatus::Enum status);
 
  private:
-  void AsyncRead();
-  void ReadHandler(boost::system::error_code ec, std::size_t length);
+  void DoRead();
+  void OnRead(boost::system::error_code ec, std::size_t length);
 
-  void AsyncWrite();
-  void WriteHandler(boost::system::error_code ec, std::size_t length);
+  void DoWrite();
+  void OnWrite(boost::system::error_code ec, std::size_t length);
 
   // Shutdown the socket.
   void Shutdown();
