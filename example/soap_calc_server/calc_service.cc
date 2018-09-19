@@ -52,7 +52,6 @@ bool CalcService::Handle(const webcc::SoapRequest& soap_request,
 
   double result = calc(x, y);
 
-  soap_response->set_soapenv_ns(webcc::kSoapEnvNamespace);
   soap_response->set_service_ns({
     "cal",
     "http://www.example.com/calculator/"

@@ -7,8 +7,9 @@
 
 class CalcClient {
  public:
+  // NOTE: Parasoft's calculator service uses SOAP V1.1.
   CalcClient(const std::string& host, const std::string& port)
-      : soap_client_(host, port) {
+      : soap_client_(host, port, webcc::kSoapV11) {
     soap_client_.SetTimeout(5);
 
     soap_client_.set_url("/glue/calculator");

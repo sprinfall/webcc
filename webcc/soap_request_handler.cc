@@ -30,6 +30,15 @@ void SoapRequestHandler::HandleSession(HttpSessionPtr session) {
   }
 
   SoapResponse soap_response;
+
+  // Set SOAP envelope namespace according to SOAP version.
+  // NOTE: This could be overwritten by service->Handle() anyway.
+  if (soap_version_ == kSoapV11) {
+    soap_response.set_soapenv_ns(kSoapEnvNamespaceV11);
+  } else {
+    soap_response.set_soapenv_ns(kSoapEnvNamespaceV12);
+  }
+
   if (!service->Handle(soap_request, &soap_response)) {
     session->SendResponse(HttpStatus::kBadRequest);
     return;
@@ -37,7 +46,13 @@ void SoapRequestHandler::HandleSession(HttpSessionPtr session) {
 
   std::string content;
   soap_response.ToXml(format_raw_, indent_str_, &content);
-  session->SetResponseContent(std::move(content), kTextXmlUtf8);
+
+  if (soap_version_ == kSoapV11) {
+    session->SetResponseContent(std::move(content), kTextXmlUtf8);
+  } else {
+    session->SetResponseContent(std::move(content), kAppSoapXmlUtf8);
+  }
+
   session->SendResponse(HttpStatus::kOK);
 }
 

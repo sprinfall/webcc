@@ -21,8 +21,8 @@
 },
 {
   "directory": "/home/adam/github/webcc/build/webcc",
-  "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -DWEBCC_LOG_LEVEL=0 -I/usr/local/include -I/home/adam/github/webcc -I/home/adam/github/webcc/third_party/src    -std=c++11 -o CMakeFiles/webcc.dir/http_connection.cc.o -c /home/adam/github/webcc/webcc/http_connection.cc",
-  "file": "/home/adam/github/webcc/webcc/http_connection.cc"
+  "command": "/usr/bin/c++   -DBOOST_ASIO_NO_DEPRECATED -DWEBCC_ENABLE_LOG -DWEBCC_ENABLE_SOAP -DWEBCC_LOG_LEVEL=0 -I/usr/local/include -I/home/adam/github/webcc -I/home/adam/github/webcc/third_party/src    -std=c++11 -o CMakeFiles/webcc.dir/http_session.cc.o -c /home/adam/github/webcc/webcc/http_session.cc",
+  "file": "/home/adam/github/webcc/webcc/http_session.cc"
 },
 {
   "directory": "/home/adam/github/webcc/build/webcc",

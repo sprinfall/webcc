@@ -5,12 +5,16 @@
 #include <string>
 
 #include "webcc/http_request_handler.h"
+#include "webcc/soap_globals.h"
 
 namespace webcc {
 
 class SoapRequestHandler : public HttpRequestHandler {
  public:
-  SoapRequestHandler() : format_raw_(true) {}
+  explicit SoapRequestHandler(SoapVersion soap_version)
+      : soap_version_(soap_version),
+        format_raw_(true) {
+  }
 
   ~SoapRequestHandler() override = default;
 
@@ -29,6 +33,9 @@ class SoapRequestHandler : public HttpRequestHandler {
 
   typedef std::map<std::string, SoapServicePtr> UrlServiceMap;
   UrlServiceMap url_service_map_;
+
+  // Default to kSoapV12.
+  SoapVersion soap_version_;
 
   // Format response XML without any indentation or line breaks.
   bool format_raw_;

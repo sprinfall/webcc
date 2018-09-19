@@ -19,7 +19,8 @@ class SoapAsyncClient {
   // If |port| is empty, |host| will be checked to see if it contains port or
   // not (separated by ':').
   SoapAsyncClient(boost::asio::io_context& io_context,  // NOLINT
-                  const std::string& host, const std::string& port = "");
+                  const std::string& host, const std::string& port = "",
+                  SoapVersion soap_version = kSoapV12);
 
   ~SoapAsyncClient() = default;
 
@@ -59,11 +60,13 @@ class SoapAsyncClient {
   std::string host_;
   std::string port_;  // Leave this empty to use default 80.
 
+  SoapVersion soap_version_;
+
   // Request URL.
   std::string url_;
 
-  SoapNamespace soapenv_ns_;  // SOAP envelope namespace.
-  SoapNamespace service_ns_;  // Namespace for your web service.
+  // Namespace for your web service.
+  SoapNamespace service_ns_;
 
   // Response result XML node name.
   // E.g., "Result".

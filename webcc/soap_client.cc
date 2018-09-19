@@ -8,9 +8,10 @@
 
 namespace webcc {
 
-SoapClient::SoapClient(const std::string& host, const std::string& port)
+SoapClient::SoapClient(const std::string& host, const std::string& port,
+                       SoapVersion soap_version)
     : host_(host), port_(port),
-      soapenv_ns_(kSoapEnvNamespace),
+      soap_version_(soap_version),
       format_raw_(true), error_(kNoError) {
   if (port_.empty()) {
     std::size_t i = host_.find_last_of(':');
@@ -32,7 +33,13 @@ bool SoapClient::Request(const std::string& operation,
 
   SoapRequest soap_request;
 
-  soap_request.set_soapenv_ns(soapenv_ns_);
+  // Set SOAP envelope namespace according to SOAP version.
+  if (soap_version_ == kSoapV11) {
+    soap_request.set_soapenv_ns(kSoapEnvNamespaceV11);
+  } else {
+    soap_request.set_soapenv_ns(kSoapEnvNamespaceV12);
+  }
+
   soap_request.set_service_ns(service_ns_);
 
   soap_request.set_operation(operation);
@@ -49,7 +56,13 @@ bool SoapClient::Request(const std::string& operation,
   http_request.set_method(kHttpPost);
   http_request.set_url(url_);
   http_request.SetContent(std::move(http_content), true);
-  http_request.SetContentType(kTextXmlUtf8);
+
+  if (soap_version_ == kSoapV11) {
+    http_request.SetContentType(kTextXmlUtf8);
+  } else {
+    http_request.SetContentType(kAppSoapXmlUtf8);
+  }
+
   http_request.SetHost(host_, port_);
   http_request.SetHeader(kSoapAction, operation);
   http_request.UpdateStartLine();

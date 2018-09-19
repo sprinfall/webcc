@@ -12,8 +12,10 @@ namespace webcc {
 
 class SoapServer : public HttpServer {
  public:
-  SoapServer(std::uint16_t port, std::size_t workers)
-      : HttpServer(port, workers) {
+  SoapServer(std::uint16_t port, std::size_t workers,
+             SoapVersion soap_version = kSoapV12)
+      : HttpServer(port, workers),
+        request_handler_(soap_version) {
   }
 
   ~SoapServer() override = default;

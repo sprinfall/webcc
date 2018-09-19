@@ -21,7 +21,6 @@ bool BookService::Handle(const webcc::SoapRequest& soap_request,
                          webcc::SoapResponse* soap_response) {
   const std::string& operation = soap_request.operation();
 
-  soap_response->set_soapenv_ns(webcc::kSoapEnvNamespace);
   soap_response->set_service_ns({
     "ser",
     "http://www.example.com/book/"
