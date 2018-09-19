@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "boost/asio/deadline_timer.hpp"
@@ -23,12 +24,11 @@ class HttpSslClient {
 
   ~HttpSslClient() = default;
 
-  DELETE_COPY_AND_ASSIGN(HttpSslClient);
+  WEBCC_DELETE_COPY_ASSIGN(HttpSslClient);
 
-  void set_timeout_seconds(int timeout_seconds) {
-    assert(timeout_seconds > 0);
-    timeout_seconds_ = timeout_seconds;
-  }
+  // Set the timeout seconds for reading response.
+  // The |seconds| is only effective when greater than 0.
+  void SetTimeout(int seconds);
 
   // Connect to server, send request, wait until response is received.
   bool Request(const HttpRequest& request);
@@ -39,7 +39,7 @@ class HttpSslClient {
 
   Error error() const { return error_; }
 
-private:
+ private:
   Error Connect(const HttpRequest& request);
 
   Error Handshake(const std::string& host);
@@ -50,7 +50,8 @@ private:
 
   void DoReadResponse(Error* error);
 
-  void CheckDeadline();
+  void DoWaitDeadline();
+  void OnDeadline(boost::system::error_code ec);
 
   void Stop();
 

@@ -10,21 +10,19 @@
 #include "boost/lambda/lambda.hpp"
 
 #include "webcc/logger.h"
+#include "webcc/utility.h"
 
 using boost::asio::ip::tcp;
 namespace ssl = boost::asio::ssl;
 
 namespace webcc {
 
-extern void AdjustBufferSize(std::size_t content_length,
-                             std::vector<char>* buffer);
-
 HttpSslClient::HttpSslClient()
     : ssl_context_(ssl::context::sslv23),
       ssl_socket_(io_context_, ssl_context_),
       buffer_(kBufferSize),
       deadline_(io_context_),
-      timeout_seconds_(kMaxReceiveSeconds),
+      timeout_seconds_(kMaxReadSeconds),
       stopped_(false),
       timed_out_(false),
       error_(kNoError) {
@@ -32,16 +30,21 @@ HttpSslClient::HttpSslClient()
   ssl_context_.set_default_verify_paths();
 }
 
+void HttpSslClient::SetTimeout(int seconds) {
+  if (seconds > 0) {
+    timeout_seconds_ = seconds;
+  }
+}
+
 bool HttpSslClient::Request(const HttpRequest& request) {
+  io_context_.restart();
+
   response_.reset(new HttpResponse());
   response_parser_.reset(new HttpResponseParser(response_.get()));
 
   stopped_ = false;
   timed_out_ = false;
-
-  // Start the persistent actor that checks for deadline expiry.
-  deadline_.expires_at(boost::posix_time::pos_infin);
-  CheckDeadline();
+  error_ = kNoError;
 
   if ((error_ = Connect(request)) != kNoError) {
     return false;
@@ -63,11 +66,9 @@ bool HttpSslClient::Request(const HttpRequest& request) {
 }
 
 Error HttpSslClient::Connect(const HttpRequest& request) {
-  using boost::asio::ip::tcp;
-
   tcp::resolver resolver(io_context_);
 
-  std::string port = request.port(kHttpsPort);
+  std::string port = request.port(kHttpSslPort);
 
   boost::system::error_code ec;
   auto endpoints = resolver.resolve(tcp::v4(), request.host(), port, ec);
@@ -80,22 +81,12 @@ Error HttpSslClient::Connect(const HttpRequest& request) {
 
   LOG_VERB("Connect to server...");
 
-  deadline_.expires_from_now(boost::posix_time::seconds(kMaxConnectSeconds));
-
-  ec = boost::asio::error::would_block;
-
-  // ConnectHandler: void (boost::system::error_code, tcp::endpoint)
-  boost::asio::async_connect(ssl_socket_.lowest_layer(), endpoints,
-                             boost::lambda::var(ec) = boost::lambda::_1);
-
-  // Block until the asynchronous operation has completed.
-  do {
-    io_context_.run_one();
-  } while (ec == boost::asio::error::would_block);
+  // Use sync API directly since we don't need timeout control.
+  boost::asio::connect(ssl_socket_.lowest_layer(), endpoints, ec);
 
   // Determine whether a connection was successfully established.
   if (ec) {
-    LOG_ERRO("Socket connect error: %s", ec.message().c_str());
+    LOG_ERRO("Socket connect error (%s).", ec.message().c_str());
     Stop();
     return kEndpointConnectError;
   }
@@ -115,22 +106,15 @@ Error HttpSslClient::Connect(const HttpRequest& request) {
 
 // NOTE: Don't check timeout. It doesn't make much sense.
 Error HttpSslClient::Handshake(const std::string& host) {
-  boost::system::error_code ec = boost::asio::error::would_block;
-
   ssl_socket_.set_verify_mode(ssl::verify_peer);
   ssl_socket_.set_verify_callback(ssl::rfc2818_verification(host));
 
-  // HandshakeHandler: void (boost::system::error_code)
-  ssl_socket_.async_handshake(ssl::stream_base::client,
-                              boost::lambda::var(ec) = boost::lambda::_1);
-
-  // Block until the asynchronous operation has completed.
-  do {
-    io_context_.run_one();
-  } while (ec == boost::asio::error::would_block);
+  // Use sync API directly since we don't need timeout control.
+  boost::system::error_code ec;
+  ssl_socket_.handshake(ssl::stream_base::client, ec);
 
   if (ec) {
-    LOG_ERRO("Handshake error: %s", ec.message().c_str());
+    LOG_ERRO("Handshake error (%s).", ec.message().c_str());
     return kHandshakeError;
   }
 
@@ -138,37 +122,25 @@ Error HttpSslClient::Handshake(const std::string& host) {
 }
 
 Error HttpSslClient::SendReqeust(const HttpRequest& request) {
-  LOG_VERB("Send request (timeout: %ds)...", kMaxSendSeconds);
   LOG_VERB("HTTP request:\n%s", request.Dump(4, "> ").c_str());
 
   // NOTE:
   // It doesn't make much sense to set a timeout for socket write.
   // I find that it's almost impossible to simulate a situation in the server
   // side to test this timeout.
-  deadline_.expires_from_now(boost::posix_time::seconds(kMaxSendSeconds));
 
-  boost::system::error_code ec = boost::asio::error::would_block;
+  boost::system::error_code ec;
 
-  // WriteHandler: void (boost::system::error_code, std::size_t)
-  boost::asio::async_write(ssl_socket_, request.ToBuffers(),
-                           boost::lambda::var(ec) = boost::lambda::_1);
-
-  // Block until the asynchronous operation has completed.
-  do {
-    io_context_.run_one();
-  } while (ec == boost::asio::error::would_block);
+  // Use sync API directly since we don't need timeout control.
+  boost::asio::write(ssl_socket_, request.ToBuffers(), ec);
 
   if (ec) {
-    LOG_ERRO("Socket write error: %s", ec.message().c_str());
+    LOG_ERRO("Socket write error (%s).", ec.message().c_str());
     Stop();
     return kSocketWriteError;
   }
 
-  if (stopped_) {
-    // |timed_out_| should be true in this case.
-    LOG_ERRO("Socket write timed out.");
-    return kSocketWriteError;
-  }
+  LOG_INFO("Request sent.");
 
   return kNoError;
 }
@@ -177,6 +149,7 @@ Error HttpSslClient::ReadResponse() {
   LOG_VERB("Read response (timeout: %ds)...", timeout_seconds_);
 
   deadline_.expires_from_now(boost::posix_time::seconds(timeout_seconds_));
+  DoWaitDeadline();
 
   Error error = kNoError;
   DoReadResponse(&error);
@@ -200,14 +173,10 @@ void HttpSslClient::DoReadResponse(Error* error) {
 
         LOG_VERB("Socket async read handler.");
 
-        if (stopped_) {
-          return;
-        }
-
-        if (inner_ec || length == 0) {
+        if (ec || length == 0) {
           Stop();
           *error = kSocketReadError;
-          LOG_ERRO("Socket read error.");
+          LOG_ERRO("Socket read error (%s).", ec.message().c_str());
           return;
         }
 
@@ -237,7 +206,9 @@ void HttpSslClient::DoReadResponse(Error* error) {
           return;
         }
 
-        DoReadResponse(error);
+        if (!stopped_) {
+          DoReadResponse(error);
+        }
       });
 
   // Block until the asynchronous operation has completed.
@@ -246,12 +217,17 @@ void HttpSslClient::DoReadResponse(Error* error) {
   } while (ec == boost::asio::error::would_block);
 }
 
-void HttpSslClient::CheckDeadline() {
+void HttpSslClient::DoWaitDeadline() {
+  deadline_.async_wait(std::bind(&HttpSslClient::OnDeadline, this,
+                                 std::placeholders::_1));
+}
+
+void HttpSslClient::OnDeadline(boost::system::error_code ec) {
   if (stopped_) {
     return;
   }
 
-  LOG_VERB("Check deadline.");
+  LOG_VERB("OnDeadline.");
 
   if (deadline_.expires_at() <=
       boost::asio::deadline_timer::traits_type::now()) {
@@ -259,28 +235,32 @@ void HttpSslClient::CheckDeadline() {
     // The socket is closed so that any outstanding asynchronous operations
     // are canceled.
     LOG_WARN("HTTP client timed out.");
-    Stop();
     timed_out_ = true;
+    Stop();
+    return;
   }
 
   // Put the actor back to sleep.
-  deadline_.async_wait(std::bind(&HttpSslClient::CheckDeadline, this));
+  DoWaitDeadline();
 }
 
 void HttpSslClient::Stop() {
-  if (!stopped_) {
-    stopped_ = true;
-
-    LOG_INFO("Close socket...");
-
-    boost::system::error_code ec;
-    ssl_socket_.lowest_layer().close(ec);
-    if (ec) {
-      LOG_ERRO("Failed to close socket.");
-    }
-
-    deadline_.cancel();
+  if (stopped_) {
+    return;
   }
+
+  stopped_ = true;
+
+  LOG_INFO("Close socket...");
+
+  boost::system::error_code ec;
+  ssl_socket_.lowest_layer().close(ec);
+  if (ec) {
+    LOG_ERRO("Socket close error (%s).", ec.message().c_str());
+  }
+
+  LOG_INFO("Cancel deadline timer...");
+  deadline_.cancel();
 }
 
 }  // namespace webcc

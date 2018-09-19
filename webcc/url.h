@@ -7,7 +7,6 @@
 // Example:
 //   /inventory-check.cgi?item=12731&color=blue&size=large
 
-#include <map>
 #include <string>
 #include <utility>
 #include <vector>
@@ -26,9 +25,6 @@ class UrlQuery {
 
   // The query string should be key value pairs separated by '&'.
   explicit UrlQuery(const std::string& str);
-
-  // Construct from key-value pairs.
-  explicit UrlQuery(const std::map<std::string, std::string>& map);
 
   void Add(const std::string& key, const std::string& value);
 

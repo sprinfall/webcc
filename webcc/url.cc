@@ -190,12 +190,6 @@ UrlQuery::UrlQuery(const std::string& str) {
   }
 }
 
-UrlQuery::UrlQuery(const std::map<std::string, std::string>& map) {
-  for (auto& pair : map) {
-    Add(pair.first, pair.second);
-  }
-}
-
 void UrlQuery::Add(std::string&& key, std::string&& value) {
   if (!Has(key)) {
     parameters_.push_back({ std::move(key), std::move(value) });
