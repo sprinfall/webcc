@@ -70,21 +70,31 @@ struct HttpStatus {
     kNotModified = 304,
     kBadRequest = 400,
     kNotFound = 404,
-    InternalServerError = 500,
+    kInternalServerError = 500,
     kNotImplemented = 501,
     kServiceUnavailable = 503,
   };
 };
 
-// Error codes.
+// Client side error codes.
 enum Error {
-  kNoError = 0,
+  kNoError = 0,  // i.e., OK
+
   kHostResolveError,
   kEndpointConnectError,
-  kHandshakeError,
+  kHandshakeError,  // HTTPS handshake
   kSocketReadError,
   kSocketWriteError,
+
+  // HTTP error.
+  // E.g., failed to parse HTTP response (invalid content length, etc.).
   kHttpError,
+
+  // Server error.
+  // E.g., HTTP status 500 + SOAP Fault element.
+  kServerError,
+
+  // XML parsing error.
   kXmlError,
 };
 

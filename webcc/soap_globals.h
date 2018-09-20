@@ -1,6 +1,7 @@
 #ifndef WEBCC_SOAP_GLOBALS_H_
 #define WEBCC_SOAP_GLOBALS_H_
 
+#include <iosfwd>
 #include <string>
 
 namespace webcc {
@@ -34,6 +35,14 @@ struct SoapNamespace {
 // Default namespaces for SOAP Envelope.
 extern const SoapNamespace kSoapEnvNamespaceV11;
 extern const SoapNamespace kSoapEnvNamespaceV12;
+
+struct SoapFault {
+  std::string faultcode;
+  std::string faultstring;
+  std::string detail;
+};
+
+std::ostream& operator<<(std::ostream& os, const SoapFault& fault);
 
 }  // namespace webcc
 

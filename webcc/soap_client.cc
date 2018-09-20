@@ -3,6 +3,8 @@
 #include <cassert>
 #include <utility>  // for move()
 
+#include "boost/algorithm/string.hpp"
+
 #include "webcc/soap_request.h"
 #include "webcc/soap_response.h"
 
@@ -24,12 +26,12 @@ SoapClient::SoapClient(const std::string& host, const std::string& port,
 
 bool SoapClient::Request(const std::string& operation,
                          std::vector<SoapParameter>&& parameters,
-                         std::string* result) {
+                         SoapResponse::Parser parser) {
   assert(service_ns_.IsValid());
   assert(!url_.empty() && !host_.empty());
-  assert(!result_name_.empty());
 
   error_ = kNoError;
+  fault_.reset();
 
   SoapRequest soap_request;
 
@@ -73,16 +75,35 @@ bool SoapClient::Request(const std::string& operation,
   }
 
   SoapResponse soap_response;
-  soap_response.set_result_name(result_name_);
+  soap_response.set_operation(operation);
+  soap_response.set_parser(parser);
 
   if (!soap_response.FromXml(http_client_.response()->content())) {
-    error_ = kXmlError;
+    if (soap_response.fault()) {
+      fault_ = soap_response.fault();
+      error_ = kServerError;
+    } else {
+      error_ = kXmlError;
+    }
+
     return false;
   }
 
-  *result = soap_response.result_moved();
-
   return true;
+}
+
+bool SoapClient::Request(const std::string& operation,
+                         std::vector<SoapParameter>&& parameters,
+                         const std::string& result_name,
+                         std::string* result) {
+  auto parser = [result, &result_name](pugi::xml_node xnode) {
+    if (boost::iequals(soap_xml::GetNameNoPrefix(xnode), result_name)) {
+      soap_xml::GetText(xnode, result);
+    }
+    return false;  // Stop next call.
+  };
+
+  return Request(operation, std::move(parameters), parser);
 }
 
 }  // namespace webcc

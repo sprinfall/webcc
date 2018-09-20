@@ -5,6 +5,8 @@
 
 // -----------------------------------------------------------------------------
 
+static const std::string kResultName = "Result";
+
 class CalcClient {
  public:
   // NOTE: Parasoft's calculator service uses SOAP V1.1.
@@ -16,7 +18,6 @@ class CalcClient {
     soap_client_.set_service_ns({
       "cal", "http://www.parasoft.com/wsdl/calculator/"
     });
-    soap_client_.set_result_name("Result");
 
     // Customize request XML format.
     soap_client_.set_format_raw(false);
@@ -39,6 +40,11 @@ class CalcClient {
     return Calc("divide", "numerator", "denominator", x, y, result);
   }
 
+  // Only for testing purpose.
+  bool Unknown(double x, double y, double* result) {
+    return Calc("unknown", "x", "y", x, y, result);
+  }
+
  private:
   bool Calc(const std::string& operation,
             const std::string& x_name, const std::string& y_name,
@@ -50,7 +56,8 @@ class CalcClient {
     };
 
     std::string result_str;
-    if (!soap_client_.Request(operation, std::move(parameters), &result_str)) {
+    if (!soap_client_.Request(operation, std::move(parameters), kResultName,
+                              &result_str)) {
       PrintError();
       return false;
     }
@@ -69,7 +76,12 @@ class CalcClient {
     if (soap_client_.timed_out()) {
       std::cout << " (timed out)";
     }
+
     std::cout << std::endl;
+
+    if (soap_client_.fault()) {
+      std::cout << *soap_client_.fault() << std::endl;
+    }
   }
 
   webcc::SoapClient soap_client_;
@@ -101,6 +113,8 @@ int main() {
   if (calc.Divide(x, y, &result)) {
     printf("divide: %.1f\n", result);
   }
+
+  calc.Unknown(x, y, &result);
 
   return 0;
 }

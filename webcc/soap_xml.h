@@ -23,6 +23,15 @@ std::string GetPrefix(const pugi::xml_node& xnode);
 // Get the node name without namespace prefix.
 std::string GetNameNoPrefix(const pugi::xml_node& xnode);
 
+// Get node text (applicable for both PCDATA and CDATA).
+// E.g., given the following node:
+//   <Name>Chunting Gu</Name>
+// GetText returns "Chunting Gu".
+std::string GetText(const pugi::xml_node& xnode);
+
+// Output parameter version GetText.
+void GetText(const pugi::xml_node& xnode, std::string* text);
+
 // Add a child with the given name which is prefixed by a namespace.
 // E.g., AppendChild(xnode, "soapenv", "Envelope") will append a child with
 // name "soapenv:Envelope".

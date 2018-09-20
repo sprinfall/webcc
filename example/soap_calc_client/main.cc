@@ -5,6 +5,8 @@
 
 // -----------------------------------------------------------------------------
 
+static const std::string kResultName = "Result";
+
 class CalcClient {
  public:
   CalcClient(const std::string& host, const std::string& port)
@@ -15,7 +17,6 @@ class CalcClient {
     soap_client_.set_service_ns({
       "ser", "http://www.example.com/calculator/"
     });
-    soap_client_.set_result_name("Result");
 
     // Customize request XML format.
     soap_client_.set_format_raw(false);
@@ -54,7 +55,8 @@ class CalcClient {
     };
 
     std::string result_str;
-    if (!soap_client_.Request(operation, std::move(parameters), &result_str)) {
+    if (!soap_client_.Request(operation, std::move(parameters), kResultName,
+                              &result_str)) {
       PrintError();
       return false;
     }

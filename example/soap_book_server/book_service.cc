@@ -95,7 +95,7 @@ bool BookService::CreateBook(const webcc::SoapRequest& soap_request,
   std::string id = g_book_store.AddBook(book);
 
   std::string response_xml = NewResultXml(0, "ok", "book", "id",
-                                            id.c_str());
+                                          id.c_str());
 
   soap_response->set_result_moved(std::move(response_xml), true);
 

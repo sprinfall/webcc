@@ -7,7 +7,7 @@ void SplitName(const pugi::xml_node& xnode, std::string* prefix,
                std::string* name) {
   std::string full_name = xnode.name();
 
-  size_t pos = full_name.find(':');
+  std::size_t pos = full_name.find(':');
 
   if (pos != std::string::npos) {
     if (prefix != nullptr) {
@@ -38,6 +38,19 @@ std::string GetNameNoPrefix(const pugi::xml_node& xnode) {
   return name;
 }
 
+// NOTE:
+// The following 3 ways all work for PCDATA and CDATA:
+//   - xnode.text().get()
+//   - xnode.text().as_string()
+//   - xnode.child_value()
+std::string GetText(const pugi::xml_node& xnode) {
+  return xnode.child_value();
+}
+
+void GetText(const pugi::xml_node& xnode, std::string* text) {
+  *text = xnode.child_value();
+}
+
 pugi::xml_node AddChild(pugi::xml_node xnode,
                         const std::string& ns, const std::string& name) {
   return xnode.append_child((ns + ":" + name).c_str());
@@ -55,7 +68,7 @@ pugi::xml_node GetChildNoNS(const pugi::xml_node& xnode,
     std::string child_name = xchild.name();
 
     // Remove NS prefix.
-    size_t pos = child_name.find(':');
+    std::size_t pos = child_name.find(':');
     if (pos != std::string::npos) {
       child_name = child_name.substr(pos + 1);
     }

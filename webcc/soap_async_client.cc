@@ -97,7 +97,7 @@ void SoapAsyncClient::ResponseHandler(SoapResponseHandler soap_response_handler,
     if (!soap_response.FromXml(http_response->content())) {
       soap_response_handler("", kXmlError, false);
     } else {
-      soap_response_handler(soap_response.result_moved(), kNoError, false);
+      //soap_response_handler(soap_response.result_moved(), kNoError, false);
     }
   }
 }

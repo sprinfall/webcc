@@ -6,6 +6,8 @@
 
 #include "example/common/book_xml.h"
 
+static const std::string kResultName = "Result";
+
 static void PrintSeparateLine() {
   std::cout << "--------------------------------";
   std::cout << "--------------------------------";
@@ -16,7 +18,6 @@ BookClient::BookClient(const std::string& host, const std::string& port)
     : soap_client_(host, port), code_(0) {
   soap_client_.set_url("/book");
   soap_client_.set_service_ns({ "ser", "http://www.example.com/book/" });
-  soap_client_.set_result_name("Result");
 
   // Customize response XML format.
   soap_client_.set_format_raw(false);
@@ -91,7 +92,6 @@ bool BookClient::Call0(const std::string& operation, std::string* result_str) {
   return Call(operation, {}, result_str);
 }
 
-
 bool BookClient::Call1(const std::string& operation,
                        webcc::SoapParameter&& parameter,
                        std::string* result_str) {
@@ -104,7 +104,8 @@ bool BookClient::Call1(const std::string& operation,
 bool BookClient::Call(const std::string& operation,
                       std::vector<webcc::SoapParameter>&& parameters,
                       std::string* result_str) {
-  if (!soap_client_.Request(operation, std::move(parameters), result_str)) {
+  if (!soap_client_.Request(operation, std::move(parameters), kResultName,
+                            result_str)) {
     PrintError();
     return false;
   }

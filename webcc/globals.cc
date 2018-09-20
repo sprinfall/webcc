@@ -38,6 +38,8 @@ const char* DescribeError(Error error) {
       return "Socket write error";
     case kHttpError:
       return "HTTP error";
+    case kServerError:
+      return "Server error";
     case kXmlError:
       return "XML error";
     default:

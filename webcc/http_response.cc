@@ -39,7 +39,7 @@ const std::string& ToString(int status) {
     case HttpStatus::kNotFound:
       return NOT_FOUND;
 
-    case HttpStatus::InternalServerError:
+    case HttpStatus::kInternalServerError:
       return INTERNAL_SERVER_ERROR;
 
     case HttpStatus::kNotImplemented:

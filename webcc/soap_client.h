@@ -7,6 +7,7 @@
 #include "webcc/http_client.h"
 #include "webcc/soap_globals.h"
 #include "webcc/soap_parameter.h"
+#include "webcc/soap_response.h"
 
 namespace webcc {
 
@@ -31,10 +32,6 @@ class SoapClient {
     service_ns_ = service_ns;
   }
 
-  void set_result_name(const std::string& result_name) {
-    result_name_ = result_name;
-  }
-
   void set_format_raw(bool format_raw) {
     format_raw_ = format_raw;
   }
@@ -45,13 +42,29 @@ class SoapClient {
 
   bool Request(const std::string& operation,
                std::vector<SoapParameter>&& parameters,
+               SoapResponse::Parser parser);
+
+  // Shortcut for responses with single result node.
+  // The name of the single result node is specified by |result_name|.
+  // The text of the result node will be set to |result|.
+  bool Request(const std::string& operation,
+               std::vector<SoapParameter>&& parameters,
+               const std::string& result_name,
                std::string* result);
+
+  // HTTP status code (200, 500, etc.) in the response.
+  int http_status() const {
+    assert(http_client_.response());
+    return http_client_.response()->status();
+  }
 
   bool timed_out() const {
     return http_client_.timed_out();
   }
 
   Error error() const { return error_; }
+
+  std::shared_ptr<SoapFault> fault() const { return fault_; }
 
  private:
   std::string host_;
@@ -65,10 +78,6 @@ class SoapClient {
   // Namespace for your web service.
   SoapNamespace service_ns_;
 
-  // Response result XML node name.
-  // E.g., "Result".
-  std::string result_name_;
-
   // Format request XML without any indentation or line breaks.
   bool format_raw_;
 
@@ -79,6 +88,8 @@ class SoapClient {
   HttpClient http_client_;
 
   Error error_;
+
+  std::shared_ptr<SoapFault> fault_;
 };
 
 }  // namespace webcc

@@ -31,11 +31,11 @@ class SoapMessage {
     operation_ = operation;
   }
 
-  // Convert to SOAP request XML.
+  // Convert to SOAP XML.
   void ToXml(bool format_raw, const std::string& indent,
              std::string* xml_string);
 
-  // Parse from SOAP request XML.
+  // Parse from SOAP XML.
   bool FromXml(const std::string& xml_string);
 
  protected:
