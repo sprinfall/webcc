@@ -58,9 +58,7 @@ bool CalcService::Handle(const webcc::SoapRequest& soap_request,
   });
 
   soap_response->set_operation(soap_request.operation());
-
-  soap_response->set_result_name("Result");
-  soap_response->set_result_moved(std::to_string(result), false);
+  soap_response->set_simple_result("Result", std::to_string(result), false);
 
   return true;
 }

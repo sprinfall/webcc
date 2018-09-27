@@ -7,22 +7,23 @@
 namespace webcc {
 
 void SoapResponse::ToXmlBody(pugi::xml_node xbody) {
-  assert(!result_name_.empty());
+  pugi::xml_node xresponse = soap_xml::AddChild(xbody, service_ns_.name,
+                                                operation_ + "Response");
+  soap_xml::AddNSAttr(xresponse, service_ns_.name, service_ns_.url);
 
-  pugi::xml_node xop = soap_xml::AddChild(xbody, service_ns_.name,
-                                          operation_ + "Response");
-  soap_xml::AddNSAttr(xop, service_ns_.name, service_ns_.url);
-
-  pugi::xml_node xresult = soap_xml::AddChild(xop, service_ns_.name,
-                                              result_name_);
-
-  // xresult.text().set() also works for PCDATA.
-  // TODO: Add SetText() to soap_xml.h|cpp.
-  xresult.append_child(is_cdata_ ? pugi::node_cdata : pugi::node_pcdata)
-      .set_value(result_.c_str());
+  if (simple_result_) {
+    pugi::xml_node xresult = soap_xml::AddChild(xresponse, service_ns_.name,
+                                                simple_result_->name);
+    soap_xml::SetText(xresult, simple_result_->value, simple_result_->is_cdata);
+  } else {
+    assert(composer_);
+    (*composer_)(xresponse);
+  }
 }
 
 bool SoapResponse::FromXmlBody(pugi::xml_node xbody) {
+  assert(parser_);
+
   // Check Fault element.
 
   pugi::xml_node xfault = soap_xml::GetChildNoNS(xbody, "Fault");
@@ -62,14 +63,12 @@ bool SoapResponse::FromXmlBody(pugi::xml_node xbody) {
   service_ns_.url = soap_xml::GetNSAttr(xresponse, service_ns_.name);
 
   // Call result parser on each child of the response node.
-  if (parser_) {
-    pugi::xml_node xchild = xresponse.first_child();
-    while (xchild) {
-      if (!parser_(xchild)) {
-        break;
-      }
-      xchild = xchild.next_sibling();
+  pugi::xml_node xchild = xresponse.first_child();
+  while (xchild) {
+    if (!parser_(xchild)) {
+      break;
     }
+    xchild = xchild.next_sibling();
   }
 
   return true;

@@ -92,7 +92,7 @@ void SoapAsyncClient::ResponseHandler(SoapResponseHandler soap_response_handler,
     soap_response_handler("", error, timed_out);
   } else {
     SoapResponse soap_response;
-    soap_response.set_result_name(result_name_);
+    //soap_response.set_result_name(result_name_);
 
     if (!soap_response.FromXml(http_response->content())) {
       soap_response_handler("", kXmlError, false);

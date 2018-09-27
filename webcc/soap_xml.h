@@ -32,6 +32,9 @@ std::string GetText(const pugi::xml_node& xnode);
 // Output parameter version GetText.
 void GetText(const pugi::xml_node& xnode, std::string* text);
 
+// Set node text.
+void SetText(pugi::xml_node xnode, const std::string& text, bool is_cdata);
+
 // Add a child with the given name which is prefixed by a namespace.
 // E.g., AppendChild(xnode, "soapenv", "Envelope") will append a child with
 // name "soapenv:Envelope".

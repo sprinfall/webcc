@@ -15,6 +15,8 @@
 
 static BookStore g_book_store;
 
+static const std::string kResult = "Result";
+
 // -----------------------------------------------------------------------------
 
 bool BookService::Handle(const webcc::SoapRequest& soap_request,
@@ -27,7 +29,6 @@ bool BookService::Handle(const webcc::SoapRequest& soap_request,
   });
 
   soap_response->set_operation(operation);
-  soap_response->set_result_name("Result");
 
   if (operation == "CreateBook") {
     return CreateBook(soap_request, soap_response);
@@ -97,7 +98,7 @@ bool BookService::CreateBook(const webcc::SoapRequest& soap_request,
   std::string response_xml = NewResultXml(0, "ok", "book", "id",
                                           id.c_str());
 
-  soap_response->set_result_moved(std::move(response_xml), true);
+  soap_response->set_simple_result(kResult, std::move(response_xml), true);
 
   return true;
 }
@@ -137,7 +138,7 @@ bool BookService::GetBook(const webcc::SoapRequest& soap_request,
 
   const Book& book = g_book_store.GetBook(id);
 
-  soap_response->set_result_moved(NewResultXml(0, "ok", book), true);
+  soap_response->set_simple_result(kResult, NewResultXml(0, "ok", book), true);
 
   return true;
 }
@@ -176,7 +177,7 @@ bool BookService::ListBooks(const webcc::SoapRequest& soap_request,
 
   const std::list<Book>& books = g_book_store.books();
 
-  soap_response->set_result_moved(NewResultXml(0, "ok", books), true);
+  soap_response->set_simple_result(kResult, NewResultXml(0, "ok", books), true);
 
   return true;
 }
@@ -210,9 +211,9 @@ bool BookService::DeleteBook(const webcc::SoapRequest& soap_request,
   const std::string& id = soap_request.GetParameter("id");
 
   if (g_book_store.DeleteBook(id)) {
-    soap_response->set_result_moved(NewResultXml(0, "ok"), true);
+    soap_response->set_simple_result(kResult, NewResultXml(0, "ok"), true);
   } else {
-    soap_response->set_result_moved(NewResultXml(1, "error"), true);
+    soap_response->set_simple_result(kResult, NewResultXml(1, "error"), true);
   }
 
   return true;

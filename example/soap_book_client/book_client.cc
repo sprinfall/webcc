@@ -6,7 +6,7 @@
 
 #include "example/common/book_xml.h"
 
-static const std::string kResultName = "Result";
+static const std::string kResult = "Result";
 
 static void PrintSeparateLine() {
   std::cout << "--------------------------------";
@@ -104,7 +104,7 @@ bool BookClient::Call1(const std::string& operation,
 bool BookClient::Call(const std::string& operation,
                       std::vector<webcc::SoapParameter>&& parameters,
                       std::string* result_str) {
-  if (!soap_client_.Request(operation, std::move(parameters), kResultName,
+  if (!soap_client_.Request(operation, std::move(parameters), kResult,
                             result_str)) {
     PrintError();
     return false;

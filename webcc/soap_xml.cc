@@ -51,6 +51,11 @@ void GetText(const pugi::xml_node& xnode, std::string* text) {
   *text = xnode.child_value();
 }
 
+void SetText(pugi::xml_node xnode, const std::string& text, bool is_cdata) {
+  xnode.append_child(is_cdata ? pugi::node_cdata : pugi::node_pcdata)
+      .set_value(text.c_str());
+}
+
 pugi::xml_node AddChild(pugi::xml_node xnode,
                         const std::string& ns, const std::string& name) {
   return xnode.append_child((ns + ":" + name).c_str());
