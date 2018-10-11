@@ -19,7 +19,7 @@ class HttpResponse : public HttpMessage {
   void set_status(int status) { status_ = status; }
 
   // Set start line according to status code.
-  void UpdateStartLine() override;
+  void Make() override;
 
   // Get a fault response when HTTP status is not OK.
   // TODO: Avoid copy.

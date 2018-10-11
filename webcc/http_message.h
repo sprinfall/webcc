@@ -50,9 +50,9 @@ class HttpMessage {
     }
   }
 
-  // Set start line according to other informations.
+  // Make the message (e.g., update start line).
   // Must be called before ToBuffers()!
-  virtual void UpdateStartLine() = 0;
+  virtual void Make() = 0;
 
   // Convert the message into a vector of buffers. The buffers do not own the
   // underlying memory blocks, therefore the message object must remain valid

@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "webcc/version.h"
+
 // -----------------------------------------------------------------------------
 // Macros
 
@@ -38,9 +40,11 @@ const std::size_t kInvalidLength = std::string::npos;
 // Default timeout for reading response.
 const int kMaxReadSeconds = 30;
 
+// HTTP headers.
 extern const std::string kHost;
 extern const std::string kContentType;
 extern const std::string kContentLength;
+extern const std::string kUserAgent;
 
 extern const std::string kAppJsonUtf8;
 

@@ -160,6 +160,7 @@ if(WEBCC_BUILD_EXAMPLE)
 
     if(WEBCC_ENABLE_SSL)
         add_subdirectory(${PROJECT_SOURCE_DIR}/example/http_ssl_client)
+        add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_github_client)
     endif()
 endif()
 

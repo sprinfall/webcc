@@ -12,8 +12,8 @@ void Test() {
   webcc::HttpRequest request;
   request.set_method(webcc::kHttpGet);
   request.set_url("/index.html");
-  request.SetHost("localhost", "8000");
-  request.UpdateStartLine();
+  request.set_host("localhost", "8000");
+  request.Make();
 
   webcc::HttpClient client;
   if (client.Request(request)) {

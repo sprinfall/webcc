@@ -1,6 +1,5 @@
 #include "webcc/http_client.h"
 
-#include <algorithm>  // for min
 #include <string>
 
 #include "boost/asio/connect.hpp"

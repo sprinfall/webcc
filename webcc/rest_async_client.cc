@@ -16,14 +16,14 @@ void RestAsyncClient::Request(const std::string& method,
 
   request->set_method(method);
   request->set_url(url);
-  request->SetHost(host_, port_);
+  request->set_host(host_, port_);
 
   if (!content.empty()) {
     request->SetContent(std::move(content), true);
     request->SetContentType(kAppJsonUtf8);
   }
 
-  request->UpdateStartLine();
+  request->Make();
 
   HttpAsyncClientPtr http_client(new HttpAsyncClient(io_context_));
 

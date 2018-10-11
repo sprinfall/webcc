@@ -66,9 +66,9 @@ void SoapAsyncClient::Request(const std::string& operation,
     http_request->SetContentType(kAppSoapXmlUtf8);
   }
 
-  http_request->SetHost(host_, port_);
+  http_request->set_host(host_, port_);
   http_request->SetHeader(kSoapAction, operation);
-  http_request->UpdateStartLine();
+  http_request->Make();
 
   HttpAsyncClientPtr http_client(new HttpAsyncClient(io_context_));
 

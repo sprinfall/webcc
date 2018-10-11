@@ -40,7 +40,7 @@ void HttpSession::SetResponseContent(std::string&& content,
 
 void HttpSession::SendResponse(HttpStatus::Enum status) {
   response_.set_status(status);
-  response_.UpdateStartLine();
+  response_.Make();
   DoWrite();
 }
 

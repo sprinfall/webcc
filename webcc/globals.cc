@@ -9,6 +9,7 @@ namespace webcc {
 const std::string kHost = "Host";
 const std::string kContentType = "Content-Type";
 const std::string kContentLength = "Content-Length";
+const std::string kUserAgent = "User-Agent";
 
 const std::string kAppJsonUtf8 = "application/json; charset=utf-8";
 

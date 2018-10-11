@@ -18,6 +18,9 @@
 
 namespace webcc {
 
+// HTTP SSL (a.k.a., HTTPS) client session in synchronous mode.
+// A request will not return until the response is received or timeout occurs.
+// Don't use the same HttpClient object in multiple threads.
 class HttpSslClient {
  public:
   HttpSslClient();

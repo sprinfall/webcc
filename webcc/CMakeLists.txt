@@ -9,6 +9,7 @@ endif()
 include(GNUInstallDirs)
 
 set(HEADERS
+    version.h
     globals.h
     http_async_client.h
     http_client.h
@@ -23,6 +24,7 @@ set(HEADERS
     http_server.h
     logger.h
     queue.h
+    basic_rest_client.h
     rest_async_client.h
     rest_client.h
     rest_request_handler.h
@@ -48,7 +50,6 @@ set(SOURCES
     http_server.cc
     logger.cc
     rest_async_client.cc
-    rest_client.cc
     rest_request_handler.cc
     rest_service_manager.cc
     rest_service.cc
@@ -59,6 +60,7 @@ set(SOURCES
 if(WEBCC_ENABLE_SSL)
     set(HEADERS ${HEADERS}
         http_ssl_client.h
+        rest_ssl_client.h
         )
 
     set(SOURCES ${SOURCES}

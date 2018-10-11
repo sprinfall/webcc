@@ -6,8 +6,6 @@
 #include "boost/asio/read.hpp"
 #include "boost/asio/write.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
-#include "boost/lambda/bind.hpp"
-#include "boost/lambda/lambda.hpp"
 
 #include "webcc/logger.h"
 #include "webcc/utility.h"
@@ -92,14 +90,6 @@ Error HttpSslClient::Connect(const HttpRequest& request) {
   }
 
   LOG_VERB("Socket connected.");
-
-  // The deadline actor may have had a chance to run and close our socket, even
-  // though the connect operation notionally succeeded.
-  if (stopped_) {
-    // |timed_out_| should be true in this case.
-    LOG_ERRO("Socket connect timed out.");
-    return kEndpointConnectError;
-  }
 
   return kNoError;
 }

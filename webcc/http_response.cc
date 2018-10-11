@@ -55,7 +55,7 @@ const std::string& ToString(int status) {
 
 }  // namespace status_strings
 
-void HttpResponse::UpdateStartLine() {
+void HttpResponse::Make() {
   start_line_ = status_strings::ToString(status_);
 }
 
@@ -64,7 +64,8 @@ HttpResponse HttpResponse::Fault(HttpStatus::Enum status) {
 
   HttpResponse response;
   response.set_status(status);
-  response.UpdateStartLine();
+
+  response.Make();
 
   return response;
 }
