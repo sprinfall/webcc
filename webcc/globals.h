@@ -40,6 +40,11 @@ const std::size_t kInvalidLength = std::string::npos;
 // Default timeout for reading response.
 const int kMaxReadSeconds = 30;
 
+// Max size of the HTTP body to dump/log.
+// If the HTTP, e.g., response, has a very large content, it will be truncated
+// when dumped/logged.
+const std::size_t kMaxDumpSize = 2048;
+
 // HTTP headers.
 extern const std::string kHost;
 extern const std::string kContentType;

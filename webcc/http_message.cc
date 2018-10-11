@@ -77,14 +77,34 @@ void HttpMessage::Dump(std::ostream& os, std::size_t indent,
 
   os << indent_str << std::endl;
 
+  // NOTE: The content will be truncated if it's too large to display.
+
   if (!content_.empty()) {
     if (indent == 0) {
-      os << content_ << std::endl;
+      if (content_.size() > kMaxDumpSize) {
+        os.write(content_.c_str(), kMaxDumpSize);
+        os << "..." << std::endl;
+      } else {
+        os << content_ << std::endl;
+      }
     } else {
+      // Split by EOL to achieve more readability.
       std::vector<std::string> splitted;
       boost::split(splitted, content_, boost::is_any_of(CRLF));
+
+      std::size_t size = 0;
+
       for (const std::string& line : splitted) {
-        os << indent_str << line << std::endl;
+        os << indent_str;
+
+        if (line.size() + size > kMaxDumpSize) {
+          os.write(line.c_str(), kMaxDumpSize - size);
+          os << "..." << std::endl;
+          break;
+        } else {
+          os << line << std::endl;
+          size += line.size();
+        }
       }
     }
   }
