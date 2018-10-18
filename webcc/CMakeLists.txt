@@ -102,9 +102,10 @@ set(TARGET webcc)
 
 add_library(${TARGET} STATIC ${HEADERS} ${SOURCES})
 
-# Install lib and header files.
-# On Linux, if CMAKE_INSTALL_PREFIX is ~, the lib (libwebcc.a) will be installed
-# to ~/lib and header files will be installed to ~/include.
-
-install(TARGETS ${TARGET} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-install(FILES ${HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/webcc)
+if(WEBCC_ENABLE_INSTALL)
+    # Install lib and header files.
+    # On Linux, if CMAKE_INSTALL_PREFIX is ~, the lib (libwebcc.a) will be installed
+    # to ~/lib and header files will be installed to ~/include.
+    install(TARGETS ${TARGET} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    install(FILES ${HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/webcc)
+endif()

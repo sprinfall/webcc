@@ -11,6 +11,7 @@ project(webcc)
 option(WEBCC_ENABLE_LOG "Enable logging?" ON)
 option(WEBCC_ENABLE_SOAP "Enable SOAP support (need pugixml)?" ON)
 option(WEBCC_ENABLE_SSL "Enable SSL/HTTPS support (need OpenSSL)?" OFF)
+option(WEBCC_ENABLE_INSTALL "Enable to install library and headers with CMake?" OFF)
 option(WEBCC_BUILD_UNITTEST "Build unit test?" ON)
 option(WEBCC_BUILD_EXAMPLE "Build examples?" ON)
 
