@@ -9,11 +9,6 @@
 #include "example/common/book.h"
 #include "example/common/book_json.h"
 
-// In order to run with VLD, please copy the following files to the example
-// output folder from "third_party\win32\bin":
-//   - dbghelp.dll
-//   - Microsoft.DTfW.DHL.manifest
-//   - vld_x86.dll
 #if (defined(WIN32) || defined(_WIN64))
 #if defined(_DEBUG) && defined(WEBCC_ENABLE_VLD)
 #pragma message ("< include vld.h >")

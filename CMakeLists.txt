@@ -124,44 +124,46 @@ endif()
 # For including its own headers as "webcc/http_client.h".
 include_directories(${PROJECT_SOURCE_DIR})
 
+set(THIRD_PARTY_DIR ${PROJECT_SOURCE_DIR}/third_party)
+
 if(WIN32)
-    include_directories(${PROJECT_SOURCE_DIR}/third_party/win32/include)
-    link_directories(${PROJECT_SOURCE_DIR}/third_party/win32/lib)
+    include_directories(${THIRD_PARTY_DIR}/win32/include)
+    link_directories(${THIRD_PARTY_DIR}/win32/lib)
 endif()
 
 # SOAP support needs pugixml to parse and create XML.
 if(WEBCC_ENABLE_SOAP)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/src/pugixml)
+    add_subdirectory(${THIRD_PARTY_DIR}/src/pugixml)
 
     # For including pugixml as "pugixml/pugixml.hpp".
-    include_directories(${PROJECT_SOURCE_DIR}/third_party/src)
+    include_directories(${THIRD_PARTY_DIR}/src)
 endif()
 
 add_subdirectory(webcc)
 
 if(WEBCC_BUILD_EXAMPLE)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/example/http_hello_client)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/example/http_hello_async_client)
+    add_subdirectory(example/http_hello_client)
+    add_subdirectory(example/http_hello_async_client)
 
     # REST example needs jsoncpp to parse and create JSON.
-    add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/src/jsoncpp)
-    include_directories(${PROJECT_SOURCE_DIR}/third_party/src/jsoncpp)
+    add_subdirectory(${THIRD_PARTY_DIR}/src/jsoncpp)
+    include_directories(${THIRD_PARTY_DIR}/src/jsoncpp)
 
-    add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_book_server)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_book_client)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_book_async_client)
+    add_subdirectory(example/rest_book_server)
+    add_subdirectory(example/rest_book_client)
+    add_subdirectory(example/rest_book_async_client)
 
     if(WEBCC_ENABLE_SOAP)
-        add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_calc_server)
-        add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_calc_client)
-        add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_calc_client_parasoft)
-        add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_book_server)
-        add_subdirectory(${PROJECT_SOURCE_DIR}/example/soap_book_client)
+        add_subdirectory(example/soap_calc_server)
+        add_subdirectory(example/soap_calc_client)
+        add_subdirectory(example/soap_calc_client_parasoft)
+        add_subdirectory(example/soap_book_server)
+        add_subdirectory(example/soap_book_client)
     endif()
 
     if(WEBCC_ENABLE_SSL)
-        add_subdirectory(${PROJECT_SOURCE_DIR}/example/http_ssl_client)
-        add_subdirectory(${PROJECT_SOURCE_DIR}/example/rest_github_client)
+        add_subdirectory(example/http_ssl_client)
+        add_subdirectory(example/rest_github_client)
     endif()
 endif()
 

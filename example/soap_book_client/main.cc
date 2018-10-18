@@ -4,6 +4,14 @@
 
 #include "example/soap_book_client/book_client.h"
 
+#if (defined(WIN32) || defined(_WIN64))
+#if defined(_DEBUG) && defined(WEBCC_ENABLE_VLD)
+#pragma message ("< include vld.h >")
+#include "vld/vld.h"
+#pragma comment(lib, "vld")
+#endif
+#endif
+
 void Help(const char* argv0) {
   std::cout << "Usage: " << argv0 << " <host> <port>" << std::endl;
   std::cout << "  E.g.," << std::endl;
