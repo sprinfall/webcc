@@ -15,7 +15,8 @@ void HttpRequest::Make() {
     SetHeader(kHost, host_ + ":" + port_);
   }
 
-  SetHeader(kUserAgent, "Webcc/"WEBCC_VERSION);
+  // NOTE: C++11 requires a space between literal and string macro.
+  SetHeader(kUserAgent, "Webcc/" WEBCC_VERSION);
 }
 
 }  // namespace webcc
