@@ -11,7 +11,7 @@ namespace webcc {
 class HttpRequest : public HttpMessage {
  public:
   HttpRequest() = default;
-  virtual ~HttpRequest() = default;
+  ~HttpRequest() override = default;
 
   const std::string& method() const { return method_; }
   void set_method(const std::string& method) { method_ = method; }
