@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cstdarg>
 #include <ctime>
+#include <iomanip>  // for put_time
 #include <mutex>
 #include <sstream>
 #include <string>
@@ -115,28 +116,23 @@ void LogInit(const std::string& dir, int modes) {
 }
 
 static std::string GetTimestamp() {
-  using namespace std::chrono;
+  auto now = std::chrono::system_clock::now();
+  std::time_t t = std::chrono::system_clock::to_time_t(now);
 
-  auto now = system_clock::now();
-  std::time_t now_c = system_clock::to_time_t(now);
-  std::tm* now_tm = std::localtime(&now_c);
+  std::stringstream ss;
+  ss << std::put_time(std::localtime(&t), "%Y-%m-%d %H:%M:%S");
 
-  char buf[20];
-  std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", now_tm);
-
-  std::string timestamp(buf);
-
-  milliseconds milli_seconds = duration_cast<milliseconds>(
-      now.time_since_epoch());
+  std::chrono::milliseconds milli_seconds =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          now.time_since_epoch());
   std::string micro_seconds_str = std::to_string(milli_seconds.count() % 1000);
   while (micro_seconds_str.size() < 3) {
     micro_seconds_str = "0" + micro_seconds_str;
   }
 
-  timestamp.append(".");
-  timestamp.append(micro_seconds_str);
+  ss << "." << micro_seconds_str;
 
-  return timestamp;
+  return ss.str();
 }
 
 void LogWrite(int level, const char* file, int line, const char* format, ...) {

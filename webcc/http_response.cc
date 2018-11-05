@@ -1,5 +1,7 @@
 #include "webcc/http_response.h"
 
+#include "webcc/utility.h"
+
 namespace webcc {
 
 namespace status_strings {
@@ -57,6 +59,11 @@ const std::string& ToString(int status) {
 
 void HttpResponse::Make() {
   start_line_ = status_strings::ToString(status_);
+
+  // NOTE: C++11 requires a space between literal and string macro.
+  SetHeader("Server", "Webcc/" WEBCC_VERSION);
+
+  SetHeader("Date", GetHttpDateTimestamp());
 }
 
 HttpResponse HttpResponse::Fault(HttpStatus::Enum status) {

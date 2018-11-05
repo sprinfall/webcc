@@ -1,6 +1,8 @@
 #include "webcc/utility.h"
 
 #include <algorithm>
+#include <ctime>
+#include <iomanip>  // for put_time
 #include <ostream>
 #include <sstream>
 
@@ -52,6 +54,13 @@ void PrintEndpoints(std::ostream& ostream,
 std::string EndpointToString(const boost::asio::ip::tcp::endpoint& endpoint) {
   std::stringstream ss;
   PrintEndpoint(ss, endpoint);
+  return ss.str();
+}
+
+std::string GetHttpDateTimestamp() {
+  std::time_t t = std::time(nullptr);
+  std::stringstream ss;
+  ss << std::put_time(std::gmtime(&t), "%a, %d %b %Y %H:%M:%S") << " GMT";
   return ss.str();
 }
 
