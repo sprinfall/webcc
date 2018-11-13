@@ -62,7 +62,7 @@ class Url {
   Url() = default;
   Url(const std::string& str, bool decode);
 
-  bool IsValid() const;
+  bool IsPathValid() const;
 
   const std::string& path() const {
     return path_;

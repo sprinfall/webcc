@@ -1,5 +1,5 @@
-#ifndef WEBCC_BASIC_REST_CLIENT_H_
-#define WEBCC_BASIC_REST_CLIENT_H_
+#ifndef WEBCC_REST_BASIC_CLIENT_H_
+#define WEBCC_REST_BASIC_CLIENT_H_
 
 #include <cassert>
 #include <string>
@@ -12,11 +12,11 @@
 namespace webcc {
 
 template <class HttpClientType>
-class BasicRestClient {
+class RestBasicClient {
  public:
   // If |port| is empty, |host| will be checked to see if it contains port or
   // not (separated by ':').
-  explicit BasicRestClient(const std::string& host,
+  explicit RestBasicClient(const std::string& host,
                            const std::string& port = "")
       : host_(host), port_(port) {
     if (port_.empty()) {
@@ -28,9 +28,9 @@ class BasicRestClient {
     }
   }
 
-  ~BasicRestClient() = default;
+  ~RestBasicClient() = default;
 
-  WEBCC_DELETE_COPY_ASSIGN(BasicRestClient);
+  WEBCC_DELETE_COPY_ASSIGN(RestBasicClient);
 
   void SetTimeout(int seconds) {
     http_client_.SetTimeout(seconds);
@@ -120,4 +120,4 @@ class BasicRestClient {
 
 }  // namespace webcc
 
-#endif  // WEBCC_BASIC_REST_CLIENT_H_
+#endif  // WEBCC_REST_BASIC_CLIENT_H_

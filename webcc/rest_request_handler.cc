@@ -18,7 +18,7 @@ void RestRequestHandler::HandleSession(HttpSessionPtr session) {
 
   Url url(http_request.url(), /*decode*/true);
 
-  if (!url.IsValid()) {
+  if (!url.IsPathValid()) {
     session->SendResponse(HttpStatus::kBadRequest);
     return;
   }

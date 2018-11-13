@@ -258,8 +258,12 @@ Url::Url(const std::string& str, bool decode) {
   }
 }
 
-bool Url::IsValid() const {
-  return !path_.empty();
+bool Url::IsPathValid() const {
+  // URL path must be absolute.
+  if (path_.empty() || path_[0] != '/') {
+    return false;
+  }
+  return true;
 }
 
 std::vector<std::string> Url::SplitPath(const std::string& path) {

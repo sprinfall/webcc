@@ -9,7 +9,6 @@ endif()
 include(GNUInstallDirs)
 
 set(HEADERS
-    version.h
     globals.h
     http_async_client.h
     http_client.h
@@ -24,8 +23,8 @@ set(HEADERS
     http_server.h
     logger.h
     queue.h
-    basic_rest_client.h
     rest_async_client.h
+    rest_basic_client.h
     rest_client.h
     rest_request_handler.h
     rest_server.h
@@ -33,6 +32,7 @@ set(HEADERS
     rest_service_manager.h
     url.h
     utility.h
+    version.h
     )
 
 set(SOURCES
