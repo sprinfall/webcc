@@ -8,12 +8,10 @@ endif()
 
 project(webcc)
 
-option(WEBCC_ENABLE_LOG "Enable logging?" ON)
 option(WEBCC_ENABLE_SOAP "Enable SOAP support (need pugixml)?" ON)
 option(WEBCC_ENABLE_SSL "Enable SSL/HTTPS support (need OpenSSL)?" OFF)
-option(WEBCC_ENABLE_INSTALL "Enable to install library and headers with CMake?" OFF)
-option(WEBCC_BUILD_UNITTEST "Build unit test?" ON)
-option(WEBCC_BUILD_EXAMPLE "Build examples?" ON)
+option(WEBCC_ENABLE_UNITTEST "Build unit test?" ON)
+option(WEBCC_ENABLE_EXAMPLES "Build examples?" ON)
 
 if(WIN32)
     option(WEBCC_ENABLE_VLD "Enable VLD (Visual Leak Detector)?" OFF)
@@ -22,36 +20,10 @@ if(WIN32)
     endif()
 endif()
 
-set(WEBCC_LOG_LEVEL "VERB" CACHE STRING "Log level (VERB, INFO, WARN, ERRO or FATA)")
+set(WEBCC_ENABLE_LOG 1 CACHE STRING "Enable logging? (0:OFF, 1:ON)")
+set(WEBCC_LOG_LEVEL 2 CACHE STRING "Log level (0:VERB, 1:INFO, 2:WARN, 3:ERRO or 4:FATA)")
 
-if(WEBCC_ENABLE_LOG)
-    add_definitions(-DWEBCC_ENABLE_LOG)
-
-    message(STATUS "WEBCC_LOG_LEVEL: ${WEBCC_LOG_LEVEL}")
-
-    # Add definition of WEBCC_LOG_LEVEL according variable WEBCC_LOG_LEVEL.
-    if(WEBCC_LOG_LEVEL MATCHES "^VERB$")
-        add_definitions(-DWEBCC_LOG_LEVEL=0)
-    elseif(WEBCC_LOG_LEVEL MATCHES "^INFO$")
-        add_definitions(-DWEBCC_LOG_LEVEL=1)
-    elseif(WEBCC_LOG_LEVEL MATCHES "^WARN$")
-        add_definitions(-DWEBCC_LOG_LEVEL=2)
-    elseif(WEBCC_LOG_LEVEL MATCHES "^ERRO$")
-        add_definitions(-DWEBCC_LOG_LEVEL=3)
-    elseif(WEBCC_LOG_LEVEL MATCHES "^FATA$")
-        add_definitions(-DWEBCC_LOG_LEVEL=4)
-    endif()
-endif()
-
-if(WEBCC_ENABLE_SOAP)
-    add_definitions(-DWEBCC_ENABLE_SOAP)
-endif()
-
-if(WEBCC_ENABLE_SSL)
-    add_definitions(-DWEBCC_ENABLE_SSL)
-endif()
-
-if(WEBCC_BUILD_UNITTEST)
+if(WEBCC_ENABLE_UNITTEST)
     enable_testing()
 endif()
 
@@ -121,8 +93,12 @@ if(WEBCC_ENABLE_SSL)
     endif()
 endif()
 
-# For including its own headers as "webcc/http_client.h".
-include_directories(${PROJECT_SOURCE_DIR})
+include_directories(
+    # For including its own headers as "webcc/http_client.h".
+    ${PROJECT_SOURCE_DIR}
+    # For including config.h as "webcc/config.h".
+    ${PROJECT_BINARY_DIR}
+    )
 
 set(THIRD_PARTY_DIR ${PROJECT_SOURCE_DIR}/third_party)
 
@@ -141,7 +117,7 @@ endif()
 
 add_subdirectory(webcc)
 
-if(WEBCC_BUILD_EXAMPLE)
+if(WEBCC_ENABLE_EXAMPLES)
     add_subdirectory(example/http_hello_client)
     add_subdirectory(example/http_hello_async_client)
 
@@ -167,7 +143,7 @@ if(WEBCC_BUILD_EXAMPLE)
     endif()
 endif()
 
-if(WEBCC_BUILD_UNITTEST)
+if(WEBCC_ENABLE_UNITTEST)
     add_subdirectory(third_party/src/gtest)
     add_subdirectory(unittest)
 endif()

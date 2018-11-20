@@ -12,15 +12,12 @@ class TestRestService : public webcc::RestService {
 TEST(RestServiceManager, URL_RegexBasic) {
   webcc::RestServiceManager service_manager;
 
-  {
-    webcc::RestServicePtr service = std::make_shared<TestRestService>();
-
-    service_manager.AddService(service, "/instances/(\\d+)", true);
-  }
+  service_manager.AddService(std::make_shared<TestRestService>(),
+                             "/instance/(\\d+)", true);
 
   std::vector<std::string> sub_matches;
 
-  std::string url = "/instances/12345";
+  std::string url = "/instance/12345";
   webcc::RestServicePtr service = service_manager.GetService(url, &sub_matches);
 
   EXPECT_TRUE(!!service);
@@ -28,7 +25,33 @@ TEST(RestServiceManager, URL_RegexBasic) {
   EXPECT_EQ(1, sub_matches.size());
   EXPECT_EQ("12345", sub_matches[0]);
 
-  url = "/instances/abcde";
+  url = "/instance/abcde";
+  sub_matches.clear();
+  service = service_manager.GetService(url, &sub_matches);
+
+  EXPECT_FALSE(!!service);
+}
+
+TEST(RestServiceManager, URL_RegexMultiple) {
+  webcc::RestServiceManager service_manager;
+
+  service_manager.AddService(std::make_shared<TestRestService>(),
+                             "/study/(\\d+)/series/(\\d+)/instance/(\\d+)",
+                             true);
+
+  std::vector<std::string> sub_matches;
+
+  std::string url = "/study/1/series/2/instance/3";
+  webcc::RestServicePtr service = service_manager.GetService(url, &sub_matches);
+
+  EXPECT_TRUE(!!service);
+
+  EXPECT_EQ(3, sub_matches.size());
+  EXPECT_EQ("1", sub_matches[0]);
+  EXPECT_EQ("2", sub_matches[1]);
+  EXPECT_EQ("3", sub_matches[2]);
+
+  url = "/study/a/series/b/instance/c";
   sub_matches.clear();
   service = service_manager.GetService(url, &sub_matches);
 
@@ -38,10 +61,8 @@ TEST(RestServiceManager, URL_RegexBasic) {
 TEST(RestServiceManager, URL_NonRegex) {
   webcc::RestServiceManager service_manager;
 
-  {
-    webcc::RestServicePtr service = std::make_shared<TestRestService>();
-    service_manager.AddService(service, "/instances", false);
-  }
+  service_manager.AddService(std::make_shared<TestRestService>(), "/instances",
+                             false);
 
   std::vector<std::string> sub_matches;
   std::string url = "/instances";

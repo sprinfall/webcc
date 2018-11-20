@@ -3,6 +3,9 @@
 
 // Simple console logger.
 
+// This file was generated from "config.h.in" by CMake.
+#include "webcc/config.h"
+
 #if WEBCC_ENABLE_LOG
 
 #include <cstring>  // for strrchr()
@@ -16,8 +19,6 @@
 #define WEBCC_FATA 4
 
 // Default log level.
-// You have to define a proper log level in CMakeLists.txt, e.g.,
-//   add_definitions(-DWEBCC_LOG_LEVEL=2)
 #ifndef WEBCC_LOG_LEVEL
 #define WEBCC_LOG_LEVEL WEBCC_WARN
 #endif

@@ -1,0 +1,12 @@
+#ifndef WEBCC_CONFIG_H_
+#define WEBCC_CONFIG_H_
+
+// Compile configurations.
+
+#define WEBCC_ENABLE_LOG @WEBCC_ENABLE_LOG@
+
+#if WEBCC_ENABLE_LOG
+#define WEBCC_LOG_LEVEL @WEBCC_LOG_LEVEL@
+#endif
+
+#endif  // WEBCC_CONFIG_H_
