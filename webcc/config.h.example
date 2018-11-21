@@ -1,0 +1,14 @@
+#ifndef WEBCC_CONFIG_H_
+#define WEBCC_CONFIG_H_
+
+// Compile configurations.
+
+// Set 0 to disable logging.
+#define WEBCC_ENABLE_LOG 1
+
+#if WEBCC_ENABLE_LOG
+// 0:VERB, 1:INFO, 2:WARN, 3:ERRO or 4:FATA
+#define WEBCC_LOG_LEVEL 2
+#endif
+
+#endif  // WEBCC_CONFIG_H_
