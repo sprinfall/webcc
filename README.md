@@ -101,7 +101,7 @@ Please see `example/rest_book_server` for the complete example.
 A lot of C++11 features are used, e.g., `std::move`. But C++14 is not required.
 (It means that you can still build `webcc` using VS2013 on Windows.)
 
-[CMake 3.1.0+](https://cmake.org/) is required as the build system. But if you don't use CMake, you can just copy the `src/webcc` folder to your own project then manage it by yourself.
+[CMake 3.1.0+](https://cmake.org/) is required as the build system. But if you don't use CMake, you can just copy the `src/webcc` folder to your own project then manage it by yourself, though some changes are needed to make it work. See [Wiki/Integrate Into Your Project]( https://github.com/sprinfall/webcc/wiki/Integrate-Into-Your-Project) for more details.
 
 [C++ Boost](https://www.boost.org/) should be 1.66+ because Asio made some broken changes to the API in 1.66.
 
@@ -110,17 +110,18 @@ A lot of C++11 features are used, e.g., `std::move`. But C++14 is not required.
 The following CMake options determine how you build the projects. They are quite self-explanatory.
 
 ```cmake
-option(WEBCC_ENABLE_LOG "Enable logging?" ON)
 option(WEBCC_ENABLE_SOAP "Enable SOAP support (need pugixml)?" ON)
-option(WEBCC_BUILD_UNITTEST "Build unit test?" ON)
-option(WEBCC_BUILD_EXAMPLE "Build examples?" ON)
+option(WEBCC_ENABLE_SSL "Enable SSL/HTTPS support (need OpenSSL)?" OFF)
+option(WEBCC_ENABLE_UNITTEST "Build unit test?" ON)
+option(WEBCC_ENABLE_EXAMPLES "Build examples?" ON)
 
-set(WEBCC_LOG_LEVEL "VERB" CACHE STRING "Log level (VERB, INFO, WARN, ERRO or FATA)")
+set(WEBCC_ENABLE_LOG 1 CACHE STRING "Enable logging? (0:OFF, 1:ON)")
+set(WEBCC_LOG_LEVEL 2 CACHE STRING "Log level (0:VERB, 1:INFO, 2:WARN, 3:ERRO or 4:FATA)")
 ```
 
 Options `WEBCC_ENABLE_LOG` and `WEBCC_LOG_LEVEL` together define how logging behaves. See [Wiki/Logging](https://github.com/sprinfall/webcc/wiki/Logging) for more details.
 
-If `WEBCC_ENABLE_SOAP` is `ON`, **pugixml** (already included) is used to parse and compose XML strings.
+If `WEBCC_ENABLE_SOAP` is `1`, **pugixml** (already included) is used to parse and compose XML strings.
 
 ### Build On Linux
 
@@ -133,14 +134,15 @@ Generate Makefiles with the following command:
 ```bash
 cmake -G"Unix Makefiles" \
     -DCMAKE_INSTALL_PREFIX=~ \
-    -DWEBCC_ENABLE_LOG=ON \
-    -DWEBCC_LOG_LEVEL=VERB \
+    -DWEBCC_ENABLE_LOG=1 \
+    -DWEBCC_LOG_LEVEL=2 \
     -DWEBCC_ENABLE_SOAP=ON \
-    -DWEBCC_BUILD_UNITTEST=OFF \
-    -DWEBCC_BUILD_EXAMPLE=ON \
+    -DWEBCC_ENABLE_SSL=OFF \
+    -DWEBCC_ENABLE_UNITTEST=OFF \
+    -DWEBCC_ENABLE_EXAMPLES=ON \
     ..
 ```
-Feel free to change the build options (`ON` or `OFF`).
+Feel free to change the build options.
 CMake variable `CMAKE_INSTALL_PREFIX` defines where to install the output library and header files. The default is `/usr/local`.
 
 If everything is OK, then you can build with `make`:
