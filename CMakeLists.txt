@@ -141,6 +141,8 @@ if(WEBCC_ENABLE_EXAMPLES)
         add_subdirectory(example/http_ssl_client)
         add_subdirectory(example/rest_github_client)
     endif()
+
+    add_subdirectory(example/http_bin_client)
 endif()
 
 if(WEBCC_ENABLE_UNITTEST)
