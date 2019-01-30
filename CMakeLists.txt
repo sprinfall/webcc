@@ -107,12 +107,13 @@ if(WIN32)
     link_directories(${THIRD_PARTY_DIR}/win32/lib)
 endif()
 
+# For including pugixml as "pugixml/pugixml.hpp" or gtest as
+# "gtest/gtest.h".
+include_directories(${THIRD_PARTY_DIR}/src)
+
 # SOAP support needs pugixml to parse and create XML.
 if(WEBCC_ENABLE_SOAP)
     add_subdirectory(${THIRD_PARTY_DIR}/src/pugixml)
-
-    # For including pugixml as "pugixml/pugixml.hpp".
-    include_directories(${THIRD_PARTY_DIR}/src)
 endif()
 
 add_subdirectory(webcc)
@@ -121,9 +122,11 @@ if(WEBCC_ENABLE_EXAMPLES)
     add_subdirectory(example/http_hello_client)
     add_subdirectory(example/http_hello_async_client)
 
-    # REST example needs jsoncpp to parse and create JSON.
-    add_subdirectory(${THIRD_PARTY_DIR}/src/jsoncpp)
+    # For including jsoncpp as "json/json.h".
     include_directories(${THIRD_PARTY_DIR}/src/jsoncpp)
+
+    # REST examples need jsoncpp to parse and create JSON.
+    add_subdirectory(${THIRD_PARTY_DIR}/src/jsoncpp)
 
     add_subdirectory(example/rest_book_server)
     add_subdirectory(example/rest_book_client)
