@@ -91,15 +91,15 @@ bool HttpParser::Parse(const char* data, std::size_t length) {
 }
 
 bool HttpParser::ParseHeader(const std::string& line) {
-  std::vector<std::string> splitted;
-  boost::split(splitted, line, boost::is_any_of(":"));
+  std::vector<std::string> parts;
+  boost::split(parts, line, boost::is_any_of(":"));
 
-  if (splitted.size() != 2) {
+  if (parts.size() != 2) {
     return false;
   }
 
-  std::string& name = splitted[0];
-  std::string& value = splitted[1];
+  std::string& name = parts[0];
+  std::string& value = parts[1];
 
   boost::trim(name);
   boost::trim(value);
@@ -133,7 +133,6 @@ bool HttpParser::ParseHeader(const std::string& line) {
 void HttpParser::Finish() {
   if (!content_.empty()) {
     // Move content to message.
-    // "Content-Length" already set in ParseHeader().
     message_->SetContent(std::move(content_), /*set_length*/false);
   }
   finished_ = true;
