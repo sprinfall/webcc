@@ -34,7 +34,7 @@ void HttpSslClient::SetTimeout(int seconds) {
   }
 }
 
-bool HttpSslClient::Request(const HttpRequest& request) {
+bool HttpSslClient::Request(const HttpRequest& request, bool ssl_verify) {
   io_context_.restart();
 
   response_.reset(new HttpResponse());
@@ -48,7 +48,7 @@ bool HttpSslClient::Request(const HttpRequest& request) {
     return false;
   }
 
-  if ((error_ = Handshake(request.host())) != kNoError) {
+  if ((error_ = Handshake(request.host(), ssl_verify)) != kNoError) {
     return false;
   }
 
@@ -95,8 +95,13 @@ Error HttpSslClient::Connect(const HttpRequest& request) {
 }
 
 // NOTE: Don't check timeout. It doesn't make much sense.
-Error HttpSslClient::Handshake(const std::string& host) {
-  ssl_socket_.set_verify_mode(ssl::verify_peer);
+Error HttpSslClient::Handshake(const std::string& host, bool ssl_verify) {
+  if (ssl_verify) {
+    ssl_socket_.set_verify_mode(ssl::verify_peer);
+  } else {
+    ssl_socket_.set_verify_mode(ssl::verify_none);
+  }
+
   ssl_socket_.set_verify_callback(ssl::rfc2818_verification(host));
 
   // Use sync API directly since we don't need timeout control.

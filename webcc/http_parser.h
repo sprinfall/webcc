@@ -26,9 +26,24 @@ class HttpParser {
   bool Parse(const char* data, std::size_t length);
 
  protected:
+  // Parse headers from pending data.
+  // Return false only on syntax errors.
+  bool ParseHeaders();
+
+  // Get next line (using delimiter CRLF) from the pending data.
+  // The line will not contain a trailing CRLF.
+  // If |remove| is true, the line, as well as the trailing CRLF, will be erased
+  // from the pending data.
+  bool NextPendingLine(std::size_t off, std::string* line, bool remove);
+
   virtual bool ParseStartLine(const std::string& line) = 0;
 
-  bool ParseHeader(const std::string& line);
+  bool ParseHeaderLine(const std::string& line);
+
+  bool ParseFixedContent();
+
+  bool ParseChunkedContent();
+  bool ParseChunkSize();
 
   void Finish();
 
@@ -48,7 +63,9 @@ class HttpParser {
   std::string content_;
   bool start_line_parsed_;
   bool content_length_parsed_;
-  bool header_parsed_;
+  bool header_ended_;
+  bool chunked_;
+  std::size_t chunk_size_;
   bool finished_;
 };
 

@@ -49,6 +49,7 @@ const std::size_t kMaxDumpSize = 2048;
 extern const std::string kHost;
 extern const std::string kContentType;
 extern const std::string kContentLength;
+extern const std::string kTransferEncoding;
 extern const std::string kUserAgent;
 
 extern const std::string kAppJsonUtf8;

@@ -34,7 +34,10 @@ class HttpSslClient {
   void SetTimeout(int seconds);
 
   // Connect to server, send request, wait until response is received.
-  bool Request(const HttpRequest& request);
+  // NOTE: SSL verification (ssl_verify=true) needs CA certificates to be found
+  // in the default verify paths of OpenSSL. On Windows, it means you need to
+  // set environment variable SSL_CERT_FILE properly.
+  bool Request(const HttpRequest& request, bool ssl_verify = true);
 
   HttpResponsePtr response() const { return response_; }
 
@@ -45,7 +48,7 @@ class HttpSslClient {
  private:
   Error Connect(const HttpRequest& request);
 
-  Error Handshake(const std::string& host);
+  Error Handshake(const std::string& host, bool ssl_verify);
 
   Error SendReqeust(const HttpRequest& request);
 

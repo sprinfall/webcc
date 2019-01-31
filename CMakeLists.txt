@@ -90,6 +90,7 @@ if(WEBCC_ENABLE_SSL)
     find_package(OpenSSL)
     if(OPENSSL_FOUND)
         include_directories(${OPENSSL_INCLUDE_DIR})
+        message(STATUS "OpenSSL libs: " ${OPENSSL_LIBRARIES})
     endif()
 endif()
 
@@ -142,7 +143,7 @@ if(WEBCC_ENABLE_EXAMPLES)
 
     if(WEBCC_ENABLE_SSL)
         add_subdirectory(example/http_ssl_client)
-        add_subdirectory(example/rest_github_client)
+        add_subdirectory(example/github_rest_client)
     endif()
 
     add_subdirectory(example/http_bin_client)
