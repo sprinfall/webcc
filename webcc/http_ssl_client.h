@@ -23,7 +23,11 @@ namespace webcc {
 // Don't use the same HttpClient object in multiple threads.
 class HttpSslClient {
  public:
-  HttpSslClient();
+  // NOTE:
+  // SSL verification (ssl_verify=true) needs CA certificates to be found
+  // in the default verify paths of OpenSSL. On Windows, it means you need to
+  // set environment variable SSL_CERT_FILE properly.
+  HttpSslClient(bool ssl_verify = true);
 
   ~HttpSslClient() = default;
 
@@ -34,10 +38,7 @@ class HttpSslClient {
   void SetTimeout(int seconds);
 
   // Connect to server, send request, wait until response is received.
-  // NOTE: SSL verification (ssl_verify=true) needs CA certificates to be found
-  // in the default verify paths of OpenSSL. On Windows, it means you need to
-  // set environment variable SSL_CERT_FILE properly.
-  bool Request(const HttpRequest& request, bool ssl_verify = true);
+  bool Request(const HttpRequest& request);
 
   HttpResponsePtr response() const { return response_; }
 
@@ -48,7 +49,7 @@ class HttpSslClient {
  private:
   Error Connect(const HttpRequest& request);
 
-  Error Handshake(const std::string& host, bool ssl_verify);
+  Error Handshake(const std::string& host);
 
   Error SendReqeust(const HttpRequest& request);
 
@@ -72,6 +73,9 @@ class HttpSslClient {
   std::unique_ptr<HttpResponseParser> response_parser_;
 
   boost::asio::deadline_timer deadline_;
+
+  // Verify the certificate of the peer (remote server) or not.
+  bool ssl_verify_;
 
   // Maximum seconds to wait before the client cancels the operation.
   // Only for receiving response from server.

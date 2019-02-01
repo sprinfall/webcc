@@ -29,7 +29,6 @@ set(HEADERS
     logger.h
     queue.h
     rest_async_client.h
-    rest_basic_client.h
     rest_client.h
     rest_request_handler.h
     rest_server.h
@@ -55,6 +54,7 @@ set(SOURCES
     http_server.cc
     logger.cc
     rest_async_client.cc
+    rest_client.cc
     rest_request_handler.cc
     rest_service_manager.cc
     rest_service.cc
@@ -70,6 +70,7 @@ if(WEBCC_ENABLE_SSL)
 
     set(SOURCES ${SOURCES}
         http_ssl_client.cc
+        rest_ssl_client.cc
         )
 endif()
 

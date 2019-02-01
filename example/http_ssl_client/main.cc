@@ -27,13 +27,13 @@ int main(int argc, char* argv[]) {
   request.set_host(host);  // Leave port to default value.
   request.Make();
 
-  webcc::HttpSslClient client;
-
   // Verify the certificate of the peer or not.
   // See HttpSslClient::Request() for more details.
   bool ssl_verify = false;
 
-  if (client.Request(request, ssl_verify)) {
+  webcc::HttpSslClient client(ssl_verify);
+
+  if (client.Request(request)) {
     std::cout << client.response()->content() << std::endl;
   } else {
     std::cout << webcc::DescribeError(client.error());
