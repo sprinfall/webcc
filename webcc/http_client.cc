@@ -14,9 +14,9 @@ using boost::asio::ip::tcp;
 
 namespace webcc {
 
-HttpClient::HttpClient()
+HttpClient::HttpClient(std::size_t buffer_size)
     : socket_(io_context_),
-      buffer_(kBufferSize),
+      buffer_(buffer_size == 0 ? kBufferSize : buffer_size),
       deadline_(io_context_),
       timeout_seconds_(kMaxReadSeconds),
       stopped_(false),
@@ -30,7 +30,7 @@ void HttpClient::SetTimeout(int seconds) {
   }
 }
 
-bool HttpClient::Request(const HttpRequest& request) {
+bool HttpClient::Request(const HttpRequest& request, std::size_t buffer_size) {
   io_context_.restart();
 
   response_.reset(new HttpResponse());
@@ -39,6 +39,8 @@ bool HttpClient::Request(const HttpRequest& request) {
   stopped_ = false;
   timed_out_ = false;
   error_ = kNoError;
+
+  BufferResizer buffer_resizer(&buffer_, buffer_size);
 
   if ((error_ = Connect(request)) != kNoError) {
     return false;
@@ -147,8 +149,6 @@ void HttpClient::DoReadResponse(Error* error) {
 
         LOG_INFO("Read data, length: %u.", length);
 
-        bool content_length_parsed = response_parser_->content_length_parsed();
-
         // Parse the response piece just read.
         if (!response_parser_->Parse(buffer_.data(), length)) {
           Stop();
@@ -157,17 +157,14 @@ void HttpClient::DoReadResponse(Error* error) {
           return;
         }
 
-        if (!content_length_parsed &&
-            response_parser_->content_length_parsed()) {
-          // Content length just has been parsed.
-          AdjustBufferSize(response_parser_->content_length(), &buffer_);
-        }
-
         if (response_parser_->finished()) {
-          // Stop trying to read once all content has been received,
-          // because some servers will block extra call to read_some().
+          // Stop trying to read once all content has been received, because
+          // some servers will block extra call to read_some().
           Stop();
+
           LOG_INFO("Finished to read and parse HTTP response.");
+          LOG_VERB("HTTP response:\n%s", response_->Dump(4, "> ").c_str());
+
           return;
         }
 
@@ -195,10 +192,10 @@ void HttpClient::OnDeadline(boost::system::error_code ec) {
   LOG_VERB("OnDeadline.");
 
   // NOTE: Can't check this:
-  // if (ec == boost::asio::error::operation_aborted) {
-  //   LOG_VERB("Deadline timer canceled.");
-  //   return;
-  // }
+  //   if (ec == boost::asio::error::operation_aborted) {
+  //     LOG_VERB("Deadline timer canceled.");
+  //     return;
+  //   }
 
   if (deadline_.expires_at() <=
       boost::asio::deadline_timer::traits_type::now()) {

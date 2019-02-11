@@ -33,12 +33,13 @@ void HttpSession::Close() {
 }
 
 void HttpSession::SetResponseContent(std::string&& content,
-                                     const std::string& type) {
+                                     const std::string& media_type,
+                                     const std::string& charset) {
   response_.SetContent(std::move(content), true);
-  response_.SetContentType(type);
+  response_.SetContentType(media_type, charset);
 }
 
-void HttpSession::SendResponse(HttpStatus::Enum status) {
+void HttpSession::SendResponse(http::Status status) {
   response_.set_status(status);
   response_.Make();
   DoWrite();
@@ -63,7 +64,7 @@ void HttpSession::OnRead(boost::system::error_code ec, std::size_t length) {
   if (!request_parser_.Parse(buffer_.data(), length)) {
     // Bad request.
     LOG_ERRO("Failed to parse HTTP request.");
-    response_ = HttpResponse::Fault(HttpStatus::kBadRequest);
+    response_ = HttpResponse::Fault(http::Status::kBadRequest);
     DoWrite();
     return;
   }

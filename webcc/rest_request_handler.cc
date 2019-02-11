@@ -19,7 +19,7 @@ void RestRequestHandler::HandleSession(HttpSessionPtr session) {
   Url url(http_request.url(), /*decode*/true);
 
   if (!url.IsPathValid()) {
-    session->SendResponse(HttpStatus::kBadRequest);
+    session->SendResponse(http::Status::kBadRequest);
     return;
   }
 
@@ -33,7 +33,7 @@ void RestRequestHandler::HandleSession(HttpSessionPtr session) {
 
   if (!service) {
     LOG_WARN("No service matches the URL path: %s", url.path().c_str());
-    session->SendResponse(HttpStatus::kNotFound);
+    session->SendResponse(http::Status::kNotFound);
     return;
   }
 
@@ -42,7 +42,8 @@ void RestRequestHandler::HandleSession(HttpSessionPtr session) {
 
   if (!rest_response.content.empty()) {
     session->SetResponseContent(std::move(rest_response.content),
-                                kAppJsonUtf8);
+                                http::media_types::kApplicationJson,
+                                http::charsets::kUtf8);
   }
 
   // Send response back to client.

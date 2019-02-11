@@ -37,6 +37,27 @@ void HttpMessage::SetHeader(std::string&& name, std::string&& value) {
   headers_.push_back({ std::move(name), std::move(value) });
 }
 
+// NOTE:
+// According to HTTP 1.1 RFC7231, the following examples are all equivalent,
+// but the first is preferred for consistency:
+//    text/html;charset=utf-8
+//    text/html;charset=UTF-8
+//    Text/HTML;Charset="utf-8"
+//    text/html; charset="utf-8"
+// See: https://tools.ietf.org/html/rfc7231#section-3.1.1.1
+void HttpMessage::SetContentType(const std::string& media_type,
+                                 const std::string& charset) {
+  SetHeader(http::headers::kContentType,
+            media_type + ";charset=" + charset);
+}
+
+void HttpMessage::SetContent(std::string&& content, bool set_length) {
+  content_ = std::move(content);
+  if (set_length) {
+    SetContentLength(content_.size());
+  }
+}
+
 // ATTENTION: The buffers don't hold the memory!
 std::vector<boost::asio::const_buffer> HttpMessage::ToBuffers() const {
   assert(!start_line_.empty());

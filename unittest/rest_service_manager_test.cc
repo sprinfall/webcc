@@ -5,7 +5,7 @@ class TestRestService : public webcc::RestService {
  public:
   void Handle(const webcc::RestRequest& request,
               webcc::RestResponse* response) final {
-    response->status = webcc::HttpStatus::kOK;
+    response->status = webcc::http::Status::kOK;
   }
 };
 

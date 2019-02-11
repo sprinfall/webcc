@@ -46,45 +46,75 @@ const int kMaxReadSeconds = 30;
 const std::size_t kMaxDumpSize = 2048;
 
 // HTTP headers.
-extern const std::string kHost;
-extern const std::string kContentType;
-extern const std::string kContentLength;
-extern const std::string kTransferEncoding;
-extern const std::string kUserAgent;
+namespace http {
 
-extern const std::string kAppJsonUtf8;
+// HTTP response status.
+// This is not a full list.
+// Full list: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+// NTOE: Don't use enum class because we want to convert to/from int easily.
+enum Status {
+  kOK = 200,
+  kCreated = 201,
+  kAccepted = 202,
+  kNoContent = 204,
+  kNotModified = 304,
+  kBadRequest = 400,
+  kNotFound = 404,
+  kInternalServerError = 500,
+  kNotImplemented = 501,
+  kServiceUnavailable = 503,
+};
+
+namespace headers {
+
+// NOTE: Field names are case-insensitive.
+//   See https://stackoverflow.com/a/5259004 for more details.
+const char* const kHost = "Host";
+const char* const kContentType = "Content-Type";
+const char* const kContentLength = "Content-Length";
+const char* const kConnection = "Connection";
+const char* const kTransferEncoding = "Transfer-Encoding";
+const char* const kAccept = "Accept";
+const char* const kAcceptEncoding = "Accept-Encoding";
+const char* const kUserAgent = "User-Agent";
+
+}  // namespace headers
+
+namespace media_types {
+
+// NOTE:
+// According to www.w3.org when placing SOAP messages in HTTP bodies, the HTTP
+// Content-type header must be chosen as "application/soap+xml" [RFC 3902].
+// But in practice, many web servers cannot understand it.
+// See: https://www.w3.org/TR/2007/REC-soap12-part0-20070427/#L26854
+
+const char* const kApplicationJson = "application/json";
+const char* const kApplicationSoapXml = "application/soap+xml";
+const char* const kTextXml = "text/xml";
+
+}  // namespace media_types
+
+namespace charsets {
+
+const char* const kUtf8 = "utf-8";
+
+}  // namespace charsets
+
+}  // namespace http
 
 // Default ports.
-extern const std::string kHttpPort;
-extern const std::string kHttpSslPort;
+const char* const kHttpPort = "80";
+const char* const kHttpSslPort = "443";
 
 // HTTP methods (verbs) in string ("HEAD", "GET", etc.).
 // NOTE: Don't use enum to avoid converting back and forth.
+// TODO: Add enum.
 extern const std::string kHttpHead;
 extern const std::string kHttpGet;
 extern const std::string kHttpPost;
 extern const std::string kHttpPatch;
 extern const std::string kHttpPut;
 extern const std::string kHttpDelete;
-
-// HTTP response status.
-// This is not a full list.
-// Full list: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-// NTOE: Don't use enum class because we want to convert to/from int easily.
-struct HttpStatus {
-  enum Enum {
-    kOK = 200,
-    kCreated = 201,
-    kAccepted = 202,
-    kNoContent = 204,
-    kNotModified = 304,
-    kBadRequest = 400,
-    kNotFound = 404,
-    kInternalServerError = 500,
-    kNotImplemented = 501,
-    kServiceUnavailable = 503,
-  };
-};
 
 // Client side error codes.
 enum Error {

@@ -12,21 +12,13 @@ using tcp = boost::asio::ip::tcp;
 
 namespace webcc {
 
-void AdjustBufferSize(std::size_t content_length, std::vector<char>* buffer) {
-  const std::size_t kMaxTimes = 10;
-
-  // According to test, a client never read more than 200000 bytes a time.
-  // So it doesn't make sense to set any larger size, e.g., 1MB.
-  const std::size_t kMaxBufferSize = 200000;
-
-  LOG_INFO("Adjust buffer size according to content length.");
-
-  std::size_t min_buffer_size = content_length / kMaxTimes;
-  if (min_buffer_size > buffer->size()) {
-    buffer->resize(std::min(min_buffer_size, kMaxBufferSize));
-    LOG_INFO("Resize read buffer to %u.", buffer->size());
-  } else {
-    LOG_INFO("Keep the current buffer size: %u.", buffer->size());
+void AdjustHostPort(std::string& host, std::string& port) {
+  if (port.empty()) {
+    std::size_t i = host.find_last_of(':');
+    if (i != std::string::npos) {
+      port = host.substr(i + 1);
+      host = host.substr(0, i);
+    }
   }
 }
 

@@ -56,7 +56,7 @@ class CalcClient {
     };
 
     std::string result_str;
-    if (!soap_client_.Request(operation, std::move(parameters), kResultName,
+    if (!soap_client_.Request(operation, std::move(parameters), kResultName, 0,
                               &result_str)) {
       PrintError();
       return false;

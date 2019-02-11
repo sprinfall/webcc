@@ -16,7 +16,7 @@ class BookClientBase {
                  const std::string& host, const std::string& port,
                  int timeout_seconds)
       : rest_client_(io_context, host, port) {
-    rest_client_.set_timeout_seconds(timeout_seconds);
+    rest_client_.SetTimeout(timeout_seconds);
   }
 
   virtual ~BookClientBase() = default;
@@ -58,10 +58,10 @@ class BookListClient : public BookClientBase {
       : BookClientBase(io_context, host, port, timeout_seconds) {
   }
 
-  void ListBooks(webcc::HttpResponseHandler handler) {
+  void ListBooks(webcc::HttpResponseCallback callback) {
     std::cout << "ListBooks" << std::endl;
 
-    rest_client_.Get("/books", handler);
+    rest_client_.Get("/books", callback);
   }
 
   void CreateBook(const std::string& title, double price,
@@ -96,7 +96,7 @@ class BookDetailClient : public BookClientBase {
       : BookClientBase(io_context, host, port, timeout_seconds) {
   }
 
-  void GetBook(const std::string& id, webcc::HttpResponseHandler handler) {
+  void GetBook(const std::string& id, webcc::HttpResponseCallback callback) {
     std::cout << "GetBook: " << id << std::endl;
 
     auto rsp_callback = [](webcc::HttpResponsePtr response) {
@@ -105,13 +105,13 @@ class BookDetailClient : public BookClientBase {
       //id_callback(rsp_json["id"].asString());
     };
 
-    rest_client_.Get("/books/" + id, handler);
+    rest_client_.Get("/books/" + id, callback);
   }
 
   void UpdateBook(const std::string& id,
                   const std::string& title,
                   double price,
-                  webcc::HttpResponseHandler handler) {
+                  webcc::HttpResponseCallback callback) {
     std::cout << "UpdateBook: " << id << " " << title << " " << price
               << std::endl;
 
@@ -120,13 +120,13 @@ class BookDetailClient : public BookClientBase {
     json["title"] = title;
     json["price"] = price;
 
-    rest_client_.Put("/books/" + id, JsonToString(json), handler);
+    rest_client_.Put("/books/" + id, JsonToString(json), callback);
   }
 
-  void DeleteBook(const std::string& id, webcc::HttpResponseHandler handler) {
+  void DeleteBook(const std::string& id, webcc::HttpResponseCallback callback) {
     std::cout << "DeleteBook: " << id << std::endl;
 
-    rest_client_.Delete("/books/" + id, handler);
+    rest_client_.Delete("/books/" + id, callback);
   }
 };
 

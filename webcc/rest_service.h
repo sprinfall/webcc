@@ -38,7 +38,7 @@ struct RestRequest {
 };
 
 struct RestResponse {
-  HttpStatus::Enum status;
+  http::Status status;
   std::string content;
 };
 

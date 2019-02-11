@@ -11,11 +11,9 @@
 // The default port number should be 8000.
 
 void Test(boost::asio::io_context& io_context) {
-  webcc::HttpRequestPtr request(new webcc::HttpRequest());
+  webcc::HttpRequestPtr request = std::make_shared<webcc::HttpRequest>(
+      webcc::kHttpGet, "/index.html", "localhost", "8000");
 
-  request->set_method(webcc::kHttpGet);
-  request->set_url("/index.html");
-  request->set_host("localhost", "8000");
   request->Make();
 
   webcc::HttpAsyncClientPtr client(new webcc::HttpAsyncClient(io_context));

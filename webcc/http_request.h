@@ -8,16 +8,26 @@
 
 namespace webcc {
 
+class HttpRequestParser;
+
 class HttpRequest : public HttpMessage {
  public:
   HttpRequest() = default;
+
+  // The |host| is a descriptive name (e.g., www.google.com) or a numeric IP
+  // address (127.0.0.1).
+  // The |port| is a numeric number (e.g., 9000). The default value (80 for HTTP
+  // or 443 for HTTPS) will be used to connect to server if it's empty.
+  HttpRequest(const std::string& method,
+              const std::string& url,
+              const std::string& host,
+              const std::string& port = "");
+
   ~HttpRequest() override = default;
 
   const std::string& method() const { return method_; }
-  void set_method(const std::string& method) { method_ = method; }
 
   const std::string& url() const { return url_; }
-  void set_url(const std::string& url) { url_ = url; }
 
   const std::string& host() const { return host_; }
   const std::string& port() const { return port_; }
@@ -26,20 +36,15 @@ class HttpRequest : public HttpMessage {
     return port_.empty() ? default_port : port_;
   }
 
-  // Set host name and port number.
-  // The |host| is a descriptive name (e.g., www.google.com) or a numeric IP
-  // address (127.0.0.1).
-  // The |port| is a numeric number (e.g., 9000). The default value (80 for HTTP
-  // or 443 for HTTPS) will be used to connect to server if it's empty.
-  void set_host(const std::string& host, const std::string& port = "") {
-    host_ = host;
-    port_ = port;
-  }
-
   // Compose start line, set Host header, etc.
   void Make() override;
 
  private:
+  friend class HttpRequestParser;
+
+  void set_method(const std::string& method) { method_ = method; }
+  void set_url(const std::string& url) { url_ = url; }
+
   // HTTP method.
   std::string method_;
 

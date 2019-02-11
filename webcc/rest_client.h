@@ -17,7 +17,8 @@ class RestClient {
   // If |port| is empty, |host| will be checked to see if it contains port or
   // not (separated by ':').
    explicit RestClient(const std::string& host,
-                       const std::string& port = "");
+                       const std::string& port = "",
+                       std::size_t buffer_size = 0);
 
   ~RestClient() = default;
 
@@ -33,24 +34,27 @@ class RestClient {
   // timed_out() for more information if it's failed. Check response_status()
   // instead for the HTTP status code.
 
-  inline bool Get(const std::string& url) {
-    return Request(kHttpGet, url, "");
+  inline bool Get(const std::string& url, std::size_t buffer_size = 0) {
+    return Request(kHttpGet, url, "", buffer_size);
   }
 
-  inline bool Post(const std::string& url, std::string&& content) {
-    return Request(kHttpPost, url, std::move(content));
+  inline bool Post(const std::string& url, std::string&& content,
+                   std::size_t buffer_size = 0) {
+    return Request(kHttpPost, url, std::move(content), buffer_size);
   }
 
-  inline bool Put(const std::string& url, std::string&& content) {
-    return Request(kHttpPut, url, std::move(content));
+  inline bool Put(const std::string& url, std::string&& content,
+                  std::size_t buffer_size = 0) {
+    return Request(kHttpPut, url, std::move(content), buffer_size);
   }
 
-  inline bool Patch(const std::string& url, std::string&& content) {
-    return Request(kHttpPatch, url, std::move(content));
+  inline bool Patch(const std::string& url, std::string&& content,
+                    std::size_t buffer_size = 0) {
+    return Request(kHttpPatch, url, std::move(content), buffer_size);
   }
 
-  inline bool Delete(const std::string& url) {
-    return Request(kHttpDelete, url, "");
+  inline bool Delete(const std::string& url, std::size_t buffer_size = 0) {
+    return Request(kHttpDelete, url, "", buffer_size);
   }
 
   HttpResponsePtr response() const {
@@ -76,8 +80,8 @@ class RestClient {
   }
 
  private:
-   bool Request(const std::string& method, const std::string& url,
-                std::string&& content);
+  bool Request(const std::string& method, const std::string& url,
+               std::string&& content, std::size_t buffer_size);
 
   std::string host_;
   std::string port_;

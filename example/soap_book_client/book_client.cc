@@ -104,7 +104,7 @@ bool BookClient::Call1(const std::string& operation,
 bool BookClient::Call(const std::string& operation,
                       std::vector<webcc::SoapParameter>&& parameters,
                       std::string* result_str) {
-  if (!soap_client_.Request(operation, std::move(parameters), kResult,
+  if (!soap_client_.Request(operation, std::move(parameters), kResult, 0,
                             result_str)) {
     PrintError();
     return false;

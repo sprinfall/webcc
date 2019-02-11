@@ -37,10 +37,7 @@
 #include "webcc/logger.h"
 
 void Test() {
-  webcc::HttpRequest request;
-  request.set_method(webcc::kHttpGet);
-  request.set_url("/get");
-  request.set_host("httpbin.org"/*, "80"*/);
+  webcc::HttpRequest request(webcc::kHttpGet, "/get", "httpbin.org"/*, "80"*/);
   request.Make();
 
   webcc::HttpClient client;

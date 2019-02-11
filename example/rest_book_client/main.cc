@@ -40,7 +40,7 @@ class BookClientBase {
   }
 
   // Check HTTP response status.
-  bool CheckStatus(webcc::HttpStatus::Enum expected_status) {
+  bool CheckStatus(webcc::http::Status expected_status) {
     int status = rest_client_.response_status();
     if (status != expected_status) {
       LOG_ERRO("HTTP status error (actual: %d, expected: %d).",
@@ -69,7 +69,7 @@ class BookListClient : public BookClientBase {
       return false;
     }
 
-    if (!CheckStatus(webcc::HttpStatus::kOK)) {
+    if (!CheckStatus(webcc::http::Status::kOK)) {
       // Response HTTP status error.
       return false;
     }
@@ -97,7 +97,7 @@ class BookListClient : public BookClientBase {
       return false;
     }
 
-    if (!CheckStatus(webcc::HttpStatus::kCreated)) {
+    if (!CheckStatus(webcc::http::Status::kCreated)) {
       return false;
     }
 
@@ -123,7 +123,7 @@ class BookDetailClient : public BookClientBase {
       return false;
     }
 
-    if (!CheckStatus(webcc::HttpStatus::kOK)) {
+    if (!CheckStatus(webcc::http::Status::kOK)) {
       return false;
     }
 
@@ -141,7 +141,7 @@ class BookDetailClient : public BookClientBase {
       return false;
     }
 
-    if (!CheckStatus(webcc::HttpStatus::kOK)) {
+    if (!CheckStatus(webcc::http::Status::kOK)) {
       return false;
     }
 
@@ -154,7 +154,7 @@ class BookDetailClient : public BookClientBase {
       return false;
     }
 
-    if (!CheckStatus(webcc::HttpStatus::kOK)) {
+    if (!CheckStatus(webcc::http::Status::kOK)) {
       return false;
     }
 

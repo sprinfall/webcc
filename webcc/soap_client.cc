@@ -6,27 +6,22 @@
 #include "boost/algorithm/string.hpp"
 
 #include "webcc/soap_request.h"
-#include "webcc/soap_response.h"
+#include "webcc/utility.h"
 
 namespace webcc {
 
 SoapClient::SoapClient(const std::string& host, const std::string& port,
-                       SoapVersion soap_version)
-    : host_(host), port_(port),
-      soap_version_(soap_version),
+                       SoapVersion soap_version, std::size_t buffer_size)
+    : host_(host), port_(port), soap_version_(soap_version),
+      http_client_(buffer_size),
       format_raw_(true), error_(kNoError) {
-  if (port_.empty()) {
-    std::size_t i = host_.find_last_of(':');
-    if (i != std::string::npos) {
-      port_ = host_.substr(i + 1);
-      host_ = host_.substr(0, i);
-    }
-  }
+  AdjustHostPort(host_, port_);
 }
 
 bool SoapClient::Request(const std::string& operation,
                          std::vector<SoapParameter>&& parameters,
-                         SoapResponse::Parser parser) {
+                         SoapResponse::Parser parser,
+                         std::size_t buffer_size) {
   assert(service_ns_.IsValid());
   assert(!url_.empty() && !host_.empty());
 
@@ -53,23 +48,23 @@ bool SoapClient::Request(const std::string& operation,
   std::string http_content;
   soap_request.ToXml(format_raw_, indent_str_, &http_content);
 
-  HttpRequest http_request;
+  HttpRequest http_request(kHttpPost, url_, host_, port_);
 
-  http_request.set_method(kHttpPost);
-  http_request.set_url(url_);
   http_request.SetContent(std::move(http_content), true);
 
   if (soap_version_ == kSoapV11) {
-    http_request.SetContentType(kTextXmlUtf8);
+    http_request.SetContentType(http::media_types::kTextXml,
+                                http::charsets::kUtf8);
   } else {
-    http_request.SetContentType(kAppSoapXmlUtf8);
+    http_request.SetContentType(http::media_types::kApplicationSoapXml,
+                                http::charsets::kUtf8);
   }
 
-  http_request.set_host(host_, port_);
   http_request.SetHeader(kSoapAction, operation);
+
   http_request.Make();
 
-  if (!http_client_.Request(http_request)) {
+  if (!http_client_.Request(http_request, buffer_size)) {
     error_ = http_client_.error();
     return false;
   }
@@ -95,6 +90,7 @@ bool SoapClient::Request(const std::string& operation,
 bool SoapClient::Request(const std::string& operation,
                          std::vector<SoapParameter>&& parameters,
                          const std::string& result_name,
+                         std::size_t buffer_size,
                          std::string* result) {
   auto parser = [result, &result_name](pugi::xml_node xnode) {
     if (boost::iequals(soap_xml::GetNameNoPrefix(xnode), result_name)) {
@@ -103,7 +99,7 @@ bool SoapClient::Request(const std::string& operation,
     return false;  // Stop next call.
   };
 
-  return Request(operation, std::move(parameters), parser);
+  return Request(operation, std::move(parameters), parser, buffer_size);
 }
 
 }  // namespace webcc

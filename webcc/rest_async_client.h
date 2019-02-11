@@ -10,41 +10,40 @@ namespace webcc {
 
 class RestAsyncClient {
  public:
-  RestAsyncClient(boost::asio::io_context& io_context,  // NOLINT
-                  const std::string& host, const std::string& port);
+  RestAsyncClient(boost::asio::io_context& io_context,
+                  const std::string& host, const std::string& port,
+                  std::size_t buffer_size = 0);
 
-  void set_timeout_seconds(int timeout_seconds) {
-    timeout_seconds_ = timeout_seconds;
+  void SetTimeout(int seconds) {
+    timeout_seconds_ = seconds;
   }
 
-  void Get(const std::string& url,
-           HttpResponseHandler response_handler) {
-    Request(kHttpGet, url, "", response_handler);
+  void Get(const std::string& url, HttpResponseCallback callback) {
+    Request(kHttpGet, url, "", callback);
   }
 
   void Post(const std::string& url, std::string&& content,
-            HttpResponseHandler response_handler) {
-    Request(kHttpPost, url, std::move(content), response_handler);
+            HttpResponseCallback callback) {
+    Request(kHttpPost, url, std::move(content), callback);
   }
 
   void Put(const std::string& url, std::string&& content,
-           HttpResponseHandler response_handler) {
-    Request(kHttpPut, url, std::move(content), response_handler);
+           HttpResponseCallback callback) {
+    Request(kHttpPut, url, std::move(content), callback);
   }
 
   void Patch(const std::string& url, std::string&& content,
-             HttpResponseHandler response_handler) {
-    Request(kHttpPatch, url, std::move(content), response_handler);
+             HttpResponseCallback callback) {
+    Request(kHttpPatch, url, std::move(content), callback);
   }
 
-  void Delete(const std::string& url,
-              HttpResponseHandler response_handler) {
-    Request(kHttpDelete, url, "", response_handler);
+  void Delete(const std::string& url, HttpResponseCallback callback) {
+    Request(kHttpDelete, url, "", callback);
   }
 
  private:
   void Request(const std::string& method, const std::string& url,
-               std::string&& content, HttpResponseHandler response_handler);
+               std::string&& content, HttpResponseCallback callback);
 
   boost::asio::io_context& io_context_;
 
@@ -53,6 +52,8 @@ class RestAsyncClient {
 
   // Timeout in seconds; only effective when > 0.
   int timeout_seconds_;
+
+  std::size_t buffer_size_;
 };
 
 }  // namespace webcc

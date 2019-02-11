@@ -33,10 +33,12 @@ class HttpSession : public std::enable_shared_from_this<HttpSession> {
   // Close the socket.
   void Close();
 
-  void SetResponseContent(std::string&& content, const std::string& type);
+  void SetResponseContent(std::string&& content,
+                          const std::string& media_type,
+                          const std::string& charset);
 
   // Send response to client with the given status.
-  void SendResponse(HttpStatus::Enum status);
+  void SendResponse(http::Status status);
 
  private:
   void DoRead();

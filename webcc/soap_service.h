@@ -20,7 +20,7 @@ class SoapService {
                       SoapResponse* soap_response) = 0;
 
  protected:
-  HttpStatus::Enum http_status_ = HttpStatus::kOK;
+  http::Status http_status_ = http::Status::kOK;
 };
 
 typedef std::shared_ptr<SoapService> SoapServicePtr;

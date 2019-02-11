@@ -16,7 +16,8 @@ class SoapClient {
   // If |port| is empty, |host| will be checked to see if it contains port or
   // not (separated by ':').
   explicit SoapClient(const std::string& host, const std::string& port = "",
-                      SoapVersion soap_version = kSoapV12);
+                      SoapVersion soap_version = kSoapV12,
+                      std::size_t buffer_size = 0);
 
   ~SoapClient() = default;
 
@@ -42,7 +43,8 @@ class SoapClient {
 
   bool Request(const std::string& operation,
                std::vector<SoapParameter>&& parameters,
-               SoapResponse::Parser parser);
+               SoapResponse::Parser parser,
+               std::size_t buffer_size = 0);
 
   // Shortcut for responses with single result node.
   // The name of the single result node is specified by |result_name|.
@@ -50,6 +52,7 @@ class SoapClient {
   bool Request(const std::string& operation,
                std::vector<SoapParameter>&& parameters,
                const std::string& result_name,
+               std::size_t buffer_size,  // Pass 0 for using default size.
                std::string* result);
 
   // HTTP status code (200, 500, etc.) in the response.
@@ -72,6 +75,8 @@ class SoapClient {
 
   SoapVersion soap_version_;
 
+  HttpClient http_client_;
+
   // Request URL.
   std::string url_;
 
@@ -84,8 +89,6 @@ class SoapClient {
   // Indent string for request XML.
   // Applicable when |format_raw_| is false.
   std::string indent_str_;
-
-  HttpClient http_client_;
 
   Error error_;
 

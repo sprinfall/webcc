@@ -11,8 +11,8 @@
 
 namespace webcc {
 
-// Response handler/callback.
-typedef std::function<void(std::string, Error, bool)> SoapResponseHandler;
+// Response callback.
+typedef std::function<void(std::string, Error, bool)> SoapResponseCallback;
 
 class SoapAsyncClient {
  public:
@@ -20,7 +20,8 @@ class SoapAsyncClient {
   // not (separated by ':').
   SoapAsyncClient(boost::asio::io_context& io_context,  // NOLINT
                   const std::string& host, const std::string& port = "",
-                  SoapVersion soap_version = kSoapV12);
+                  SoapVersion soap_version = kSoapV12,
+                  std::size_t buffer_size = 0);
 
   ~SoapAsyncClient() = default;
 
@@ -48,12 +49,12 @@ class SoapAsyncClient {
 
   void Request(const std::string& operation,
                std::vector<SoapParameter>&& parameters,
-               SoapResponseHandler soap_response_handler);
+               SoapResponseCallback soap_response_callback);
 
  private:
-  void ResponseHandler(SoapResponseHandler soap_response_handler,
-                       HttpResponsePtr http_response,
-                       Error error, bool timed_out);
+  void OnHttpResponse(SoapResponseCallback soap_response_callback,
+                      HttpResponsePtr http_response,
+                      Error error, bool timed_out);
 
   boost::asio::io_context& io_context_;
 
@@ -61,6 +62,8 @@ class SoapAsyncClient {
   std::string port_;  // Leave this empty to use default 80.
 
   SoapVersion soap_version_;
+
+  std::size_t buffer_size_;
 
   // Request URL.
   std::string url_;

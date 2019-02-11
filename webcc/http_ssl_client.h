@@ -23,11 +23,12 @@ namespace webcc {
 // Don't use the same HttpClient object in multiple threads.
 class HttpSslClient {
  public:
-  // NOTE:
-  // SSL verification (ssl_verify=true) needs CA certificates to be found
+  // The |buffer_size| is the bytes of the buffer for reading response.
+  // 0 means default value (e.g., 1024) will be used.
+  // SSL verification (|ssl_verify|) needs CA certificates to be found
   // in the default verify paths of OpenSSL. On Windows, it means you need to
   // set environment variable SSL_CERT_FILE properly.
-  HttpSslClient(bool ssl_verify = true);
+  explicit HttpSslClient(std::size_t buffer_size = 0, bool ssl_verify = true);
 
   ~HttpSslClient() = default;
 
@@ -38,7 +39,9 @@ class HttpSslClient {
   void SetTimeout(int seconds);
 
   // Connect to server, send request, wait until response is received.
-  bool Request(const HttpRequest& request);
+  // Set |buffer_size| to non-zero to use a different buffer size for this
+  // specific request.
+  bool Request(const HttpRequest& request, std::size_t buffer_size = 0);
 
   HttpResponsePtr response() const { return response_; }
 

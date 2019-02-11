@@ -16,8 +16,8 @@
 
 namespace webcc {
 
-// Response handler/callback.
-typedef std::function<void(HttpResponsePtr, Error, bool)> HttpResponseHandler;
+// Response callback.
+typedef std::function<void(HttpResponsePtr, Error, bool)> HttpResponseCallback;
 
 // HTTP client session in asynchronous mode.
 // A request will return without waiting for the response, the callback handler
@@ -25,21 +25,22 @@ typedef std::function<void(HttpResponsePtr, Error, bool)> HttpResponseHandler;
 // Don't use the same HttpAsyncClient object in multiple threads.
 class HttpAsyncClient : public std::enable_shared_from_this<HttpAsyncClient> {
  public:
-  explicit HttpAsyncClient(boost::asio::io_context& io_context);
+  // The |buffer_size| is the bytes of the buffer for reading response.
+  // 0 means default value (e.g., 1024) will be used.
+  explicit HttpAsyncClient(boost::asio::io_context& io_context,
+                           std::size_t buffer_size = 0);
 
   WEBCC_DELETE_COPY_ASSIGN(HttpAsyncClient);
 
-  void set_timeout_seconds(int timeout_seconds) {
-    timeout_seconds_ = timeout_seconds;
-  }
+  // Set the timeout seconds for reading response.
+  // The |seconds| is only effective when greater than 0.
+  void SetTimeout(int seconds);
 
   // Asynchronously connect to the server, send the request, read the response,
-  // and call the |response_handler| when all these finish.
-  void Request(HttpRequestPtr request, HttpResponseHandler response_handler);
+  // and call the |response_callback| when all these finish.
+  void Request(HttpRequestPtr request, HttpResponseCallback response_callback);
 
-  // Terminate all the actors to shut down the connection. It may be called by
-  // the user of the client class, or by the class itself in response to
-  // graceful termination or an unrecoverable error.
+  // Called by the user to cancel the request.
   void Stop();
 
  private:
@@ -59,6 +60,9 @@ class HttpAsyncClient : public std::enable_shared_from_this<HttpAsyncClient> {
   void DoWaitDeadline();
   void OnDeadline(boost::system::error_code ec);
 
+  // Terminate all the actors to shut down the connection. 
+  void DoStop();
+
   tcp::resolver resolver_;
   tcp::socket socket_;
 
@@ -67,7 +71,7 @@ class HttpAsyncClient : public std::enable_shared_from_this<HttpAsyncClient> {
 
   HttpResponsePtr response_;
   std::unique_ptr<HttpResponseParser> response_parser_;
-  HttpResponseHandler response_handler_;
+  HttpResponseCallback response_callback_;
 
   // Timer for the timeout control.
   boost::asio::deadline_timer deadline_;
@@ -76,7 +80,11 @@ class HttpAsyncClient : public std::enable_shared_from_this<HttpAsyncClient> {
   // Only for receiving response from server.
   int timeout_seconds_;
 
+  // Request stopped due to timeout or socket error.
   bool stopped_;
+
+  // If the error was caused by timeout or not.
+  // Will be passed to the response handler/callback.
   bool timed_out_;
 };
 

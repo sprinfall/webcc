@@ -20,7 +20,6 @@ class HttpParser {
 
   bool finished() const { return finished_; }
 
-  bool content_length_parsed() const { return content_length_parsed_; }
   std::size_t content_length() const { return content_length_; }
 
   bool Parse(const char* data, std::size_t length);

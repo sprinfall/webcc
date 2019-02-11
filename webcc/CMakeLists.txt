@@ -65,11 +65,13 @@ set(SOURCES
 if(WEBCC_ENABLE_SSL)
     set(HEADERS ${HEADERS}
         http_ssl_client.h
+        # rest_ssl_async_client.h
         rest_ssl_client.h
         )
 
     set(SOURCES ${SOURCES}
         http_ssl_client.cc
+        # rest_ssl_async_client.cc
         rest_ssl_client.cc
         )
 endif()

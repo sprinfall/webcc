@@ -20,34 +20,34 @@ const std::string SERVICE_UNAVAILABLE = "HTTP/1.1 503 Service Unavailable\r\n";
 
 const std::string& ToString(int status) {
   switch (status) {
-    case HttpStatus::kOK:
+    case http::Status::kOK:
       return OK;
 
-    case HttpStatus::kCreated:
+    case http::Status::kCreated:
       return CREATED;
 
-    case HttpStatus::kAccepted:
+    case http::Status::kAccepted:
       return ACCEPTED;
 
-    case HttpStatus::kNoContent:
+    case http::Status::kNoContent:
       return NO_CONTENT;
 
-    case HttpStatus::kNotModified:
+    case http::Status::kNotModified:
       return NOT_MODIFIED;
 
-    case HttpStatus::kBadRequest:
+    case http::Status::kBadRequest:
       return BAD_REQUEST;
 
-    case HttpStatus::kNotFound:
+    case http::Status::kNotFound:
       return NOT_FOUND;
 
-    case HttpStatus::kInternalServerError:
+    case http::Status::kInternalServerError:
       return INTERNAL_SERVER_ERROR;
 
-    case HttpStatus::kNotImplemented:
+    case http::Status::kNotImplemented:
       return NOT_IMPLEMENTED;
 
-    case HttpStatus::kServiceUnavailable:
+    case http::Status::kServiceUnavailable:
       return SERVICE_UNAVAILABLE;
 
     default:
@@ -66,8 +66,8 @@ void HttpResponse::Make() {
   SetHeader("Date", GetHttpDateTimestamp());
 }
 
-HttpResponse HttpResponse::Fault(HttpStatus::Enum status) {
-  assert(status != HttpStatus::kOK);
+HttpResponse HttpResponse::Fault(http::Status status) {
+  assert(status != http::Status::kOK);
 
   HttpResponse response;
   response.set_status(status);

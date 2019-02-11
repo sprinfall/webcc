@@ -15,10 +15,10 @@ namespace ssl = boost::asio::ssl;
 
 namespace webcc {
 
-HttpSslClient::HttpSslClient(bool ssl_verify)
+HttpSslClient::HttpSslClient(std::size_t buffer_size, bool ssl_verify)
     : ssl_context_(ssl::context::sslv23),
       ssl_socket_(io_context_, ssl_context_),
-      buffer_(kBufferSize),
+      buffer_(buffer_size == 0 ? kBufferSize : buffer_size),
       deadline_(io_context_),
       ssl_verify_(ssl_verify),
       timeout_seconds_(kMaxReadSeconds),
@@ -35,7 +35,8 @@ void HttpSslClient::SetTimeout(int seconds) {
   }
 }
 
-bool HttpSslClient::Request(const HttpRequest& request) {
+bool HttpSslClient::Request(const HttpRequest& request,
+                            std::size_t buffer_size) {
   io_context_.restart();
 
   response_.reset(new HttpResponse());
@@ -44,6 +45,8 @@ bool HttpSslClient::Request(const HttpRequest& request) {
   stopped_ = false;
   timed_out_ = false;
   error_ = kNoError;
+
+  BufferResizer buffer_resizer(&buffer_, buffer_size);
 
   if ((error_ = Connect(request)) != kNoError) {
     return false;
@@ -178,20 +181,12 @@ void HttpSslClient::DoReadResponse(Error* error) {
 
         LOG_INFO("Read data, length: %u.", length);
 
-        bool content_length_parsed = response_parser_->content_length_parsed();
-
         // Parse the response piece just read.
         if (!response_parser_->Parse(buffer_.data(), length)) {
           Stop();
           *error = kHttpError;
           LOG_ERRO("Failed to parse HTTP response.");
           return;
-        }
-
-        if (!content_length_parsed &&
-            response_parser_->content_length_parsed()) {
-          // Content length just has been parsed.
-          AdjustBufferSize(response_parser_->content_length(), &buffer_);
         }
 
         if (response_parser_->finished()) {

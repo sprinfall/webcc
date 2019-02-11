@@ -21,20 +21,19 @@ int main(int argc, char* argv[]) {
 
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
-  webcc::HttpRequest request;
-  request.set_method(webcc::kHttpGet);
-  request.set_url(url);
-  request.set_host(host);  // Leave port to default value.
+  // Leave port to default value.
+  webcc::HttpRequest request(webcc::kHttpGet, url, host);
+
   request.Make();
 
   // Verify the certificate of the peer or not.
   // See HttpSslClient::Request() for more details.
   bool ssl_verify = false;
 
-  webcc::HttpSslClient client(ssl_verify);
+  webcc::HttpSslClient client(2000, ssl_verify);
 
   if (client.Request(request)) {
-    std::cout << client.response()->content() << std::endl;
+    //std::cout << client.response()->content() << std::endl;
   } else {
     std::cout << webcc::DescribeError(client.error());
     if (client.timed_out()) {

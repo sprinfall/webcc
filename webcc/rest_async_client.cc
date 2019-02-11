@@ -4,34 +4,37 @@ namespace webcc {
 
 RestAsyncClient::RestAsyncClient(boost::asio::io_context& io_context,
                                  const std::string& host,
-                                 const std::string& port)
-    : io_context_(io_context), host_(host), port_(port), timeout_seconds_(0) {
+                                 const std::string& port,
+                                 std::size_t buffer_size)
+    : io_context_(io_context),
+      host_(host), port_(port),
+      timeout_seconds_(0),
+      buffer_size_(buffer_size) {
 }
 
 void RestAsyncClient::Request(const std::string& method,
                               const std::string& url,
                               std::string&& content,
-                              HttpResponseHandler response_handler) {
-  HttpRequestPtr request(new webcc::HttpRequest());
-
-  request->set_method(method);
-  request->set_url(url);
-  request->set_host(host_, port_);
+                              HttpResponseCallback callback) {
+  HttpRequestPtr http_request(new HttpRequest(method, url, host_, port_));
 
   if (!content.empty()) {
-    request->SetContent(std::move(content), true);
-    request->SetContentType(kAppJsonUtf8);
+    http_request->SetContent(std::move(content), true);
+    http_request->SetContentType(http::media_types::kApplicationJson,
+                                 http::charsets::kUtf8);
   }
 
-  request->Make();
+  http_request->Make();
 
-  HttpAsyncClientPtr http_client(new HttpAsyncClient(io_context_));
+  HttpAsyncClientPtr http_async_client{
+    new HttpAsyncClient(io_context_, buffer_size_)
+  };
 
   if (timeout_seconds_ > 0) {
-    http_client->set_timeout_seconds(timeout_seconds_);
+    http_async_client->SetTimeout(timeout_seconds_);
   }
 
-  http_client->Request(request, response_handler);
+  http_async_client->Request(http_request, callback);
 }
 
 }  // namespace webcc

@@ -39,16 +39,10 @@ class HttpMessage {
   void SetHeader(std::string&& name, std::string&& value);
 
   // E.g., "application/json; charset=utf-8"
-  void SetContentType(const std::string& content_type) {
-    SetHeader(kContentType, content_type);
-  }
+  void SetContentType(const std::string& media_type,
+                      const std::string& charset);
 
-  void SetContent(std::string&& content, bool set_length) {
-    content_ = std::move(content);
-    if (set_length) {
-      SetContentLength(content_.size());
-    }
-  }
+  void SetContent(std::string&& content, bool set_length);
 
   // Make the message (e.g., update start line).
   // Must be called before ToBuffers()!
@@ -70,7 +64,7 @@ class HttpMessage {
  protected:
   void SetContentLength(std::size_t content_length) {
     content_length_ = content_length;
-    SetHeader(kContentLength, std::to_string(content_length));
+    SetHeader(http::headers::kContentLength, std::to_string(content_length));
   }
 
   // Start line with trailing CRLF.

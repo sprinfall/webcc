@@ -132,7 +132,7 @@ bool HttpParser::ParseHeaderLine(const std::string& line) {
 
   do {
     if (!chunked_ && !content_length_parsed_) {
-      if (boost::iequals(name, kContentLength)) {
+      if (boost::iequals(name, http::headers::kContentLength)) {
         content_length_parsed_ = true;
 
         if (!StringToSizeT(value, 10, &content_length_)) {
@@ -156,7 +156,7 @@ bool HttpParser::ParseHeaderLine(const std::string& line) {
     
     // TODO: Replace `!chunked_` with <TransferEncodingParsed>.
     if (!chunked_ && !content_length_parsed_) {
-      if (boost::iequals(name, kTransferEncoding)) {
+      if (boost::iequals(name, http::headers::kTransferEncoding)) {
         if (value == "chunked") {
           // The content is chunked.
           chunked_ = true;

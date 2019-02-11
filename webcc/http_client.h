@@ -21,7 +21,10 @@ namespace webcc {
 // Don't use the same HttpClient object in multiple threads.
 class HttpClient {
  public:
-  HttpClient();
+  // The |buffer_size| is the bytes of the buffer for reading response.
+  // 0 means default value (e.g., 1024) will be used.
+  explicit HttpClient(std::size_t buffer_size = 0);
+
   ~HttpClient() = default;
 
   WEBCC_DELETE_COPY_ASSIGN(HttpClient);
@@ -31,7 +34,9 @@ class HttpClient {
   void SetTimeout(int seconds);
 
   // Connect to server, send request, wait until response is received.
-  bool Request(const HttpRequest& request);
+  // Set |buffer_size| to non-zero to use a different buffer size for this
+  // specific request.
+  bool Request(const HttpRequest& request, std::size_t buffer_size = 0);
 
   HttpResponsePtr response() const { return response_; }
 
@@ -54,7 +59,6 @@ class HttpClient {
   void Stop();
 
   boost::asio::io_context io_context_;
-
   boost::asio::ip::tcp::socket socket_;
 
   std::vector<char> buffer_;
@@ -62,12 +66,14 @@ class HttpClient {
   HttpResponsePtr response_;
   std::unique_ptr<HttpResponseParser> response_parser_;
 
+  // Timer for the timeout control.
   boost::asio::deadline_timer deadline_;
 
   // Maximum seconds to wait before the client cancels the operation.
   // Only for reading response from server.
   int timeout_seconds_;
 
+  // Request stopped due to timeout or socket error.
   bool stopped_;
 
   // If the error was caused by timeout or not.

@@ -10,7 +10,7 @@ namespace webcc {
 
 class HttpResponse : public HttpMessage {
  public:
-  HttpResponse() : status_(HttpStatus::kOK) {}
+  HttpResponse() : status_(http::Status::kOK) {}
 
   ~HttpResponse() override = default;
 
@@ -23,7 +23,7 @@ class HttpResponse : public HttpMessage {
 
   // Get a fault response when HTTP status is not OK.
   // TODO: Avoid copy.
-  static HttpResponse Fault(HttpStatus::Enum status);
+  static HttpResponse Fault(http::Status status);
 
  private:
   int status_;

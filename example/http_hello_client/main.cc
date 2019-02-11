@@ -9,10 +9,8 @@
 // The default port number should be 8000.
 
 void Test() {
-  webcc::HttpRequest request;
-  request.set_method(webcc::kHttpGet);
-  request.set_url("/index.html");
-  request.set_host("localhost", "8000");
+  webcc::HttpRequest request(webcc::kHttpGet, "/index.html", "localhost",
+                             "8000");
   request.Make();
 
   webcc::HttpClient client;

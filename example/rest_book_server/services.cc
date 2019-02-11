@@ -35,7 +35,7 @@ void BookListService::Get(const webcc::UrlQuery& /*query*/,
   }
 
   response->content = JsonToString(json);
-  response->status = webcc::HttpStatus::kOK;
+  response->status = webcc::http::Status::kOK;
 }
 
 void BookListService::Post(const std::string& request_content,
@@ -50,10 +50,10 @@ void BookListService::Post(const std::string& request_content,
     json["id"] = id;
 
     response->content = JsonToString(json);
-    response->status = webcc::HttpStatus::kCreated;
+    response->status = webcc::http::Status::kCreated;
   } else {
     // Invalid JSON
-    response->status = webcc::HttpStatus::kBadRequest;
+    response->status = webcc::http::Status::kBadRequest;
   }
 }
 
@@ -67,7 +67,7 @@ void BookDetailService::Get(const webcc::UrlSubMatches& url_sub_matches,
   if (url_sub_matches.size() != 1) {
     // Using kNotFound means the resource specified by the URL cannot be found.
     // kBadRequest could be another choice.
-    response->status = webcc::HttpStatus::kNotFound;
+    response->status = webcc::http::Status::kNotFound;
     return;
   }
 
@@ -75,12 +75,12 @@ void BookDetailService::Get(const webcc::UrlSubMatches& url_sub_matches,
 
   const Book& book = g_book_store.GetBook(book_id);
   if (book.IsNull()) {
-    response->status = webcc::HttpStatus::kNotFound;
+    response->status = webcc::http::Status::kNotFound;
     return;
   }
 
   response->content = BookToJsonString(book);
-  response->status = webcc::HttpStatus::kOK;
+  response->status = webcc::http::Status::kOK;
 }
 
 void BookDetailService::Put(const webcc::UrlSubMatches& url_sub_matches,
@@ -89,7 +89,7 @@ void BookDetailService::Put(const webcc::UrlSubMatches& url_sub_matches,
   Sleep(sleep_seconds_);
 
   if (url_sub_matches.size() != 1) {
-    response->status = webcc::HttpStatus::kNotFound;
+    response->status = webcc::http::Status::kNotFound;
     return;
   }
 
@@ -97,14 +97,14 @@ void BookDetailService::Put(const webcc::UrlSubMatches& url_sub_matches,
 
   Book book;
   if (!JsonStringToBook(request_content, &book)) {
-    response->status = webcc::HttpStatus::kBadRequest;
+    response->status = webcc::http::Status::kBadRequest;
     return;
   }
 
   book.id = book_id;
   g_book_store.UpdateBook(book);
 
-  response->status = webcc::HttpStatus::kOK;
+  response->status = webcc::http::Status::kOK;
 }
 
 void BookDetailService::Delete(const webcc::UrlSubMatches& url_sub_matches,
@@ -112,16 +112,16 @@ void BookDetailService::Delete(const webcc::UrlSubMatches& url_sub_matches,
   Sleep(sleep_seconds_);
 
   if (url_sub_matches.size() != 1) {
-    response->status = webcc::HttpStatus::kNotFound;
+    response->status = webcc::http::Status::kNotFound;
     return;
   }
 
   const std::string& book_id = url_sub_matches[0];
 
   if (!g_book_store.DeleteBook(book_id)) {
-    response->status = webcc::HttpStatus::kNotFound;
+    response->status = webcc::http::Status::kNotFound;
     return;
   }
 
-  response->status = webcc::HttpStatus::kOK;
+  response->status = webcc::http::Status::kOK;
 }
