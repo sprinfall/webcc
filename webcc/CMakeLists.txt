@@ -16,6 +16,7 @@ include(GNUInstallDirs)
 set(HEADERS
     globals.h
     http_async_client.h
+    http_client_base.h
     http_client.h
     http_session.h
     http_message.h
@@ -42,6 +43,7 @@ set(HEADERS
 set(SOURCES
     globals.cc
     http_async_client.cc
+    http_client_base.cc
     http_client.cc
     http_session.cc
     http_message.cc

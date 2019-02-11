@@ -1,30 +1,17 @@
 #ifndef WEBCC_HTTP_SSL_CLIENT_H_
 #define WEBCC_HTTP_SSL_CLIENT_H_
 
-#include <cassert>
-#include <memory>
-#include <string>
-#include <vector>
+#include "webcc/http_client_base.h"
 
-#include "boost/asio/deadline_timer.hpp"
-#include "boost/asio/io_context.hpp"
-#include "boost/asio/ip/tcp.hpp"
 #include "boost/asio/ssl.hpp"
-
-#include "webcc/globals.h"
-#include "webcc/http_request.h"
-#include "webcc/http_response.h"
-#include "webcc/http_response_parser.h"
 
 namespace webcc {
 
 // HTTP SSL (a.k.a., HTTPS) client session in synchronous mode.
 // A request will not return until the response is received or timeout occurs.
-// Don't use the same HttpClient object in multiple threads.
-class HttpSslClient {
+// Don't use the same HttpSslClient object in multiple threads.
+class HttpSslClient : public HttpClientBase {
  public:
-  // The |buffer_size| is the bytes of the buffer for reading response.
-  // 0 means default value (e.g., 1024) will be used.
   // SSL verification (|ssl_verify|) needs CA certificates to be found
   // in the default verify paths of OpenSSL. On Windows, it means you need to
   // set environment variable SSL_CERT_FILE properly.
@@ -34,62 +21,28 @@ class HttpSslClient {
 
   WEBCC_DELETE_COPY_ASSIGN(HttpSslClient);
 
-  // Set the timeout seconds for reading response.
-  // The |seconds| is only effective when greater than 0.
-  void SetTimeout(int seconds);
-
-  // Connect to server, send request, wait until response is received.
-  // Set |buffer_size| to non-zero to use a different buffer size for this
-  // specific request.
-  bool Request(const HttpRequest& request, std::size_t buffer_size = 0);
-
-  HttpResponsePtr response() const { return response_; }
-
-  bool timed_out() const { return timed_out_; }
-
-  Error error() const { return error_; }
-
  private:
-  Error Connect(const HttpRequest& request);
-
   Error Handshake(const std::string& host);
 
-  Error SendReqeust(const HttpRequest& request);
+  // Override to do handshake after connected.
+  Error Connect(const HttpRequest& request) final;
 
-  Error ReadResponse();
+  void SocketConnect(const Endpoints& endpoints,
+                     boost::system::error_code* ec) final;
 
-  void DoReadResponse(Error* error);
+  void SocketWrite(const HttpRequest& request,
+                   boost::system::error_code* ec) final;
 
-  void DoWaitDeadline();
-  void OnDeadline(boost::system::error_code ec);
+  void SocketAsyncReadSome(std::vector<char>& buffer,
+                           ReadHandler handler) final;
 
-  void Stop();
-
-  boost::asio::io_context io_context_;
+  void SocketClose(boost::system::error_code* ec) final;
 
   boost::asio::ssl::context ssl_context_;
   boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket_;
 
-  std::vector<char> buffer_;
-
-  HttpResponsePtr response_;
-  std::unique_ptr<HttpResponseParser> response_parser_;
-
-  boost::asio::deadline_timer deadline_;
-
   // Verify the certificate of the peer (remote server) or not.
   bool ssl_verify_;
-
-  // Maximum seconds to wait before the client cancels the operation.
-  // Only for receiving response from server.
-  int timeout_seconds_;
-
-  bool stopped_;
-
-  // If the error was caused by timeout or not.
-  bool timed_out_;
-
-  Error error_;
 };
 
 }  // namespace webcc
