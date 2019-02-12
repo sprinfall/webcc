@@ -8,7 +8,10 @@
 
 namespace webcc {
 
+class HttpRequest;
 class HttpRequestParser;
+
+typedef std::shared_ptr<HttpRequest> HttpRequestPtr;
 
 class HttpRequest : public HttpMessage {
  public:
@@ -36,8 +39,15 @@ class HttpRequest : public HttpMessage {
     return port_.empty() ? default_port : port_;
   }
 
+  // Prepare payload.
   // Compose start line, set Host header, etc.
-  void Make() override;
+  void Prepare() override;
+
+  static HttpRequestPtr Make(const std::string& method,
+                             const std::string& url,
+                             const std::string& host,
+                             const std::string& port = "",
+                             bool prepare = true);
 
  private:
   friend class HttpRequestParser;
@@ -56,8 +66,6 @@ class HttpRequest : public HttpMessage {
   std::string host_;
   std::string port_;
 };
-
-typedef std::shared_ptr<HttpRequest> HttpRequestPtr;
 
 }  // namespace webcc
 

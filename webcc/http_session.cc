@@ -41,7 +41,7 @@ void HttpSession::SetResponseContent(std::string&& content,
 
 void HttpSession::SendResponse(http::Status status) {
   response_.set_status(status);
-  response_.Make();
+  response_.Prepare();
   DoWrite();
 }
 

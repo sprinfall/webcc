@@ -22,8 +22,7 @@ void AdjustHostPort(std::string& host, std::string& port) {
   }
 }
 
-void PrintEndpoint(std::ostream& ostream,
-                   const boost::asio::ip::tcp::endpoint& endpoint) {
+void PrintEndpoint(std::ostream& ostream, const TcpEndpoint& endpoint) {
   ostream << endpoint;
   if (endpoint.protocol() == tcp::v4()) {
     ostream << ", v4";
@@ -32,8 +31,7 @@ void PrintEndpoint(std::ostream& ostream,
   }
 }
 
-void PrintEndpoints(std::ostream& ostream,
-                    const tcp::resolver::results_type& endpoints) {
+void PrintEndpoints(std::ostream& ostream, const TcpEndpoints& endpoints) {
   ostream << "Endpoints: " << endpoints.size() << std::endl;
   tcp::resolver::results_type::iterator it = endpoints.begin();
   for (; it != endpoints.end(); ++it) {
@@ -43,7 +41,7 @@ void PrintEndpoints(std::ostream& ostream,
   }
 }
 
-std::string EndpointToString(const boost::asio::ip::tcp::endpoint& endpoint) {
+std::string EndpointToString(const TcpEndpoint& endpoint) {
   std::stringstream ss;
   PrintEndpoint(ss, endpoint);
   return ss.str();

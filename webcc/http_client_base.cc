@@ -1,8 +1,5 @@
 #include "webcc/http_client_base.h"
 
-#include "boost/asio/connect.hpp"
-#include "boost/asio/read.hpp"
-#include "boost/asio/write.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
 
 #include "webcc/logger.h"
@@ -44,7 +41,7 @@ bool HttpClientBase::Request(const HttpRequest& request,
     return false;
   }
 
-  if ((error_ = SendReqeust(request)) != kNoError) {
+  if ((error_ = WriteReqeust(request)) != kNoError) {
     return false;
   }
 
@@ -87,7 +84,7 @@ Error HttpClientBase::DoConnect(const HttpRequest& request,
   return kNoError;
 }
 
-Error HttpClientBase::SendReqeust(const HttpRequest& request) {
+Error HttpClientBase::WriteReqeust(const HttpRequest& request) {
   LOG_VERB("HTTP request:\n%s", request.Dump(4, "> ").c_str());
 
   // NOTE:
@@ -130,8 +127,8 @@ Error HttpClientBase::ReadResponse() {
 void HttpClientBase::DoReadResponse(Error* error) {
   boost::system::error_code ec = boost::asio::error::would_block;
 
-  auto read_handler = [this, &ec, error](boost::system::error_code inner_ec,
-                                         std::size_t length) {
+  auto handler = [this, &ec, error](boost::system::error_code inner_ec,
+                                    std::size_t length) {
     ec = inner_ec;
 
     LOG_VERB("Socket async read handler.");
@@ -168,7 +165,7 @@ void HttpClientBase::DoReadResponse(Error* error) {
     }
   };
 
-  SocketAsyncReadSome(buffer_, read_handler);
+  SocketAsyncReadSome(std::move(handler));
 
   // Block until the asynchronous operation has completed.
   do {

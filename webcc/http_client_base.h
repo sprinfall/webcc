@@ -17,6 +17,10 @@
 
 namespace webcc {
 
+// The base class of synchronous HTTP clients.
+// In synchronous mode, a request won't return until the response is received
+// or timeout occurs.
+// Please don't use the same client object in multiple threads.
 class HttpClientBase {
  public:
   // The |buffer_size| is the bytes of the buffer for reading response.
@@ -38,6 +42,16 @@ class HttpClientBase {
 
   HttpResponsePtr response() const { return response_; }
 
+  int response_status() const {
+    assert(response_);
+    return response_->status();
+  }
+
+  const std::string& response_content() const {
+    assert(response_);
+    return response_->content();
+  }
+
   bool timed_out() const { return timed_out_; }
 
   Error error() const { return error_; }
@@ -48,12 +62,11 @@ class HttpClientBase {
   typedef std::function<void(boost::system::error_code, std::size_t)>
       ReadHandler;
 
+  virtual Error Connect(const HttpRequest& request) = 0;
+
   Error DoConnect(const HttpRequest& request, const std::string& default_port);
 
-  boost::asio::io_context io_context_;
-
- private:
-  Error SendReqeust(const HttpRequest& request);
+  Error WriteReqeust(const HttpRequest& request);
 
   Error ReadResponse();
 
@@ -64,18 +77,17 @@ class HttpClientBase {
 
   void Stop();
 
-  virtual Error Connect(const HttpRequest& request) = 0;
-
   virtual void SocketConnect(const Endpoints& endpoints,
                              boost::system::error_code* ec) = 0;
 
   virtual void SocketWrite(const HttpRequest& request,
                            boost::system::error_code* ec) = 0;
 
-  virtual void SocketAsyncReadSome(std::vector<char>& buffer,
-                                   ReadHandler handler) = 0;
+  virtual void SocketAsyncReadSome(ReadHandler&& handler) = 0;
 
   virtual void SocketClose(boost::system::error_code* ec) = 0;
+
+  boost::asio::io_context io_context_;
 
   std::vector<char> buffer_;
 

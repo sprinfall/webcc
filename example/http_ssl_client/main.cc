@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
   // Leave port to default value.
   webcc::HttpRequest request(webcc::kHttpGet, url, host);
 
-  request.Make();
+  request.Prepare();
 
   // Verify the certificate of the peer or not.
   // See HttpSslClient::Request() for more details.

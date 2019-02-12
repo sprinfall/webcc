@@ -61,9 +61,8 @@ void HttpSslClient::SocketWrite(const HttpRequest& request,
   boost::asio::write(ssl_socket_, request.ToBuffers(), *ec);
 }
 
-void HttpSslClient::SocketAsyncReadSome(std::vector<char>& buffer,
-                                        ReadHandler handler) {
-  ssl_socket_.async_read_some(boost::asio::buffer(buffer), handler);
+void HttpSslClient::SocketAsyncReadSome(ReadHandler&& handler) {
+  ssl_socket_.async_read_some(boost::asio::buffer(buffer_), std::move(handler));
 }
 
 void HttpSslClient::SocketClose(boost::system::error_code* ec) {

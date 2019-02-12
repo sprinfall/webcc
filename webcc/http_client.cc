@@ -20,9 +20,8 @@ void HttpClient::SocketWrite(const HttpRequest& request,
   boost::asio::write(socket_, request.ToBuffers(), *ec);
 }
 
-void HttpClient::SocketAsyncReadSome(std::vector<char>& buffer,
-                                     ReadHandler handler) {
-  socket_.async_read_some(boost::asio::buffer(buffer), handler);
+void HttpClient::SocketAsyncReadSome(ReadHandler&& handler) {
+  socket_.async_read_some(boost::asio::buffer(buffer_), std::move(handler));
 }
 
 void HttpClient::SocketClose(boost::system::error_code* ec) {

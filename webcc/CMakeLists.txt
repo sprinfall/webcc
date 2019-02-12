@@ -15,6 +15,7 @@ include(GNUInstallDirs)
 
 set(HEADERS
     globals.h
+    http_async_client_base.h
     http_async_client.h
     http_client_base.h
     http_client.h
@@ -27,7 +28,7 @@ set(HEADERS
     http_response.h
     http_response_parser.h
     http_server.h
-    logger.h
+    http_ssl_async_client.h
     queue.h
     rest_async_client.h
     rest_client.h
@@ -42,6 +43,7 @@ set(HEADERS
 
 set(SOURCES
     globals.cc
+    http_async_client_base.cc
     http_async_client.cc
     http_client_base.cc
     http_client.cc
@@ -54,6 +56,7 @@ set(SOURCES
     http_response.cc
     http_response_parser.cc
     http_server.cc
+    http_ssl_async_client.cc
     logger.cc
     rest_async_client.cc
     rest_client.cc

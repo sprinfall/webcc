@@ -22,7 +22,7 @@ bool RestClient::Request(const std::string& method, const std::string& url,
                                 http::charsets::kUtf8);
   }
 
-  http_request.Make();
+  http_request.Prepare();
 
   if (!http_client_.Request(http_request, buffer_size)) {
     return false;

@@ -63,7 +63,7 @@ void SoapAsyncClient::Request(const std::string& operation,
   }
 
   http_request->SetHeader(kSoapAction, operation);
-  http_request->Make();
+  http_request->Prepare();
 
   HttpAsyncClientPtr http_async_client{
     new HttpAsyncClient(io_context_, buffer_size_)

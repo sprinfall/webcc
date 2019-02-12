@@ -168,7 +168,7 @@ void LogWrite(int level, const char* file, int line, const char* format, ...) {
     va_list args;
     va_start(args, format);
 
-    fprintf(stderr, "%s, %s, %7s, %24s, %4d, ",
+    fprintf(stderr, "%s, %s, %7s, %25s, %4d, ",
             timestamp.c_str(), kLevelNames[level], thread_id.c_str(),
             file, line);
 

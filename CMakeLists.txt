@@ -120,8 +120,8 @@ endif()
 add_subdirectory(webcc)
 
 if(WEBCC_ENABLE_EXAMPLES)
-    add_subdirectory(example/http_hello_client)
-    add_subdirectory(example/http_hello_async_client)
+    add_subdirectory(example/http_client)
+    add_subdirectory(example/http_async_client)
 
     # For including jsoncpp as "json/json.h".
     include_directories(${THIRD_PARTY_DIR}/src/jsoncpp)
@@ -143,10 +143,9 @@ if(WEBCC_ENABLE_EXAMPLES)
 
     if(WEBCC_ENABLE_SSL)
         add_subdirectory(example/http_ssl_client)
+        add_subdirectory(example/http_ssl_async_client)
         add_subdirectory(example/github_rest_client)
     endif()
-
-    add_subdirectory(example/http_bin_client)
 endif()
 
 if(WEBCC_ENABLE_UNITTEST)

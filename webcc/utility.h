@@ -12,14 +12,14 @@ namespace webcc {
 // If |port| is empty, try to extract it from |host| (separated by ':').
 void AdjustHostPort(std::string& host, std::string& port);
 
-void PrintEndpoint(std::ostream& ostream,
-                   const boost::asio::ip::tcp::endpoint& endpoint);
+typedef boost::asio::ip::tcp::endpoint TcpEndpoint;
+typedef boost::asio::ip::tcp::resolver::results_type TcpEndpoints;
 
-void PrintEndpoints(
-    std::ostream& ostream,
-    const boost::asio::ip::tcp::resolver::results_type& endpoints);
+void PrintEndpoint(std::ostream& ostream, const TcpEndpoint& endpoint);
 
-std::string EndpointToString(const boost::asio::ip::tcp::endpoint& endpoint);
+void PrintEndpoints(std::ostream& ostream, const TcpEndpoints& endpoints);
+
+std::string EndpointToString(const TcpEndpoint& endpoint);
 
 // Get the timestamp for HTTP Date header field.
 // E.g., Wed, 21 Oct 2015 07:28:00 GMT

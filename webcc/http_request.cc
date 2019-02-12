@@ -9,7 +9,7 @@ HttpRequest::HttpRequest(const std::string& method,
     : method_(method), url_(url), host_(host), port_(port) {
 }
 
-void HttpRequest::Make() {
+void HttpRequest::Prepare() {
   start_line_ = method_;
   start_line_ += " ";
   start_line_ += url_;
@@ -30,6 +30,23 @@ void HttpRequest::Make() {
 
   // NOTE: C++11 requires a space between literal and string macro.
   SetHeader(http::headers::kUserAgent, "Webcc/" WEBCC_VERSION);
+}
+
+// static
+HttpRequestPtr HttpRequest::Make(const std::string& method,
+                                 const std::string& url,
+                                 const std::string& host,
+                                 const std::string& port,
+                                 bool prepare) {
+  HttpRequestPtr request{
+    new HttpRequest{ method, url, host, port }
+  };
+
+  if (prepare) {
+    request->Prepare();
+  }
+
+  return request;
 }
 
 }  // namespace webcc

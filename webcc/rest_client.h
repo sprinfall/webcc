@@ -16,9 +16,9 @@ class RestClient {
  public:
   // If |port| is empty, |host| will be checked to see if it contains port or
   // not (separated by ':').
-   explicit RestClient(const std::string& host,
-                       const std::string& port = "",
-                       std::size_t buffer_size = 0);
+  explicit RestClient(const std::string& host,
+                      const std::string& port = "",
+                      std::size_t buffer_size = 0);
 
   ~RestClient() = default;
 

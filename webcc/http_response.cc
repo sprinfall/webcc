@@ -57,7 +57,7 @@ const std::string& ToString(int status) {
 
 }  // namespace status_strings
 
-void HttpResponse::Make() {
+void HttpResponse::Prepare() {
   start_line_ = status_strings::ToString(status_);
 
   // NOTE: C++11 requires a space between literal and string macro.
@@ -72,7 +72,7 @@ HttpResponse HttpResponse::Fault(http::Status status) {
   HttpResponse response;
   response.set_status(status);
 
-  response.Make();
+  response.Prepare();
 
   return response;
 }

@@ -62,7 +62,7 @@ bool SoapClient::Request(const std::string& operation,
 
   http_request.SetHeader(kSoapAction, operation);
 
-  http_request.Make();
+  http_request.Prepare();
 
   if (!http_client_.Request(http_request, buffer_size)) {
     error_ = http_client_.error();

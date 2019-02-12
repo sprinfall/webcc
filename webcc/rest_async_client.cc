@@ -24,7 +24,7 @@ void RestAsyncClient::Request(const std::string& method,
                                  http::charsets::kUtf8);
   }
 
-  http_request->Make();
+  http_request->Prepare();
 
   HttpAsyncClientPtr http_async_client{
     new HttpAsyncClient(io_context_, buffer_size_)

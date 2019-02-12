@@ -7,9 +7,7 @@
 
 namespace webcc {
 
-// HTTP SSL (a.k.a., HTTPS) client session in synchronous mode.
-// A request will not return until the response is received or timeout occurs.
-// Don't use the same HttpSslClient object in multiple threads.
+// HTTP SSL (a.k.a., HTTPS) synchronous client.
 class HttpSslClient : public HttpClientBase {
  public:
   // SSL verification (|ssl_verify|) needs CA certificates to be found
@@ -18,8 +16,6 @@ class HttpSslClient : public HttpClientBase {
   explicit HttpSslClient(std::size_t buffer_size = 0, bool ssl_verify = true);
 
   ~HttpSslClient() = default;
-
-  WEBCC_DELETE_COPY_ASSIGN(HttpSslClient);
 
  private:
   Error Handshake(const std::string& host);
@@ -33,8 +29,7 @@ class HttpSslClient : public HttpClientBase {
   void SocketWrite(const HttpRequest& request,
                    boost::system::error_code* ec) final;
 
-  void SocketAsyncReadSome(std::vector<char>& buffer,
-                           ReadHandler handler) final;
+  void SocketAsyncReadSome(ReadHandler&& handler) final;
 
   void SocketClose(boost::system::error_code* ec) final;
 
