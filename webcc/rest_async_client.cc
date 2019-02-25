@@ -26,9 +26,7 @@ void RestAsyncClient::Request(const std::string& method,
 
   http_request->Prepare();
 
-  HttpAsyncClientPtr http_async_client{
-    new HttpAsyncClient(io_context_, buffer_size_)
-  };
+  auto http_async_client = HttpAsyncClient::New(io_context_, buffer_size_);
 
   if (timeout_seconds_ > 0) {
     http_async_client->SetTimeout(timeout_seconds_);

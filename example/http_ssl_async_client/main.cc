@@ -26,15 +26,13 @@ int main(int argc, char* argv[]) {
   boost::asio::io_context io_context;
 
   // Leave port to default value.
-  auto request = webcc::HttpRequest::Make(webcc::kHttpGet, url, host);
+  auto request = webcc::HttpRequest::New(webcc::kHttpGet, url, host);
 
   // Verify the certificate of the peer or not.
   // See HttpSslClient::Request() for more details.
   bool ssl_verify = false;
 
-  webcc::HttpSslAsyncClientPtr client{
-    new webcc::HttpSslAsyncClient{ io_context, 2000, ssl_verify }
-  };
+  auto client = webcc::HttpSslAsyncClient::New(io_context, 2000, ssl_verify);
 
   // Response callback.
   auto callback = [](webcc::HttpResponsePtr response, webcc::Error error,

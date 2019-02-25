@@ -2,22 +2,21 @@
 
 #include "json/json.h"
 
-#include "webcc/rest_ssl_client.h"
 #include "webcc/logger.h"
+#include "webcc/rest_ssl_client.h"
 
 const bool kSslVerify = false;
 
 #define PRINT_CONTENT 0
-
 
 static Json::Value StringToJson(const std::string& str) {
   Json::Value json;
 
   Json::CharReaderBuilder builder;
   std::stringstream stream(str);
-  std::string errs;
-  if (!Json::parseFromStream(builder, stream, &json, &errs)) {
-    std::cerr << errs << std::endl;
+  std::string errors;
+  if (!Json::parseFromStream(builder, stream, &json, &errors)) {
+    std::cerr << errors << std::endl;
   }
 
   return json;

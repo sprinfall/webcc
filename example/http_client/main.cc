@@ -14,8 +14,8 @@ static void PrintError(const webcc::HttpClient& client) {
 int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
-  auto request = webcc::HttpRequest::Make(webcc::kHttpGet, "/get",
-                                          "httpbin.org");
+  auto request = webcc::HttpRequest::New(webcc::kHttpGet, "/get",
+                                         "httpbin.org");
 
   webcc::HttpClient client;
 

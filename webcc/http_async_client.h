@@ -5,15 +5,27 @@
 
 namespace webcc {
 
+class HttpAsyncClient;
+typedef std::shared_ptr<HttpAsyncClient> HttpAsyncClientPtr;
+
 // HTTP asynchronous client.
 class HttpAsyncClient : public HttpAsyncClientBase {
  public:
+  ~HttpAsyncClient() = default;
+
+  // Forbid to create HttpAsyncClient in stack since it's derived from
+  // std::shared_from_this.
+  static HttpAsyncClientPtr New(boost::asio::io_context& io_context,
+                                std::size_t buffer_size = 0) {
+    return HttpAsyncClientPtr{
+      new HttpAsyncClient(io_context, buffer_size)
+    };
+  }
+
+ private:
   explicit HttpAsyncClient(boost::asio::io_context& io_context,
                            std::size_t buffer_size = 0);
 
-  ~HttpAsyncClient() = default;
-
- private:
   void Resolve() final {
     DoResolve(kHttpPort);
   }
@@ -33,8 +45,6 @@ class HttpAsyncClient : public HttpAsyncClientBase {
 
   tcp::socket socket_;
 };
-
-typedef std::shared_ptr<HttpAsyncClient> HttpAsyncClientPtr;
 
 }  // namespace webcc
 

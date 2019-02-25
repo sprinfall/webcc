@@ -43,11 +43,11 @@ class HttpRequest : public HttpMessage {
   // Compose start line, set Host header, etc.
   void Prepare() override;
 
-  static HttpRequestPtr Make(const std::string& method,
-                             const std::string& url,
-                             const std::string& host,
-                             const std::string& port = "",
-                             bool prepare = true);
+  static HttpRequestPtr New(const std::string& method,
+                            const std::string& url,
+                            const std::string& host,
+                            const std::string& port = "",
+                            bool prepare = true);
 
  private:
   friend class HttpRequestParser;

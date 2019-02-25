@@ -7,17 +7,23 @@
 
 namespace webcc {
 
+class HttpSslAsyncClient;
+typedef std::shared_ptr<HttpSslAsyncClient> HttpSslAsyncClientPtr;
+
 // HTTP SSL (a.k.a., HTTPS) asynchronous client.
 class HttpSslAsyncClient : public HttpAsyncClientBase {
  public:
-  // SSL verification (|ssl_verify|) needs CA certificates to be found
-  // in the default verify paths of OpenSSL. On Windows, it means you need to
-  // set environment variable SSL_CERT_FILE properly.
-  explicit HttpSslAsyncClient(boost::asio::io_context& io_context,
-                              std::size_t buffer_size = 0,
-                              bool ssl_verify = true);
-
   ~HttpSslAsyncClient() = default;
+
+  // Forbid to create HttpSslAsyncClient in stack since it's derived from
+  // std::shared_from_this.
+  static HttpSslAsyncClientPtr New(boost::asio::io_context& io_context,
+                                   std::size_t buffer_size = 0,
+                                   bool ssl_verify = true) {
+    return HttpSslAsyncClientPtr{
+      new HttpSslAsyncClient(io_context, buffer_size, ssl_verify)
+    };
+  }
 
   // See https://stackoverflow.com/q/657155/6825348
   std::shared_ptr<HttpSslAsyncClient> shared_from_this() {
@@ -25,6 +31,13 @@ class HttpSslAsyncClient : public HttpAsyncClientBase {
   }
 
  private:
+  // SSL verification (|ssl_verify|) needs CA certificates to be found
+  // in the default verify paths of OpenSSL. On Windows, it means you need to
+  // set environment variable SSL_CERT_FILE properly.
+  explicit HttpSslAsyncClient(boost::asio::io_context& io_context,
+                              std::size_t buffer_size = 0,
+                              bool ssl_verify = true);
+
   void Resolve() final;
 
   // Override to do handshake after connected.
@@ -50,8 +63,6 @@ class HttpSslAsyncClient : public HttpAsyncClientBase {
   // Verify the certificate of the peer (remote server) or not.
   bool ssl_verify_;
 };
-
-typedef std::shared_ptr<HttpSslAsyncClient> HttpSslAsyncClientPtr;
 
 }  // namespace webcc
 

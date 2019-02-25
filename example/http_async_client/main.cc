@@ -9,12 +9,10 @@
 //   Only HttpBin.org has this issue.
 
 static void Test(boost::asio::io_context& io_context) {
-  auto request = webcc::HttpRequest::Make(webcc::kHttpGet, "/get",
-                                          "httpbin.org");
+  auto request = webcc::HttpRequest::New(webcc::kHttpGet, "/get",
+                                         "httpbin.org");
 
-  webcc::HttpAsyncClientPtr client{
-    new webcc::HttpAsyncClient(io_context)
-  };
+  auto client = webcc::HttpAsyncClient::New(io_context);
 
   client->SetTimeout(3);
 

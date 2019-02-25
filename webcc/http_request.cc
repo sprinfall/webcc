@@ -33,11 +33,11 @@ void HttpRequest::Prepare() {
 }
 
 // static
-HttpRequestPtr HttpRequest::Make(const std::string& method,
-                                 const std::string& url,
-                                 const std::string& host,
-                                 const std::string& port,
-                                 bool prepare) {
+HttpRequestPtr HttpRequest::New(const std::string& method,
+                                const std::string& url,
+                                const std::string& host,
+                                const std::string& port,
+                                bool prepare) {
   HttpRequestPtr request{
     new HttpRequest{ method, url, host, port }
   };
