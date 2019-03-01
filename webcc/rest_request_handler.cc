@@ -37,6 +37,7 @@ void RestRequestHandler::HandleSession(HttpSessionPtr session) {
     return;
   }
 
+  // TODO: Let the service to provide the media-type and charset.
   RestResponse rest_response;
   service->Handle(rest_request, &rest_response);
 

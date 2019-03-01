@@ -23,25 +23,38 @@ class BookClientBase {
  public:
   BookClientBase(const std::string& host, const std::string& port,
                  int timeout_seconds)
-      : rest_client_(host, port) {
-    rest_client_.SetTimeout(timeout_seconds);
+      : host_(host), port_(port) {
+    http_client_.SetTimeout(timeout_seconds);
   }
 
   virtual ~BookClientBase() = default;
 
  protected:
+  // Helper function to make a request.
+  webcc::HttpRequestPtr MakeRequest(const std::string& method,
+                                    const std::string& url,
+                                    std::string&& content = "") {
+    auto request = webcc::HttpRequest::New(method, url, host_, port_);
+    request->AcceptAppJson();
+    if (!content.empty()) {
+      request->SetContentInAppJsonUtf8(JsonToString(content), true);
+    }
+    request->Prepare();
+    return request;
+  }
+
   // Log the socket communication error.
   void LogError() {
-    if (rest_client_.timed_out()) {
-      LOG_ERRO("%s (timed out)", webcc::DescribeError(rest_client_.error()));
+    if (http_client_.timed_out()) {
+      LOG_ERRO("%s (timed out)", webcc::DescribeError(http_client_.error()));
     } else {
-      LOG_ERRO(webcc::DescribeError(rest_client_.error()));
+      LOG_ERRO(webcc::DescribeError(http_client_.error()));
     }
   }
 
   // Check HTTP response status.
   bool CheckStatus(webcc::http::Status expected_status) {
-    int status = rest_client_.response_status();
+    int status = http_client_.response_status();
     if (status != expected_status) {
       LOG_ERRO("HTTP status error (actual: %d, expected: %d).",
                status, expected_status);
@@ -50,7 +63,9 @@ class BookClientBase {
     return true;
   }
 
-  webcc::RestClient rest_client_;
+  std::string host_;
+  std::string port_;
+  webcc::HttpClient http_client_;
 };
 
 // -----------------------------------------------------------------------------
@@ -63,7 +78,9 @@ class BookListClient : public BookClientBase {
   }
 
   bool ListBooks(std::list<Book>* books) {
-    if (!rest_client_.Get("/books")) {
+    auto request = MakeRequest(webcc::kHttpGet, "/books");
+
+    if (!http_client_.Request(*request)) {
       // Socket communication error.
       LogError();
       return false;
@@ -74,7 +91,7 @@ class BookListClient : public BookClientBase {
       return false;
     }
 
-    Json::Value rsp_json = StringToJson(rest_client_.response_content());
+    Json::Value rsp_json = StringToJson(http_client_.response_content());
 
     if (!rsp_json.isArray()) {
       return false;  // Should be a JSON array of books.
@@ -92,7 +109,10 @@ class BookListClient : public BookClientBase {
     req_json["title"] = title;
     req_json["price"] = price;
 
-    if (!rest_client_.Post("/books", JsonToString(req_json))) {
+    auto request = MakeRequest(webcc::kHttpPost, "/books",
+                               JsonToString(req_json));
+
+    if (!http_client_.Request(*request)) {
       LogError();
       return false;
     }
@@ -101,7 +121,7 @@ class BookListClient : public BookClientBase {
       return false;
     }
 
-    Json::Value rsp_json = StringToJson(rest_client_.response_content());
+    Json::Value rsp_json = StringToJson(http_client_.response_content());
     *id = rsp_json["id"].asString();
 
     return !id->empty();
@@ -118,7 +138,9 @@ class BookDetailClient : public BookClientBase {
   }
 
   bool GetBook(const std::string& id, Book* book) {
-    if (!rest_client_.Get("/books/" + id)) {
+    auto request = MakeRequest(webcc::kHttpGet, "/books/" + id);
+
+    if (!http_client_.Request(*request)) {
       LogError();
       return false;
     }
@@ -127,7 +149,7 @@ class BookDetailClient : public BookClientBase {
       return false;
     }
 
-    return JsonStringToBook(rest_client_.response_content(), book);
+    return JsonStringToBook(http_client_.response_content(), book);
   }
 
   bool UpdateBook(const std::string& id, const std::string& title,
@@ -136,7 +158,10 @@ class BookDetailClient : public BookClientBase {
     json["title"] = title;
     json["price"] = price;
 
-    if (!rest_client_.Put("/books/" + id, JsonToString(json))) {
+    auto request = MakeRequest(webcc::kHttpPut, "/books/" + id,
+                               JsonToString(json));
+
+    if (!http_client_.Request(*request)) {
       LogError();
       return false;
     }
@@ -149,7 +174,9 @@ class BookDetailClient : public BookClientBase {
   }
 
   bool DeleteBook(const std::string& id) {
-    if (!rest_client_.Delete("/books/" + id)) {
+    auto request = MakeRequest(webcc::kHttpDelete, "/books/" + id);
+
+    if (!http_client_.Request(*request)) {
       LogError();
       return false;
     }
@@ -238,26 +265,26 @@ int main(int argc, char* argv[]) {
     PrintBook(book);
   }
 
-  PrintSeparator();
+  //PrintSeparator();
 
-  detail_client.UpdateBook(id, "1Q84", 32.1);
+  //detail_client.UpdateBook(id, "1Q84", 32.1);
 
-  PrintSeparator();
+  //PrintSeparator();
 
-  if (detail_client.GetBook(id, &book)) {
-    PrintBook(book);
-  }
+  //if (detail_client.GetBook(id, &book)) {
+  //  PrintBook(book);
+  //}
 
-  PrintSeparator();
+  //PrintSeparator();
 
-  detail_client.DeleteBook(id);
+  //detail_client.DeleteBook(id);
 
-  PrintSeparator();
+  //PrintSeparator();
 
-  books.clear();
-  if (list_client.ListBooks(&books)) {
-    PrintBookList(books);
-  }
+  //books.clear();
+  //if (list_client.ListBooks(&books)) {
+  //  PrintBookList(books);
+  //}
 
   return 0;
 }

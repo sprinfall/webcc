@@ -39,6 +39,16 @@ class HttpRequest : public HttpMessage {
     return port_.empty() ? default_port : port_;
   }
 
+  // Shortcut to set `Accept` header.
+  void Accept(const std::string& media_type) {
+    SetHeader(http::headers::kAccept, media_type);
+  }
+
+  // Shortcut to set `Accept` header.
+  void AcceptAppJson() {
+    SetHeader(http::headers::kAccept, http::media_types::kApplicationJson);
+  }
+
   // Prepare payload.
   // Compose start line, set Host header, etc.
   void Prepare() override;

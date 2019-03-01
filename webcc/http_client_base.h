@@ -27,7 +27,7 @@ class HttpClientBase {
   // 0 means default value (e.g., 1024) will be used.
   explicit HttpClientBase(std::size_t buffer_size = 0);
 
-  ~HttpClientBase() = default;
+  virtual ~HttpClientBase() = default;
 
   WEBCC_DELETE_COPY_ASSIGN(HttpClientBase);
 

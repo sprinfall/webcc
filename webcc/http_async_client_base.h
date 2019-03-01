@@ -31,6 +31,8 @@ class HttpAsyncClientBase
   explicit HttpAsyncClientBase(boost::asio::io_context& io_context,
                                std::size_t buffer_size = 0);
 
+  virtual ~HttpAsyncClientBase() = default;
+
   WEBCC_DELETE_COPY_ASSIGN(HttpAsyncClientBase);
 
   // Set the timeout seconds for reading response.

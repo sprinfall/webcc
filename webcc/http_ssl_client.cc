@@ -10,7 +10,7 @@ namespace ssl = boost::asio::ssl;
 
 namespace webcc {
 
-HttpSslClient::HttpSslClient(std::size_t buffer_size, bool ssl_verify)
+HttpSslClient::HttpSslClient(bool ssl_verify, std::size_t buffer_size)
     : HttpClientBase(buffer_size),
       ssl_context_(ssl::context::sslv23),
       ssl_socket_(io_context_, ssl_context_),

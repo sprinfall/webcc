@@ -13,7 +13,7 @@ class HttpSslClient : public HttpClientBase {
   // SSL verification (|ssl_verify|) needs CA certificates to be found
   // in the default verify paths of OpenSSL. On Windows, it means you need to
   // set environment variable SSL_CERT_FILE properly.
-  explicit HttpSslClient(std::size_t buffer_size = 0, bool ssl_verify = true);
+  explicit HttpSslClient(bool ssl_verify = true, std::size_t buffer_size = 0);
 
   ~HttpSslClient() = default;
 

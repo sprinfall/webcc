@@ -58,6 +58,12 @@ void HttpMessage::SetContent(std::string&& content, bool set_length) {
   }
 }
 
+void HttpMessage::SetContentInAppJsonUtf8(std::string&& content,
+                                          bool set_length) {
+  SetContent(std::move(content), set_length);
+  SetContentType(http::media_types::kApplicationJson, http::charsets::kUtf8);
+}
+
 // ATTENTION: The buffers don't hold the memory!
 std::vector<boost::asio::const_buffer> HttpMessage::ToBuffers() const {
   assert(!start_line_.empty());

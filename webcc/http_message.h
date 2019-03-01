@@ -34,15 +34,20 @@ class HttpMessage {
 
   const std::string& content() const { return content_; }
 
+  // TODO: Rename to AddHeader.
   void SetHeader(const std::string& name, const std::string& value);
 
+  // TODO: Remove
   void SetHeader(std::string&& name, std::string&& value);
 
   // E.g., "application/json; charset=utf-8"
   void SetContentType(const std::string& media_type,
                       const std::string& charset);
 
+  // TODO: Remove parameter |set_length|.
   void SetContent(std::string&& content, bool set_length);
+
+  void SetContentInAppJsonUtf8(std::string&& content, bool set_length);
 
   // Make the message (e.g., update start line).
   // Must be called before ToBuffers()!
