@@ -15,27 +15,23 @@ include(GNUInstallDirs)
 
 set(HEADERS
     globals.h
-    http_async_client_base.h
-    http_async_client.h
+    # http_async_client_base.h
+    # http_async_client.h
     http_client_base.h
     http_client.h
-    http_session.h
+    http_client_session.h
+    http_connection.h
     http_message.h
     http_parser.h
     http_request.h
+    http_request_args.h
     http_request_handler.h
     http_request_parser.h
     http_response.h
     http_response_parser.h
     http_server.h
-    http_ssl_async_client.h
+    # http_ssl_async_client.h
     queue.h
-    rest_async_client.h
-    rest_client.h
-    rest_request_handler.h
-    rest_server.h
-    rest_service.h
-    rest_service_manager.h
     url.h
     utility.h
     version.h
@@ -43,11 +39,12 @@ set(HEADERS
 
 set(SOURCES
     globals.cc
-    http_async_client_base.cc
-    http_async_client.cc
+    # http_async_client_base.cc
+    # http_async_client.cc
     http_client_base.cc
     http_client.cc
-    http_session.cc
+    http_client_session.cc
+    http_connection.cc
     http_message.cc
     http_parser.cc
     http_request.cc
@@ -56,34 +53,41 @@ set(SOURCES
     http_response.cc
     http_response_parser.cc
     http_server.cc
-    http_ssl_async_client.cc
+    # http_ssl_async_client.cc
     logger.cc
-    rest_async_client.cc
-    rest_client.cc
-    rest_request_handler.cc
-    rest_service_manager.cc
-    rest_service.cc
     url.cc
     utility.cc
     )
 
-if(WEBCC_ENABLE_SSL)
-    set(HEADERS ${HEADERS}
-        http_ssl_client.h
-        # rest_ssl_async_client.h
-        rest_ssl_client.h
+if(WEBCC_ENABLE_REST)
+    set(REST_HEADERS
+       # rest_async_client.h
+        # rest_client.h
+        rest_request_handler.h
+        rest_server.h
+        rest_service.h
+        rest_service_manager.h
+        )
+    set(REST_SOURCES
+       # rest_async_client.cc
+        # rest_client.cc
+        rest_request_handler.cc
+        rest_service_manager.cc
+        rest_service.cc
         )
 
-    set(SOURCES ${SOURCES}
-        http_ssl_client.cc
-        # rest_ssl_async_client.cc
-        rest_ssl_client.cc
-        )
+    set(HEADERS ${HEADERS} ${REST_HEADERS})
+    set(SOURCES ${SOURCES} ${REST_SOURCES})
+endif()
+
+if(WEBCC_ENABLE_SSL)
+    set(HEADERS ${HEADERS} http_ssl_client.h)
+    set(SOURCES ${SOURCES} http_ssl_client.cc)
 endif()
 
 if(WEBCC_ENABLE_SOAP)
     set(SOAP_HEADERS
-        soap_async_client.h
+        # soap_async_client.h
         soap_client.h
         soap_globals.h
         soap_message.h
@@ -97,7 +101,7 @@ if(WEBCC_ENABLE_SOAP)
         )
 
     set(SOAP_SOURCES
-        soap_async_client.cc
+        # soap_async_client.cc
         soap_client.cc
         soap_globals.cc
         soap_message.cc

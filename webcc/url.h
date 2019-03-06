@@ -2,10 +2,6 @@
 #define WEBCC_URL_H_
 
 // A simplified implementation of URL (or URI).
-// The URL should start with "/".
-// The parameters (separated by ";") are not supported.
-// Example:
-//   /inventory-check.cgi?item=12731&color=blue&size=large
 
 #include <string>
 #include <utility>
@@ -17,7 +13,7 @@ namespace webcc {
 
 // URL query parameters.
 class UrlQuery {
- public:
+public:
   typedef std::pair<std::string, std::string> Parameter;
   typedef std::vector<Parameter> Parameters;
 
@@ -48,7 +44,7 @@ class UrlQuery {
   // E.g., "item=12731&color=blue&size=large".
   std::string ToString() const;
 
- private:
+private:
   typedef Parameters::const_iterator ConstIterator;
   ConstIterator Find(const std::string& key) const;
 
@@ -58,34 +54,46 @@ class UrlQuery {
 // -----------------------------------------------------------------------------
 
 class Url {
- public:
+public:
   Url() = default;
-  Url(const std::string& str, bool decode);
 
-  bool IsPathValid() const;
+  // TODO: decode/encode/encoded?
+  explicit Url(const std::string& str, bool decode = true);
+
+  void Init(const std::string& str, bool decode = true, bool clear = true);
+
+  const std::string& scheme() const {
+    return scheme_;
+  }
+
+  const std::string& host() const {
+    return host_;
+  }
+
+  const std::string& port() const {
+    return port_;
+  }
 
   const std::string& path() const {
     return path_;
-  }
-
-  void set_path(const std::string& path) {
-    path_ = path;
   }
 
   const std::string& query() const {
     return query_;
   }
 
-  void set_query(const std::string& query) {
-    query_ = query;
-  }
+  // Add a parameter to the query string.
+  void AddParameter(const std::string& key, const std::string& value);
 
-  // Split a path into its hierarchical components.
-  static std::vector<std::string> SplitPath(const std::string& path);
+private:
+  void Parse(const std::string& str);
 
- private:
-  void Init(const std::string& str);
+  void Clear();
 
+  // TODO: Support auth & fragment.
+  std::string scheme_;
+  std::string host_;
+  std::string port_;
   std::string path_;
   std::string query_;
 };

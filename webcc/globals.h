@@ -1,7 +1,9 @@
 #ifndef WEBCC_GLOBALS_H_
 #define WEBCC_GLOBALS_H_
 
+#include <cassert>
 #include <string>
+#include <vector>
 
 #include "webcc/version.h"
 
@@ -25,6 +27,9 @@
   TypeName(const TypeName&) = delete; \
   TypeName& operator=(const TypeName&) = delete;
 
+// Default user agent.
+#define USER_AGENT "Webcc/" WEBCC_VERSION
+
 namespace webcc {
 
 // -----------------------------------------------------------------------------
@@ -45,8 +50,46 @@ const int kMaxReadSeconds = 30;
 // when dumped/logged.
 const std::size_t kMaxDumpSize = 2048;
 
+// Default ports.
+const char* const kPort80 = "80";
+const char* const kPort443 = "443";
+
+// Client side error codes.
+enum Error {
+  kNoError = 0,  // i.e., OK
+
+  kHostResolveError,
+  kEndpointConnectError,
+  kHandshakeError,  // HTTPS handshake
+  kSocketReadError,
+  kSocketWriteError,
+
+  // HTTP error.
+  // E.g., failed to parse HTTP response (invalid content length, etc.).
+  kHttpError,
+
+  // Server error.
+  // E.g., HTTP status 500 + SOAP Fault element.
+  kServerError,
+
+  // XML parsing error.
+  kXmlError,
+};
+
+// Return a descriptive message for the given error code.
+const char* DescribeError(Error error);
+
 // HTTP headers.
 namespace http {
+
+// HTTP methods (verbs) in string.
+// Don't use enum to avoid converting back and forth.
+const char* const kHead   = "HEAD";
+const char* const kGet    = "GET";
+const char* const kPost   = "POST";
+const char* const kPatch  = "PATCH";
+const char* const kPut    = "PUT";
+const char* const kDelete = "DELETE";
 
 // HTTP response status.
 // This is not a full list.
@@ -94,6 +137,7 @@ const char* const kTextXml = "text/xml";
 
 }  // namespace media_types
 
+// TODO: Rename to encodings?
 namespace charsets {
 
 const char* const kUtf8 = "utf-8";
@@ -101,45 +145,6 @@ const char* const kUtf8 = "utf-8";
 }  // namespace charsets
 
 }  // namespace http
-
-// Default ports.
-const char* const kHttpPort = "80";
-const char* const kHttpSslPort = "443";
-
-// HTTP methods (verbs) in string ("HEAD", "GET", etc.).
-// NOTE: Don't use enum to avoid converting back and forth.
-// TODO: Add enum.
-extern const std::string kHttpHead;
-extern const std::string kHttpGet;
-extern const std::string kHttpPost;
-extern const std::string kHttpPatch;
-extern const std::string kHttpPut;
-extern const std::string kHttpDelete;
-
-// Client side error codes.
-enum Error {
-  kNoError = 0,  // i.e., OK
-
-  kHostResolveError,
-  kEndpointConnectError,
-  kHandshakeError,  // HTTPS handshake
-  kSocketReadError,
-  kSocketWriteError,
-
-  // HTTP error.
-  // E.g., failed to parse HTTP response (invalid content length, etc.).
-  kHttpError,
-
-  // Server error.
-  // E.g., HTTP status 500 + SOAP Fault element.
-  kServerError,
-
-  // XML parsing error.
-  kXmlError,
-};
-
-// Return a descriptive message for the given error code.
-const char* DescribeError(Error error);
 
 }  // namespace webcc
 

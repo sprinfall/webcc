@@ -53,13 +53,11 @@ class SoapParameter {
 
 #else
 
-  // Use "= default" if drop the support of VS 2013.
   SoapParameter(SoapParameter&& rhs)
       : key_(std::move(rhs.key_)), value_(std::move(rhs.value_)),
     as_cdata_(rhs.as_cdata_) {
   }
 
-  // Use "= default" if drop the support of VS 2013.
   SoapParameter& operator=(SoapParameter&& rhs) {
     if (&rhs != this) {
       key_ = std::move(rhs.key_);

@@ -14,7 +14,7 @@ class HttpClient : public HttpClientBase {
 
  private:
   Error Connect(const HttpRequest& request) final {
-    return DoConnect(request, kHttpPort);
+    return DoConnect(request, kPort80);
   }
 
   void SocketConnect(const Endpoints& endpoints,

@@ -8,9 +8,9 @@ namespace webcc {
 
 void RestListService::Handle(const RestRequest& request,
                              RestResponse* response) {
-  if (request.method == kHttpGet) {
+  if (request.method == http::kGet) {
     Get(UrlQuery(request.url_query_str), response);
-  } else if (request.method == kHttpPost) {
+  } else if (request.method == http::kPost) {
     Post(request.content, response);
   } else {
     LOG_ERRO("RestListService doesn't support '%s' method.",
@@ -22,13 +22,13 @@ void RestListService::Handle(const RestRequest& request,
 
 void RestDetailService::Handle(const RestRequest& request,
                                RestResponse* response) {
-  if (request.method == kHttpGet) {
+  if (request.method == http::kGet) {
     Get(request.url_sub_matches, UrlQuery(request.url_query_str), response);
-  } else if (request.method == kHttpPut) {
+  } else if (request.method == http::kPut) {
     Put(request.url_sub_matches, request.content, response);
-  } else if (request.method == kHttpPatch) {
+  } else if (request.method == http::kPatch) {
     Patch(request.url_sub_matches, request.content, response);
-  } else if (request.method == kHttpDelete) {
+  } else if (request.method == http::kDelete) {
     Delete(request.url_sub_matches, response);
   } else {
     LOG_ERRO("RestDetailService doesn't support '%s' method.",

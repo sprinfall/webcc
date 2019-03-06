@@ -13,13 +13,14 @@ bool RestRequestHandler::Bind(RestServicePtr service, const std::string& url,
   return service_manager_.AddService(service, url, is_regex);
 }
 
-void RestRequestHandler::HandleSession(HttpSessionPtr session) {
-  const HttpRequest& http_request = session->request();
+void RestRequestHandler::HandleConnection(HttpConnectionPtr connection) {
+  const HttpRequest& http_request = connection->request();
 
-  Url url(http_request.url(), /*decode*/true);
+  // TODO
+  const Url& url = http_request.url();
 
-  if (!url.IsPathValid()) {
-    session->SendResponse(http::Status::kBadRequest);
+  if (url.path().empty()) {
+    connection->SendResponse(http::Status::kBadRequest);
     return;
   }
 
@@ -33,7 +34,7 @@ void RestRequestHandler::HandleSession(HttpSessionPtr session) {
 
   if (!service) {
     LOG_WARN("No service matches the URL path: %s", url.path().c_str());
-    session->SendResponse(http::Status::kNotFound);
+    connection->SendResponse(http::Status::kNotFound);
     return;
   }
 
@@ -42,13 +43,13 @@ void RestRequestHandler::HandleSession(HttpSessionPtr session) {
   service->Handle(rest_request, &rest_response);
 
   if (!rest_response.content.empty()) {
-    session->SetResponseContent(std::move(rest_response.content),
-                                http::media_types::kApplicationJson,
-                                http::charsets::kUtf8);
+    connection->SetResponseContent(std::move(rest_response.content),
+                                   http::media_types::kApplicationJson,
+                                   http::charsets::kUtf8);
   }
 
   // Send response back to client.
-  session->SendResponse(rest_response.status);
+  connection->SendResponse(rest_response.status);
 }
 
 }  // namespace webcc

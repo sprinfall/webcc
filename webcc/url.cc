@@ -4,6 +4,8 @@
 #include <functional>
 #include <sstream>
 
+#include "boost/algorithm/string.hpp"
+
 namespace webcc {
 
 // -----------------------------------------------------------------------------
@@ -244,48 +246,86 @@ UrlQuery::ConstIterator UrlQuery::Find(const std::string& key) const {
 // -----------------------------------------------------------------------------
 
 Url::Url(const std::string& str, bool decode) {
+  Init(str, decode);
+}
+
+void Url::Init(const std::string& str, bool decode, bool clear) {
+  if (clear) {
+    Clear();
+  }
+
   if (!decode || str.find('%') == std::string::npos) {
-    Init(str);
+    Parse(str);
     return;
   }
 
   std::string decoded;
   if (Decode(str, &decoded)) {
-    Init(decoded);
+    Parse(decoded);
   } else {
-    // TODO(Adam): Exception?
-    Init(str);
+    // TODO: Exception?
+    Parse(str);
   }
 }
 
-bool Url::IsPathValid() const {
-  // URL path must be absolute.
-  if (path_.empty() || path_[0] != '/') {
-    return false;
+void Url::AddParameter(const std::string& key, const std::string& value) {
+  if (!query_.empty()) {
+    query_ += "&";
   }
-  return true;
+  query_ += key + "=" + value;
 }
 
-std::vector<std::string> Url::SplitPath(const std::string& path) {
-  std::vector<std::string> results;
-  std::stringstream iss(path);
-  std::string s;
-  while (std::getline(iss, s, '/')) {
-    if (!s.empty()) {
-      results.push_back(s);
+void Url::Parse(const std::string& str) {
+  std::string tmp = boost::trim_left_copy(str);
+
+  std::size_t pos = std::string::npos;
+
+  pos = tmp.find("://");
+  if (pos != std::string::npos) {
+    scheme_ = tmp.substr(0, pos);
+    tmp = tmp.substr(pos + 3);
+  }
+
+  pos = tmp.find('/');
+  if (pos != std::string::npos) {
+    host_ = tmp.substr(0, pos);
+
+    tmp = tmp.substr(pos + 1);
+
+    pos = tmp.find('?');
+    if (pos != std::string::npos) {
+      path_ = tmp.substr(0, pos);
+      query_ = tmp.substr(pos + 1);
+    } else {
+      path_ = tmp;
+    }
+  } else {
+    path_ = "";
+
+    pos = tmp.find('?');
+    if (pos != std::string::npos) {
+      host_ = tmp.substr(0, pos);
+      query_ = tmp.substr(pos + 1);
+    } else {
+      host_ = tmp;
     }
   }
-  return results;
+
+  if (!host_.empty()) {
+    pos = host_.find(':');
+    if (pos != std::string::npos) {
+      port_ = host_.substr(pos + 1);
+      host_ = host_.substr(0, pos);
+    }
+  }
 }
 
-void Url::Init(const std::string& str) {
-  std::size_t pos = str.find('?');
-  if (pos == std::string::npos) {
-    path_ = str;
-  } else {
-    path_ = str.substr(0, pos);
-    query_ = str.substr(pos + 1);
-  }
+void Url::Clear() {
+  scheme_.clear();
+  host_.clear();
+  port_.clear();
+  path_.clear();
+  query_.clear();
 }
 
 }  // namespace webcc

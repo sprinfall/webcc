@@ -1,15 +1,8 @@
 #include "webcc/globals.h"
 
+#include "boost/algorithm/string.hpp"
+
 namespace webcc {
-
-// -----------------------------------------------------------------------------
-
-const std::string kHttpHead = "HEAD";
-const std::string kHttpGet = "GET";
-const std::string kHttpPost = "POST";
-const std::string kHttpPatch = "PATCH";
-const std::string kHttpPut = "PUT";
-const std::string kHttpDelete = "DELETE";
 
 // -----------------------------------------------------------------------------
 

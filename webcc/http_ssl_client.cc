@@ -20,7 +20,7 @@ HttpSslClient::HttpSslClient(bool ssl_verify, std::size_t buffer_size)
 }
 
 Error HttpSslClient::Connect(const HttpRequest& request) {
-  Error error = DoConnect(request, kHttpSslPort);
+  Error error = DoConnect(request, kPort443);
   
   if (error != kNoError) {
     return error;

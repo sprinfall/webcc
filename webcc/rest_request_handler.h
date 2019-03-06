@@ -11,14 +11,15 @@
 namespace webcc {
 
 class RestRequestHandler : public HttpRequestHandler {
- public:
+public:
   RestRequestHandler() = default;
+
   ~RestRequestHandler() override = default;
 
   bool Bind(RestServicePtr service, const std::string& url, bool is_regex);
 
- private:
-  void HandleSession(HttpSessionPtr session) override;
+private:
+  void HandleConnection(HttpConnectionPtr connection) override;
 
   RestServiceManager service_manager_;
 };

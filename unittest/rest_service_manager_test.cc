@@ -1,5 +1,8 @@
-#include "webcc/rest_service_manager.h"
 #include "gtest/gtest.h"
+
+#include "webcc/rest_service_manager.h"
+
+// -----------------------------------------------------------------------------
 
 class TestRestService : public webcc::RestService {
  public:
@@ -8,6 +11,8 @@ class TestRestService : public webcc::RestService {
     response->status = webcc::http::Status::kOK;
   }
 };
+
+// -----------------------------------------------------------------------------
 
 TEST(RestServiceManager, URL_RegexBasic) {
   webcc::RestServiceManager service_manager;

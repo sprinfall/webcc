@@ -17,38 +17,53 @@ const char CRLF[] = { '\r', '\n' };
 
 // -----------------------------------------------------------------------------
 
-void HttpMessage::SetHeader(const std::string& name, const std::string& value) {
+std::ostream& operator<<(std::ostream& os, const HttpMessage& message) {
+  message.Dump(os);
+  return os;
+}
+
+// -----------------------------------------------------------------------------
+
+void HttpHeaderDict::Add(const std::string& key, const std::string& value) {
   for (HttpHeader& h : headers_) {
-    if (boost::iequals(h.name, name)) {
-      h.value = value;
+    if (boost::iequals(h.first, key)) {
+      h.second = value;
       return;
     }
   }
-  headers_.push_back({ name, value });
+  headers_.push_back({ key, value });
 }
 
-void HttpMessage::SetHeader(std::string&& name, std::string&& value) {
+void HttpHeaderDict::Add(std::string&& key, std::string&& value) {
   for (HttpHeader& h : headers_) {
-    if (boost::iequals(h.name, name)) {
-      h.value = std::move(value);
+    if (boost::iequals(h.first, key)) {
+      h.second = std::move(value);
       return;
     }
   }
-  headers_.push_back({ std::move(name), std::move(value) });
+  headers_.push_back({ std::move(key), std::move(value) });
 }
 
-// NOTE:
-// According to HTTP 1.1 RFC7231, the following examples are all equivalent,
-// but the first is preferred for consistency:
-//    text/html;charset=utf-8
-//    text/html;charset=UTF-8
-//    Text/HTML;Charset="utf-8"
-//    text/html; charset="utf-8"
+bool HttpHeaderDict::Has(const std::string& key) const {
+  for (const HttpHeader& h : headers_) {
+    if (boost::iequals(h.first, key)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// -----------------------------------------------------------------------------
+
 // See: https://tools.ietf.org/html/rfc7231#section-3.1.1.1
 void HttpMessage::SetContentType(const std::string& media_type,
                                  const std::string& charset) {
-  SetHeader(http::headers::kContentType,
-            media_type + ";charset=" + charset);
+  if (charset.empty()) {
+    SetHeader(http::headers::kContentType, media_type);
+  } else {
+    SetHeader(http::headers::kContentType,
+              media_type + ";charset=" + charset);
+  }
 }
 
 void HttpMessage::SetContent(std::string&& content, bool set_length) {
@@ -72,10 +87,10 @@ std::vector<boost::asio::const_buffer> HttpMessage::ToBuffers() const {
 
   buffers.push_back(boost::asio::buffer(start_line_));
 
-  for (const HttpHeader& h : headers_) {
-    buffers.push_back(boost::asio::buffer(h.name));
+  for (const HttpHeader& h : headers_.data()) {
+    buffers.push_back(boost::asio::buffer(h.first));
     buffers.push_back(boost::asio::buffer(misc_strings::NAME_VALUE_SEPARATOR));
-    buffers.push_back(boost::asio::buffer(h.value));
+    buffers.push_back(boost::asio::buffer(h.second));
     buffers.push_back(boost::asio::buffer(misc_strings::CRLF));
   }
 
@@ -98,8 +113,8 @@ void HttpMessage::Dump(std::ostream& os, std::size_t indent,
 
   os << indent_str << start_line_;
 
-  for (const HttpHeader& h : headers_) {
-    os << indent_str << h.name << ": " << h.value << std::endl;
+  for (const HttpHeader& h : headers_.data()) {
+    os << indent_str << h.first << ": " << h.second << std::endl;
   }
 
   os << indent_str << std::endl;
@@ -142,11 +157,6 @@ std::string HttpMessage::Dump(std::size_t indent,
   std::stringstream ss;
   Dump(ss, indent, prefix);
   return ss.str();
-}
-
-std::ostream& operator<<(std::ostream& os, const HttpMessage& message) {
-  message.Dump(os);
-  return os;
 }
 
 }  // namespace webcc

@@ -48,7 +48,14 @@ bool SoapClient::Request(const std::string& operation,
   std::string http_content;
   soap_request.ToXml(format_raw_, indent_str_, &http_content);
 
-  HttpRequest http_request(kHttpPost, url_, host_, port_);
+  // TODO
+  std::string url = host_;
+  url += url_;
+  if (!port_.empty()) {
+    url += ":" + port_;
+  }
+
+  HttpRequest http_request(http::kPost, url);
 
   http_request.SetContent(std::move(http_content), true);
 

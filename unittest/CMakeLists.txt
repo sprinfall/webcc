@@ -1,7 +1,13 @@
 # Unit test
 set(UT_SRCS
-    rest_service_manager_test.cc
+    url_test.cc
     )
+
+if(WEBCC_ENABLE_REST)
+	set(UT_SRCS ${UT_SRCS}
+		rest_service_manager_test.cc
+		)
+endif()
 
 set(UT_TARGET_NAME webcc_unittest)
 

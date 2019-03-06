@@ -8,6 +8,7 @@ endif()
 
 project(webcc)
 
+option(WEBCC_ENABLE_REST "Enable REST support?" ON)
 option(WEBCC_ENABLE_SOAP "Enable SOAP support (need pugixml)?" ON)
 option(WEBCC_ENABLE_SSL "Enable SSL/HTTPS support (need OpenSSL)?" OFF)
 option(WEBCC_ENABLE_UNITTEST "Build unit test?" ON)
@@ -121,17 +122,18 @@ add_subdirectory(webcc)
 
 if(WEBCC_ENABLE_EXAMPLES)
     add_subdirectory(example/http_client)
-    add_subdirectory(example/http_async_client)
+    # add_subdirectory(example/http_async_client)
 
-    # For including jsoncpp as "json/json.h".
-    include_directories(${THIRD_PARTY_DIR}/src/jsoncpp)
+    if(WEBCC_ENABLE_REST)
+        # For including jsoncpp as "json/json.h".
+        include_directories(${THIRD_PARTY_DIR}/src/jsoncpp)
+        # REST examples need jsoncpp to parse and create JSON.
+        add_subdirectory(${THIRD_PARTY_DIR}/src/jsoncpp)
 
-    # REST examples need jsoncpp to parse and create JSON.
-    add_subdirectory(${THIRD_PARTY_DIR}/src/jsoncpp)
-
-    add_subdirectory(example/rest_book_server)
-    add_subdirectory(example/rest_book_client)
-    add_subdirectory(example/rest_book_async_client)
+        add_subdirectory(example/rest_book_server)
+        # add_subdirectory(example/rest_book_client)
+        # add_subdirectory(example/rest_book_async_client)
+    endif()
 
     if(WEBCC_ENABLE_SOAP)
         add_subdirectory(example/soap_calc_server)
@@ -143,8 +145,11 @@ if(WEBCC_ENABLE_EXAMPLES)
 
     if(WEBCC_ENABLE_SSL)
         add_subdirectory(example/http_ssl_client)
-        add_subdirectory(example/http_ssl_async_client)
-        add_subdirectory(example/github_rest_client)
+        # add_subdirectory(example/http_ssl_async_client)
+
+        if(WEBCC_ENABLE_REST)
+            # add_subdirectory(example/github_rest_client)
+        endif()
     endif()
 endif()
 

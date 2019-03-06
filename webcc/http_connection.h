@@ -1,5 +1,5 @@
-#ifndef WEBCC_HTTP_SESSION_H_
-#define WEBCC_HTTP_SESSION_H_
+#ifndef WEBCC_HTTP_CONNECTION_H_
+#define WEBCC_HTTP_CONNECTION_H_
 
 #include <memory>
 #include <string>
@@ -14,18 +14,23 @@
 
 namespace webcc {
 
+class HttpConnection;
 class HttpRequestHandler;
 
-class HttpSession : public std::enable_shared_from_this<HttpSession> {
- public:
-  HttpSession(boost::asio::ip::tcp::socket socket,
-              HttpRequestHandler* handler);
+typedef std::shared_ptr<HttpConnection> HttpConnectionPtr;
 
-  ~HttpSession() = default;
+class HttpConnection : public std::enable_shared_from_this<HttpConnection> {
+public:
+  HttpConnection(boost::asio::ip::tcp::socket socket,
+                 HttpRequestHandler* handler);
 
-  WEBCC_DELETE_COPY_ASSIGN(HttpSession);
+  ~HttpConnection() = default;
 
-  const HttpRequest& request() const { return request_; }
+  WEBCC_DELETE_COPY_ASSIGN(HttpConnection);
+
+  const HttpRequest& request() const {
+    return request_;
+  }
 
   // Start to read and process the client request.
   void Start();
@@ -40,7 +45,7 @@ class HttpSession : public std::enable_shared_from_this<HttpSession> {
   // Send response to client with the given status.
   void SendResponse(http::Status status);
 
- private:
+private:
   void DoRead();
   void OnRead(boost::system::error_code ec, std::size_t length);
 
@@ -69,8 +74,6 @@ class HttpSession : public std::enable_shared_from_this<HttpSession> {
   HttpResponse response_;
 };
 
-typedef std::shared_ptr<HttpSession> HttpSessionPtr;
-
 }  // namespace webcc
 
-#endif  // WEBCC_HTTP_SESSION_H_
+#endif  // WEBCC_HTTP_CONNECTION_H_

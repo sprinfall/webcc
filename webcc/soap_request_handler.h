@@ -10,15 +10,16 @@
 namespace webcc {
 
 class SoapRequestHandler : public HttpRequestHandler {
- public:
+public:
   explicit SoapRequestHandler(SoapVersion soap_version)
-      : soap_version_(soap_version),
-        format_raw_(true) {
+      : soap_version_(soap_version), format_raw_(true) {
   }
 
   ~SoapRequestHandler() override = default;
 
-  void set_format_raw(bool format_raw) { format_raw_ = format_raw; }
+  void set_format_raw(bool format_raw) {
+    format_raw_ = format_raw;
+  }
 
   void set_indent_str(const std::string& indent_str) {
     indent_str_ = indent_str;
@@ -26,8 +27,8 @@ class SoapRequestHandler : public HttpRequestHandler {
 
   bool Bind(SoapServicePtr service, const std::string& url);
 
- private:
-  void HandleSession(HttpSessionPtr session) override;
+private:
+  void HandleConnection(HttpConnectionPtr connection) override;
 
   SoapServicePtr GetServiceByUrl(const std::string& url);
 

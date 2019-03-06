@@ -3,8 +3,10 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "webcc/http_message.h"
+#include "webcc/url.h"
 
 namespace webcc {
 
@@ -14,29 +16,34 @@ class HttpRequestParser;
 typedef std::shared_ptr<HttpRequest> HttpRequestPtr;
 
 class HttpRequest : public HttpMessage {
- public:
+public:
   HttpRequest() = default;
 
-  // The |host| is a descriptive name (e.g., www.google.com) or a numeric IP
-  // address (127.0.0.1).
-  // The |port| is a numeric number (e.g., 9000). The default value (80 for HTTP
-  // or 443 for HTTPS) will be used to connect to server if it's empty.
+  // TODO: Move parameters
   HttpRequest(const std::string& method,
               const std::string& url,
-              const std::string& host,
-              const std::string& port = "");
+              const std::vector<std::string>& parameters = {});
 
   ~HttpRequest() override = default;
 
-  const std::string& method() const { return method_; }
+  const std::string& method() const {
+    return method_;
+  }
 
-  const std::string& url() const { return url_; }
+  const Url& url() const {
+    return url_;
+  }
 
-  const std::string& host() const { return host_; }
-  const std::string& port() const { return port_; }
+  const std::string& host() const {
+    return url_.host();
+  }
+
+  const std::string& port() const {
+    return url_.port();
+  }
 
   std::string port(const std::string& default_port) const {
-    return port_.empty() ? default_port : port_;
+    return port().empty() ? default_port : port();
   }
 
   // Shortcut to set `Accept` header.
@@ -51,30 +58,26 @@ class HttpRequest : public HttpMessage {
 
   // Prepare payload.
   // Compose start line, set Host header, etc.
-  void Prepare() override;
+  bool Prepare() override;
 
+  // TODO: Re-place
   static HttpRequestPtr New(const std::string& method,
                             const std::string& url,
-                            const std::string& host,
-                            const std::string& port = "",
+                            const std::vector<std::string>& parameters = {},
                             bool prepare = true);
 
- private:
+private:
   friend class HttpRequestParser;
 
-  void set_method(const std::string& method) { method_ = method; }
-  void set_url(const std::string& url) { url_ = url; }
+  void set_method(const std::string& method) {
+    method_ = method;
+  }
+  void set_url(const std::string& url) {
+    url_.Init(url);
+  }
 
-  // HTTP method.
   std::string method_;
-
-  // Request URL.
-  // A complete URL naming the requested resource, or the path component of
-  // the URL.
-  std::string url_;
-
-  std::string host_;
-  std::string port_;
+  Url url_;
 };
 
 }  // namespace webcc

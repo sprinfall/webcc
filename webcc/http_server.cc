@@ -96,8 +96,8 @@ void HttpServer::DoAccept() {
         if (!ec) {
           LOG_INFO("Accepted a connection.");
 
-          std::make_shared<HttpSession>(std::move(socket),
-                                        GetRequestHandler())->Start();
+          std::make_shared<HttpConnection>(std::move(socket),
+                                           GetRequestHandler())->Start();
         }
 
         DoAccept();

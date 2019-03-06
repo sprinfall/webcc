@@ -63,7 +63,7 @@ protected:
   // Default: "utf-8".
   std::string content_charset_;
 
-  // Default headers for all session requests.
+  // Default headers for each request sent from this session.
   std::map<std::string, std::string> headers_;
 
 private:
@@ -96,7 +96,7 @@ public:
 
   inline bool Post(const std::string& url, std::string&& content,
                    const SSMap& headers = {}, std::size_t buffer_size = 0) {
-    return Request(kHttpPost, url, std::move(content), headers, buffer_size);
+    return Request(Post, url, std::move(content), headers, buffer_size);
   }
 
   inline bool Put(const std::string& url, std::string&& content,

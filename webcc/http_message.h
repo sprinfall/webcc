@@ -12,35 +12,76 @@
 
 namespace webcc {
 
-struct HttpHeader {
-  std::string name;
-  std::string value;
+// -----------------------------------------------------------------------------
+
+typedef std::pair<std::string, std::string> HttpHeader;
+
+class HttpMessage;
+
+std::ostream& operator<<(std::ostream& os, const HttpMessage& message);
+
+// -----------------------------------------------------------------------------
+
+class HttpHeaderDict {
+public:
+  std::size_t size() const {
+    return headers_.size();
+  }
+
+  void Add(const std::string& key, const std::string& value);
+
+  void Add(std::string&& key, std::string&& value);
+
+  bool Has(const std::string& key) const;
+
+  const HttpHeader& Get(std::size_t i) const {
+    assert(i < size());
+    return headers_[i];
+  }
+
+  const std::vector<HttpHeader>& data() const {
+    return headers_;
+  }
+
+private:
+  std::vector<HttpHeader> headers_;
 };
+
+// -----------------------------------------------------------------------------
 
 // Base class for HTTP request and response messages.
 class HttpMessage {
- public:
-  HttpMessage() : content_length_(kInvalidLength) {}
+public:
+  HttpMessage() : content_length_(kInvalidLength) {
+  }
 
   virtual ~HttpMessage() = default;
 
-  const std::string& start_line() const { return start_line_; }
+  const std::string& start_line() const {
+    return start_line_;
+  }
 
   void set_start_line(const std::string& start_line) {
     start_line_ = start_line;
   }
 
-  std::size_t content_length() const { return content_length_; }
+  std::size_t content_length() const {
+    return content_length_;
+  }
 
-  const std::string& content() const { return content_; }
+  const std::string& content() const {
+    return content_;
+  }
 
-  // TODO: Rename to AddHeader.
-  void SetHeader(const std::string& name, const std::string& value);
+  void SetHeader(const std::string& key, const std::string& value) {
+    headers_.Add(key, value);
+  }
 
-  // TODO: Remove
-  void SetHeader(std::string&& name, std::string&& value);
+  void SetHeader(std::string&& key, std::string&& value) {
+    headers_.Add(std::move(key), std::move(value));
+  }
 
-  // E.g., "application/json; charset=utf-8"
+  // E.g., "text/html", "application/json; charset=utf-8", etc.
   void SetContentType(const std::string& media_type,
                       const std::string& charset);
 
@@ -51,7 +92,7 @@ class HttpMessage {
 
   // Make the message (e.g., update start line).
   // Must be called before ToBuffers()!
-  virtual void Prepare() = 0;
+  virtual bool Prepare() = 0;
 
   // Convert the message into a vector of buffers. The buffers do not own the
   // underlying memory blocks, therefore the message object must remain valid
@@ -66,7 +107,7 @@ class HttpMessage {
   std::string Dump(std::size_t indent = 0,
                    const std::string& prefix = "") const;
 
- protected:
+protected:
   void SetContentLength(std::size_t content_length) {
     content_length_ = content_length;
     SetHeader(http::headers::kContentLength, std::to_string(content_length));
@@ -77,12 +118,10 @@ class HttpMessage {
 
   std::size_t content_length_;
 
-  std::vector<HttpHeader> headers_;
+  HttpHeaderDict headers_;
 
   std::string content_;
 };
-
-std::ostream& operator<<(std::ostream& os, const HttpMessage& message);
 
 }  // namespace webcc
 

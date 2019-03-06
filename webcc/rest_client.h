@@ -35,22 +35,22 @@ class RestClient {
   // instead for the HTTP status code.
 
   inline bool Get(const std::string& url, std::size_t buffer_size = 0) {
-    return Request(kHttpGet, url, "", buffer_size);
+    return Request("GET", url, "", buffer_size);
   }
 
   inline bool Post(const std::string& url, std::string&& content,
                    std::size_t buffer_size = 0) {
-    return Request(kHttpPost, url, std::move(content), buffer_size);
+    return Request("POST", url, std::move(content), buffer_size);
   }
 
   inline bool Put(const std::string& url, std::string&& content,
                   std::size_t buffer_size = 0) {
-    return Request(kHttpPut, url, std::move(content), buffer_size);
+    return Request("PUT", url, std::move(content), buffer_size);
   }
 
   inline bool Patch(const std::string& url, std::string&& content,
                     std::size_t buffer_size = 0) {
-    return Request(kHttpPatch, url, std::move(content), buffer_size);
+    return Request("PATCH", url, std::move(content), buffer_size);
   }
 
   inline bool Delete(const std::string& url, std::size_t buffer_size = 0) {

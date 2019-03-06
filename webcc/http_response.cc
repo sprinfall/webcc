@@ -57,13 +57,13 @@ const std::string& ToString(int status) {
 
 }  // namespace status_strings
 
-void HttpResponse::Prepare() {
+bool HttpResponse::Prepare() {
   start_line_ = status_strings::ToString(status_);
 
-  // NOTE: C++11 requires a space between literal and string macro.
-  SetHeader("Server", "Webcc/" WEBCC_VERSION);
-
+  SetHeader("Server", USER_AGENT);
   SetHeader("Date", GetHttpDateTimestamp());
+
+  return true;
 }
 
 HttpResponse HttpResponse::Fault(http::Status status) {
