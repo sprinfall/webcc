@@ -10,7 +10,6 @@ project(webcc)
 
 option(WEBCC_ENABLE_REST "Enable REST support?" ON)
 option(WEBCC_ENABLE_SOAP "Enable SOAP support (need pugixml)?" ON)
-option(WEBCC_ENABLE_SSL "Enable SSL/HTTPS support (need OpenSSL)?" OFF)
 option(WEBCC_ENABLE_UNITTEST "Build unit test?" ON)
 option(WEBCC_ENABLE_EXAMPLES "Build examples?" ON)
 
@@ -85,14 +84,12 @@ if(Boost_FOUND)
     message(STATUS ${Boost_LIBRARIES})
 endif()
 
-if(WEBCC_ENABLE_SSL)
-    set(OPENSSL_USE_STATIC_LIBS ON)
-    set(OPENSSL_MSVC_STATIC_RT ON)
-    find_package(OpenSSL)
-    if(OPENSSL_FOUND)
-        include_directories(${OPENSSL_INCLUDE_DIR})
-        message(STATUS "OpenSSL libs: " ${OPENSSL_LIBRARIES})
-    endif()
+set(OPENSSL_USE_STATIC_LIBS ON)
+set(OPENSSL_MSVC_STATIC_RT ON)
+find_package(OpenSSL)
+if(OPENSSL_FOUND)
+    include_directories(${OPENSSL_INCLUDE_DIR})
+    message(STATUS "OpenSSL libs: " ${OPENSSL_LIBRARIES})
 endif()
 
 include_directories(
@@ -121,6 +118,17 @@ endif()
 add_subdirectory(webcc)
 
 if(WEBCC_ENABLE_EXAMPLES)
+    # Common libraries to link for examples.
+    set(EXAMPLE_COMMON_LIBS webcc ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES}
+        "${CMAKE_THREAD_LIBS_INIT}")
+    if(WIN32)
+        set(EXAMPLE_COMMON_LIBS ${EXAMPLE_COMMON_LIBS} crypt32)
+    endif()
+    if(UNIX)
+        # Add `-ldl` for Linux to avoid "undefined reference to `dlopen'".
+        set(EXAMPLE_COMMON_LIBS ${EXAMPLE_COMMON_LIBS} ${CMAKE_DL_LIBS})
+    endif()
+
     add_subdirectory(example/http_client)
     # add_subdirectory(example/http_async_client)
 
@@ -143,13 +151,11 @@ if(WEBCC_ENABLE_EXAMPLES)
         add_subdirectory(example/soap_book_client)
     endif()
 
-    if(WEBCC_ENABLE_SSL)
-        add_subdirectory(example/http_ssl_client)
-        # add_subdirectory(example/http_ssl_async_client)
+    add_subdirectory(example/http_ssl_client)
+    # add_subdirectory(example/http_ssl_async_client)
 
-        if(WEBCC_ENABLE_REST)
-            # add_subdirectory(example/github_rest_client)
-        endif()
+    if(WEBCC_ENABLE_REST)
+        # add_subdirectory(example/github_rest_client)
     endif()
 endif()
 

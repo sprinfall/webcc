@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "webcc/http_client_session.h"  // TEST
+#include "webcc/http_client_session.h"
 #include "webcc/logger.h"
 
 int main() {
@@ -12,38 +12,49 @@ int main() {
 
   HttpClientSession session;
 
-#if 0
-  r = session.Request(HttpRequestArgs("GET")
-                      .url("http://httpbin.org/get")  // Moved
-                      .parameters({ "key1", "value1", "key2", "value2" })  // Moved
-                      .headers({ "Accept", "application/json" })  // Moved
-                      .buffer_size(1000));
+  // ---------------------------------------------------------------------------
+
+  r = session.Request(HttpRequestArgs{ "GET" }.
+                      url("http://httpbin.org/get").  // moved
+                      parameters({ "key1", "value1", "key2", "value2" }).  // moved
+                      headers({ "Accept", "application/json" }).  // moved
+                      buffer_size(1000));
 
   std::cout << r->content() << std::endl;
 
+  // ---------------------------------------------------------------------------
+
   // If you want to create the args object firstly, there'll be an extra call
   // to its move constructor.
-  //   - constructor: HttpRequestArgs("GET")
-  //   - move constructor: auto args = ... 
-  auto args = HttpRequestArgs("GET")
-      .url("http://httpbin.org/get")
-      .parameters({ "key1", "value1", "key2", "value2" })
-      .headers({ "Accept", "application/json" })
-      .buffer_size(1000);
+  //   - constructor: HttpRequestArgs{ "GET" }
+  //   - move constructor: auto args = ...
+
+  auto args = HttpRequestArgs{"GET"}.
+      url("http://httpbin.org/get").
+      parameters({ "key1", "value1", "key2", "value2" }).
+      headers({ "Accept", "application/json" }).
+      buffer_size(1000);
 
   r = session.Request(std::move(args));
+
+  // ---------------------------------------------------------------------------
+  // Use pre-defined wrappers.
 
   r = session.Get("http://httpbin.org/get",
                   { "key1", "value1", "key2", "value2" },
                   { "Accept", "application/json" },
-                  HttpRequestArgs().buffer_size(1000));
-#endif
+                  HttpRequestArgs{}.buffer_size(1000));
 
-  r = session.Post("http://httpbin.org/post", "{ 'key': 'value' }", true,
+  // ---------------------------------------------------------------------------
+  // HTTPS is auto-detected from the URL schema.
+
+  r = session.Post("https://httpbin.org/post", "{ 'key': 'value' }", true,
                    { "Accept", "application/json" },
-                   HttpRequestArgs().buffer_size(1000));
+                   HttpRequestArgs{}.ssl_verify(false).buffer_size(1000));
 
-  std::cout << r->content() << std::endl;
+  if (r) {
+    std::cout << r->content() << std::endl;
+  }
 
   return 0;
 }

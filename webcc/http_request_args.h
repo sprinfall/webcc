@@ -17,7 +17,7 @@ class HttpClientSession;
 class HttpRequestArgs {
 public:
   explicit HttpRequestArgs(const std::string& method = "")
-      : method_(method), json_(false), buffer_size_(0) {
+      : method_(method), json_(false), ssl_verify_(true), buffer_size_(0) {
     LOG_VERB("HttpRequestArgs()");
   }
 
@@ -38,6 +38,7 @@ public:
         data_(std::move(rhs.data_)),
         json_(rhs.json_),
         headers_(std::move(rhs.headers_)),
+        ssl_verify_(rhs.ssl_verify_),
         buffer_size_(rhs.buffer_size_) {
     LOG_VERB("HttpRequestArgs(&&)");
   }
@@ -50,6 +51,7 @@ public:
       data_ = std::move(rhs.data_);
       json_ = rhs.json_;
       headers_ = std::move(rhs.headers_);
+      ssl_verify_ = rhs.ssl_verify_;
       buffer_size_ = buffer_size_;
     }
     LOG_VERB("HttpRequestArgs& operator=(&&)");
@@ -108,6 +110,11 @@ public:
     return std::move(*this);
   }
 
+  HttpRequestArgs&& ssl_verify(bool ssl_verify = true) {
+    ssl_verify_ = ssl_verify;
+    return std::move(*this);
+  }
+
   HttpRequestArgs&& buffer_size(std::size_t buffer_size) {
     buffer_size_ = buffer_size;
     return std::move(*this);
@@ -129,6 +136,10 @@ private:
   bool json_;
 
   std::vector<std::string> headers_;
+
+  // Verify the certificate of the peer (remote server) or not.
+  // HTTPS only.
+  bool ssl_verify_;
 
   // Size of the buffer to read response.
   // Leave it to 0 for using default value.

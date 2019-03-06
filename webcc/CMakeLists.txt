@@ -30,6 +30,7 @@ set(HEADERS
     http_response.h
     http_response_parser.h
     http_server.h
+    http_ssl_client.h
     # http_ssl_async_client.h
     queue.h
     url.h
@@ -53,6 +54,7 @@ set(SOURCES
     http_response.cc
     http_response_parser.cc
     http_server.cc
+    http_ssl_client.cc
     # http_ssl_async_client.cc
     logger.cc
     url.cc
@@ -61,7 +63,7 @@ set(SOURCES
 
 if(WEBCC_ENABLE_REST)
     set(REST_HEADERS
-       # rest_async_client.h
+        # rest_async_client.h
         # rest_client.h
         rest_request_handler.h
         rest_server.h
@@ -78,11 +80,6 @@ if(WEBCC_ENABLE_REST)
 
     set(HEADERS ${HEADERS} ${REST_HEADERS})
     set(SOURCES ${SOURCES} ${REST_SOURCES})
-endif()
-
-if(WEBCC_ENABLE_SSL)
-    set(HEADERS ${HEADERS} http_ssl_client.h)
-    set(SOURCES ${SOURCES} http_ssl_client.cc)
 endif()
 
 if(WEBCC_ENABLE_SOAP)

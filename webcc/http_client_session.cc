@@ -1,7 +1,7 @@
 #include "webcc/http_client_session.h"
 
 #include "webcc/http_client.h"
-#include "webcc/http_request.h"
+#include "webcc/http_ssl_client.h"
 #include "webcc/url.h"
 
 namespace webcc {
@@ -14,7 +14,7 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestArgs&& args) {
   assert(args.parameters_.size() % 2 == 0);
   assert(args.headers_.size() % 2 == 0);
 
-  HttpRequest request(args.method_, args.url_, args.parameters_);
+  HttpRequest request{ args.method_, args.url_, args.parameters_ };
 
   if (!args.data_.empty()) {
     request.SetContent(std::move(args.data_), true);
@@ -39,12 +39,26 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestArgs&& args) {
 
   request.Prepare();
 
-  HttpClient client;
-  if (!client.Request(request, args.buffer_size_)) {
+  // TODO:
+
+  std::shared_ptr<HttpClientBase> impl;
+
+  if (request.url().scheme() == "http") {
+    impl.reset(new HttpClient);
+  } else if (request.url().scheme() == "https") {
+    impl.reset(new HttpSslClient{args.ssl_verify_});
+  } else {
     return HttpResponsePtr{};
   }
 
-  return client.response();
+  if (impl) {
+    if (!impl->Request(request, args.buffer_size_)) {
+      return HttpResponsePtr{};
+    }
+    return impl->response();
+  }
+
+  return HttpResponsePtr{};
 }
 
 HttpResponsePtr HttpClientSession::Get(const std::string& url,
