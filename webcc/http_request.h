@@ -11,7 +11,6 @@
 namespace webcc {
 
 class HttpRequest;
-class HttpRequestParser;
 
 typedef std::shared_ptr<HttpRequest> HttpRequestPtr;
 
@@ -19,12 +18,24 @@ class HttpRequest : public HttpMessage {
 public:
   HttpRequest() = default;
 
-  // TODO: Move parameters
-  HttpRequest(const std::string& method,
-              const std::string& url,
-              const std::vector<std::string>& parameters = {});
+  HttpRequest(const std::string& method, const std::string& url)
+      : method_(method), url_(url) {
+  }
 
   ~HttpRequest() override = default;
+
+  void set_method(const std::string& method) {
+    method_ = method;
+  }
+
+  void set_url(const std::string& url) {
+    url_.Init(url);
+  }
+
+  // Add URL query parameter.
+  void AddParameter(const std::string& key, const std::string& value) {
+    url_.AddParameter(key, value);
+  }
 
   const std::string& method() const {
     return method_;
@@ -46,36 +57,11 @@ public:
     return port().empty() ? default_port : port();
   }
 
-  // Shortcut to set `Accept` header.
-  void Accept(const std::string& media_type) {
-    SetHeader(http::headers::kAccept, media_type);
-  }
-
-  // Shortcut to set `Accept` header.
-  void AcceptAppJson() {
-    SetHeader(http::headers::kAccept, http::media_types::kApplicationJson);
-  }
-
   // Prepare payload.
   // Compose start line, set Host header, etc.
   bool Prepare() override;
 
-  // TODO: Re-place
-  static HttpRequestPtr New(const std::string& method,
-                            const std::string& url,
-                            const std::vector<std::string>& parameters = {},
-                            bool prepare = true);
-
 private:
-  friend class HttpRequestParser;
-
-  void set_method(const std::string& method) {
-    method_ = method;
-  }
-  void set_url(const std::string& url) {
-    url_.Init(url);
-  }
-
   std::string method_;
   Url url_;
 };

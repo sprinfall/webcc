@@ -19,8 +19,8 @@ bool HttpRequestParser::ParseStartLine(const std::string& line) {
     return false;
   }
 
-  request_->set_method(strs[0]);
-  request_->set_url(strs[1]);
+  request_->set_method(std::move(strs[0]));
+  request_->set_url(std::move(strs[1]));
 
   // HTTP version is ignored.
 

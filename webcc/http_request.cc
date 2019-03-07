@@ -4,16 +4,6 @@
 
 namespace webcc {
 
-HttpRequest::HttpRequest(const std::string& method,
-                         const std::string& url,
-                         const std::vector<std::string>& parameters)
-    : method_(method), url_(url) {
-  assert(parameters.size() % 2 == 0);
-  for (std::size_t i = 1; i < parameters.size(); i += 2) {
-    url_.AddParameter(parameters[i - 1], parameters[i]);
-  }
-}
-
 bool HttpRequest::Prepare() {
   if (url_.host().empty()) {
     LOG_ERRO("Invalid request: host is missing.");
@@ -39,19 +29,6 @@ bool HttpRequest::Prepare() {
   }
 
   return true;
-}
-
-HttpRequestPtr HttpRequest::New(const std::string& method,
-                                const std::string& url,
-                                const std::vector<std::string>& parameters,
-                                bool prepare) {
-  HttpRequestPtr request{ new HttpRequest{ method, url, parameters } };
-
-  if (prepare) {
-    request->Prepare();
-  }
-
-  return request;
 }
 
 }  // namespace webcc

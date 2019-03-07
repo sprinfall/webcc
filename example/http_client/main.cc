@@ -3,6 +3,14 @@
 #include "webcc/http_client_session.h"
 #include "webcc/logger.h"
 
+void GetBoostOrgLicense(webcc::HttpClientSession& session) {
+  auto r = session.Get("https://www.boost.org/LICENSE_1_0.txt");
+
+  if (r) {
+    std::cout << r->content() << std::endl;
+  }
+}
+
 int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
@@ -29,21 +37,21 @@ int main() {
   //   - constructor: HttpRequestArgs{ "GET" }
   //   - move constructor: auto args = ...
 
-  auto args = HttpRequestArgs{"GET"}.
-      url("http://httpbin.org/get").
-      parameters({ "key1", "value1", "key2", "value2" }).
-      headers({ "Accept", "application/json" }).
-      buffer_size(1000);
+  //auto args = HttpRequestArgs{"GET"}.
+  //    url("http://httpbin.org/get").
+  //    parameters({ "key1", "value1", "key2", "value2" }).
+  //    headers({ "Accept", "application/json" }).
+  //    buffer_size(1000);
 
-  r = session.Request(std::move(args));
+  //r = session.Request(std::move(args));
 
   // ---------------------------------------------------------------------------
   // Use pre-defined wrappers.
 
-  r = session.Get("http://httpbin.org/get",
-                  { "key1", "value1", "key2", "value2" },
-                  { "Accept", "application/json" },
-                  HttpRequestArgs{}.buffer_size(1000));
+  //r = session.Get("http://httpbin.org/get",
+  //                { "key1", "value1", "key2", "value2" },
+  //                { "Accept", "application/json" },
+  //                HttpRequestArgs{}.buffer_size(1000));
 
   // ---------------------------------------------------------------------------
   // HTTPS is auto-detected from the URL schema.
@@ -55,6 +63,8 @@ int main() {
   if (r) {
     std::cout << r->content() << std::endl;
   }
+
+  GetBoostOrgLicense(session);
 
   return 0;
 }

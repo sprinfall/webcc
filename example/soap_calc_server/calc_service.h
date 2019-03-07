@@ -4,7 +4,7 @@
 #include "webcc/soap_service.h"
 
 class CalcService : public webcc::SoapService {
- public:
+public:
   CalcService() = default;
   ~CalcService() override = default;
 

@@ -9,7 +9,7 @@ namespace webcc {
 
 // HTTP SSL (a.k.a., HTTPS) synchronous client.
 class HttpSslClient : public HttpClientBase {
- public:
+public:
   // SSL verification (|ssl_verify|) needs CA certificates to be found
   // in the default verify paths of OpenSSL. On Windows, it means you need to
   // set environment variable SSL_CERT_FILE properly.
@@ -17,7 +17,7 @@ class HttpSslClient : public HttpClientBase {
 
   ~HttpSslClient() = default;
 
- private:
+private:
   Error Handshake(const std::string& host);
 
   // Override to do handshake after connected.

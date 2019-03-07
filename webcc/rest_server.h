@@ -12,7 +12,7 @@
 namespace webcc {
 
 class RestServer : public HttpServer {
- public:
+public:
   RestServer(std::uint16_t port, std::size_t workers)
       : HttpServer(port, workers) {
   }
@@ -31,7 +31,7 @@ class RestServer : public HttpServer {
     return request_handler_.Bind(service, url, is_regex);
   }
 
- private:
+private:
   HttpRequestHandler* GetRequestHandler() override {
     return &request_handler_;
   }

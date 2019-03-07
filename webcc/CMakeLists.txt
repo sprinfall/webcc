@@ -15,8 +15,6 @@ include(GNUInstallDirs)
 
 set(HEADERS
     globals.h
-    # http_async_client_base.h
-    # http_async_client.h
     http_client_base.h
     http_client.h
     http_client_session.h
@@ -31,7 +29,6 @@ set(HEADERS
     http_response_parser.h
     http_server.h
     http_ssl_client.h
-    # http_ssl_async_client.h
     queue.h
     url.h
     utility.h
@@ -40,8 +37,6 @@ set(HEADERS
 
 set(SOURCES
     globals.cc
-    # http_async_client_base.cc
-    # http_async_client.cc
     http_client_base.cc
     http_client.cc
     http_client_session.cc
@@ -55,7 +50,6 @@ set(SOURCES
     http_response_parser.cc
     http_server.cc
     http_ssl_client.cc
-    # http_ssl_async_client.cc
     logger.cc
     url.cc
     utility.cc
@@ -63,16 +57,12 @@ set(SOURCES
 
 if(WEBCC_ENABLE_REST)
     set(REST_HEADERS
-        # rest_async_client.h
-        # rest_client.h
         rest_request_handler.h
         rest_server.h
         rest_service.h
         rest_service_manager.h
         )
     set(REST_SOURCES
-       # rest_async_client.cc
-        # rest_client.cc
         rest_request_handler.cc
         rest_service_manager.cc
         rest_service.cc
@@ -84,7 +74,6 @@ endif()
 
 if(WEBCC_ENABLE_SOAP)
     set(SOAP_HEADERS
-        # soap_async_client.h
         soap_client.h
         soap_globals.h
         soap_message.h
@@ -98,7 +87,6 @@ if(WEBCC_ENABLE_SOAP)
         )
 
     set(SOAP_SOURCES
-        # soap_async_client.cc
         soap_client.cc
         soap_globals.cc
         soap_message.cc

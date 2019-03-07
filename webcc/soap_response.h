@@ -12,7 +12,7 @@
 namespace webcc {
 
 class SoapResponse : public SoapMessage {
- public:
+public:
   // Response result parser.
   // Called on each child of the response node.
   // Example:
@@ -50,11 +50,11 @@ class SoapResponse : public SoapMessage {
   //   - composer(xxxResponse);
   // The composer then add proper children to xxxResponse as the result.
   class Composer {
-   public:
+ public:
     void operator()(pugi::xml_node xresponse) {
       Compose(xresponse);
     }
-   private:
+  private:
     virtual void Compose(pugi::xml_node xresponse) = 0;
   };
 
@@ -127,12 +127,12 @@ class SoapResponse : public SoapMessage {
 
   // TODO: Set fault from server.
 
- protected:
+public:
   void ToXmlBody(pugi::xml_node xbody) override;
 
   bool FromXmlBody(pugi::xml_node xbody) override;
 
- private:
+private:
   // Fault element if any.
   std::shared_ptr<SoapFault> fault_;
 

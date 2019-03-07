@@ -11,7 +11,7 @@
 namespace webcc {
 
 class RestServiceManager {
- public:
+public:
   RestServiceManager() = default;
 
   WEBCC_DELETE_COPY_ASSIGN(RestServiceManager);
@@ -30,9 +30,9 @@ class RestServiceManager {
   RestServicePtr GetService(const std::string& url,
                             std::vector<std::string>* sub_matches);
 
- private:
+private:
   class ServiceItem {
-   public:
+ public:
     ServiceItem(RestServicePtr _service, const std::string& _url,
                 bool _is_regex)
         : service(_service), url(_url), is_regex(_is_regex) {

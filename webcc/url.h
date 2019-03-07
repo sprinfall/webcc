@@ -7,6 +7,8 @@
 #include <utility>
 #include <vector>
 
+#include "webcc/globals.h"
+
 namespace webcc {
 
 // -----------------------------------------------------------------------------
@@ -57,8 +59,35 @@ class Url {
 public:
   Url() = default;
 
-  // TODO: decode/encode/encoded?
   explicit Url(const std::string& str, bool decode = true);
+
+#if WEBCC_DEFAULT_MOVE_COPY_ASSIGN
+
+  Url(Url&&) = default;
+  Url& operator=(Url&&) = default;
+
+#else
+
+  Url(Url&& rhs)
+    : scheme_(std::move(rhs.scheme_)),
+      host_(std::move(rhs.host_)),
+      port_(std::move(rhs.port_)),
+      path_(std::move(rhs.path_)),
+      query_(std::move(rhs.query_)) {
+  }
+
+  Url& operator=(Url&& rhs) {
+    if (&rhs != this) {
+      scheme_ = std::move(rhs.scheme_);
+      host_ = std::move(rhs.host_);
+      port_ = std::move(rhs.port_);
+      path_ = std::move(rhs.path_);
+      query_ = std::move(rhs.query_);
+    }
+    return *this;
+  }
+
+#endif  // WEBCC_DEFAULT_MOVE_COPY_ASSIGN
 
   void Init(const std::string& str, bool decode = true, bool clear = true);
 

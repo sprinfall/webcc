@@ -12,7 +12,7 @@
 namespace webcc {
 
 class SoapClient {
- public:
+public:
   // If |port| is empty, |host| will be checked to see if it contains port or
   // not (separated by ':').
   explicit SoapClient(const std::string& host, const std::string& port = "",
@@ -69,7 +69,7 @@ class SoapClient {
 
   std::shared_ptr<SoapFault> fault() const { return fault_; }
 
- private:
+private:
   std::string host_;
   std::string port_;  // Leave this empty to use default 80.
 

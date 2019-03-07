@@ -11,7 +11,7 @@
 namespace webcc {
 
 class SoapServer : public HttpServer {
- public:
+public:
   SoapServer(std::uint16_t port, std::size_t workers,
              SoapVersion soap_version = kSoapV12)
       : HttpServer(port, workers),
@@ -36,7 +36,7 @@ class SoapServer : public HttpServer {
     return request_handler_.Bind(service, url);
   }
 
- private:
+private:
   HttpRequestHandler* GetRequestHandler() override {
     return &request_handler_;
   }

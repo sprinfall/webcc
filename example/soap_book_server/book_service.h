@@ -4,11 +4,11 @@
 #include "webcc/soap_service.h"
 
 class BookService : public webcc::SoapService {
- public:
+public:
   bool Handle(const webcc::SoapRequest& soap_request,
               webcc::SoapResponse* soap_response) override;
 
- private:
+private:
   bool CreateBook(const webcc::SoapRequest& soap_request,
                   webcc::SoapResponse* soap_response);
 

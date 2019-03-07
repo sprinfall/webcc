@@ -20,7 +20,7 @@ std::ostream& operator<<(std::ostream& os, const Book& book);
 extern const Book kNullBook;
 
 class BookStore {
- public:
+public:
   const std::list<Book>& books() const { return books_; }
 
   const Book& GetBook(const std::string& id) const;
@@ -33,7 +33,7 @@ class BookStore {
 
   bool DeleteBook(const std::string& id);
 
- private:
+private:
   std::list<Book>::const_iterator FindBook(const std::string& id) const;
 
   std::list<Book>::iterator FindBook(const std::string& id);

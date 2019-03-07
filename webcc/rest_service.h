@@ -46,7 +46,7 @@ struct RestResponse {
 
 // Base class for your REST service.
 class RestService {
- public:
+public:
   virtual ~RestService() = default;
 
   // Handle REST request, output response.
@@ -58,10 +58,10 @@ typedef std::shared_ptr<RestService> RestServicePtr;
 // -----------------------------------------------------------------------------
 
 class RestListService : public RestService {
- public:
+public:
   void Handle(const RestRequest& request, RestResponse* response) final;
 
- protected:
+public:
   RestListService() = default;
 
   virtual void Get(const UrlQuery& query, RestResponse* response) {
@@ -75,10 +75,10 @@ class RestListService : public RestService {
 // -----------------------------------------------------------------------------
 
 class RestDetailService : public RestService {
- public:
+public:
   void Handle(const RestRequest& request, RestResponse* response) final;
 
- protected:
+public:
   virtual void Get(const UrlSubMatches& url_sub_matches,
                    const UrlQuery& query,
                    RestResponse* response) {

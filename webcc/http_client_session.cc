@@ -14,14 +14,20 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestArgs&& args) {
   assert(args.parameters_.size() % 2 == 0);
   assert(args.headers_.size() % 2 == 0);
 
-  HttpRequest request{ args.method_, args.url_, args.parameters_ };
+  HttpRequest request{ args.method_, args.url_ };
+
+  for (std::size_t i = 1; i < args.parameters_.size(); i += 2) {
+    request.AddParameter(args.parameters_[i - 1], args.parameters_[i]);
+  }
 
   if (!args.data_.empty()) {
     request.SetContent(std::move(args.data_), true);
 
-    // TODO: charset/encoding
+    // TODO: Request-level charset.
     if (args.json_) {
-      request.SetContentType(http::media_types::kApplicationJson, "");
+      request.SetContentType(http::media_types::kApplicationJson, charset_);
+    } else if (!content_type_.empty()) {
+      request.SetContentType(content_type_, charset_);
     }
   }
 

@@ -9,7 +9,7 @@
 namespace webcc {
 
 class HttpResponse : public HttpMessage {
- public:
+public:
   HttpResponse() : status_(http::Status::kOK) {}
 
   ~HttpResponse() override = default;
@@ -25,7 +25,7 @@ class HttpResponse : public HttpMessage {
   // TODO: Avoid copy.
   static HttpResponse Fault(http::Status status);
 
- private:
+private:
   int status_;
 };
 

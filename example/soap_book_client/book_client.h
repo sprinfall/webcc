@@ -10,7 +10,7 @@
 #include "example/common/book.h"
 
 class BookClient {
- public:
+public:
   BookClient(const std::string& host, const std::string& port);
   
   int code() const { return code_; }
@@ -28,7 +28,7 @@ class BookClient {
   // Delete a book by ID.
   bool DeleteBook(const std::string& id);
 
- private:
+private:
   // Call with 0 parameter.
   bool Call0(const std::string& operation, std::string* result_str);
 

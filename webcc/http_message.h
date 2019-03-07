@@ -88,8 +88,6 @@ public:
   // TODO: Remove parameter |set_length|.
   void SetContent(std::string&& content, bool set_length);
 
-  void SetContentInAppJsonUtf8(std::string&& content, bool set_length);
-
   // Make the message (e.g., update start line).
   // Must be called before ToBuffers()!
   virtual bool Prepare() = 0;

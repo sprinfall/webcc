@@ -73,7 +73,7 @@ std::string GetNSAttr(const pugi::xml_node& xnode,
 //   XmlStringWriter writer(&xml_string);
 //   xdoc.save/print(writer);
 class XmlStringWriter : public pugi::xml_writer {
- public:
+public:
   explicit XmlStringWriter(std::string* result) : result_(result) {
     result_->clear();
   }
@@ -82,7 +82,7 @@ class XmlStringWriter : public pugi::xml_writer {
     result_->append(static_cast<const char*>(data), size);
   }
 
- private:
+private:
   std::string* result_;
 };
 

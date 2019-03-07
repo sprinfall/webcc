@@ -118,48 +118,17 @@ endif()
 add_subdirectory(webcc)
 
 if(WEBCC_ENABLE_EXAMPLES)
-    # Common libraries to link for examples.
-    set(EXAMPLE_COMMON_LIBS webcc ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES}
-        "${CMAKE_THREAD_LIBS_INIT}")
-    if(WIN32)
-        set(EXAMPLE_COMMON_LIBS ${EXAMPLE_COMMON_LIBS} crypt32)
-    endif()
-    if(UNIX)
-        # Add `-ldl` for Linux to avoid "undefined reference to `dlopen'".
-        set(EXAMPLE_COMMON_LIBS ${EXAMPLE_COMMON_LIBS} ${CMAKE_DL_LIBS})
-    endif()
-
-    add_subdirectory(example/http_client)
-    # add_subdirectory(example/http_async_client)
-
     if(WEBCC_ENABLE_REST)
         # For including jsoncpp as "json/json.h".
         include_directories(${THIRD_PARTY_DIR}/src/jsoncpp)
         # REST examples need jsoncpp to parse and create JSON.
         add_subdirectory(${THIRD_PARTY_DIR}/src/jsoncpp)
-
-        add_subdirectory(example/rest_book_server)
-        # add_subdirectory(example/rest_book_client)
-        # add_subdirectory(example/rest_book_async_client)
     endif()
 
-    if(WEBCC_ENABLE_SOAP)
-        add_subdirectory(example/soap_calc_server)
-        add_subdirectory(example/soap_calc_client)
-        add_subdirectory(example/soap_calc_client_parasoft)
-        add_subdirectory(example/soap_book_server)
-        add_subdirectory(example/soap_book_client)
-    endif()
-
-    add_subdirectory(example/http_ssl_client)
-    # add_subdirectory(example/http_ssl_async_client)
-
-    if(WEBCC_ENABLE_REST)
-        # add_subdirectory(example/github_rest_client)
-    endif()
+    add_subdirectory(example)
 endif()
 
 if(WEBCC_ENABLE_UNITTEST)
-    add_subdirectory(third_party/src/gtest)
+    add_subdirectory(${THIRD_PARTY_DIR}/src/gtest)
     add_subdirectory(unittest)
 endif()

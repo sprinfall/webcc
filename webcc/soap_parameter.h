@@ -9,7 +9,7 @@ namespace webcc {
 
 // Key-value SOAP parameter.
 class SoapParameter {
- public:
+public:
   SoapParameter() : as_cdata_(false) {
   }
 
@@ -77,7 +77,7 @@ class SoapParameter {
 
   bool as_cdata() const { return as_cdata_; }
 
- private:
+private:
   std::string key_;
   std::string value_;
   bool as_cdata_;

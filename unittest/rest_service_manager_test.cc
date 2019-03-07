@@ -5,7 +5,7 @@
 // -----------------------------------------------------------------------------
 
 class TestRestService : public webcc::RestService {
- public:
+public:
   void Handle(const webcc::RestRequest& request,
               webcc::RestResponse* response) final {
     response->status = webcc::http::Status::kOK;
@@ -35,6 +35,23 @@ TEST(RestServiceManager, URL_RegexBasic) {
   service = service_manager.GetService(url, &sub_matches);
 
   EXPECT_FALSE(!!service);
+}
+
+TEST(RestServiceManager, URL_Temp) {
+  webcc::RestServiceManager service_manager;
+
+  service_manager.AddService(std::make_shared<TestRestService>(),
+                             "/instance/([\\w.]+)", true);
+
+  std::vector<std::string> sub_matches;
+
+  std::string url = "/instance/123.45-+6aaa";
+  webcc::RestServicePtr service = service_manager.GetService(url, &sub_matches);
+
+  EXPECT_TRUE(!!service);
+
+  EXPECT_EQ(1, sub_matches.size());
+  EXPECT_EQ("123.45-6aaa", sub_matches[0]);
 }
 
 TEST(RestServiceManager, URL_RegexMultiple) {

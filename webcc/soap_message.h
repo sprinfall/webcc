@@ -11,7 +11,7 @@ namespace webcc {
 
 // Base class for SOAP request and response.
 class SoapMessage {
- public:
+public:
   virtual ~SoapMessage() = default;
 
   // E.g., set as kSoapEnvNamespace.
@@ -38,7 +38,7 @@ class SoapMessage {
   // Parse from SOAP XML.
   bool FromXml(const std::string& xml_string);
 
- protected:
+public:
   // Convert to SOAP body XML.
   virtual void ToXmlBody(pugi::xml_node xbody) = 0;
 

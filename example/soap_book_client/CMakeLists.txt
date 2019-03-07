@@ -11,8 +11,7 @@ set(SRCS
 
 add_executable(${TARGET_NAME} ${SRCS})
 
-target_link_libraries(${TARGET_NAME} webcc pugixml ${Boost_LIBRARIES})
-target_link_libraries(${TARGET_NAME} "${CMAKE_THREAD_LIBS_INIT}")
+target_link_libraries(${TARGET_NAME} ${EXAMPLE_COMMON_LIBS} pugixml)
 
 # Install VLD DLLs to build dir so that the example can be launched from
 # inside VS.

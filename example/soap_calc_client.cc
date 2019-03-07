@@ -8,15 +8,14 @@
 static const std::string kResultName = "Result";
 
 class CalcClient {
- public:
-  // NOTE: Parasoft's calculator service uses SOAP V1.1.
+public:
   CalcClient(const std::string& host, const std::string& port)
-      : soap_client_(host, port, webcc::kSoapV11) {
+      : soap_client_(host, port) {
     soap_client_.SetTimeout(5);
 
-    soap_client_.set_url("/glue/calculator");
+    soap_client_.set_url("/calculator");
     soap_client_.set_service_ns({
-      "cal", "http://www.parasoft.com/wsdl/calculator/"
+      "ser", "http://www.example.com/calculator/"
     });
 
     // Customize request XML format.
@@ -37,7 +36,7 @@ class CalcClient {
   }
 
   bool Divide(double x, double y, double* result) {
-    return Calc("divide", "numerator", "denominator", x, y, result);
+    return Calc("divide", "x", "y", x, y, result);
   }
 
   // Only for testing purpose.
@@ -45,7 +44,7 @@ class CalcClient {
     return Calc("unknown", "x", "y", x, y, result);
   }
 
- private:
+private:
   bool Calc(const std::string& operation,
             const std::string& x_name, const std::string& y_name,
             double x, double y,
@@ -76,12 +75,7 @@ class CalcClient {
     if (soap_client_.timed_out()) {
       std::cout << " (timed out)";
     }
-
     std::cout << std::endl;
-
-    if (soap_client_.fault()) {
-      std::cout << *soap_client_.fault() << std::endl;
-    }
   }
 
   webcc::SoapClient soap_client_;
@@ -89,10 +83,24 @@ class CalcClient {
 
 // -----------------------------------------------------------------------------
 
-int main() {
+void Help(const char* argv0) {
+  std::cout << "Usage: " << argv0 << " <host> <port>" << std::endl;
+  std::cout << "  E.g.," << std::endl;
+  std::cout << "    " << argv0 << " localhost 8080" << std::endl;
+}
+
+int main(int argc, char* argv[]) {
+  if (argc < 3) {
+    Help(argv[0]);
+    return 1;
+  }
+
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
-  CalcClient calc("ws1.parasoft.com", "");  // Use default port 80
+  std::string host = argv[1];
+  std::string port = argv[2];
+
+  CalcClient calc(host, port);
 
   double x = 1.0;
   double y = 2.0;

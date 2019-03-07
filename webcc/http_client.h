@@ -7,12 +7,12 @@ namespace webcc {
 
 // HTTP synchronous client.
 class HttpClient : public HttpClientBase {
- public:
+public:
   explicit HttpClient(std::size_t buffer_size = 0);
 
   ~HttpClient() = default;
 
- private:
+private:
   Error Connect(const HttpRequest& request) final {
     return DoConnect(request, kPort80);
   }

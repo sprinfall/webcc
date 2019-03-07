@@ -17,7 +17,7 @@ class HttpRequestHandler;
 // HTTP server accepts TCP connections from TCP clients.
 // NOTE: Only support IPv4.
 class HttpServer {
- public:
+public:
   HttpServer(std::uint16_t port, std::size_t workers);
 
   virtual ~HttpServer() = default;
@@ -27,7 +27,7 @@ class HttpServer {
   // Run the server's io_service loop.
   void Run();
 
- private:
+private:
   // Register to handle the signals that indicate when the server should exit.
   void RegisterSignals();
 

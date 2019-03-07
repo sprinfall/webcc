@@ -20,7 +20,7 @@
 // -----------------------------------------------------------------------------
 
 class BookClientBase {
- public:
+public:
   BookClientBase(const std::string& host, const std::string& port,
                  int timeout_seconds)
       : host_(host), port_(port) {
@@ -29,7 +29,7 @@ class BookClientBase {
 
   virtual ~BookClientBase() = default;
 
- protected:
+public:
   // Helper function to make a request.
   webcc::HttpRequestPtr MakeRequest(const std::string& method,
                                     const std::string& url,
@@ -71,7 +71,7 @@ class BookClientBase {
 // -----------------------------------------------------------------------------
 
 class BookListClient : public BookClientBase {
- public:
+public:
   BookListClient(const std::string& host, const std::string& port,
                  int timeout_seconds)
       : BookClientBase(host, port, timeout_seconds) {
@@ -131,7 +131,7 @@ class BookListClient : public BookClientBase {
 // -----------------------------------------------------------------------------
 
 class BookDetailClient : public BookClientBase {
- public:
+public:
   BookDetailClient(const std::string& host, const std::string& port,
                    int timeout_seconds)
       : BookClientBase(host, port, timeout_seconds) {

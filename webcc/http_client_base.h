@@ -22,7 +22,7 @@ namespace webcc {
 // or timeout occurs.
 // Please don't use the same client object in multiple threads.
 class HttpClientBase {
- public:
+public:
   // The |buffer_size| is the bytes of the buffer for reading response.
   // 0 means default value (e.g., 1024) will be used.
   explicit HttpClientBase(std::size_t buffer_size = 0);
@@ -56,7 +56,7 @@ class HttpClientBase {
 
   Error error() const { return error_; }
 
- protected:
+public:
   typedef boost::asio::ip::tcp::resolver::results_type Endpoints;
 
   typedef std::function<void(boost::system::error_code, std::size_t)>

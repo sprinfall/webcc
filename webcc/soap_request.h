@@ -13,7 +13,7 @@ namespace webcc {
 // Used to compose the SOAP request envelope XML which will be sent as the HTTP
 // request body.
 class SoapRequest : public SoapMessage {
- public:
+public:
   void AddParameter(const SoapParameter& parameter);
 
   void AddParameter(SoapParameter&& parameter);
@@ -21,11 +21,11 @@ class SoapRequest : public SoapMessage {
   // Get parameter value by key.
   const std::string& GetParameter(const std::string& key) const;
 
- protected:
+public:
   void ToXmlBody(pugi::xml_node xbody) override;
   bool FromXmlBody(pugi::xml_node xbody) override;
 
- private:
+private:
   std::vector<SoapParameter> parameters_;
 };
 

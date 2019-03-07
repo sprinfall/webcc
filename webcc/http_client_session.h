@@ -15,6 +15,14 @@ public:
 
   ~HttpClientSession() = default;
 
+  void set_content_type(const std::string& content_type) {
+    content_type_ = content_type;
+  }
+
+  void set_charset(const std::string& charset) {
+    charset_ = charset;
+  }
+
   void AddHeader(const std::string& key, const std::string& value) {
     headers_.Add(key, value);
   }
@@ -34,7 +42,13 @@ public:
 private:
   void InitHeaders();
 
-  // Headers to be sent on each request sent from this session.
+  // E.g., "application/json".
+  std::string content_type_;
+
+  // E.g., "utf-8".
+  std::string charset_;
+
+  // Headers for each request sent from this session.
   HttpHeaderDict headers_;
 };
 

@@ -9,8 +9,7 @@ set(SRCS
 
 add_executable(${TARGET_NAME} ${SRCS})
 
-target_link_libraries(${TARGET_NAME} webcc jsoncpp ${Boost_LIBRARIES})
-target_link_libraries(${TARGET_NAME} "${CMAKE_THREAD_LIBS_INIT}")
+target_link_libraries(${TARGET_NAME} ${EXAMPLE_COMMON_LIBS} jsoncpp)
 
 # Install VLD DLLs to build dir so that the example can be launched from
 # inside VS.

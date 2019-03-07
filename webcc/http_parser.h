@@ -11,7 +11,7 @@ class HttpMessage;
 
 // HttpParser parses HTTP request and response.
 class HttpParser {
- public:
+public:
   explicit HttpParser(HttpMessage* message);
 
   virtual ~HttpParser() = default;
@@ -24,7 +24,7 @@ class HttpParser {
 
   bool Parse(const char* data, std::size_t length);
 
- protected:
+public:
   // Parse headers from pending data.
   // Return false only on syntax errors.
   bool ParseHeaders();

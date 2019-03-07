@@ -1191,14 +1191,14 @@ private:
   };
 
   class Token {
-  public:
+public:
     TokenType type_;
     Location start_;
     Location end_;
   };
 
   class ErrorInfo {
-  public:
+public:
     Token token_;
     JSONCPP_STRING message_;
     Location extra_;

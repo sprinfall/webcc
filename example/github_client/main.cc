@@ -3,8 +3,8 @@
 
 #include "json/json.h"
 
+#include "webcc/http_client_session.h"
 #include "webcc/logger.h"
-#include "webcc/rest_ssl_client.h"
 
 // -----------------------------------------------------------------------------
 
@@ -19,7 +19,7 @@ bool kSslVerify = false;
 bool kSslVerify = true;
 #endif
 
-const std::string kGithubHost = "api.github.com";
+const std::size_t kBufferSize = 1500;
 
 // -----------------------------------------------------------------------------
 
@@ -57,43 +57,48 @@ static void PrettyPrintJsonString(const std::string& str) {
 #define PRINT_JSON_STRING(str)
 #endif  // PRINT_RESPONSE
 
-static void PrintError(const webcc::RestSslClient& client) {
-  std::cout << webcc::DescribeError(client.error());
-  if (client.timed_out()) {
-    std::cout << " (timed out)";
-  }
-  std::cout << std::endl;
-}
-
-// -----------------------------------------------------------------------------
-
-// List public events.
-static void ListEvents(webcc::RestSslClient& client) {
-  if (client.Get("/events")) {
-    PRINT_JSON_STRING(client.response_content());
-  } else {
-    PrintError(client);
-  }
-}
-
-// List the followers of the given user.
-static void ListUserFollowers(webcc::RestSslClient& client,
-                              const std::string& user) {
-  if (client.Get("/users/" + user + "/followers")) {
-    PRINT_JSON_STRING(client.response_content());
-  } else {
-    PrintError(client);
-  }
-}
+//static void PrintError(const webcc::RestSslClient& client) {
+//  std::cout << webcc::DescribeError(client.error());
+//  if (client.timed_out()) {
+//    std::cout << " (timed out)";
+//  }
+//  std::cout << std::endl;
+//}
+//
+//// -----------------------------------------------------------------------------
+//
+//// List public events.
+//static void ListEvents(webcc::RestSslClient& client) {
+//  if (client.Get("/events")) {
+//    PRINT_JSON_STRING(client.response_content());
+//  } else {
+//    PrintError(client);
+//  }
+//}
+//
+//// List the followers of the given user.
+//static void ListUserFollowers(webcc::RestSslClient& client,
+//                              const std::string& user) {
+//  if (client.Get("/users/" + user + "/followers")) {
+//    PRINT_JSON_STRING(client.response_content());
+//  } else {
+//    PrintError(client);
+//  }
+//}
 
 // List the followers of the current authorized user.
 // Header syntax: Authorization: <type> <credentials>
-static void ListAuthorizedUserFollowers(webcc::RestSslClient& client,
+static void ListAuthorizedUserFollowers(webcc::HttpClientSession& session,
                                         const std::string& auth) {
-  if (client.Get("/user/followers", { { "Authorization", auth } })) {
-    PRINT_JSON_STRING(client.response_content());
+  auto r = session.Request(webcc::HttpRequestArgs("GET").
+                           url("https://api.github.com/user/followers").
+                           headers({ { "Authorization", auth } }).
+                           ssl_verify(kSslVerify).buffer_size(kBufferSize));
+
+  if (r) {
+    PRINT_JSON_STRING(r->content());
   } else {
-    PrintError(client);
+    //PrintError(client);
   }
 }
 
@@ -102,10 +107,10 @@ static void ListAuthorizedUserFollowers(webcc::RestSslClient& client,
 int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
-  webcc::RestSslClient client(kGithubHost, "", kSslVerify, {}, 1500);
+  webcc::HttpClientSession session;
 
   //ListAuthorizedUserFollowers(client, "Basic c3ByaW5mYWxsQGdtYWlsLmNvbTpYaWFvTHVhbjFA");
-  ListAuthorizedUserFollowers(client, "Token 1d42e2cce49929f2d24b1b6e96260003e5b3e1b0");
+  ListAuthorizedUserFollowers(session, "Token 1d42e2cce49929f2d24b1b6e96260003e5b3e1b0");
 
   return 0;
 }

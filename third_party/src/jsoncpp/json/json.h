@@ -693,7 +693,7 @@ private:
 #endif
 #ifndef JSONCPP_DOC_EXCLUDE_IMPLEMENTATION
   class CZString {
-  public:
+public:
     enum DuplicationPolicy {
       noDuplication = 0,
       duplicate,
@@ -720,7 +720,7 @@ private:
     unsigned length() const;
     bool isStaticString() const;
 
-  private:
+ private:
     void swap(CZString& other);
 
     struct StringStorage {
@@ -1548,14 +1548,14 @@ private:
   };
 
   class Token {
-  public:
+public:
     TokenType type_;
     Location start_;
     Location end_;
   };
 
   class ErrorInfo {
-  public:
+public:
     Token token_;
     JSONCPP_STRING message_;
     Location extra_;
@@ -1646,7 +1646,7 @@ public:
       Value* root, JSONCPP_STRING* errs) = 0;
 
   class JSON_API Factory {
-  public:
+public:
     virtual ~Factory() {}
     /** \brief Allocate a CharReader via operator new().
      * \throw std::exception if something goes wrong (e.g. invalid settings)
@@ -1853,7 +1853,7 @@ public:
   /** \brief A simple abstract factory.
    */
   class JSON_API Factory {
-  public:
+public:
     virtual ~Factory();
     /** \brief Allocate a CharReader via operator new().
      * \throw std::exception if something goes wrong (e.g. invalid settings)
