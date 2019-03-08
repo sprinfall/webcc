@@ -45,8 +45,6 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestArgs&& args) {
 
   request.Prepare();
 
-  // TODO:
-
   std::shared_ptr<HttpClientBase> impl;
 
   if (request.url().scheme() == "http") {
@@ -54,17 +52,15 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestArgs&& args) {
   } else if (request.url().scheme() == "https") {
     impl.reset(new HttpSslClient{args.ssl_verify_});
   } else {
-    return HttpResponsePtr{};
+    throw Exception(kSchemaError, false,
+                    "unknown schema: " + request.url().scheme());
   }
 
-  if (impl) {
-    if (!impl->Request(request, args.buffer_size_)) {
-      return HttpResponsePtr{};
-    }
-    return impl->response();
+  if (!impl->Request(request, args.buffer_size_)) {
+    throw Exception(impl->error(), impl->timed_out());
   }
 
-  return HttpResponsePtr{};
+  return impl->response();
 }
 
 HttpResponsePtr HttpClientSession::Get(const std::string& url,

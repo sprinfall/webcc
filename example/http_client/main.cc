@@ -37,34 +37,35 @@ int main() {
   //   - constructor: HttpRequestArgs{ "GET" }
   //   - move constructor: auto args = ...
 
-  //auto args = HttpRequestArgs{"GET"}.
-  //    url("http://httpbin.org/get").
-  //    parameters({ "key1", "value1", "key2", "value2" }).
-  //    headers({ "Accept", "application/json" }).
-  //    buffer_size(1000);
+  auto args = HttpRequestArgs{"GET"}.
+      url("http://httpbin.org/get").
+      parameters({ "key1", "value1", "key2", "value2" }).
+      headers({ "Accept", "application/json" }).
+      buffer_size(1000);
 
-  //r = session.Request(std::move(args));
+  r = session.Request(std::move(args));
 
   // ---------------------------------------------------------------------------
   // Use pre-defined wrappers.
 
-  //r = session.Get("http://httpbin.org/get",
-  //                { "key1", "value1", "key2", "value2" },
-  //                { "Accept", "application/json" },
-  //                HttpRequestArgs{}.buffer_size(1000));
+  r = session.Get("http://httpbin.org/get",
+                  { "key1", "value1", "key2", "value2" },
+                  { "Accept", "application/json" },
+                  HttpRequestArgs{}.buffer_size(1000));
 
   // ---------------------------------------------------------------------------
   // HTTPS is auto-detected from the URL schema.
 
-  r = session.Post("https://httpbin.org/post", "{ 'key': 'value' }", true,
-                   { "Accept", "application/json" },
-                   HttpRequestArgs{}.ssl_verify(false).buffer_size(1000));
+  try {
+    r = session.Post("httpt://httpbin.org/post", "{ 'key': 'value' }", true,
+                     {"Accept", "application/json"},
+                     HttpRequestArgs{}.ssl_verify(false).buffer_size(1000));
 
-  if (r) {
-    std::cout << r->content() << std::endl;
+    std::cout << r->status() << std::endl << r->content() << std::endl;
+
+  } catch (const webcc::Exception& e) {
+    std::cout << "Exception: " << e.what() << std::endl;
   }
-
-  GetBoostOrgLicense(session);
 
   return 0;
 }

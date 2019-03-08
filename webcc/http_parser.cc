@@ -81,7 +81,7 @@ bool HttpParser::ParseHeaders() {
 
     if (!start_line_parsed_) {
       start_line_parsed_ = true;
-      message_->set_start_line(line + CRLF);
+      message_->set_start_line(line + kCRLF);
       if (!ParseStartLine(line)) {
         return false;
       }
@@ -98,7 +98,7 @@ bool HttpParser::ParseHeaders() {
 
 bool HttpParser::NextPendingLine(std::size_t off, std::string* line,
                                  bool remove) {
-  std::size_t pos = pending_data_.find(CRLF, off);
+  std::size_t pos = pending_data_.find(kCRLF, off);
 
   if (pos == std::string::npos) {
     return false;

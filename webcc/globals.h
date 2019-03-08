@@ -33,9 +33,8 @@
 namespace webcc {
 
 // -----------------------------------------------------------------------------
-// Constants
 
-const char* const CRLF = "\r\n";
+const char* const kCRLF = "\r\n";
 
 // Default buffer size for socket reading.
 const std::size_t kBufferSize = 1024;
@@ -54,30 +53,7 @@ const std::size_t kMaxDumpSize = 2048;
 const char* const kPort80 = "80";
 const char* const kPort443 = "443";
 
-// Client side error codes.
-enum Error {
-  kNoError = 0,  // i.e., OK
-
-  kHostResolveError,
-  kEndpointConnectError,
-  kHandshakeError,  // HTTPS handshake
-  kSocketReadError,
-  kSocketWriteError,
-
-  // HTTP error.
-  // E.g., failed to parse HTTP response (invalid content length, etc.).
-  kHttpError,
-
-  // Server error.
-  // E.g., HTTP status 500 + SOAP Fault element.
-  kServerError,
-
-  // XML parsing error.
-  kXmlError,
-};
-
-// Return a descriptive message for the given error code.
-const char* DescribeError(Error error);
+// -----------------------------------------------------------------------------
 
 // HTTP headers.
 namespace http {
@@ -145,6 +121,53 @@ const char* const kUtf8 = "utf-8";
 }  // namespace charsets
 
 }  // namespace http
+
+// -----------------------------------------------------------------------------
+
+// Client side error codes.
+enum Error {
+  kNoError = 0,  // i.e., OK
+
+  kSchemaError,
+
+  kHostResolveError,
+  kEndpointConnectError,
+  kHandshakeError,  // HTTPS handshake
+  kSocketReadError,
+  kSocketWriteError,
+
+  // HTTP error.
+  // E.g., failed to parse HTTP response (invalid content length, etc.).
+  kHttpError,
+
+  // Server error.
+  // E.g., HTTP status 500 + SOAP Fault element.
+  kServerError,
+
+  // XML parsing error.
+  kXmlError,
+};
+
+// Return a descriptive message for the given error code.
+const char* DescribeError(Error error);
+
+class Exception : public std::exception {
+public:
+  explicit Exception(Error error = kNoError, bool timeout = false,
+                     const std::string& details = "");
+
+  const char* what() const override {
+    return msg_.c_str();
+  }
+
+private:
+  Error error_;
+
+  // If the error was caused by timeout or not.
+  bool timeout_;
+
+  std::string msg_;
+};
 
 }  // namespace webcc
 

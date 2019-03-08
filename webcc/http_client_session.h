@@ -34,8 +34,7 @@ public:
                       std::vector<std::string>&& headers = {},
                       HttpRequestArgs&& args = HttpRequestArgs());
 
-  HttpResponsePtr Post(const std::string& url,
-                       std::string&& data, bool json,
+  HttpResponsePtr Post(const std::string& url, std::string&& data, bool json,
                        std::vector<std::string>&& headers = {},
                        HttpRequestArgs&& args = HttpRequestArgs());
 

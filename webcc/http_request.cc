@@ -20,7 +20,7 @@ bool HttpRequest::Prepare() {
   start_line_ += " ";
   start_line_ += target;
   start_line_ += " HTTP/1.1";
-  start_line_ += CRLF;
+  start_line_ += kCRLF;
 
   if (url_.port().empty()) {
     SetHeader(http::headers::kHost, url_.host());

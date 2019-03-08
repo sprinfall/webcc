@@ -126,7 +126,7 @@ void HttpMessage::Dump(std::ostream& os, std::size_t indent,
     } else {
       // Split by EOL to achieve more readability.
       std::vector<std::string> splitted;
-      boost::split(splitted, content_, boost::is_any_of(CRLF));
+      boost::split(splitted, content_, boost::is_any_of(kCRLF));
 
       std::size_t size = 0;
 
