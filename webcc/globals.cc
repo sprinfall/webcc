@@ -1,10 +1,17 @@
 #include "webcc/globals.h"
 
-#include "boost/algorithm/string.hpp"
+#include "webcc/version.h"
 
 namespace webcc {
 
-// -----------------------------------------------------------------------------
+namespace http {
+
+const std::string& UserAgent() {
+  static std::string s_user_agent = std::string("Webcc/") + WEBCC_VERSION;
+  return s_user_agent;
+}
+
+}  // namespace http
 
 const char* DescribeError(Error error) {
   switch (error) {

@@ -21,7 +21,8 @@ public:
 
   ~SoapClient() = default;
 
-  WEBCC_DELETE_COPY_ASSIGN(SoapClient);
+  SoapClient(const SoapClient&) = delete;
+  SoapClient& operator=(const SoapClient&) = delete;
 
   void SetTimeout(int seconds) {
     http_client_.SetTimeout(seconds);

@@ -9,9 +9,6 @@
 
 namespace webcc {
 
-// If |port| is empty, try to extract it from |host| (separated by ':').
-void AdjustHostPort(std::string& host, std::string& port);
-
 typedef boost::asio::ip::tcp::endpoint TcpEndpoint;
 typedef boost::asio::ip::tcp::resolver::results_type TcpEndpoints;
 

@@ -12,16 +12,6 @@ using tcp = boost::asio::ip::tcp;
 
 namespace webcc {
 
-void AdjustHostPort(std::string& host, std::string& port) {
-  if (port.empty()) {
-    std::size_t i = host.find_last_of(':');
-    if (i != std::string::npos) {
-      port = host.substr(i + 1);
-      host = host.substr(0, i);
-    }
-  }
-}
-
 void PrintEndpoint(std::ostream& ostream, const TcpEndpoint& endpoint) {
   ostream << endpoint;
   if (endpoint.protocol() == tcp::v4()) {

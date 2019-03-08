@@ -20,7 +20,8 @@ public:
   HttpRequestHandler() = default;
   virtual ~HttpRequestHandler() = default;
 
-  WEBCC_DELETE_COPY_ASSIGN(HttpRequestHandler);
+  HttpRequestHandler(const HttpRequestHandler&) = delete;
+  HttpRequestHandler& operator=(const HttpRequestHandler&) = delete;
 
   // Put the connection into the queue.
   void Enqueue(HttpConnectionPtr connection);

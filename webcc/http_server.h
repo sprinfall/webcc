@@ -22,7 +22,8 @@ public:
 
   virtual ~HttpServer() = default;
 
-  WEBCC_DELETE_COPY_ASSIGN(HttpServer);
+  HttpServer(const HttpServer&) = delete;
+  HttpServer& operator=(const HttpServer&) = delete;
 
   // Run the server's io_service loop.
   void Run();

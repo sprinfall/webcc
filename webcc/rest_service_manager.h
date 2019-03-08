@@ -14,7 +14,8 @@ class RestServiceManager {
 public:
   RestServiceManager() = default;
 
-  WEBCC_DELETE_COPY_ASSIGN(RestServiceManager);
+  RestServiceManager(const RestServiceManager&) = delete;
+  RestServiceManager& operator=(const RestServiceManager&) = delete;
 
   // Add a service and bind it with the given URL.
   // The |url| should start with "/" and will be treated as a regular expression

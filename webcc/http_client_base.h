@@ -29,7 +29,8 @@ public:
 
   virtual ~HttpClientBase() = default;
 
-  WEBCC_DELETE_COPY_ASSIGN(HttpClientBase);
+  HttpClientBase(const HttpClientBase&) = delete;
+  HttpClientBase& operator=(const HttpClientBase&) = delete;
 
   // Set the timeout seconds for reading response.
   // The |seconds| is only effective when greater than 0.

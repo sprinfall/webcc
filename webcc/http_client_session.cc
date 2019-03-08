@@ -82,7 +82,7 @@ HttpResponsePtr HttpClientSession::Post(const std::string& url,
 
 void HttpClientSession::InitHeaders() {
   // NOTE: C++11 requires a space between literal and string macro.
-  headers_.Add(http::headers::kUserAgent, USER_AGENT);
+  headers_.Add(http::headers::kUserAgent, http::UserAgent());
 
   // TODO: Support gzip, deflate
   headers_.Add(http::headers::kAcceptEncoding, "identity");

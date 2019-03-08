@@ -15,7 +15,14 @@ SoapClient::SoapClient(const std::string& host, const std::string& port,
     : host_(host), port_(port), soap_version_(soap_version),
       http_client_(buffer_size),
       format_raw_(true), error_(kNoError) {
-  AdjustHostPort(host_, port_);
+  // Try to extract port from host if it's empty.
+  if (port_.empty()) {
+    std::size_t i = host_.find_last_of(':');
+    if (i != std::string::npos) {
+      port_ = host_.substr(i + 1);
+      host_ = host_.substr(0, i);
+    }
+  }
 }
 
 bool SoapClient::Request(const std::string& operation,

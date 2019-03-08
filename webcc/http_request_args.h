@@ -24,41 +24,8 @@ public:
   HttpRequestArgs(const HttpRequestArgs&) = default;
   HttpRequestArgs& operator=(const HttpRequestArgs&) = default;
 
-#if WEBCC_DEFAULT_MOVE_COPY_ASSIGN
-
   HttpRequestArgs(HttpRequestArgs&&) = default;
   HttpRequestArgs& operator=(HttpRequestArgs&&) = default;
-
-#else
-
-  HttpRequestArgs(HttpRequestArgs&& rhs)
-      : method_(std::move(rhs.method_)),
-        url_(std::move(rhs.url_)),
-        parameters_(std::move(rhs.parameters_)),
-        data_(std::move(rhs.data_)),
-        json_(rhs.json_),
-        headers_(std::move(rhs.headers_)),
-        ssl_verify_(rhs.ssl_verify_),
-        buffer_size_(rhs.buffer_size_) {
-    LOG_VERB("HttpRequestArgs(&&)");
-  }
-
-  HttpRequestArgs& operator=(HttpRequestArgs&& rhs) {
-    if (&rhs != this) {
-      method_ = std::move(rhs.method_);
-      url_ = std::move(rhs.url_);
-      parameters_ = std::move(rhs.parameters_);
-      data_ = std::move(rhs.data_);
-      json_ = rhs.json_;
-      headers_ = std::move(rhs.headers_);
-      ssl_verify_ = rhs.ssl_verify_;
-      buffer_size_ = buffer_size_;
-    }
-    LOG_VERB("HttpRequestArgs& operator=(&&)");
-    return *this;
-  }
-
-#endif  // WEBCC_DEFAULT_MOVE_COPY_ASSIGN
 
   HttpRequestArgs&& method(const std::string& method) {
     method_ = method;

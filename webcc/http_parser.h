@@ -16,7 +16,8 @@ public:
 
   virtual ~HttpParser() = default;
 
-  WEBCC_DELETE_COPY_ASSIGN(HttpParser);
+  HttpParser(const HttpParser&) = delete;
+  HttpParser& operator=(const HttpParser&) = delete;
 
   bool finished() const { return finished_; }
 

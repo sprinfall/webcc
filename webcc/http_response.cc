@@ -60,7 +60,7 @@ const std::string& ToString(int status) {
 bool HttpResponse::Prepare() {
   start_line_ = status_strings::ToString(status_);
 
-  SetHeader("Server", USER_AGENT);
+  SetHeader("Server", http::UserAgent());
   SetHeader("Date", GetHttpDateTimestamp());
 
   return true;

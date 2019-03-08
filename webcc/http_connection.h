@@ -26,7 +26,8 @@ public:
 
   ~HttpConnection() = default;
 
-  WEBCC_DELETE_COPY_ASSIGN(HttpConnection);
+  HttpConnection(const HttpConnection&) = delete;
+  HttpConnection& operator=(const HttpConnection&) = delete;
 
   const HttpRequest& request() const {
     return request_;
