@@ -1,9 +1,11 @@
 #ifndef WEBCC_HTTP_CLIENT_SESSION_H_
 #define WEBCC_HTTP_CLIENT_SESSION_H_
 
+#include <memory>
 #include <string>
 #include <vector>
 
+#include "webcc/http_client_pool.h"
 #include "webcc/http_request_args.h"
 #include "webcc/http_response.h"
 
@@ -49,6 +51,8 @@ private:
 
   // Headers for each request sent from this session.
   HttpHeaderDict headers_;
+
+  std::unique_ptr<HttpClientPool> pool_;
 };
 
 }  // namespace webcc

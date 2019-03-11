@@ -1,12 +1,12 @@
 #include "webcc/http_client_session.h"
 
 #include "webcc/http_client.h"
-#include "webcc/http_ssl_client.h"
 #include "webcc/url.h"
 
 namespace webcc {
 
-HttpClientSession::HttpClientSession() {
+HttpClientSession::HttpClientSession()
+    : pool_(new HttpClientPool{}) {
   InitHeaders();
 }
 
@@ -45,18 +45,18 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestArgs&& args) {
 
   request.Prepare();
 
-  std::shared_ptr<HttpClientBase> impl;
+  bool connect = false;
+  HttpClientPtr impl = pool_->Get(request.url());
 
-  if (request.url().scheme() == "http") {
-    impl.reset(new HttpClient);
-  } else if (request.url().scheme() == "https") {
-    impl.reset(new HttpSslClient{args.ssl_verify_});
-  } else {
-    throw Exception(kSchemaError, false,
-                    "unknown schema: " + request.url().scheme());
+  if (!impl) {
+    impl.reset(new HttpClient{ 0, args.ssl_verify_ });
+
+    connect = true;
+
+    pool_->Add(impl);
   }
 
-  if (!impl->Request(request, args.buffer_size_)) {
+  if (!impl->Request(request, args.buffer_size_, connect)) {
     throw Exception(impl->error(), impl->timed_out());
   }
 
@@ -67,17 +67,21 @@ HttpResponsePtr HttpClientSession::Get(const std::string& url,
                                        std::vector<std::string>&& parameters,
                                        std::vector<std::string>&& headers,
                                        HttpRequestArgs&& args) {
-  return Request(args.method(http::kGet).url(url)
-                 .parameters(std::move(parameters))
-                 .headers(std::move(headers)));
+  return Request(args.method(http::kGet)
+                     .url(url)
+                     .parameters(std::move(parameters))
+                     .headers(std::move(headers)));
 }
 
 HttpResponsePtr HttpClientSession::Post(const std::string& url,
                                         std::string&& data, bool json,
                                         std::vector<std::string>&& headers,
                                         HttpRequestArgs&& args) {
-  return Request(args.method(http::kPost).url(url).data(std::move(data))
-                 .json(json).headers(std::move(headers)));
+  return Request(args.method(http::kPost)
+                     .url(url)
+                     .data(std::move(data))
+                     .json(json)
+                     .headers(std::move(headers)));
 }
 
 void HttpClientSession::InitHeaders() {
@@ -89,8 +93,8 @@ void HttpClientSession::InitHeaders() {
 
   headers_.Add(http::headers::kAccept, "*/*");
 
-  // TODO: Support Keep-Alive connection.
-  //headers_.Add(http::headers::kConnection, "close");
+  // TODO
+  headers_.Add(http::headers::kConnection, "Keep-Alive");
 }
 
 }  // namespace webcc

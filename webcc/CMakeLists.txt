@@ -15,8 +15,8 @@ include(GNUInstallDirs)
 
 set(HEADERS
     globals.h
-    http_client_base.h
     http_client.h
+    http_client_pool.h
     http_client_session.h
     http_connection.h
     http_message.h
@@ -28,7 +28,7 @@ set(HEADERS
     http_response.h
     http_response_parser.h
     http_server.h
-    http_ssl_client.h
+    http_socket.h
     queue.h
     url.h
     utility.h
@@ -37,8 +37,8 @@ set(HEADERS
 
 set(SOURCES
     globals.cc
-    http_client_base.cc
     http_client.cc
+    http_client_pool.cc
     http_client_session.cc
     http_connection.cc
     http_message.cc
@@ -49,7 +49,7 @@ set(SOURCES
     http_response.cc
     http_response_parser.cc
     http_server.cc
-    http_ssl_client.cc
+    http_socket.cc
     logger.cc
     url.cc
     utility.cc
