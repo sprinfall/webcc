@@ -18,9 +18,10 @@
 
 namespace webcc {
 
-class HttpSocketBase;
+class HttpClient;
+typedef std::shared_ptr<HttpClient> HttpClientPtr;
 
-// The base class of synchronous HTTP clients.
+// Synchronous HTTP & HTTPS client.
 // In synchronous mode, a request won't return until the response is received
 // or timeout occurs.
 // Please don't use the same client object in multiple threads.
@@ -46,6 +47,9 @@ public:
                std::size_t buffer_size = 0,
                bool connect = true);
 
+  // Close the socket.
+  void Close();
+
   HttpResponsePtr response() const { return response_; }
 
   int response_status() const {
@@ -58,11 +62,13 @@ public:
     return response_->content();
   }
 
+  bool closed() const { return closed_; }
+
   bool timed_out() const { return timed_out_; }
 
   Error error() const { return error_; }
 
-public:
+private:
   Error Connect(const HttpRequest& request);
 
   Error DoConnect(const HttpRequest& request, const std::string& default_port);
@@ -73,13 +79,15 @@ public:
 
   void DoReadResponse(Error* error);
 
-  void DoWaitDeadline();
-  void OnDeadline(boost::system::error_code ec);
+  void DoWaitTimer();
+  void OnTimer(boost::system::error_code ec);
 
-  void Stop();
+  void StopTimer();
 
+private:
   boost::asio::io_context io_context_;
 
+  // Socket connection.
   std::unique_ptr<HttpSocketBase> socket_;
 
   std::vector<char> buffer_;
@@ -88,7 +96,7 @@ public:
   std::unique_ptr<HttpResponseParser> response_parser_;
 
   // Timer for the timeout control.
-  boost::asio::deadline_timer deadline_;
+  boost::asio::deadline_timer timer_;
 
   // Verify the certificate of the peer (remote server) or not.
   // HTTPS only.
@@ -98,8 +106,8 @@ public:
   // Only for reading response from server.
   int timeout_seconds_;
 
-  // Request stopped due to timeout or socket error.
-  bool stopped_;
+  // Connection closed.
+  bool closed_;
 
   // If the error was caused by timeout or not.
   bool timed_out_;

@@ -1,5 +1,6 @@
 #include "webcc/http_client.h"
 
+#include "boost/algorithm/string.hpp"  // TODO: Remove
 #include "boost/date_time/posix_time/posix_time.hpp"
 
 #include "webcc/logger.h"
@@ -11,10 +12,10 @@ namespace webcc {
 
 HttpClient::HttpClient(std::size_t buffer_size, bool ssl_verify)
     : buffer_(buffer_size == 0 ? kBufferSize : buffer_size),
-      deadline_(io_context_),
+      timer_(io_context_),
       ssl_verify_(ssl_verify),
       timeout_seconds_(kMaxReadSeconds),
-      stopped_(false),
+      closed_(false),
       timed_out_(false),
       error_(kNoError) {
 }
@@ -33,13 +34,14 @@ bool HttpClient::Request(const HttpRequest& request,
   response_.reset(new HttpResponse());
   response_parser_.reset(new HttpResponseParser(response_.get()));
 
-  stopped_ = false;
+  closed_ = false;
   timed_out_ = false;
   error_ = kNoError;
 
   BufferResizer buffer_resizer(&buffer_, buffer_size);
 
   if (connect) {
+    // No existing socket connection was specified, create a new one.
     if ((error_ = Connect(request)) != kNoError) {
       return false;
     }
@@ -54,6 +56,23 @@ bool HttpClient::Request(const HttpRequest& request,
   }
 
   return true;
+}
+
+void HttpClient::Close() {
+  if (closed_) {
+    return;
+  }
+
+  closed_ = true;
+
+  LOG_INFO("Close socket...");
+
+  boost::system::error_code ec;
+  socket_->Close(&ec);
+
+  if (ec) {
+    LOG_ERRO("Socket close error (%s).", ec.message().c_str());
+  }
 }
 
 Error HttpClient::Connect(const HttpRequest& request) {
@@ -89,7 +108,7 @@ Error HttpClient::DoConnect(const HttpRequest& request,
   // Determine whether a connection was successfully established.
   if (ec) {
     LOG_ERRO("Socket connect error (%s).", ec.message().c_str());
-    Stop();
+    Close();
     return kEndpointConnectError;
   }
 
@@ -113,7 +132,7 @@ Error HttpClient::WriteReqeust(const HttpRequest& request) {
 
   if (ec) {
     LOG_ERRO("Socket write error (%s).", ec.message().c_str());
-    Stop();
+    Close();
     return kSocketWriteError;
   }
 
@@ -125,8 +144,8 @@ Error HttpClient::WriteReqeust(const HttpRequest& request) {
 Error HttpClient::ReadResponse() {
   LOG_VERB("Read response (timeout: %ds)...", timeout_seconds_);
 
-  deadline_.expires_from_now(boost::posix_time::seconds(timeout_seconds_));
-  DoWaitDeadline();
+  timer_.expires_from_now(boost::posix_time::seconds(timeout_seconds_));
+  DoWaitTimer();
 
   Error error = kNoError;
   DoReadResponse(&error);
@@ -148,7 +167,8 @@ void HttpClient::DoReadResponse(Error* error) {
     LOG_VERB("Socket async read handler.");
 
     if (ec || length == 0) {
-      Stop();
+      StopTimer();
+      Close();
       *error = kSocketReadError;
       LOG_ERRO("Socket read error (%s).", ec.message().c_str());
       return;
@@ -158,7 +178,8 @@ void HttpClient::DoReadResponse(Error* error) {
 
     // Parse the response piece just read.
     if (!response_parser_->Parse(buffer_.data(), length)) {
-      Stop();
+      StopTimer();
+      Close();
       *error = kHttpError;
       LOG_ERRO("Failed to parse HTTP response.");
       return;
@@ -167,14 +188,23 @@ void HttpClient::DoReadResponse(Error* error) {
     if (response_parser_->finished()) {
       // Stop trying to read once all content has been received, because
       // some servers will block extra call to read_some().
-      Stop();  // TODO: Keep-Alive
+
+      StopTimer();
+
+      if (response_->IsConnectionKeepAlive()) {
+        // Close the timer but keep the socket connection.
+        LOG_INFO("Keep the socket connection alive.");
+      } else {
+        Close();
+      }
 
       LOG_INFO("Finished to read and parse HTTP response.");
 
+      // Stop reading.
       return;
     }
 
-    if (!stopped_) {
+    if (!closed_) {
       DoReadResponse(error);
     }
   };
@@ -187,17 +217,17 @@ void HttpClient::DoReadResponse(Error* error) {
   } while (ec == boost::asio::error::would_block);
 }
 
-void HttpClient::DoWaitDeadline() {
-  deadline_.async_wait(
-      std::bind(&HttpClient::OnDeadline, this, std::placeholders::_1));
+void HttpClient::DoWaitTimer() {
+  timer_.async_wait(
+      std::bind(&HttpClient::OnTimer, this, std::placeholders::_1));
 }
 
-void HttpClient::OnDeadline(boost::system::error_code ec) {
-  if (stopped_) {
+void HttpClient::OnTimer(boost::system::error_code ec) {
+  if (closed_) {
     return;
   }
 
-  LOG_VERB("OnDeadline.");
+  LOG_VERB("On deadline timer.");
 
   // NOTE: Can't check this:
   //   if (ec == boost::asio::error::operation_aborted) {
@@ -205,39 +235,24 @@ void HttpClient::OnDeadline(boost::system::error_code ec) {
   //     return;
   //   }
 
-  if (deadline_.expires_at() <=
-      boost::asio::deadline_timer::traits_type::now()) {
+  if (timer_.expires_at() <= boost::asio::deadline_timer::traits_type::now()) {
     // The deadline has passed.
     // The socket is closed so that any outstanding asynchronous operations
     // are canceled.
     LOG_WARN("HTTP client timed out.");
     timed_out_ = true;
-    Stop();
+    Close();
     return;
   }
 
   // Put the actor back to sleep.
-  DoWaitDeadline();
+  DoWaitTimer();
 }
 
-void HttpClient::Stop() {
-  if (stopped_) {
-    return;
-  }
-
-  stopped_ = true;
-
-  LOG_INFO("Close socket...");
-
-  boost::system::error_code ec;
-  socket_->Close(&ec);
-
-  if (ec) {
-    LOG_ERRO("Socket close error (%s).", ec.message().c_str());
-  }
-
+void HttpClient::StopTimer() {
+  // Cancel any asynchronous operations that are waiting on the timer.
   LOG_INFO("Cancel deadline timer...");
-  deadline_.cancel();
+  timer_.cancel();
 }
 
 }  // namespace webcc

@@ -50,7 +50,7 @@ public:
   //   - composer(xxxResponse);
   // The composer then add proper children to xxxResponse as the result.
   class Composer {
- public:
+  public:
     void operator()(pugi::xml_node xresponse) {
       Compose(xresponse);
     }
@@ -127,10 +127,10 @@ public:
 
   // TODO: Set fault from server.
 
-public:
-  void ToXmlBody(pugi::xml_node xbody) override;
+protected:
+  void ToXmlBody(pugi::xml_node xbody) final;
 
-  bool FromXmlBody(pugi::xml_node xbody) override;
+  bool FromXmlBody(pugi::xml_node xbody) final;
 
 private:
   // Fault element if any.

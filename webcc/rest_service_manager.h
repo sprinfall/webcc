@@ -33,7 +33,7 @@ public:
 
 private:
   class ServiceItem {
- public:
+  public:
     ServiceItem(RestServicePtr _service, const std::string& _url,
                 bool _is_regex)
         : service(_service), url(_url), is_regex(_is_regex) {

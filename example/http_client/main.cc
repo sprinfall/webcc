@@ -1,4 +1,5 @@
 #include <iostream>
+#include <thread>
 
 #include "webcc/http_client_session.h"
 #include "webcc/logger.h"
@@ -82,29 +83,11 @@ void Test(HttpClientSession& session) {
   }
 }
 
-void TestKeepAlive1(HttpClientSession& session) {
-  try {
-    auto r = session.Request(HttpRequestArgs{ "GET" }.
-                             url("http://httpbin.org/get").
-                             parameters({ "key1", "value1", "key2", "value2" }).
-                             headers({ "Accept", "application/json" }).
-                             buffer_size(1000));
-
-    std::cout << r->content() << std::endl;
-
-  } catch (const Exception& e) {
-    std::cout << "Exception: " << e.what() << std::endl;
-  }
-}
-
 void TestKeepAlive2(HttpClientSession& session) {
   try {
     auto r = session.Request(webcc::HttpRequestArgs("GET").
                              url("https://api.github.com/events").
                              ssl_verify(false).buffer_size(1500));
-
-    //std::cout << r->content() << std::endl;
-
   } catch (const Exception& e) {
     std::cout << "Exception: " << e.what() << std::endl;
   }
@@ -138,15 +121,31 @@ void TestKeepAlive4(HttpClientSession& session) {
 
 // -----------------------------------------------------------------------------
 
+void Sleep(int seconds) {
+  if (seconds > 0) {
+    LOG_INFO("Sleep %d seconds...", seconds);
+    std::this_thread::sleep_for(std::chrono::seconds(seconds));
+  }
+}
+
 int main() {
   WEBCC_LOG_INIT("", LOG_CONSOLE);
 
   HttpClientSession session;
 
-  GetBoostOrgLicense(session);
+  // TEST keep-alive.
 
-  //TestKeepAlive1(session);
-  //TestKeepAlive1(session);
+  try {
+    // Keep-Alive by default
+    session.Get("http://httpbin.org/get");
+
+    session.Get("http://httpbin.org/get", {}, { "Connection", "Close" });
+
+    session.Get("http://httpbin.org/get");
+
+  } catch (const Exception& e) {
+    std::cout << "Exception: " << e.what() << std::endl;
+  }
 
   return 0;
 }

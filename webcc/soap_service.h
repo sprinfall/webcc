@@ -19,7 +19,7 @@ public:
   virtual bool Handle(const SoapRequest& soap_request,
                       SoapResponse* soap_response) = 0;
 
-public:
+protected:
   http::Status http_status_ = http::Status::kOK;
 };
 

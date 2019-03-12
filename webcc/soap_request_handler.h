@@ -28,7 +28,7 @@ public:
   bool Bind(SoapServicePtr service, const std::string& url);
 
 private:
-  void HandleConnection(HttpConnectionPtr connection) override;
+  void HandleConnection(HttpConnectionPtr connection) final;
 
   SoapServicePtr GetServiceByUrl(const std::string& url);
 

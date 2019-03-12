@@ -19,7 +19,7 @@ public:
   bool Bind(RestServicePtr service, const std::string& url, bool is_regex);
 
 private:
-  void HandleConnection(HttpConnectionPtr connection) override;
+  void HandleConnection(HttpConnectionPtr connection) final;
 
   RestServiceManager service_manager_;
 };

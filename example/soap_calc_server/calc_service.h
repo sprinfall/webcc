@@ -9,7 +9,7 @@ public:
   ~CalcService() override = default;
 
   bool Handle(const webcc::SoapRequest& soap_request,
-              webcc::SoapResponse* soap_response) override;
+              webcc::SoapResponse* soap_response) final;
 };
 
 #endif  // CALC_SERVICE_H_

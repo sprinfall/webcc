@@ -38,7 +38,7 @@ public:
   // Parse from SOAP XML.
   bool FromXml(const std::string& xml_string);
 
-public:
+protected:
   // Convert to SOAP body XML.
   virtual void ToXmlBody(pugi::xml_node xbody) = 0;
 

@@ -1,10 +1,7 @@
 #ifndef WEBCC_HTTP_CLIENT_POOL_H_
 #define WEBCC_HTTP_CLIENT_POOL_H_
 
-// HTTP client connection pool for keep-alive connections.
-
-#include <list>
-#include <memory>
+#include <map>
 #include <string>
 
 #include "webcc/http_client.h"
@@ -12,18 +9,51 @@
 
 namespace webcc {
 
-typedef std::shared_ptr<HttpClient> HttpClientPtr;
-
+// Connection pool for keep-alive connections.
 class HttpClientPool {
+public:
+  struct Key {
+    std::string scheme;
+    std::string host;
+    std::string port;
+
+    Key() = default;
+
+    explicit Key(const Url& url)
+        : scheme(url.scheme()), host(url.host()), port(url.port()) {
+    }
+
+    bool operator==(const Key& rhs) const {
+      return scheme == rhs.scheme && host == rhs.host && port == rhs.port;
+    }
+
+    bool operator<(const Key& rhs) const {
+      if (scheme < rhs.scheme) {
+        return true;
+      }
+      if (host < rhs.host) {
+        return true;
+      }
+      if (port < rhs.port) {
+        return true;
+      }
+      return false;
+    }
+  };
+
 public:
   HttpClientPool() = default;
 
-  HttpClientPtr Get(const Url& url) const;
+  ~HttpClientPool();
 
-  void Add(HttpClientPtr client);
+  HttpClientPtr Get(const Key& key) const;
+
+  void Add(const Key& key, HttpClientPtr client);
+
+  void Remove(const Key& key);
 
 private:
-  std::list<HttpClientPtr> clients_;
+  std::map<Key, HttpClientPtr> clients_;
 };
 
 }  // namespace webcc

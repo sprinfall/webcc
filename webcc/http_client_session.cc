@@ -1,12 +1,10 @@
 #include "webcc/http_client_session.h"
 
-#include "webcc/http_client.h"
 #include "webcc/url.h"
 
 namespace webcc {
 
-HttpClientSession::HttpClientSession()
-    : pool_(new HttpClientPool{}) {
+HttpClientSession::HttpClientSession() {
   InitHeaders();
 }
 
@@ -45,22 +43,39 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestArgs&& args) {
 
   request.Prepare();
 
-  bool connect = false;
-  HttpClientPtr impl = pool_->Get(request.url());
+  const HttpClientPool::Key key{ request.url() };
+  bool new_created = false;
 
-  if (!impl) {
-    impl.reset(new HttpClient{ 0, args.ssl_verify_ });
-
-    connect = true;
-
-    pool_->Add(impl);
+  HttpClientPtr client = pool_.Get(key);
+  if (!client) {
+    new_created = true;
+    client.reset(new HttpClient{ 0, args.ssl_verify_ });
+  } else {
+    new_created = false;
+    LOG_VERB("Reuse an existing connection.");
   }
 
-  if (!impl->Request(request, args.buffer_size_, connect)) {
-    throw Exception(impl->error(), impl->timed_out());
+  if (!client->Request(request, args.buffer_size_, new_created)) {
+    throw Exception(client->error(), client->timed_out());
   }
 
-  return impl->response();
+  if (new_created) {
+    if (!client->closed()) {
+      pool_.Add(key, client);
+
+      LOG_VERB("Added connection to the pool (%s, %s, %s).",
+               key.scheme.c_str(), key.host.c_str(), key.port.c_str());
+    }
+  } else {
+    if (client->closed()) {
+      pool_.Remove(key);
+
+      LOG_VERB("Removed connection from the pool (%s, %s, %s).",
+               key.scheme.c_str(), key.host.c_str(), key.port.c_str());
+    }
+  }
+
+  return client->response();
 }
 
 HttpResponsePtr HttpClientSession::Get(const std::string& url,
@@ -85,7 +100,6 @@ HttpResponsePtr HttpClientSession::Post(const std::string& url,
 }
 
 void HttpClientSession::InitHeaders() {
-  // NOTE: C++11 requires a space between literal and string macro.
   headers_.Add(http::headers::kUserAgent, http::UserAgent());
 
   // TODO: Support gzip, deflate
@@ -93,7 +107,6 @@ void HttpClientSession::InitHeaders() {
 
   headers_.Add(http::headers::kAccept, "*/*");
 
-  // TODO
   headers_.Add(http::headers::kConnection, "Keep-Alive");
 }
 

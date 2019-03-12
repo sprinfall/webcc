@@ -14,13 +14,12 @@ namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-typedef std::pair<std::string, std::string> HttpHeader;
-
 class HttpMessage;
-
 std::ostream& operator<<(std::ostream& os, const HttpMessage& message);
 
 // -----------------------------------------------------------------------------
+
+typedef std::pair<std::string, std::string> HttpHeader;
 
 class HttpHeaderDict {
 public:
@@ -28,22 +27,32 @@ public:
     return headers_.size();
   }
 
-  void Add(const std::string& key, const std::string& value);
-
-  void Add(std::string&& key, std::string&& value);
-
-  bool Has(const std::string& key) const;
-
-  const HttpHeader& Get(std::size_t i) const {
-    assert(i < size());
-    return headers_[i];
-  }
-
   const std::vector<HttpHeader>& data() const {
     return headers_;
   }
 
+  void Add(const std::string& key, const std::string& value);
+
+  void Add(std::string&& key, std::string&& value);
+
+  bool Has(const std::string& key) const {
+    return const_cast<HttpHeaderDict*>(this)->Find(key) != headers_.end();
+  }
+
+  // Get header by index.
+  const HttpHeader& Get(std::size_t index) const {
+    assert(index < size());
+    return headers_[index];
+  }
+
+  // Get header value by key.
+  // If there's no such header with the given key, besides return empty, the
+  // optional |existed| parameter will be set to false.
+  const std::string& Get(const std::string& key, bool* existed = nullptr) const;
+
 private:
+  std::vector<HttpHeader>::iterator Find(const std::string& key);
+
   std::vector<HttpHeader> headers_;
 };
 
@@ -73,6 +82,8 @@ public:
     return content_;
   }
 
+  bool IsConnectionKeepAlive() const;
+
   void SetHeader(const std::string& key, const std::string& value) {
     headers_.Add(key, value);
   }
@@ -81,11 +92,15 @@ public:
     headers_.Add(std::move(key), std::move(value));
   }
 
+  const std::string& GetHeader(const std::string& key,
+                               bool* existed = nullptr) const {
+    return headers_.Get(key, existed);
+  }
+
   // E.g., "text/html", "application/json; charset=utf-8", etc.
   void SetContentType(const std::string& media_type,
                       const std::string& charset);
 
-  // TODO: Remove parameter |set_length|.
   void SetContent(std::string&& content, bool set_length);
 
   // Make the message (e.g., update start line).

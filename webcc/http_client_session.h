@@ -52,7 +52,8 @@ private:
   // Headers for each request sent from this session.
   HttpHeaderDict headers_;
 
-  std::unique_ptr<HttpClientPool> pool_;
+  // Connection pool for keep-alive.
+  HttpClientPool pool_;
 };
 
 }  // namespace webcc

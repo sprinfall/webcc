@@ -37,7 +37,7 @@ public:
   }
 
 private:
-  HttpRequestHandler* GetRequestHandler() override {
+  HttpRequestHandler* GetRequestHandler() final {
     return &request_handler_;
   }
 

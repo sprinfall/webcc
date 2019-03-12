@@ -21,9 +21,9 @@ public:
   // Get parameter value by key.
   const std::string& GetParameter(const std::string& key) const;
 
-public:
-  void ToXmlBody(pugi::xml_node xbody) override;
-  bool FromXmlBody(pugi::xml_node xbody) override;
+protected:
+  void ToXmlBody(pugi::xml_node xbody) final;
+  bool FromXmlBody(pugi::xml_node xbody) final;
 
 private:
   std::vector<SoapParameter> parameters_;

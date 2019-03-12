@@ -25,35 +25,67 @@ std::ostream& operator<<(std::ostream& os, const HttpMessage& message) {
 // -----------------------------------------------------------------------------
 
 void HttpHeaderDict::Add(const std::string& key, const std::string& value) {
-  for (HttpHeader& h : headers_) {
-    if (boost::iequals(h.first, key)) {
-      h.second = value;
-      return;
-    }
+  auto it = Find(key);
+  if (it != headers_.end()) {
+    it->second = value;
+  } else {
+    headers_.push_back({ key, value });
   }
-  headers_.push_back({ key, value });
 }
 
 void HttpHeaderDict::Add(std::string&& key, std::string&& value) {
-  for (HttpHeader& h : headers_) {
-    if (boost::iequals(h.first, key)) {
-      h.second = std::move(value);
-      return;
-    }
+  auto it = Find(key);
+  if (it != headers_.end()) {
+    it->second = std::move(value);
+  } else {
+    headers_.push_back({ std::move(key), std::move(value) });
   }
-  headers_.push_back({ std::move(key), std::move(value) });
 }
 
-bool HttpHeaderDict::Has(const std::string& key) const {
-  for (const HttpHeader& h : headers_) {
-    if (boost::iequals(h.first, key)) {
-      return true;
+const std::string& HttpHeaderDict::Get(const std::string& key,
+                                       bool* existed) const {
+  auto it = const_cast<HttpHeaderDict*>(this)->Find(key);
+
+  if (existed != nullptr) {
+    *existed = (it != headers_.end());
+  }
+
+  if (it != headers_.end()) {
+    return it->second;
+  }
+
+  static const std::string s_no_value;
+  return s_no_value;
+}
+
+std::vector<HttpHeader>::iterator HttpHeaderDict::Find(const std::string& key) {
+  auto it = headers_.begin();
+  for (; it != headers_.end(); ++it) {
+    if (boost::iequals(it->first, key)) {
+      break;
     }
   }
-  return false;
+  return it;
 }
 
 // -----------------------------------------------------------------------------
+
+bool HttpMessage::IsConnectionKeepAlive() const {
+  bool existed = false;
+  const std::string& connection =
+      GetHeader(http::headers::kConnection, &existed);
+
+  if (!existed) {
+    // Keep-Alive is by default for HTTP/1.1.
+    return true;
+  }
+
+  if (boost::iequals(connection, "Keep-Alive")) {
+    return true;
+  }
+
+  return false;
+}
 
 // See: https://tools.ietf.org/html/rfc7231#section-3.1.1.1
 void HttpMessage::SetContentType(const std::string& media_type,
