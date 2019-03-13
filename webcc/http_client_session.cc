@@ -43,35 +43,39 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestArgs&& args) {
 
   request.Prepare();
 
+  // Determine SSL verify flag.
+  bool ssl_verify = true;
+  if (args.ssl_verify_) {
+    ssl_verify = args.ssl_verify_.value();
+  } else if (ssl_verify_) {
+    ssl_verify = ssl_verify_.value();
+  }
+
+  bool reuse = false;
   const HttpClientPool::Key key{ request.url() };
-  bool new_created = false;
 
   HttpClientPtr client = pool_.Get(key);
   if (!client) {
-    new_created = true;
-    client.reset(new HttpClient{ 0, args.ssl_verify_ });
+    client.reset(new HttpClient{ 0, ssl_verify });
+    reuse = false;
   } else {
-    new_created = false;
+    // TODO: Apply args.ssl_verify even if reuse a client.
+    reuse = false;
     LOG_VERB("Reuse an existing connection.");
   }
 
-  if (!client->Request(request, args.buffer_size_, new_created)) {
+  if (!client->Request(request, args.buffer_size_, !reuse)) {
     throw Exception(client->error(), client->timed_out());
   }
 
-  if (new_created) {
-    if (!client->closed()) {
-      pool_.Add(key, client);
-
-      LOG_VERB("Added connection to the pool (%s, %s, %s).",
-               key.scheme.c_str(), key.host.c_str(), key.port.c_str());
-    }
-  } else {
+  // Update pool.
+  if (reuse) {
     if (client->closed()) {
       pool_.Remove(key);
-
-      LOG_VERB("Removed connection from the pool (%s, %s, %s).",
-               key.scheme.c_str(), key.host.c_str(), key.port.c_str());
+    }
+  } else {
+    if (!client->closed()) {
+      pool_.Add(key, client);
     }
   }
 

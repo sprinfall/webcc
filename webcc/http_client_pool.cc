@@ -25,10 +25,16 @@ HttpClientPtr HttpClientPool::Get(const Key& key) const {
 
 void HttpClientPool::Add(const Key& key, HttpClientPtr client) {
   clients_[key] = client;
+
+  LOG_INFO("Added connection to pool (%s, %s, %s).",
+           key.scheme.c_str(), key.host.c_str(), key.port.c_str());
 }
 
 void HttpClientPool::Remove(const Key& key) {
   clients_.erase(key);
+
+  LOG_INFO("Removed connection from pool (%s, %s, %s).",
+           key.scheme.c_str(), key.host.c_str(), key.port.c_str());
 }
 
 }  // namespace webcc

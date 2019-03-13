@@ -139,6 +139,10 @@ public:
     return msg_.c_str();
   }
 
+  Error error() const { return error_; }
+
+  bool timeout() const { return timeout_; }
+
 private:
   Error error_;
 

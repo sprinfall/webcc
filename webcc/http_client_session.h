@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "boost/optional.hpp"
+
 #include "webcc/http_client_pool.h"
 #include "webcc/http_request_args.h"
 #include "webcc/http_response.h"
@@ -29,6 +31,10 @@ public:
     headers_.Add(key, value);
   }
 
+  void set_ssl_verify(bool ssl_verify) {
+    ssl_verify_.emplace(ssl_verify);
+  }
+
   HttpResponsePtr Request(HttpRequestArgs&& args);
 
   HttpResponsePtr Get(const std::string& url,
@@ -43,6 +49,7 @@ public:
 private:
   void InitHeaders();
 
+private:
   // E.g., "application/json".
   std::string content_type_;
 
@@ -51,6 +58,9 @@ private:
 
   // Headers for each request sent from this session.
   HttpHeaderDict headers_;
+
+  // Verify the certificate of the peer or not.
+  boost::optional<bool> ssl_verify_;
 
   // Connection pool for keep-alive.
   HttpClientPool pool_;

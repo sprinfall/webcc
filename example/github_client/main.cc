@@ -1,5 +1,4 @@
 #include <iostream>
-#include <map>
 
 #include "json/json.h"
 
@@ -21,9 +20,13 @@ bool kSslVerify = true;
 
 const std::size_t kBufferSize = 1500;
 
-// -----------------------------------------------------------------------------
+const std::string kUrlRoot = "https://api.github.com";
 
-static Json::Value StringToJson(const std::string& str) {
+// -----------------------------------------------------------------------------
+// JSON helper functions (based on cppjson).
+
+// Parse a string to JSON object.
+Json::Value StringToJson(const std::string& str) {
   Json::Value json;
 
   Json::CharReaderBuilder builder;
@@ -37,7 +40,7 @@ static Json::Value StringToJson(const std::string& str) {
 }
 
 // Print the JSON string in pretty format.
-static void PrettyPrintJsonString(const std::string& str) {
+void PrettyPrintJsonString(const std::string& str) {
   Json::Value json = StringToJson(str);
 
   Json::StreamWriterBuilder builder;
@@ -57,48 +60,48 @@ static void PrettyPrintJsonString(const std::string& str) {
 #define PRINT_JSON_STRING(str)
 #endif  // PRINT_RESPONSE
 
-//static void PrintError(const webcc::RestSslClient& client) {
-//  std::cout << webcc::DescribeError(client.error());
-//  if (client.timed_out()) {
-//    std::cout << " (timed out)";
-//  }
-//  std::cout << std::endl;
-//}
-//
-//// -----------------------------------------------------------------------------
-//
-//// List public events.
-//static void ListEvents(webcc::RestSslClient& client) {
-//  if (client.Get("/events")) {
-//    PRINT_JSON_STRING(client.response_content());
-//  } else {
-//    PrintError(client);
-//  }
-//}
-//
-//// List the followers of the given user.
-//static void ListUserFollowers(webcc::RestSslClient& client,
-//                              const std::string& user) {
-//  if (client.Get("/users/" + user + "/followers")) {
-//    PRINT_JSON_STRING(client.response_content());
-//  } else {
-//    PrintError(client);
-//  }
-//}
+// -----------------------------------------------------------------------------
+
+// List public events.
+void ListEvents() {
+  webcc::HttpClientSession session;
+  session.set_ssl_verify(kSslVerify);
+
+  try {
+    auto r = session.Get(kUrlRoot + "/events");
+    PRINT_JSON_STRING(r->content());
+  } catch (const webcc::Exception& e) {
+    std::cout << e.what() << std::endl;
+  }
+}
+
+// List the followers of the given user.
+void ListUserFollowers(const std::string& user) {
+  webcc::HttpClientSession session;
+  session.set_ssl_verify(kSslVerify);
+
+  try {
+    auto r = session.Get(kUrlRoot + "/users/" + user + "/followers");
+    PRINT_JSON_STRING(r->content());
+  } catch (const webcc::Exception& e) {
+    std::cout << e.what() << std::endl;
+  }
+}
 
 // List the followers of the current authorized user.
 // Header syntax: Authorization: <type> <credentials>
-static void ListAuthorizedUserFollowers(webcc::HttpClientSession& session,
-                                        const std::string& auth) {
-  auto r = session.Request(webcc::HttpRequestArgs("GET").
-                           url("https://api.github.com/user/followers").
-                           headers({ { "Authorization", auth } }).
-                           ssl_verify(kSslVerify).buffer_size(kBufferSize));
+void ListAuthUserFollowers(const std::string& auth) {
+  webcc::HttpClientSession session;
+  session.set_ssl_verify(kSslVerify);
 
-  if (r) {
+  try {
+    auto r = session.Get(kUrlRoot + "/user/followers", {},
+                        { "Authorization", auth });
+
     PRINT_JSON_STRING(r->content());
-  } else {
-    //PrintError(client);
+
+  } catch (const webcc::Exception& e) {
+    std::cout << e.what() << std::endl;
   }
 }
 
@@ -107,10 +110,11 @@ static void ListAuthorizedUserFollowers(webcc::HttpClientSession& session,
 int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
-  webcc::HttpClientSession session;
+  //ListEvents();
 
-  //ListAuthorizedUserFollowers(client, "Basic c3ByaW5mYWxsQGdtYWlsLmNvbTpYaWFvTHVhbjFA");
-  ListAuthorizedUserFollowers(session, "Token 1d42e2cce49929f2d24b1b6e96260003e5b3e1b0");
+  //ListUserFollowers("<login>");
+
+  //ListAuthUserFollowers("Basic <base64 encoded login:password>");
 
   return 0;
 }

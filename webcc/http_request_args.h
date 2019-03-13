@@ -5,6 +5,8 @@
 #include <utility>
 #include <vector>
 
+#include "boost/optional.hpp"
+
 #include "webcc/globals.h"
 #include "webcc/logger.h"
 
@@ -17,7 +19,7 @@ class HttpClientSession;
 class HttpRequestArgs {
 public:
   explicit HttpRequestArgs(const std::string& method = "")
-      : method_(method), json_(false), ssl_verify_(true), buffer_size_(0) {
+      : method_(method), json_(false), buffer_size_(0) {
     LOG_VERB("HttpRequestArgs()");
   }
 
@@ -78,7 +80,7 @@ public:
   }
 
   HttpRequestArgs&& ssl_verify(bool ssl_verify = true) {
-    ssl_verify_ = ssl_verify;
+    ssl_verify_.emplace(ssl_verify);
     return std::move(*this);
   }
 
@@ -94,6 +96,7 @@ private:
 
   std::string url_;
 
+  // URL query parameters.
   std::vector<std::string> parameters_;
 
   // Data to send in the body of the request.
@@ -102,11 +105,11 @@ private:
   // Is the data to send a JSON string?
   bool json_;
 
+  // Additional request headers.
   std::vector<std::string> headers_;
 
-  // Verify the certificate of the peer (remote server) or not.
-  // HTTPS only.
-  bool ssl_verify_;
+  // Verify the certificate of the peer or not.
+  boost::optional<bool> ssl_verify_;
 
   // Size of the buffer to read response.
   // Leave it to 0 for using default value.

@@ -1,5 +1,4 @@
 #include <iostream>
-#include <thread>
 
 #include "webcc/http_client_session.h"
 #include "webcc/logger.h"
@@ -18,130 +17,99 @@ bool kSslVerify = true;
 
 // -----------------------------------------------------------------------------
 
-void GetBoostOrgLicense(HttpClientSession& session) {
-  try {
-    auto r = session.Request(HttpRequestArgs{ "GET" }.
-                             url("https://www.boost.org/LICENSE_1_0.txt").
-                             ssl_verify(kSslVerify));
+void ExampleBasic() {
+  HttpClientSession session;
 
-    std::cout << r->content() << std::endl;
-
-  } catch (const webcc::Exception& e) {
-    std::cout << "Exception: " << e.what() << std::endl;
-  }
-}
-
-// TODO
-void Test(HttpClientSession& session) {
-  HttpResponsePtr r;
-
-  // ---------------------------------------------------------------------------
-
-  r = session.Request(HttpRequestArgs{ "GET" }.
-                      url("http://httpbin.org/get").  // moved
-                      parameters({ "key1", "value1", "key2", "value2" }).  // moved
-                      headers({ "Accept", "application/json" }).  // moved
-                      buffer_size(1000));
+  auto r = session.Request(HttpRequestArgs{"GET"}
+                               .url("http://httpbin.org/get")
+                               .parameters({"key1", "value1", "key2", "value2"})
+                               .headers({"Accept", "application/json"})
+                               .buffer_size(1000));
 
   std::cout << r->content() << std::endl;
-
-  // ---------------------------------------------------------------------------
-
-  // If you want to create the args object firstly, there'll be an extra call
-  // to its move constructor.
-  //   - constructor: HttpRequestArgs{ "GET" }
-  //   - move constructor: auto args = ...
-
-  auto args = HttpRequestArgs{"GET"}.
-      url("http://httpbin.org/get").
-      parameters({ "key1", "value1", "key2", "value2" }).
-      headers({ "Accept", "application/json" }).
-      buffer_size(1000);
-
-  r = session.Request(std::move(args));
-
-  // ---------------------------------------------------------------------------
-  // Use pre-defined wrappers.
-
-  r = session.Get("http://httpbin.org/get",
-                  { "key1", "value1", "key2", "value2" },
-                  { "Accept", "application/json" },
-                  HttpRequestArgs{}.buffer_size(1000));
-
-  // ---------------------------------------------------------------------------
-  // HTTPS is auto-detected from the URL schema.
-
-  try {
-    r = session.Post("httpt://httpbin.org/post", "{ 'key': 'value' }", true,
-                     {"Accept", "application/json"},
-                     HttpRequestArgs{}.ssl_verify(false).buffer_size(1000));
-
-    std::cout << r->status() << std::endl << r->content() << std::endl;
-
-  } catch (const webcc::Exception& e) {
-    std::cout << "Exception: " << e.what() << std::endl;
-  }
 }
 
-void TestKeepAlive2(HttpClientSession& session) {
-  try {
-    auto r = session.Request(webcc::HttpRequestArgs("GET").
-                             url("https://api.github.com/events").
-                             ssl_verify(false).buffer_size(1500));
-  } catch (const Exception& e) {
-    std::cout << "Exception: " << e.what() << std::endl;
-  }
+// If you want to create the args object firstly, there might be an extra
+// call to its move constructor (maybe only for MSVC).
+//   - constructor: HttpRequestArgs{ "GET" }
+//   - move constructor: auto args = ...
+void ExampleArgs() {
+  HttpClientSession session;
+
+  auto args = HttpRequestArgs{"GET"}
+                  .url("http://httpbin.org/get")
+                  .parameters({"key1", "value1", "key2", "value2"})
+                  .headers({"Accept", "application/json"})
+                  .buffer_size(1000);
+
+  // Note the std::move().
+  session.Request(std::move(args));
 }
 
-void TestKeepAlive3(HttpClientSession& session) {
-  try {
-    auto r = session.Request(webcc::HttpRequestArgs("GET").
-                             url("https://www.boost.org/LICENSE_1_0.txt").
-                             ssl_verify(false));
+// Use pre-defined wrappers.
+void ExampleWrappers() {
+  HttpClientSession session;
 
-    //std::cout << r->content() << std::endl;
+  session.Get("http://httpbin.org/get", {"key1", "value1", "key2", "value2"},
+              {"Accept", "application/json"},
+              HttpRequestArgs{}.buffer_size(1000));
 
-  } catch (const Exception& e) {
-    std::cout << "Exception: " << e.what() << std::endl;
-  }
+  session.Post("http://httpbin.org/post", "{ 'key': 'value' }", true,
+               {"Accept", "application/json"});
 }
 
-void TestKeepAlive4(HttpClientSession& session) {
-  try {
-    auto r = session.Request(webcc::HttpRequestArgs("GET").
-                             url("https://www.google.com").
-                             ssl_verify(false));
+// HTTPS is auto-detected from the URL scheme.
+void ExampleHttps() {
+  HttpClientSession session;
 
-    //std::cout << r->content() << std::endl;
+  auto r = session.Request(HttpRequestArgs{"GET"}
+                               .url("https://httpbin.org/get")
+                               .parameters({"key1", "value1", "key2", "value2"})
+                               .headers({"Accept", "application/json"})
+                               .ssl_verify(kSslVerify));
 
-  } catch (const Exception& e) {
-    std::cout << "Exception: " << e.what() << std::endl;
-  }
+  std::cout << r->content() << std::endl;
+}
+
+void ExampleKeepAlive(const std::string& url) {
+  HttpClientSession session;
+
+  // Keep-Alive
+  session.Request(webcc::HttpRequestArgs("GET").url(url).
+                  ssl_verify(kSslVerify));
+
+  // Close
+  session.Request(webcc::HttpRequestArgs("GET").url(url).
+                  ssl_verify(kSslVerify).
+                  headers({ "Connection", "Close" }));
+
+  // Keep-Alive
+  session.Request(webcc::HttpRequestArgs("GET").url(url).
+                  ssl_verify(kSslVerify));
 }
 
 // -----------------------------------------------------------------------------
 
-void Sleep(int seconds) {
-  if (seconds > 0) {
-    LOG_INFO("Sleep %d seconds...", seconds);
-    std::this_thread::sleep_for(std::chrono::seconds(seconds));
-  }
-}
-
 int main() {
   WEBCC_LOG_INIT("", LOG_CONSOLE);
 
-  HttpClientSession session;
-
-  // TEST keep-alive.
-
+  // Note that the exception handling is mandatory.
   try {
-    // Keep-Alive by default
-    session.Get("http://httpbin.org/get");
+    //ExampleBasic();
+    //ExampleArgs();
+    //ExampleWrappers();
+    //ExampleHttps();
 
-    session.Get("http://httpbin.org/get", {}, { "Connection", "Close" });
+    // Boost.org doesn't support persistent connection so always includes
+    // "Connection: Close" header in the response.
 
-    session.Get("http://httpbin.org/get");
+    // Both Google and GitHub support persistent connection but they don't like
+    // to include "Connection: Keep-Alive" header in the responses.
+
+    //ExampleKeepAlive("http://httpbin.org/get");
+    //ExampleKeepAlive("https://www.boost.org/LICENSE_1_0.txt");
+    //ExampleKeepAlive("https://www.google.com");
+    //ExampleKeepAlive("https://api.github.com/events");
 
   } catch (const Exception& e) {
     std::cout << "Exception: " << e.what() << std::endl;
