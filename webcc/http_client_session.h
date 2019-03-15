@@ -46,6 +46,14 @@ public:
                        std::vector<std::string>&& headers = {},
                        HttpRequestArgs&& args = HttpRequestArgs());
 
+  HttpResponsePtr Put(const std::string& url, std::string&& data, bool json,
+                      std::vector<std::string>&& headers = {},
+                      HttpRequestArgs&& args = HttpRequestArgs());
+
+  HttpResponsePtr Delete(const std::string& url,
+                         std::vector<std::string>&& headers = {},
+                         HttpRequestArgs&& args = HttpRequestArgs());
+
 private:
   void InitHeaders();
 

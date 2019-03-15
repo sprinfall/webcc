@@ -24,12 +24,11 @@ public:
   bool AddService(RestServicePtr service, const std::string& url,
                   bool is_regex);
 
-  // The |sub_matches| is only available when the |url| bound to the
-  // service is a regular expression and has sub-expressions.
+  // The |matches| is only available when the |url| bound to the service is a
+  // regular expression and has sub-expressions.
   // E.g., the URL bound to the service is "/instances/(\\d+)", now match
-  // "/instances/12345" against it, you will get one sub-match of "12345".
-  RestServicePtr GetService(const std::string& url,
-                            std::vector<std::string>* sub_matches);
+  // "/instances/12345" against it, you will get one match of "12345".
+  RestServicePtr GetService(const std::string& url, UrlMatches* matches);
 
 private:
   class ServiceItem {

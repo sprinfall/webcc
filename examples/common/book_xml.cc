@@ -1,10 +1,10 @@
-#include "example/common/book_xml.h"
+#include "examples/common/book_xml.h"
 
 #include <cassert>
 #include <functional>
 #include <sstream>
 
-#include "example/common/book.h"
+#include "examples/common/book.h"
 
 // -----------------------------------------------------------------------------
 

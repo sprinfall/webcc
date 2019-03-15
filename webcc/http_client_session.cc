@@ -103,6 +103,25 @@ HttpResponsePtr HttpClientSession::Post(const std::string& url,
                      .headers(std::move(headers)));
 }
 
+HttpResponsePtr HttpClientSession::Put(const std::string& url,
+                                       std::string&& data, bool json,
+                                       std::vector<std::string>&& headers,
+                                       HttpRequestArgs&& args) {
+  return Request(args.method(http::kPut)
+                     .url(url)
+                     .data(std::move(data))
+                     .json(json)
+                     .headers(std::move(headers)));
+}
+
+HttpResponsePtr HttpClientSession::Delete(const std::string& url,
+                                          std::vector<std::string>&& headers,
+                                          HttpRequestArgs&& args) {
+  return Request(args.method(http::kDelete)
+                 .url(url)
+                 .headers(std::move(headers)));
+}
+
 void HttpClientSession::InitHeaders() {
   headers_.Add(http::headers::kUserAgent, http::UserAgent());
 

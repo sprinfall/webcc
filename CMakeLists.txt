@@ -8,7 +8,6 @@ endif()
 
 project(webcc)
 
-option(WEBCC_ENABLE_REST "Enable REST support?" ON)
 option(WEBCC_ENABLE_SOAP "Enable SOAP support (need pugixml)?" ON)
 option(WEBCC_ENABLE_UNITTEST "Build unit test?" ON)
 option(WEBCC_ENABLE_EXAMPLES "Build examples?" ON)
@@ -118,14 +117,12 @@ endif()
 add_subdirectory(webcc)
 
 if(WEBCC_ENABLE_EXAMPLES)
-    if(WEBCC_ENABLE_REST)
-        # For including jsoncpp as "json/json.h".
-        include_directories(${THIRD_PARTY_DIR}/src/jsoncpp)
-        # REST examples need jsoncpp to parse and create JSON.
-        add_subdirectory(${THIRD_PARTY_DIR}/src/jsoncpp)
-    endif()
+    # For including jsoncpp as "json/json.h".
+    include_directories(${THIRD_PARTY_DIR}/src/jsoncpp)
+    # REST examples need jsoncpp to parse and create JSON.
+    add_subdirectory(${THIRD_PARTY_DIR}/src/jsoncpp)
 
-    add_subdirectory(example)
+    add_subdirectory(examples)
 endif()
 
 if(WEBCC_ENABLE_UNITTEST)

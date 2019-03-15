@@ -16,21 +16,15 @@ bool RestRequestHandler::Bind(RestServicePtr service, const std::string& url,
 void RestRequestHandler::HandleConnection(HttpConnectionPtr connection) {
   const HttpRequest& http_request = connection->request();
 
-  // TODO
   const Url& url = http_request.url();
-
-  if (url.path().empty()) {
-    connection->SendResponse(http::Status::kBadRequest);
-    return;
-  }
 
   RestRequest rest_request{
     http_request.method(), http_request.content(), url.query()
   };
 
   // Get service by URL path.
-  RestServicePtr service =
-      service_manager_.GetService(url.path(), &rest_request.url_sub_matches);
+  std::string path = "/" + url.path();
+  auto service = service_manager_.GetService(path, &rest_request.url_matches);
 
   if (!service) {
     LOG_WARN("No service matches the URL path: %s", url.path().c_str());

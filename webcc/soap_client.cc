@@ -10,19 +10,11 @@
 
 namespace webcc {
 
-SoapClient::SoapClient(const std::string& host, const std::string& port,
-                       SoapVersion soap_version, std::size_t buffer_size)
-    : host_(host), port_(port), soap_version_(soap_version),
+SoapClient::SoapClient(const std::string& url, SoapVersion soap_version,
+                       std::size_t buffer_size)
+    : url_(url), soap_version_(soap_version),
       http_client_(buffer_size),
       format_raw_(true), error_(kNoError) {
-  // Try to extract port from host if it's empty.
-  if (port_.empty()) {
-    std::size_t i = host_.find_last_of(':');
-    if (i != std::string::npos) {
-      port_ = host_.substr(i + 1);
-      host_ = host_.substr(0, i);
-    }
-  }
 }
 
 bool SoapClient::Request(const std::string& operation,
@@ -30,7 +22,7 @@ bool SoapClient::Request(const std::string& operation,
                          SoapResponse::Parser parser,
                          std::size_t buffer_size) {
   assert(service_ns_.IsValid());
-  assert(!url_.empty() && !host_.empty());
+  assert(!url_.empty());
 
   error_ = kNoError;
   fault_.reset();
@@ -55,14 +47,7 @@ bool SoapClient::Request(const std::string& operation,
   std::string http_content;
   soap_request.ToXml(format_raw_, indent_str_, &http_content);
 
-  // TODO
-  std::string url = host_;
-  url += url_;
-  if (!port_.empty()) {
-    url += ":" + port_;
-  }
-
-  HttpRequest http_request(http::kPost, url);
+  HttpRequest http_request(http::kPost, url_);
 
   http_request.SetContent(std::move(http_content), true);
 

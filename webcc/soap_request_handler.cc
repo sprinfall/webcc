@@ -16,7 +16,9 @@ bool SoapRequestHandler::Bind(SoapServicePtr service, const std::string& url) {
 }
 
 void SoapRequestHandler::HandleConnection(HttpConnectionPtr connection) {
-  SoapServicePtr service = GetServiceByUrl(connection->request().url().path());
+  std::string path = "/" + connection->request().url().path();
+
+  SoapServicePtr service = GetServiceByUrl(path);
   if (!service) {
     connection->SendResponse(http::Status::kBadRequest);
     return;

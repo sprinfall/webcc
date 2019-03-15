@@ -63,6 +63,9 @@ bool HttpResponse::Prepare() {
   SetHeader("Server", http::UserAgent());
   SetHeader("Date", GetHttpDateTimestamp());
 
+  // TODO: Support Keep-Alive.
+  SetHeader(http::headers::kConnection, "Close");
+
   return true;
 }
 

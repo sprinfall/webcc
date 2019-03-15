@@ -71,6 +71,18 @@ void ExampleHttps() {
   std::cout << r->content() << std::endl;
 }
 
+// Example for testing Keep-Alive connection.
+//
+// Boost.org doesn't support persistent connection so always includes
+// "Connection: Close" header in the response.
+// Both Google and GitHub support persistent connection but they don't like
+// to include "Connection: Keep-Alive" header in the responses.
+// 
+//   ExampleKeepAlive("http://httpbin.org/get");
+//   ExampleKeepAlive("https://www.boost.org/LICENSE_1_0.txt");
+//   ExampleKeepAlive("https://www.google.com");
+//   ExampleKeepAlive("https://api.github.com/events");
+//
 void ExampleKeepAlive(const std::string& url) {
   HttpClientSession session;
 
@@ -95,21 +107,8 @@ int main() {
 
   // Note that the exception handling is mandatory.
   try {
-    //ExampleBasic();
-    //ExampleArgs();
-    //ExampleWrappers();
-    //ExampleHttps();
 
-    // Boost.org doesn't support persistent connection so always includes
-    // "Connection: Close" header in the response.
-
-    // Both Google and GitHub support persistent connection but they don't like
-    // to include "Connection: Keep-Alive" header in the responses.
-
-    //ExampleKeepAlive("http://httpbin.org/get");
-    //ExampleKeepAlive("https://www.boost.org/LICENSE_1_0.txt");
-    //ExampleKeepAlive("https://www.google.com");
-    //ExampleKeepAlive("https://api.github.com/events");
+    ExampleBasic();
 
   } catch (const Exception& e) {
     std::cout << "Exception: " << e.what() << std::endl;

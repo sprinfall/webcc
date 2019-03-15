@@ -63,10 +63,7 @@ void PrettyPrintJsonString(const std::string& str) {
 // -----------------------------------------------------------------------------
 
 // List public events.
-void ListEvents() {
-  webcc::HttpClientSession session;
-  session.set_ssl_verify(kSslVerify);
-
+void ListEvents(webcc::HttpClientSession& session) {
   try {
     auto r = session.Get(kUrlRoot + "/events");
     PRINT_JSON_STRING(r->content());
@@ -76,10 +73,10 @@ void ListEvents() {
 }
 
 // List the followers of the given user.
-void ListUserFollowers(const std::string& user) {
-  webcc::HttpClientSession session;
-  session.set_ssl_verify(kSslVerify);
-
+// Example:
+//   ListUserFollowers(session, "<login>")
+void ListUserFollowers(webcc::HttpClientSession& session,
+                       const std::string& user) {
   try {
     auto r = session.Get(kUrlRoot + "/users/" + user + "/followers");
     PRINT_JSON_STRING(r->content());
@@ -90,10 +87,11 @@ void ListUserFollowers(const std::string& user) {
 
 // List the followers of the current authorized user.
 // Header syntax: Authorization: <type> <credentials>
-void ListAuthUserFollowers(const std::string& auth) {
-  webcc::HttpClientSession session;
-  session.set_ssl_verify(kSslVerify);
-
+// Example:
+//   ListAuthUserFollowers(session, "Basic <base64 encoded login:password>")
+//   ListAuthUserFollowers(session, "Token <token>")
+void ListAuthUserFollowers(webcc::HttpClientSession& session,
+                           const std::string& auth) {
   try {
     auto r = session.Get(kUrlRoot + "/user/followers", {},
                         { "Authorization", auth });
@@ -110,11 +108,11 @@ void ListAuthUserFollowers(const std::string& auth) {
 int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
-  //ListEvents();
+  webcc::HttpClientSession session;
 
-  //ListUserFollowers("<login>");
+  session.set_ssl_verify(kSslVerify);
 
-  //ListAuthUserFollowers("Basic <base64 encoded login:password>");
+  ListEvents(session);
 
   return 0;
 }

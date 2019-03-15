@@ -1,4 +1,4 @@
-#include "example/common/book.h"
+#include "examples/common/book.h"
 
 #include <algorithm>
 #include <iostream>

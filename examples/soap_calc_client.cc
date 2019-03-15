@@ -7,13 +7,14 @@
 
 static const std::string kResultName = "Result";
 
+// -----------------------------------------------------------------------------
+
 class CalcClient {
 public:
-  CalcClient(const std::string& host, const std::string& port)
-      : soap_client_(host, port) {
+  CalcClient(const std::string& url)
+      : soap_client_(url) {
     soap_client_.SetTimeout(5);
 
-    soap_client_.set_url("/calculator");
     soap_client_.set_service_ns({
       "ser", "http://www.example.com/calculator/"
     });
@@ -84,23 +85,22 @@ private:
 // -----------------------------------------------------------------------------
 
 void Help(const char* argv0) {
-  std::cout << "Usage: " << argv0 << " <host> <port>" << std::endl;
+  std::cout << "Usage: " << argv0 << " <url>" << std::endl;
   std::cout << "  E.g.," << std::endl;
-  std::cout << "    " << argv0 << " localhost 8080" << std::endl;
+  std::cout << "    " << argv0 << "http://localhost:8080" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
-  if (argc < 3) {
+  if (argc < 2) {
     Help(argv[0]);
     return 1;
   }
 
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
-  std::string host = argv[1];
-  std::string port = argv[2];
+  std::string url = argv[1];
 
-  CalcClient calc(host, port);
+  CalcClient calc(url + "/calculator");
 
   double x = 1.0;
   double y = 2.0;

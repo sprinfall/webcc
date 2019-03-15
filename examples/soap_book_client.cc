@@ -1,10 +1,24 @@
-#include "example/soap_book_client/book_client.h"
-
+#include <functional>
 #include <iostream>
+#include <string>
+
+#include "pugixml/pugixml.hpp"
 
 #include "webcc/logger.h"
+#include "webcc/soap_client.h"
 
-#include "example/common/book_xml.h"
+#include "examples/common/book.h"
+#include "examples/common/book_xml.h"
+
+#if (defined(WIN32) || defined(_WIN64))
+#if defined(_DEBUG) && defined(WEBCC_ENABLE_VLD)
+#pragma message ("< include vld.h >")
+#include "vld/vld.h"
+#pragma comment(lib, "vld")
+#endif
+#endif
+
+// -----------------------------------------------------------------------------
 
 static const std::string kResult = "Result";
 
@@ -14,9 +28,56 @@ static void PrintSeparateLine() {
   std::cout << std::endl;
 }
 
-BookClient::BookClient(const std::string& host, const std::string& port)
-    : soap_client_(host, port), code_(0) {
-  soap_client_.set_url("/book");
+// -----------------------------------------------------------------------------
+
+class BookClient {
+public:
+  explicit BookClient(const std::string& url);
+  
+  int code() const { return code_; }
+  const std::string& message() const { return message_; }
+
+  // Create a book.
+  bool CreateBook(const std::string& title, double price, std::string* id);
+
+  // Get a book by ID.
+  bool GetBook(const std::string& id, Book* book);
+
+  // List all books.
+  bool ListBooks(std::list<Book>* books);
+
+  // Delete a book by ID.
+  bool DeleteBook(const std::string& id);
+
+private:
+  // Call with 0 parameter.
+  bool Call0(const std::string& operation, std::string* result_str);
+
+  // Call with 1 parameter.
+  bool Call1(const std::string& operation, webcc::SoapParameter&& parameter,
+             std::string* result_str);
+
+  // Simple wrapper of SoapClient::Request() to log error if any.
+  bool Call(const std::string& operation,
+            std::vector<webcc::SoapParameter>&& parameters,
+            std::string* result_str);
+
+  void PrintError();
+
+  bool ParseResultXml(const std::string& result_xml,
+                      std::function<bool(pugi::xml_node)> callback);
+
+  webcc::SoapClient soap_client_;
+
+  // Last status.
+  int code_;
+  std::string message_;
+};
+
+// -----------------------------------------------------------------------------
+
+BookClient::BookClient(const std::string& url)
+    : soap_client_(url), code_(0) {
   soap_client_.set_service_ns({ "ser", "http://www.example.com/book/" });
 
   // Customize response XML format.
@@ -138,4 +199,65 @@ bool BookClient::ParseResultXml(const std::string& result_xml,
   }
 
   return true;
+}
+
+// -----------------------------------------------------------------------------
+
+void Help(const char* argv0) {
+  std::cout << "Usage: " << argv0 << " <url>" << std::endl;
+  std::cout << "  E.g.," << std::endl;
+  std::cout << "    " << argv0 << " http://localhost:8080" << std::endl;
+}
+
+int main(int argc, char* argv[]) {
+  if (argc < 2) {
+    Help(argv[0]);
+    return 1;
+  }
+
+  WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
+
+  std::string url = argv[1];
+
+  BookClient client(url + "/book");
+
+  std::string id1;
+  if (!client.CreateBook("1984", 12.3, &id1)) {
+    std::cerr << "Failed to create book." << std::endl;
+    return 2;
+  }
+
+  std::cout << "Book ID: " << id1 << std::endl;
+
+  std::string id2;
+  if (!client.CreateBook("1Q84", 32.1, &id2)) {
+    std::cerr << "Failed to create book." << std::endl;
+    return 2;
+  }
+
+  std::cout << "Book ID: " << id2 << std::endl;
+
+  Book book;
+  if (!client.GetBook(id1, &book)) {
+    std::cerr << "Failed to get book." << std::endl;
+    return 2;
+  }
+
+  std::cout << "Book: " << book << std::endl;
+
+  std::list<Book> books;
+  if (!client.ListBooks(&books)) {
+    std::cerr << "Failed to list books." << std::endl;
+    return 2;
+  }
+
+  for (const Book& book : books) {
+    std::cout << "Book: " << book << std::endl;
+  }
+
+  if (client.DeleteBook(id1)) {
+    std::cout << "Book deleted: " << id1 << std::endl;
+  }
+
+  return 0;
 }

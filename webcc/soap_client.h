@@ -13,9 +13,7 @@ namespace webcc {
 
 class SoapClient {
 public:
-  // If |port| is empty, |host| will be checked to see if it contains port or
-  // not (separated by ':').
-  explicit SoapClient(const std::string& host, const std::string& port = "",
+  explicit SoapClient(const std::string& url,
                       SoapVersion soap_version = kSoapV12,
                       std::size_t buffer_size = 0);
 
@@ -27,8 +25,6 @@ public:
   void SetTimeout(int seconds) {
     http_client_.SetTimeout(seconds);
   }
-
-  void set_url(const std::string& url) { url_ = url; }
 
   void set_service_ns(const SoapNamespace& service_ns) {
     service_ns_ = service_ns;
@@ -71,15 +67,11 @@ public:
   std::shared_ptr<SoapFault> fault() const { return fault_; }
 
 private:
-  std::string host_;
-  std::string port_;  // Leave this empty to use default 80.
+  std::string url_;
 
   SoapVersion soap_version_;
 
   HttpClient http_client_;
-
-  // Request URL.
-  std::string url_;
 
   // Namespace for your web service.
   SoapNamespace service_ns_;

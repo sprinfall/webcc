@@ -30,6 +30,10 @@ set(HEADERS
     http_server.h
     http_socket.h
     queue.h
+    rest_request_handler.h
+    rest_server.h
+    rest_service.h
+    rest_service_manager.h
     url.h
     utility.h
     version.h
@@ -51,26 +55,12 @@ set(SOURCES
     http_server.cc
     http_socket.cc
     logger.cc
+    rest_request_handler.cc
+    rest_service_manager.cc
+    rest_service.cc
     url.cc
     utility.cc
     )
-
-if(WEBCC_ENABLE_REST)
-    set(REST_HEADERS
-        rest_request_handler.h
-        rest_server.h
-        rest_service.h
-        rest_service_manager.h
-        )
-    set(REST_SOURCES
-        rest_request_handler.cc
-        rest_service_manager.cc
-        rest_service.cc
-        )
-
-    set(HEADERS ${HEADERS} ${REST_HEADERS})
-    set(SOURCES ${SOURCES} ${REST_SOURCES})
-endif()
 
 if(WEBCC_ENABLE_SOAP)
     set(SOAP_HEADERS

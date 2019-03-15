@@ -10,11 +10,10 @@ static const std::string kResultName = "Result";
 class CalcClient {
 public:
   // NOTE: Parasoft's calculator service uses SOAP V1.1.
-  CalcClient(const std::string& host, const std::string& port)
-      : soap_client_(host, port, webcc::kSoapV11) {
+  CalcClient(const std::string& url)
+      : soap_client_(url, webcc::kSoapV11) {
     soap_client_.SetTimeout(5);
 
-    soap_client_.set_url("/glue/calculator");
     soap_client_.set_service_ns({
       "cal", "http://www.parasoft.com/wsdl/calculator/"
     });
@@ -92,7 +91,7 @@ private:
 int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
-  CalcClient calc("ws1.parasoft.com", "");  // Use default port 80
+  CalcClient calc("http://ws1.parasoft.com/glue/calculator");
 
   double x = 1.0;
   double y = 2.0;

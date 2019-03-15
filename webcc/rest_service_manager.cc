@@ -31,9 +31,9 @@ bool RestServiceManager::AddService(RestServicePtr service,
   }
 }
 
-RestServicePtr RestServiceManager::GetService(
-    const std::string& url, std::vector<std::string>* sub_matches) {
-  assert(sub_matches != nullptr);
+RestServicePtr RestServiceManager::GetService(const std::string& url,
+                                              UrlMatches* matches) {
+  assert(matches != nullptr);
 
   for (ServiceItem& item : service_items_) {
     if (item.is_regex) {
@@ -43,7 +43,7 @@ RestServicePtr RestServiceManager::GetService(
         // Any sub-matches?
         // NOTE: Start from 1 because match[0] is the whole string itself.
         for (size_t i = 1; i < match.size(); ++i) {
-          sub_matches->push_back(match[i].str());
+          matches->push_back(match[i].str());
         }
 
         return item.service;

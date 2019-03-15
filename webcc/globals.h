@@ -88,7 +88,6 @@ const char* const kTextXml = "text/xml";
 
 }  // namespace media_types
 
-// TODO: Rename to encodings?
 namespace charsets {
 
 const char* const kUtf8 = "utf-8";

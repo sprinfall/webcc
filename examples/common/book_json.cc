@@ -1,11 +1,11 @@
-#include "example/common/book_json.h"
+#include "examples/common/book_json.h"
 
 #include <sstream>
 #include <iostream>
 
 #include "json/json.h"
 
-#include "example/common/book.h"
+#include "examples/common/book.h"
 
 std::string JsonToString(const Json::Value& json) {
   Json::StreamWriterBuilder builder;
