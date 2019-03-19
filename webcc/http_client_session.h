@@ -27,16 +27,22 @@ public:
     charset_ = charset;
   }
 
-  void AddHeader(const std::string& key, const std::string& value) {
-    headers_.Add(key, value);
-  }
-
   void set_ssl_verify(bool ssl_verify) {
     ssl_verify_.emplace(ssl_verify);
   }
 
   void set_buffer_size(std::size_t buffer_size) {
     buffer_size_ = buffer_size;
+  }
+
+  void set_timeout(int timeout) {
+    if (timeout > 0) {
+      timeout_ = timeout;
+    }
+  }
+
+  void AddHeader(const std::string& key, const std::string& value) {
+    headers_.Add(key, value);
   }
 
   HttpResponsePtr Request(HttpRequestArgs&& args);
@@ -68,15 +74,18 @@ private:
   // E.g., "utf-8".
   std::string charset_;
 
-  // Headers for each request sent from this session.
+  // Additional headers for each request.
   HttpHeaderDict headers_;
 
   // Verify the certificate of the peer or not.
   boost::optional<bool> ssl_verify_;
 
-  // The bytes of the buffer for reading response.
+  // The size of the buffer for reading response.
   // 0 means default value will be used.
   std::size_t buffer_size_ = 0;
+
+  // Timeout in seconds for receiving response.
+  int timeout_ = 0;
 
   // Connection pool for keep-alive.
   HttpClientPool pool_;

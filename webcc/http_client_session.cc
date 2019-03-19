@@ -92,6 +92,8 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestArgs&& args) {
     LOG_VERB("Reuse an existing connection.");
   }
 
+  client->set_timeout(timeout_);
+
   if (!client->Request(request, !reuse)) {
     throw Exception(client->error(), client->timed_out());
   }
