@@ -9,12 +9,13 @@ using boost::asio::ip::tcp;
 
 namespace webcc {
 
-HttpClient::HttpClient(std::size_t buffer_size, bool ssl_verify)
-    : buffer_size_(buffer_size == 0 ? kBufferSize : buffer_size),
-      timer_(io_context_),
+HttpClient::HttpClient(bool ssl_verify, std::size_t buffer_size)
+    : timer_(io_context_),
       ssl_verify_(ssl_verify),
+      buffer_size_(buffer_size == 0 ? kBufferSize : buffer_size),
       timeout_(kMaxReadSeconds),
       closed_(false),
+      timer_canceled_(false),
       timed_out_(false),
       error_(kNoError) {
 }
@@ -26,6 +27,7 @@ bool HttpClient::Request(const HttpRequest& request, bool connect) {
   response_parser_.reset(new HttpResponseParser(response_.get()));
 
   closed_ = false;
+  timer_canceled_ = false;
   timed_out_ = false;
   error_ = kNoError;
 
@@ -160,8 +162,10 @@ void HttpClient::DoReadResponse(Error* error) {
 
     LOG_VERB("Socket async read handler.");
 
+    // Stop the deadline timer once the read has started.
+    CancelTimer();
+
     if (ec || length == 0) {
-      StopTimer();
       Close();
       *error = kSocketReadError;
       LOG_ERRO("Socket read error (%s).", ec.message().c_str());
@@ -172,7 +176,7 @@ void HttpClient::DoReadResponse(Error* error) {
 
     // Parse the response piece just read.
     if (!response_parser_->Parse(buffer_.data(), length)) {
-      StopTimer();
+      //CancelTimer();
       Close();
       *error = kHttpError;
       LOG_ERRO("Failed to parse HTTP response.");
@@ -183,7 +187,7 @@ void HttpClient::DoReadResponse(Error* error) {
       // Stop trying to read once all content has been received, because
       // some servers will block extra call to read_some().
 
-      StopTimer();
+      //CancelTimer();
 
       if (response_->IsConnectionKeepAlive()) {
         // Close the timer but keep the socket connection.
@@ -243,10 +247,15 @@ void HttpClient::OnTimer(boost::system::error_code ec) {
   DoWaitTimer();
 }
 
-void HttpClient::StopTimer() {
-  // Cancel any asynchronous operations that are waiting on the timer.
+void HttpClient::CancelTimer() {
+  if (timer_canceled_) {
+    return;
+  }
+
   LOG_INFO("Cancel deadline timer...");
   timer_.cancel();
+
+  timer_canceled_ = true;
 }
 
 }  // namespace webcc

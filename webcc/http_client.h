@@ -27,7 +27,7 @@ typedef std::shared_ptr<HttpClient> HttpClientPtr;
 // Please don't use the same client object in multiple threads.
 class HttpClient {
 public:
-  explicit HttpClient(std::size_t buffer_size = 0, bool ssl_verify = true);
+  explicit HttpClient(bool ssl_verify = true, std::size_t buffer_size = 0);
 
   virtual ~HttpClient() = default;
 
@@ -87,7 +87,8 @@ private:
   void DoWaitTimer();
   void OnTimer(boost::system::error_code ec);
 
-  void StopTimer();
+  // Cancel any async-operations waiting on the timer.
+  void CancelTimer();
 
 private:
   boost::asio::io_context io_context_;
@@ -104,13 +105,12 @@ private:
   // The buffer for reading response.
   std::vector<char> buffer_;
 
+  // Verify the certificate of the peer or not (for HTTPS).
+  bool ssl_verify_;
+
   // The size of the buffer for reading response.
   // Set 0 for using default value (e.g., 1024).
   std::size_t buffer_size_;
-
-  // Verify the certificate of the peer (remote server) or not.
-  // HTTPS only.
-  bool ssl_verify_;
 
   // Maximum seconds to wait before the client cancels the operation.
   // Only for reading response from server.
@@ -119,9 +119,13 @@ private:
   // Connection closed.
   bool closed_;
 
-  // If the error was caused by timeout or not.
+  // Deadline timer canceled.
+  bool timer_canceled_;
+
+  // Timeout occurred.
   bool timed_out_;
 
+  // Error code.
   Error error_;
 };
 

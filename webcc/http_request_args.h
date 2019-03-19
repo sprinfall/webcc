@@ -38,11 +38,6 @@ public:
     return std::move(*this);
   }
 
-  HttpRequestArgs&& url(std::string&& url) {
-    url_ = std::move(url);
-    return std::move(*this);
-  }
-
   HttpRequestArgs&& parameters(const std::vector<std::string>& parameters) {
     parameters_ = parameters;
     return std::move(*this);

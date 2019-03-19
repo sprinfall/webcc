@@ -21,29 +21,13 @@
 
 class BookClientBase {
 public:
-  BookClientBase(const std::string& url, int timeout_seconds) : url_(url) {
-    //session_.SetTimeout(timeout_seconds);
-
-    //session_.set_content_type("application/json");
-    session_.set_charset("utf-8");
+  BookClientBase(webcc::HttpClientSession& session, const std::string& url)
+      : session_(session), url_(url) {
   }
 
   virtual ~BookClientBase() = default;
 
 protected:
-  // Helper function to make a request.
-  //webcc::HttpRequestPtr MakeRequest(const std::string& method,
-  //                                  const std::string& url,
-  //                                  std::string&& content = "") {
-  //  auto request = webcc::HttpRequest::New(method, url, host_, port_);
-  //  request->AcceptAppJson();
-  //  if (!content.empty()) {
-  //    request->SetContentInAppJsonUtf8(JsonToString(content), true);
-  //  }
-  //  request->Prepare();
-  //  return request;
-  //}
-
   // Check HTTP response status.
   bool CheckStatus(webcc::HttpResponsePtr response, int expected_status) {
     int status = response->status();
@@ -58,15 +42,15 @@ protected:
 protected:
   std::string url_;
 
-  webcc::HttpClientSession session_;
+  webcc::HttpClientSession& session_;
 };
 
 // -----------------------------------------------------------------------------
 
 class BookListClient : public BookClientBase {
 public:
-  BookListClient(const std::string& url, int timeout_seconds)
-      : BookClientBase(url, timeout_seconds) {
+  BookListClient(webcc::HttpClientSession& session, const std::string& url)
+      : BookClientBase(session, url) {
   }
 
   bool ListBooks(std::list<Book>* books) {
@@ -124,13 +108,13 @@ public:
 
 class BookDetailClient : public BookClientBase {
 public:
-  BookDetailClient(const std::string& url, int timeout_seconds)
-      : BookClientBase(url, timeout_seconds) {
+  BookDetailClient(webcc::HttpClientSession& session, const std::string& url)
+      : BookClientBase(session, url) {
   }
 
   bool GetBook(const std::string& id, Book* book) {
     try {
-      auto r = session_.Get(url_ + "/books" + id);
+      auto r = session_.Get(url_ + "/books/" + id);
 
       if (!CheckStatus(r, webcc::http::Status::kOK)) {
         return false;
@@ -151,7 +135,7 @@ public:
     json["price"] = price;
 
     try {
-      auto r = session_.Put(url_ + "/books" + id, JsonToString(json), true);
+      auto r = session_.Put(url_ + "/books/" + id, JsonToString(json), true);
 
       if (!CheckStatus(r, webcc::http::Status::kOK)) {
         return false;
@@ -218,13 +202,22 @@ int main(int argc, char* argv[]) {
 
   std::string url = argv[1];
 
-  int timeout_seconds = -1;
+  int timeout = 0;
   if (argc > 2) {
-    timeout_seconds = std::atoi(argv[2]);
+    timeout = std::atoi(argv[2]);
   }
 
-  BookListClient list_client(url, timeout_seconds);
-  BookDetailClient detail_client(url, timeout_seconds);
+  // Share the same session.
+  webcc::HttpClientSession session;
+
+  // Session-level settings.
+  session.set_timeout(timeout);
+  // TODO
+  //session.set_content_type("application/json");
+  //session.set_charset("utf-8");
+
+  BookListClient list_client(session, url);
+  BookDetailClient detail_client(session, url);
 
   PrintSeparator();
 
@@ -233,50 +226,50 @@ int main(int argc, char* argv[]) {
     PrintBookList(books);
   }
 
-  //PrintSeparator();
+  PrintSeparator();
 
-  //std::string id;
-  //if (list_client.CreateBook("1984", 12.3, &id)) {
-  //  std::cout << "Book ID: " << id << std::endl;
-  //} else {
-  //  id = "1";
-  //  std::cout << "Book ID: " << id << " (faked)"<< std::endl;
-  //}
+  std::string id;
+  if (list_client.CreateBook("1984", 12.3, &id)) {
+    std::cout << "Book ID: " << id << std::endl;
+  } else {
+    id = "1";
+    std::cout << "Book ID: " << id << " (faked)"<< std::endl;
+  }
 
-  //PrintSeparator();
+  PrintSeparator();
 
-  //books.clear();
-  //if (list_client.ListBooks(&books)) {
-  //  PrintBookList(books);
-  //}
+  books.clear();
+  if (list_client.ListBooks(&books)) {
+    PrintBookList(books);
+  }
 
-  //PrintSeparator();
+  PrintSeparator();
 
-  //Book book;
-  //if (detail_client.GetBook(id, &book)) {
-  //  PrintBook(book);
-  //}
+  Book book;
+  if (detail_client.GetBook(id, &book)) {
+    PrintBook(book);
+  }
 
-  //PrintSeparator();
+  PrintSeparator();
 
-  //detail_client.UpdateBook(id, "1Q84", 32.1);
+  detail_client.UpdateBook(id, "1Q84", 32.1);
 
-  //PrintSeparator();
+  PrintSeparator();
 
-  //if (detail_client.GetBook(id, &book)) {
-  //  PrintBook(book);
-  //}
+  if (detail_client.GetBook(id, &book)) {
+    PrintBook(book);
+  }
 
-  //PrintSeparator();
+  PrintSeparator();
 
-  //detail_client.DeleteBook(id);
+  detail_client.DeleteBook(id);
 
-  //PrintSeparator();
+  PrintSeparator();
 
-  //books.clear();
-  //if (list_client.ListBooks(&books)) {
-  //  PrintBookList(books);
-  //}
+  books.clear();
+  if (list_client.ListBooks(&books)) {
+    PrintBookList(books);
+  }
 
   return 0;
 }

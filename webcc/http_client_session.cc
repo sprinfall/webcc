@@ -42,7 +42,7 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestArgs&& args) {
   assert(args.parameters_.size() % 2 == 0);
   assert(args.headers_.size() % 2 == 0);
 
-  HttpRequest request{ args.method_, args.url_ };
+  HttpRequest request{args.method_, args.url_};
 
   for (std::size_t i = 1; i < args.parameters_.size(); i += 2) {
     request.AddParameter(args.parameters_[i - 1], args.parameters_[i]);
@@ -83,7 +83,7 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestArgs&& args) {
 
   HttpClientPtr client = pool_.Get(key);
   if (!client) {
-    client.reset(new HttpClient{buffer_size, ssl_verify});
+    client.reset(new HttpClient{ssl_verify, buffer_size});
     reuse = false;
   } else {
     client->set_buffer_size(buffer_size);
