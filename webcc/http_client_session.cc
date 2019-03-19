@@ -123,14 +123,36 @@ HttpResponsePtr HttpClientSession::Delete(const std::string& url,
 }
 
 void HttpClientSession::InitHeaders() {
-  headers_.Add(http::headers::kUserAgent, http::UserAgent());
+  using namespace http::headers;
 
-  // TODO: Support gzip, deflate
-  headers_.Add(http::headers::kAcceptEncoding, "identity");
+  headers_.Add(kUserAgent, http::UserAgent());
 
-  headers_.Add(http::headers::kAccept, "*/*");
+  // Content-Encoding Tokens:
+  //   (https://en.wikipedia.org/wiki/HTTP_compression)
+  // * compress 每 UNIX "compress" program method (historic; deprecated in most
+  //              applications and replaced by gzip or deflate);
+  // * deflate  每 compression based on the deflate algorithm, a combination of
+  //              the LZ77 algorithm and Huffman coding, wrapped inside the
+  //              zlib data format;
+  // * gzip     每 GNU zip format. Uses the deflate algorithm for compression,
+  //              but the data format and the checksum algorithm differ from
+  //              the "deflate" content-encoding. This method is the most
+  //              broadly supported as of March 2011.
+  // * identity 每 No transformation is used. This is the default value for
+  //              content coding.
+  //
+  // A note about "deflate":
+  //   (https://www.zlib.net/zlib_faq.html#faq39)
+  // "gzip" is the gzip format, and "deflate" is the zlib format. They should
+  // probably have called the second one "zlib" instead to avoid confusion with
+  // the raw deflate compressed data format.
+  // Simply put, "deflate" is not recommended for HTTP 1.1 encoding.
+  //
+  headers_.Add(kAcceptEncoding, "gzip, deflate");
 
-  headers_.Add(http::headers::kConnection, "Keep-Alive");
+  headers_.Add(kAccept, "*/*");
+
+  headers_.Add(kConnection, "Keep-Alive");
 }
 
 }  // namespace webcc

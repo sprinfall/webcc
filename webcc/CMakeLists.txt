@@ -37,6 +37,7 @@ set(HEADERS
     url.h
     utility.h
     version.h
+    zlib_wrapper.h
     )
 
 set(SOURCES
@@ -60,6 +61,7 @@ set(SOURCES
     rest_service.cc
     url.cc
     utility.cc
+    zlib_wrapper.cc
     )
 
 if(WEBCC_ENABLE_SOAP)

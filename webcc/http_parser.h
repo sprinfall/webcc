@@ -25,7 +25,7 @@ public:
 
   bool Parse(const char* data, std::size_t length);
 
-public:
+protected:
   // Parse headers from pending data.
   // Return false only on syntax errors.
   bool ParseHeaders();
@@ -45,13 +45,18 @@ public:
   bool ParseChunkedContent();
   bool ParseChunkSize();
 
-  void Finish();
+  // Return false if the compressed content cannot be decompressed.
+  bool Finish();
 
   void AppendContent(const char* data, std::size_t count);
   void AppendContent(const std::string& data);
 
   bool IsContentFull() const;
 
+  // Check header Content-Encoding to see if the content is compressed.
+  bool IsContentCompressed() const;
+
+protected:
   // The result HTTP message.
   HttpMessage* message_;
 

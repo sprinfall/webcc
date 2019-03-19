@@ -4,6 +4,7 @@
 
 #include "webcc/http_message.h"
 #include "webcc/logger.h"
+#include "webcc/zlib_wrapper.h"
 
 namespace webcc {
 
@@ -279,11 +280,32 @@ bool HttpParser::ParseChunkSize() {
   return true;
 }
 
-void HttpParser::Finish() {
-  if (!content_.empty()) {
-    message_->SetContent(std::move(content_), /*set_length*/false);
-  }
+bool HttpParser::Finish() {
   finished_ = true;
+
+  if (content_.empty()) {
+    return true;
+  }
+
+  if (!IsContentCompressed()) {
+    message_->SetContent(std::move(content_), false);
+    return true;
+  }
+
+  LOG_INFO("Decompress the HTTP content...");
+
+  // TODO (Potential issues with gzip + chuncked):
+  // See the last section about HTTP in the following page:
+  //   https://www.bolet.org/~pornin/deflate-flush-fr.html
+  // Also see: https://stackoverflow.com/questions/5280633/gzip-compression-of-chunked-encoding-response
+  std::string decompressed;
+  if (!Decompress(content_, decompressed)) {
+    LOG_ERRO("Cannot decompress the HTTP content!", );
+    return false;
+  }
+
+  message_->SetContent(std::move(decompressed), false);
+  return true;
 }
 
 void HttpParser::AppendContent(const char* data, std::size_t count) {
@@ -297,6 +319,22 @@ void HttpParser::AppendContent(const std::string& data) {
 bool HttpParser::IsContentFull() const {
   return content_length_ != kInvalidLength &&
          content_length_ <= content_.length();
+}
+
+bool HttpParser::IsContentCompressed() const {
+  using http::headers::kContentEncoding;
+
+  const std::string& encoding = message_->GetHeader(kContentEncoding);
+
+  if (encoding.find("gzip") != std::string::npos) {
+    return true;
+  }
+
+  if (encoding.find("deflate") != std::string::npos) {
+    return true;
+  }
+
+  return false;
 }
 
 }  // namespace webcc

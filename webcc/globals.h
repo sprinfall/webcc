@@ -66,6 +66,7 @@ namespace headers {
 const char* const kHost = "Host";
 const char* const kContentType = "Content-Type";
 const char* const kContentLength = "Content-Length";
+const char* const kContentEncoding = "Content-Encoding";
 const char* const kConnection = "Connection";
 const char* const kTransferEncoding = "Transfer-Encoding";
 const char* const kAccept = "Accept";

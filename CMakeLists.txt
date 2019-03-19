@@ -109,6 +109,16 @@ endif()
 # "gtest/gtest.h".
 include_directories(${THIRD_PARTY_DIR}/src)
 
+# For using zlib on Windows.
+if(WIN32)
+    add_subdirectory(${THIRD_PARTY_DIR}/src/zlib)
+
+    include_directories(${THIRD_PARTY_DIR}/src/zlib)
+
+    # For including CMake generated zconf.h.
+    include_directories(${PROJECT_BINARY_DIR}/third_party/src/zlib)
+endif()
+
 # SOAP support needs pugixml to parse and create XML.
 if(WEBCC_ENABLE_SOAP)
     add_subdirectory(${THIRD_PARTY_DIR}/src/pugixml)

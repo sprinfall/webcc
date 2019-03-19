@@ -16,6 +16,7 @@ bool kSslVerify = true;
 #endif
 
 // -----------------------------------------------------------------------------
+// Examples
 
 void ExampleBasic() {
   HttpClientSession session;
@@ -100,7 +101,15 @@ void ExampleKeepAlive(const std::string& url) {
                   ssl_verify(kSslVerify));
 }
 
-// -----------------------------------------------------------------------------
+void ExampleCompression() {
+  HttpClientSession session;
+
+  auto r = session.Get("http://httpbin.org/gzip");
+  std::cout << r->content() << std::endl;
+
+  r = session.Get("http://httpbin.org/deflate");
+  std::cout << r->content() << std::endl;
+}
 
 int main() {
   WEBCC_LOG_INIT("", LOG_CONSOLE);
