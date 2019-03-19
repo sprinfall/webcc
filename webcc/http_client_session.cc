@@ -94,7 +94,21 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestArgs&& args) {
 
   client->set_timeout(timeout_);
 
-  if (!client->Request(request, !reuse)) {
+  bool ok = client->Request(request, !reuse);
+
+  if (!ok) {
+    if (reuse && client->error() == kSocketWriteError) {
+      LOG_WARN("Cannot send request with the reused connection. "
+               "The server must have closed it, reconnect and try again.");
+      ok = client->Request(request, true);
+    }
+  }
+
+  if (!ok) {
+    if (reuse) {
+      // Remove the failed connection from pool.
+      pool_.Remove(key);
+    }
     throw Exception(client->error(), client->timed_out());
   }
 
