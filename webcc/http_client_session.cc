@@ -71,6 +71,11 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestArgs&& args) {
                       std::move(args.headers_[i]));
   }
 
+  // No keep-alive?
+  if (!args.keep_alive_) {
+    request.SetHeader(http::headers::kConnection, "Close");
+  }
+
   request.Prepare();
 
   bool ssl_verify = GetSslVerify(ssl_verify_, args.ssl_verify_);

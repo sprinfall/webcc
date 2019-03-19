@@ -19,7 +19,7 @@ class HttpClientSession;
 class HttpRequestArgs {
 public:
   explicit HttpRequestArgs(const std::string& method = "")
-      : method_(method), json_(false), buffer_size_(0) {
+      : method_(method), json_(false), buffer_size_(0), keep_alive_(true) {
   }
 
   HttpRequestArgs(const HttpRequestArgs&) = default;
@@ -83,6 +83,11 @@ public:
     return std::move(*this);
   }
 
+  HttpRequestArgs&& keep_alive(bool keep_alive) {
+    keep_alive_ = keep_alive;
+    return std::move(*this);
+  }
+
 private:
   friend class HttpClientSession;
 
@@ -108,6 +113,9 @@ private:
   // Size of the buffer to read response.
   // Leave it to 0 for using default value.
   std::size_t buffer_size_;
+
+  // Persistent connection.
+  bool keep_alive_;
 };
 
 }  // namespace webcc

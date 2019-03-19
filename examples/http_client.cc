@@ -93,8 +93,7 @@ void ExampleKeepAlive(const std::string& url) {
 
   // Close
   session.Request(webcc::HttpRequestArgs("GET").url(url).
-                  ssl_verify(kSslVerify).
-                  headers({"Connection", "Close"}));
+                  ssl_verify(kSslVerify).keep_alive(false));
 
   // Keep-Alive
   session.Request(webcc::HttpRequestArgs("GET").url(url).
