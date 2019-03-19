@@ -35,6 +35,10 @@ public:
     ssl_verify_.emplace(ssl_verify);
   }
 
+  void set_buffer_size(std::size_t buffer_size) {
+    buffer_size_ = buffer_size;
+  }
+
   HttpResponsePtr Request(HttpRequestArgs&& args);
 
   HttpResponsePtr Get(const std::string& url,
@@ -69,6 +73,10 @@ private:
 
   // Verify the certificate of the peer or not.
   boost::optional<bool> ssl_verify_;
+
+  // The bytes of the buffer for reading response.
+  // 0 means default value will be used.
+  std::size_t buffer_size_ = 0;
 
   // Connection pool for keep-alive.
   HttpClientPool pool_;

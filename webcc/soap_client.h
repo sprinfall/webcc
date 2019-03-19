@@ -23,7 +23,7 @@ public:
   SoapClient& operator=(const SoapClient&) = delete;
 
   void SetTimeout(int seconds) {
-    http_client_.SetTimeout(seconds);
+    http_client_.set_timeout(seconds);
   }
 
   void set_service_ns(const SoapNamespace& service_ns) {

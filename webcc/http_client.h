@@ -27,8 +27,6 @@ typedef std::shared_ptr<HttpClient> HttpClientPtr;
 // Please don't use the same client object in multiple threads.
 class HttpClient {
 public:
-  // The |buffer_size| is the bytes of the buffer for reading response.
-  // 0 means default value (e.g., 1024) will be used.
   explicit HttpClient(std::size_t buffer_size = 0, bool ssl_verify = true);
 
   virtual ~HttpClient() = default;
@@ -36,16 +34,23 @@ public:
   HttpClient(const HttpClient&) = delete;
   HttpClient& operator=(const HttpClient&) = delete;
 
-  // Set the timeout seconds for reading response.
-  // The |seconds| is only effective when greater than 0.
-  void SetTimeout(int seconds);
+  void set_buffer_size(std::size_t buffer_size) {
+    buffer_size_ = (buffer_size == 0 ? kBufferSize : buffer_size);
+  }
+
+  void set_ssl_verify(bool ssl_verify) {
+    ssl_verify_ = ssl_verify;
+  }
+
+  // Set the timeout (in seconds) for reading response.
+  void set_timeout(int timeout)  {
+    if (timeout > 0) {
+      timeout_ = timeout;
+    }
+  }
 
   // Connect to server, send request, wait until response is received.
-  // Set |buffer_size| to non-zero to use a different buffer size for this
-  // specific request.
-  bool Request(const HttpRequest& request,
-               std::size_t buffer_size = 0,
-               bool connect = true);
+  bool Request(const HttpRequest& request, bool connect = true);
 
   // Close the socket.
   void Close();
@@ -90,13 +95,18 @@ private:
   // Socket connection.
   std::unique_ptr<HttpSocketBase> socket_;
 
-  std::vector<char> buffer_;
-
   HttpResponsePtr response_;
   std::unique_ptr<HttpResponseParser> response_parser_;
 
   // Timer for the timeout control.
   boost::asio::deadline_timer timer_;
+
+  // The buffer for reading response.
+  std::vector<char> buffer_;
+
+  // The size of the buffer for reading response.
+  // Set 0 for using default value (e.g., 1024).
+  std::size_t buffer_size_;
 
   // Verify the certificate of the peer (remote server) or not.
   // HTTPS only.
@@ -104,7 +114,7 @@ private:
 
   // Maximum seconds to wait before the client cancels the operation.
   // Only for reading response from server.
-  int timeout_seconds_;
+  int timeout_;
 
   // Connection closed.
   bool closed_;

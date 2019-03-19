@@ -20,7 +20,6 @@ class HttpRequestArgs {
 public:
   explicit HttpRequestArgs(const std::string& method = "")
       : method_(method), json_(false), buffer_size_(0) {
-    LOG_VERB("HttpRequestArgs()");
   }
 
   HttpRequestArgs(const HttpRequestArgs&) = default;

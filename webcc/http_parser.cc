@@ -294,10 +294,6 @@ bool HttpParser::Finish() {
 
   LOG_INFO("Decompress the HTTP content...");
 
-  // TODO (Potential issues with gzip + chuncked):
-  // See the last section about HTTP in the following page:
-  //   https://www.bolet.org/~pornin/deflate-flush-fr.html
-  // Also see: https://stackoverflow.com/questions/5280633/gzip-compression-of-chunked-encoding-response
   std::string decompressed;
   if (!Decompress(content_, decompressed)) {
     LOG_ERRO("Cannot decompress the HTTP content!");

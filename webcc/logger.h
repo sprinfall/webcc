@@ -53,6 +53,9 @@ void LogWrite(int level, const char* file, int line, const char* format, ...);
 #if (defined(WIN32) || defined(_WIN64))
 
 // See: https://stackoverflow.com/a/8488201
+// ISSUE: The last path separator of __FILE__ in a header file becomes "/"
+//        instead of "\". The result is that __FILENAME__ will contain a
+//        prefix of "webcc/". So don't log from a header file!
 #define __FILENAME__ std::strrchr("\\" __FILE__, '\\') + 1
 
 #if WEBCC_LOG_LEVEL <= WEBCC_VERB

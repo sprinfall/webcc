@@ -55,7 +55,7 @@ void ExampleWrappers() {
               {"Accept", "application/json"},
               HttpRequestArgs{}.buffer_size(1000));
 
-  session.Post("http://httpbin.org/post", "{ 'key': 'value' }", true,
+  session.Post("http://httpbin.org/post", "{'key': 'value'}", true,
                {"Accept", "application/json"});
 }
 
@@ -94,7 +94,7 @@ void ExampleKeepAlive(const std::string& url) {
   // Close
   session.Request(webcc::HttpRequestArgs("GET").url(url).
                   ssl_verify(kSslVerify).
-                  headers({ "Connection", "Close" }));
+                  headers({"Connection", "Close"}));
 
   // Keep-Alive
   session.Request(webcc::HttpRequestArgs("GET").url(url).
@@ -114,11 +114,9 @@ void ExampleCompression() {
 int main() {
   WEBCC_LOG_INIT("", LOG_CONSOLE);
 
-  // Note that the exception handling is mandatory.
   try {
 
-    // ExampleBasic();
-    ExampleCompression();
+    ExampleBasic();
 
   } catch (const Exception& e) {
     std::cout << "Exception: " << e.what() << std::endl;

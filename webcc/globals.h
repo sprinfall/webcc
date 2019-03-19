@@ -11,9 +11,6 @@ namespace webcc {
 
 const char* const kCRLF = "\r\n";
 
-// Default buffer size for socket reading.
-const std::size_t kBufferSize = 1024;
-
 const std::size_t kInvalidLength = std::string::npos;
 
 // Default timeout for reading response.
@@ -23,6 +20,9 @@ const int kMaxReadSeconds = 30;
 // If the HTTP, e.g., response, has a very large content, it will be truncated
 // when dumped/logged.
 const std::size_t kMaxDumpSize = 2048;
+
+// Default buffer size for socket reading.
+const std::size_t kBufferSize = 1024;
 
 // Default ports.
 const char* const kPort80 = "80";

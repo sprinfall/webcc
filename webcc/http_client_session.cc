@@ -4,6 +4,36 @@
 
 namespace webcc {
 
+namespace {
+
+// -----------------------------------------------------------------------------
+// Helper functions.
+
+bool GetSslVerify(const boost::optional<bool>& session_ssl_verify,
+                  const boost::optional<bool>& request_ssl_verify) {
+  if (request_ssl_verify) {
+    return request_ssl_verify.value();
+  } else if (session_ssl_verify) {
+    return session_ssl_verify.value();
+  }
+  return true;
+}
+
+std::size_t GetBufferSize(std::size_t session_buffer_size,
+                          std::size_t request_buffer_size) {
+  if (request_buffer_size != 0) {
+    return request_buffer_size;
+  } else if (session_buffer_size != 0) {
+    return session_buffer_size;
+  }
+  return 0;
+}
+
+}  // namespace
+
+// -----------------------------------------------------------------------------
+
+
 HttpClientSession::HttpClientSession() {
   InitHeaders();
 }
@@ -43,32 +73,31 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestArgs&& args) {
 
   request.Prepare();
 
-  // Determine SSL verify flag.
-  bool ssl_verify = true;
-  if (args.ssl_verify_) {
-    ssl_verify = args.ssl_verify_.value();
-  } else if (ssl_verify_) {
-    ssl_verify = ssl_verify_.value();
-  }
+  bool ssl_verify = GetSslVerify(ssl_verify_, args.ssl_verify_);
+  std::size_t buffer_size = GetBufferSize(buffer_size_, args.buffer_size_);
 
+  const HttpClientPool::Key key{request.url()};
+
+  // Reuse a connection or not.
   bool reuse = false;
-  const HttpClientPool::Key key{ request.url() };
 
   HttpClientPtr client = pool_.Get(key);
   if (!client) {
-    client.reset(new HttpClient{ 0, ssl_verify });
+    client.reset(new HttpClient{buffer_size, ssl_verify});
     reuse = false;
   } else {
-    // TODO: Apply args.ssl_verify even if reuse a client.
-    reuse = false;
+    client->set_buffer_size(buffer_size);
+    client->set_ssl_verify(ssl_verify);
+    reuse = true;
     LOG_VERB("Reuse an existing connection.");
   }
 
-  if (!client->Request(request, args.buffer_size_, !reuse)) {
+  if (!client->Request(request, !reuse)) {
     throw Exception(client->error(), client->timed_out());
   }
 
-  // Update pool.
+  // Update connection pool.
+
   if (reuse) {
     if (client->closed()) {
       pool_.Remove(key);

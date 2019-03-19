@@ -1,6 +1,5 @@
 #include "webcc/http_client.h"
 
-#include "boost/algorithm/string.hpp"  // TODO: Remove
 #include "boost/date_time/posix_time/posix_time.hpp"
 
 #include "webcc/logger.h"
@@ -11,24 +10,16 @@ using boost::asio::ip::tcp;
 namespace webcc {
 
 HttpClient::HttpClient(std::size_t buffer_size, bool ssl_verify)
-    : buffer_(buffer_size == 0 ? kBufferSize : buffer_size),
+    : buffer_size_(buffer_size == 0 ? kBufferSize : buffer_size),
       timer_(io_context_),
       ssl_verify_(ssl_verify),
-      timeout_seconds_(kMaxReadSeconds),
+      timeout_(kMaxReadSeconds),
       closed_(false),
       timed_out_(false),
       error_(kNoError) {
 }
 
-void HttpClient::SetTimeout(int seconds) {
-  if (seconds > 0) {
-    timeout_seconds_ = seconds;
-  }
-}
-
-bool HttpClient::Request(const HttpRequest& request,
-                         std::size_t buffer_size,
-                         bool connect) {
+bool HttpClient::Request(const HttpRequest& request, bool connect) {
   io_context_.restart();
 
   response_.reset(new HttpResponse());
@@ -38,7 +29,10 @@ bool HttpClient::Request(const HttpRequest& request,
   timed_out_ = false;
   error_ = kNoError;
 
-  BufferResizer buffer_resizer(&buffer_, buffer_size);
+  if (buffer_.size() != buffer_size_) {
+    LOG_VERB("Resize buffer: %u -> %u.", buffer_.size(), buffer_size_);
+    buffer_.resize(buffer_size_);
+  }
 
   if (connect) {
     // No existing socket connection was specified, create a new one.
@@ -142,9 +136,9 @@ Error HttpClient::WriteReqeust(const HttpRequest& request) {
 }
 
 Error HttpClient::ReadResponse() {
-  LOG_VERB("Read response (timeout: %ds)...", timeout_seconds_);
+  LOG_VERB("Read response (timeout: %ds)...", timeout_);
 
-  timer_.expires_from_now(boost::posix_time::seconds(timeout_seconds_));
+  timer_.expires_from_now(boost::posix_time::seconds(timeout_));
   DoWaitTimer();
 
   Error error = kNoError;
