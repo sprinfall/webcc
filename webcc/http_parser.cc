@@ -154,7 +154,7 @@ bool HttpParser::ParseHeaderLine(const std::string& line) {
         break;
       }
     }
-    
+
     // TODO: Replace `!chunked_` with <TransferEncodingParsed>.
     if (!chunked_ && !content_length_parsed_) {
       if (boost::iequals(name, http::headers::kTransferEncoding)) {
@@ -218,7 +218,7 @@ bool HttpParser::ParseChunkedContent() {
       Finish();
       return true;
     }
-    
+
     if (chunk_size_ + 2 <= pending_data_.size()) {  // +2 for CRLF
       AppendContent(pending_data_.c_str(), chunk_size_);
 
@@ -300,7 +300,7 @@ bool HttpParser::Finish() {
   // Also see: https://stackoverflow.com/questions/5280633/gzip-compression-of-chunked-encoding-response
   std::string decompressed;
   if (!Decompress(content_, decompressed)) {
-    LOG_ERRO("Cannot decompress the HTTP content!", );
+    LOG_ERRO("Cannot decompress the HTTP content!");
     return false;
   }
 

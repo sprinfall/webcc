@@ -117,6 +117,11 @@ if(WIN32)
 
     # For including CMake generated zconf.h.
     include_directories(${PROJECT_BINARY_DIR}/third_party/src/zlib)
+else()
+	find_package(ZLIB REQUIRED)
+	if(ZLIB_FOUND)
+		include_directories(${ZLIB_INCLUDE_DIRS})
+	endif()
 endif()
 
 # SOAP support needs pugixml to parse and create XML.

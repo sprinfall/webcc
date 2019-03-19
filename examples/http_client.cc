@@ -78,7 +78,7 @@ void ExampleHttps() {
 // "Connection: Close" header in the response.
 // Both Google and GitHub support persistent connection but they don't like
 // to include "Connection: Keep-Alive" header in the responses.
-// 
+//
 //   ExampleKeepAlive("http://httpbin.org/get");
 //   ExampleKeepAlive("https://www.boost.org/LICENSE_1_0.txt");
 //   ExampleKeepAlive("https://www.google.com");
@@ -117,7 +117,8 @@ int main() {
   // Note that the exception handling is mandatory.
   try {
 
-    ExampleBasic();
+    // ExampleBasic();
+    ExampleCompression();
 
   } catch (const Exception& e) {
     std::cout << "Exception: " << e.what() << std::endl;
