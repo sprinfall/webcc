@@ -87,6 +87,23 @@ bool HttpMessage::IsConnectionKeepAlive() const {
   return false;
 }
 
+http::ContentEncoding HttpMessage::GetContentEncoding() const {
+  const std::string& encoding = GetHeader(http::headers::kContentEncoding);
+  if (encoding == "gzip") {
+    return http::ContentEncoding::kGzip;
+  }
+  if (encoding == "deflate") {
+    return http::ContentEncoding::kDeflate;
+  }
+  return http::ContentEncoding::kUnknown;
+}
+
+bool HttpMessage::AcceptEncodingGzip() const {
+  using http::headers::kAcceptEncoding;
+
+  return GetHeader(kAcceptEncoding).find("gzip") != std::string::npos;
+}
+
 // See: https://tools.ietf.org/html/rfc7231#section-3.1.1.1
 void HttpMessage::SetContentType(const std::string& media_type,
                                  const std::string& charset) {

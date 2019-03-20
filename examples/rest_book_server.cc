@@ -98,7 +98,10 @@ void BookListService::Get(const webcc::UrlQuery& /*query*/,
     json.append(BookToJson(book));
   }
 
+  // TODO: Simplify
   response->content = JsonToString(json);
+  response->media_type = webcc::http::media_types::kApplicationJson;
+  response->charset = "utf-8";
   response->status = webcc::http::Status::kOK;
 }
 
@@ -114,6 +117,8 @@ void BookListService::Post(const std::string& request_content,
     json["id"] = id;
 
     response->content = JsonToString(json);
+    response->media_type = webcc::http::media_types::kApplicationJson;
+    response->charset = "utf-8";
     response->status = webcc::http::Status::kCreated;
   } else {
     // Invalid JSON
@@ -144,6 +149,8 @@ void BookDetailService::Get(const webcc::UrlMatches& url_matches,
   }
 
   response->content = BookToJsonString(book);
+  response->media_type = webcc::http::media_types::kApplicationJson;
+  response->charset = "utf-8";
   response->status = webcc::http::Status::kOK;
 }
 

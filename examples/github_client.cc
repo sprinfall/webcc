@@ -103,6 +103,22 @@ void ListAuthUserFollowers(webcc::HttpClientSession& session,
   }
 }
 
+void CreateAuthorization(webcc::HttpClientSession& session,
+                         const std::string& auth) {
+  try {
+
+    std::string data = "{'note': 'Webcc test', 'scopes': ['public_repo', 'repo', 'repo:status', 'user']}";
+
+    auto r = session.Post(kUrlRoot + "/authorizations", std::move(data), true,
+                          {"Authorization", auth});
+
+    std::cout << r->content() << std::endl;
+
+  } catch (const webcc::Exception& e) {
+    std::cout << e.what() << std::endl;
+  }
+}
+
 // -----------------------------------------------------------------------------
 
 int main() {

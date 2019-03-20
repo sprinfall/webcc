@@ -5,7 +5,12 @@
 
 namespace webcc {
 
-bool Decompress(const std::string& input, std::string& output);
+// Compress the input string to gzip format output.
+bool Compress(const std::string& input, std::string* output);
+
+// Decompress the input string with auto detecting both gzip and zlib (deflate)
+// formats.
+bool Decompress(const std::string& input, std::string* output);
 
 }  // namespace webcc
 

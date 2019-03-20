@@ -5,6 +5,7 @@
 
 #include "webcc/logger.h"
 #include "webcc/url.h"
+#include "webcc/zlib_wrapper.h"
 
 namespace webcc {
 
@@ -32,18 +33,32 @@ void RestRequestHandler::HandleConnection(HttpConnectionPtr connection) {
     return;
   }
 
-  // TODO: Let the service to provide the media-type and charset.
   RestResponse rest_response;
   service->Handle(rest_request, &rest_response);
 
+  auto http_response = std::make_shared<HttpResponse>(rest_response.status);
+
   if (!rest_response.content.empty()) {
-    connection->SetResponseContent(std::move(rest_response.content),
-                                   http::media_types::kApplicationJson,
-                                   http::charsets::kUtf8);
+    if (!rest_response.media_type.empty()) {
+      http_response->SetContentType(rest_response.media_type,
+                                    rest_response.charset);
+    }
+
+    // Only support gzip for response compression.
+    if (rest_response.content.size() > kGzipThreshold &&
+        http_request.AcceptEncodingGzip()) {
+      std::string compressed;
+      if (Compress(rest_response.content, &compressed)) {
+        http_response->SetHeader(http::headers::kContentEncoding, "gzip");
+        http_response->SetContent(std::move(compressed), true);
+      }
+    } else {
+      http_response->SetContent(std::move(rest_response.content), true);
+    }
   }
 
   // Send response back to client.
-  connection->SendResponse(rest_response.status);
+  connection->SendResponse(http_response);
 }
 
 }  // namespace webcc

@@ -97,6 +97,11 @@ public:
     return headers_.Get(key, existed);
   }
 
+  http::ContentEncoding GetContentEncoding() const;
+
+  // Return true if header Accept-Encoding contains "gzip".
+  bool AcceptEncodingGzip() const;
+
   // E.g., "text/html", "application/json; charset=utf-8", etc.
   void SetContentType(const std::string& media_type,
                       const std::string& charset);

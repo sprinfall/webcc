@@ -28,6 +28,12 @@ const std::size_t kBufferSize = 1024;
 const char* const kPort80 = "80";
 const char* const kPort443 = "443";
 
+// Why 1400? See the following page:
+// https://www.itworld.com/article/2693941/why-it-doesn-t-make-sense-to-
+// gzip-all-content-from-your-web-server.html
+// TODO: Configurable
+const std::size_t kGzipThreshold = 1400;
+
 // -----------------------------------------------------------------------------
 
 // HTTP headers.
@@ -64,6 +70,7 @@ namespace headers {
 // NOTE: Field names are case-insensitive.
 //   See https://stackoverflow.com/a/5259004 for more details.
 const char* const kHost = "Host";
+const char* const kDate = "Date";
 const char* const kContentType = "Content-Type";
 const char* const kContentLength = "Content-Length";
 const char* const kContentEncoding = "Content-Encoding";
@@ -72,6 +79,7 @@ const char* const kTransferEncoding = "Transfer-Encoding";
 const char* const kAccept = "Accept";
 const char* const kAcceptEncoding = "Accept-Encoding";
 const char* const kUserAgent = "User-Agent";
+const char* const kServer = "Server";
 
 }  // namespace headers
 
@@ -94,6 +102,12 @@ namespace charsets {
 const char* const kUtf8 = "utf-8";
 
 }  // namespace charsets
+
+enum class ContentEncoding {
+  kUnknown,
+  kGzip,
+  kDeflate,
+};
 
 // Return default user agent for HTTP headers.
 const std::string& UserAgent();

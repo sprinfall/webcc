@@ -60,22 +60,21 @@ const std::string& ToString(int status) {
 bool HttpResponse::Prepare() {
   start_line_ = status_strings::ToString(status_);
 
-  SetHeader("Server", http::UserAgent());
-  SetHeader("Date", GetHttpDateTimestamp());
-
-  // TODO: Support Keep-Alive.
-  SetHeader(http::headers::kConnection, "Close");
+  SetHeader(http::headers::kServer, http::UserAgent());
+  SetHeader(http::headers::kDate, GetHttpDateTimestamp());
 
   return true;
 }
 
-HttpResponse HttpResponse::Fault(http::Status status) {
+HttpResponsePtr HttpResponse::Fault(http::Status status) {
   assert(status != http::Status::kOK);
 
-  HttpResponse response;
-  response.set_status(status);
+  auto response = std::make_shared<HttpResponse>(status);
 
-  response.Prepare();
+  // TODO
+  response->SetHeader(http::headers::kConnection, "Close");
+
+  //response->Prepare();
 
   return response;
 }

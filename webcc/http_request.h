@@ -59,7 +59,7 @@ public:
 
   // Prepare payload.
   // Compose start line, set Host header, etc.
-  bool Prepare() override;
+  bool Prepare() final;
 
 private:
   std::string method_;

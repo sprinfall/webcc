@@ -41,6 +41,10 @@ public:
     }
   }
 
+  void set_gzip(bool gzip) {
+    gzip_ = gzip;
+  }
+
   void AddHeader(const std::string& key, const std::string& value) {
     headers_.Add(key, value);
   }
@@ -86,6 +90,12 @@ private:
 
   // Timeout in seconds for receiving response.
   int timeout_ = 0;
+
+  // Compress the request content.
+  // NOTE: Most servers don't support compressed requests.
+  // Even the requests module from Python doesn't have a built-in support.
+  // See: https://github.com/kennethreitz/requests/issues/1753
+  bool gzip_ = false;
 
   // Connection pool for keep-alive.
   HttpClientPool pool_;

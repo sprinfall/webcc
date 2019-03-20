@@ -295,7 +295,7 @@ bool HttpParser::Finish() {
   LOG_INFO("Decompress the HTTP content...");
 
   std::string decompressed;
-  if (!Decompress(content_, decompressed)) {
+  if (!Decompress(content_, &decompressed)) {
     LOG_ERRO("Cannot decompress the HTTP content!");
     return false;
   }
@@ -318,19 +318,7 @@ bool HttpParser::IsContentFull() const {
 }
 
 bool HttpParser::IsContentCompressed() const {
-  using http::headers::kContentEncoding;
-
-  const std::string& encoding = message_->GetHeader(kContentEncoding);
-
-  if (encoding.find("gzip") != std::string::npos) {
-    return true;
-  }
-
-  if (encoding.find("deflate") != std::string::npos) {
-    return true;
-  }
-
-  return false;
+  return message_->GetContentEncoding() != http::ContentEncoding::kUnknown;
 }
 
 }  // namespace webcc

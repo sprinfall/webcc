@@ -1,6 +1,7 @@
 #include "webcc/http_client_session.h"
 
 #include "webcc/url.h"
+#include "webcc/zlib_wrapper.h"
 
 namespace webcc {
 
@@ -33,7 +34,6 @@ std::size_t GetBufferSize(std::size_t session_buffer_size,
 
 // -----------------------------------------------------------------------------
 
-
 HttpClientSession::HttpClientSession() {
   InitHeaders();
 }
@@ -46,17 +46,6 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestArgs&& args) {
 
   for (std::size_t i = 1; i < args.parameters_.size(); i += 2) {
     request.AddParameter(args.parameters_[i - 1], args.parameters_[i]);
-  }
-
-  if (!args.data_.empty()) {
-    request.SetContent(std::move(args.data_), true);
-
-    // TODO: Request-level charset.
-    if (args.json_) {
-      request.SetContentType(http::media_types::kApplicationJson, charset_);
-    } else if (!content_type_.empty()) {
-      request.SetContentType(content_type_, charset_);
-    }
   }
 
   // Apply the session-level headers.
@@ -74,6 +63,28 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestArgs&& args) {
   // No keep-alive?
   if (!args.keep_alive_) {
     request.SetHeader(http::headers::kConnection, "Close");
+  }
+
+  if (!args.data_.empty()) {
+    if (gzip_ && args.data_.size() > kGzipThreshold) {
+      std::string compressed;
+      if (Compress(args.data_, &compressed)) {
+        request.SetContent(std::move(compressed), true);
+        request.SetHeader(http::headers::kContentEncoding, "gzip");
+      } else {
+        LOG_WARN("Cannot compress the content data!");
+        request.SetContent(std::move(args.data_), true);
+      }
+    } else {
+      request.SetContent(std::move(args.data_), true);
+    }
+
+    // TODO: Request-level charset.
+    if (args.json_) {
+      request.SetContentType(http::media_types::kApplicationJson, charset_);
+    } else if (!content_type_.empty()) {
+      request.SetContentType(content_type_, charset_);
+    }
   }
 
   request.Prepare();

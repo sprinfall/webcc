@@ -32,17 +32,21 @@ void HttpConnection::Close() {
   }
 }
 
-void HttpConnection::SetResponseContent(std::string&& content,
-                                        const std::string& media_type,
-                                        const std::string& charset) {
-  response_.SetContent(std::move(content), true);
-  response_.SetContentType(media_type, charset);
+void HttpConnection::SendResponse(HttpResponsePtr response) {
+  assert(response);
+
+  response_ = response;
+
+  // TODO: Support keep-alive.
+  response_->SetHeader(http::headers::kConnection, "Close");
+
+  response_->Prepare();
+
+  DoWrite();
 }
 
 void HttpConnection::SendResponse(http::Status status) {
-  response_.set_status(status);
-  response_.Prepare();
-  DoWrite();
+  SendResponse(std::make_shared<HttpResponse>(status));
 }
 
 void HttpConnection::DoRead() {
@@ -83,9 +87,9 @@ void HttpConnection::OnRead(boost::system::error_code ec, std::size_t length) {
 }
 
 void HttpConnection::DoWrite() {
-  LOG_VERB("HTTP response:\n%s", response_.Dump(4, "> ").c_str());
+  LOG_VERB("HTTP response:\n%s", response_->Dump(4, "> ").c_str());
 
-  boost::asio::async_write(socket_, response_.ToBuffers(),
+  boost::asio::async_write(socket_, response_->ToBuffers(),
                            std::bind(&HttpConnection::OnWrite, shared_from_this(),
                                      std::placeholders::_1,
                                      std::placeholders::_2));

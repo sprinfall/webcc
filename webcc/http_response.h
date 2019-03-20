@@ -8,9 +8,14 @@
 
 namespace webcc {
 
+class HttpResponse;
+typedef std::shared_ptr<HttpResponse> HttpResponsePtr;
+
 class HttpResponse : public HttpMessage {
 public:
-  HttpResponse() : status_(http::Status::kOK) {}
+  explicit HttpResponse(http::Status status = http::Status::kOK)
+      : status_(status) {
+  }
 
   ~HttpResponse() override = default;
 
@@ -19,17 +24,14 @@ public:
   void set_status(int status) { status_ = status; }
 
   // Set start line according to status code.
-  bool Prepare() override;
+  bool Prepare() final;
 
   // Get a fault response when HTTP status is not OK.
-  // TODO: Avoid copy.
-  static HttpResponse Fault(http::Status status);
+  static HttpResponsePtr Fault(http::Status status);
 
 private:
   int status_;
 };
-
-typedef std::shared_ptr<HttpResponse> HttpResponsePtr;
 
 }  // namespace webcc
 

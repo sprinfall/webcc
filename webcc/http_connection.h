@@ -39,11 +39,9 @@ public:
   // Close the socket.
   void Close();
 
-  void SetResponseContent(std::string&& content,
-                          const std::string& media_type,
-                          const std::string& charset);
+  // Send response to client.
+  void SendResponse(HttpResponsePtr response);
 
-  // Send response to client with the given status.
   void SendResponse(http::Status status);
 
 private:
@@ -72,7 +70,7 @@ private:
   HttpRequestParser request_parser_;
 
   // The response to be sent back to the client.
-  HttpResponse response_;
+  HttpResponsePtr response_;
 };
 
 }  // namespace webcc

@@ -16,18 +16,24 @@ bool SoapRequestHandler::Bind(SoapServicePtr service, const std::string& url) {
 }
 
 void SoapRequestHandler::HandleConnection(HttpConnectionPtr connection) {
-  std::string path = "/" + connection->request().url().path();
+  auto http_response = std::make_shared<HttpResponse>();
 
+  // TODO: Support keep-alive.
+  http_response->SetHeader(http::headers::kConnection, "Close");
+
+  std::string path = "/" + connection->request().url().path();
   SoapServicePtr service = GetServiceByUrl(path);
   if (!service) {
-    connection->SendResponse(http::Status::kBadRequest);
+    http_response->set_status(http::Status::kBadRequest);
+    connection->SendResponse(http_response);
     return;
   }
 
   // Parse the SOAP request XML.
   SoapRequest soap_request;
   if (!soap_request.FromXml(connection->request().content())) {
-    connection->SendResponse(http::Status::kBadRequest);
+    http_response->set_status(http::Status::kBadRequest);
+    connection->SendResponse(http_response);
     return;
   }
 
@@ -42,24 +48,26 @@ void SoapRequestHandler::HandleConnection(HttpConnectionPtr connection) {
   }
 
   if (!service->Handle(soap_request, &soap_response)) {
-    connection->SendResponse(http::Status::kBadRequest);
+    http_response->set_status(http::Status::kBadRequest);
+    connection->SendResponse(http_response);
     return;
   }
 
   std::string content;
   soap_response.ToXml(format_raw_, indent_str_, &content);
 
+  // TODO: Let the service provide charset.
   if (soap_version_ == kSoapV11) {
-    connection->SetResponseContent(std::move(content),
-                                http::media_types::kTextXml,
-                                http::charsets::kUtf8);
+    http_response->SetContentType(http::media_types::kTextXml,
+                                  http::charsets::kUtf8);
   } else {
-    connection->SetResponseContent(std::move(content),
-                                http::media_types::kApplicationSoapXml,
-                                http::charsets::kUtf8);
+    http_response->SetContentType(http::media_types::kApplicationSoapXml,
+                                  http::charsets::kUtf8);
   }
 
-  connection->SendResponse(http::Status::kOK);
+  http_response->set_status(http::Status::kOK);
+
+  connection->SendResponse(http_response);
 }
 
 SoapServicePtr SoapRequestHandler::GetServiceByUrl(const std::string& url) {

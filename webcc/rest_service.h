@@ -39,7 +39,11 @@ struct RestRequest {
 
 struct RestResponse {
   http::Status status;
+
   std::string content;
+
+  std::string media_type;
+  std::string charset;
 };
 
 // -----------------------------------------------------------------------------
