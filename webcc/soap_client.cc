@@ -13,7 +13,6 @@ namespace webcc {
 SoapClient::SoapClient(const std::string& url, SoapVersion soap_version)
     : url_(url),
       soap_version_(soap_version),
-      http_client_(true),
       format_raw_(true),
       error_(kNoError) {
 }
@@ -48,7 +47,7 @@ bool SoapClient::Request(const std::string& operation,
   std::string http_content;
   soap_request.ToXml(format_raw_, indent_str_, &http_content);
 
-  auto http_request = std::make_shared<HttpRequest>(http::kPost, url_);
+  auto http_request = std::make_shared<HttpRequest>(http::methods::kPost, url_);
 
   http_request->SetContent(std::move(http_content), true);
 

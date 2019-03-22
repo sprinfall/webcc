@@ -27,7 +27,7 @@ typedef std::shared_ptr<HttpClient> HttpClientPtr;
 // Please don't use the same client object in multiple threads.
 class HttpClient {
 public:
-  explicit HttpClient(bool ssl_verify = true);
+  HttpClient();
 
   virtual ~HttpClient() = default;
 
@@ -94,8 +94,7 @@ private:
   // Verify the certificate of the peer or not (for HTTPS).
   bool ssl_verify_;
 
-  // Maximum seconds to wait before the client cancels the operation.
-  // Only for reading response from server.
+  // Timeout (seconds) for receiving response.
   int timeout_;
 
   // Connection closed.

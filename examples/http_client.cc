@@ -20,13 +20,25 @@ bool kSslVerify = true;
 
 void ExampleBasic() {
   webcc::HttpClientSession session;
- 
-  auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
-                           url("http://httpbin.org/get").
-                           parameter("key1", "value1").
-                           parameter("key2", "value2").
-                           header("Accept", "application/json").
-                           buffer(1000)());
+
+  auto r = session.Request(webcc::HttpRequestBuilder{}
+                               .Get()
+                               .url("http://httpbin.org/get")
+                               .parameter("key1", "value1")
+                               .parameter("key2", "value2")
+                               .header("Accept", "application/json")
+                               .buffer(1000)());
+
+  std::cout << r->content() << std::endl;
+}
+
+// Use predefined shortcuts.
+void ExampleShortcut() {
+  webcc::HttpClientSession session;
+
+  auto r = session.Get("http://httpbin.org/get",
+                       {"key1", "value1", "key2", "value2"},
+                       {"Accept", "application/json"});
 
   std::cout << r->content() << std::endl;
 }
@@ -36,10 +48,11 @@ void ExampleHttps() {
   webcc::HttpClientSession session;
   session.set_ssl_verify(kSslVerify);
 
-  auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
-                           url("https://httpbin.org/get").
-                           parameter("key1", "value1").
-                           header("Accept", "application/json")());
+  auto r = session.Request(webcc::HttpRequestBuilder{}
+                               .Get()
+                               .url("https://httpbin.org/get")
+                               .parameter("key1", "value1")
+                               .header("Accept", "application/json")());
 
   std::cout << r->content() << std::endl;
 }
@@ -61,25 +74,23 @@ void ExampleKeepAlive(const std::string& url) {
   session.set_ssl_verify(kSslVerify);
 
   // Keep-Alive
-  session.Request(webcc::HttpRequestBuilder{}.Get().url(url)());
+  session.Get(url);
 
   // Close
-  session.Request(webcc::HttpRequestBuilder{}.Get().url(url).keep_alive(false)());
+  session.Get(url, {}, {"Connection", "Close"});
 
   // Keep-Alive
-  session.Request(webcc::HttpRequestBuilder{}.Get().url(url)());
+  session.Get(url);
 }
 
 void ExampleCompression() {
   HttpClientSession session;
 
-  auto r = session.Request(webcc::HttpRequestBuilder{}.
-                           Get().url("http://httpbin.org/gzip")());
+  auto r = session.Get("http://httpbin.org/gzip");
 
   std::cout << r->content() << std::endl;
 
-  r = session.Request(webcc::HttpRequestBuilder{}.
-                      Get().url("http://httpbin.org/deflate")());
+  r = session.Get("http://httpbin.org/deflate");
 
   std::cout << r->content() << std::endl;
 }

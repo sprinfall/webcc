@@ -18,8 +18,6 @@ bool kSslVerify = false;
 bool kSslVerify = true;
 #endif
 
-const std::size_t kBufferSize = 1500;
-
 const std::string kUrlRoot = "https://api.github.com";
 
 // -----------------------------------------------------------------------------
@@ -65,8 +63,7 @@ void PrettyPrintJsonString(const std::string& str) {
 // List public events.
 void ListEvents(webcc::HttpClientSession& session) {
   try {
-    auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
-                             url(kUrlRoot + "/events")());
+    auto r = session.Get(kUrlRoot + "/events");
 
     PRINT_JSON_STRING(r->content());
 
@@ -81,8 +78,7 @@ void ListEvents(webcc::HttpClientSession& session) {
 void ListUserFollowers(webcc::HttpClientSession& session,
                        const std::string& user) {
   try {
-    auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
-                             url(kUrlRoot + "/users/" + user + "/followers")());
+    auto r = session.Get(kUrlRoot + "/users/" + user + "/followers");
 
     PRINT_JSON_STRING(r->content());
 
@@ -99,9 +95,8 @@ void ListUserFollowers(webcc::HttpClientSession& session,
 void ListAuthUserFollowers(webcc::HttpClientSession& session,
                            const std::string& auth) {
   try {
-    auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
-                             url(kUrlRoot + "/user/followers").
-                             header("Authorization", auth)());
+    auto r = session.Get(kUrlRoot + "/user/followers", {},
+                         {"Authorization", auth});
 
     PRINT_JSON_STRING(r->content());
 
@@ -116,11 +111,8 @@ void CreateAuthorization(webcc::HttpClientSession& session,
 
     std::string data = "{'note': 'Webcc test', 'scopes': ['public_repo', 'repo', 'repo:status', 'user']}";
 
-    auto r = session.Request(webcc::HttpRequestBuilder{}.Post().
-                             url(kUrlRoot + "/authorizations").
-                             data(std::move(data)).
-                             json(true).
-                             header("Authorization", auth)());
+    auto r = session.Post(kUrlRoot + "/authorizations", std::move(data), true,
+                          {"Authorization", auth});
 
     std::cout << r->content() << std::endl;
 

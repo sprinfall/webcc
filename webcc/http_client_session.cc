@@ -5,25 +5,6 @@
 
 namespace webcc {
 
-namespace {
-
-// -----------------------------------------------------------------------------
-// Helper functions.
-
-//bool GetSslVerify(const boost::optional<bool>& session_ssl_verify,
-//                  const boost::optional<bool>& request_ssl_verify) {
-//  if (request_ssl_verify) {
-//    return request_ssl_verify.value();
-//  } else if (session_ssl_verify) {
-//    return session_ssl_verify.value();
-//  }
-//  return true;
-//}
-
-}  // namespace
-
-// -----------------------------------------------------------------------------
-
 HttpClientSession::HttpClientSession() {
   InitHeaders();
 }
@@ -45,6 +26,83 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestPtr request) {
   request->Prepare();
 
   return Send(request);
+}
+
+static void SetHeaders(const std::vector<std::string>& headers,
+                       HttpRequestBuilder* builder) {
+  assert(headers.size() % 2 == 0);
+
+  for (std::size_t i = 1; i < headers.size(); i += 2) {
+    builder->header(headers[i - 1], headers[i]);
+  }
+}
+
+HttpResponsePtr HttpClientSession::Get(const std::string& url,
+                                       const std::vector<std::string>& parameters,
+                                       const std::vector<std::string>& headers) {
+  HttpRequestBuilder builder{http::methods::kGet};
+  builder.url(url);
+
+  assert(parameters.size() % 2 == 0);
+  for (std::size_t i = 1; i < parameters.size(); i += 2) {
+    builder.parameter(parameters[i - 1], parameters[i]);
+  }
+
+  SetHeaders(headers, &builder);
+
+  return Request(builder());
+}
+
+HttpResponsePtr HttpClientSession::Post(const std::string& url,
+                                        std::string&& data, bool json,
+                                        const std::vector<std::string>& headers) {
+  HttpRequestBuilder builder{http::methods::kPost};
+  builder.url(url);
+
+  SetHeaders(headers, &builder);
+
+  builder.data(std::move(data));
+  builder.json(json);
+
+  return Request(builder());
+}
+
+HttpResponsePtr HttpClientSession::Put(const std::string& url,
+                                       std::string&& data, bool json,
+                                       const std::vector<std::string>& headers) {
+  HttpRequestBuilder builder{http::methods::kPut};
+  builder.url(url);
+
+  SetHeaders(headers, &builder);
+
+  builder.data(std::move(data));
+  builder.json(json);
+
+  return Request(builder());
+}
+
+HttpResponsePtr HttpClientSession::Delete(const std::string& url,
+                                          const std::vector<std::string>& headers) {
+  HttpRequestBuilder builder{http::methods::kDelete};
+  builder.url(url);
+
+  SetHeaders(headers, &builder);
+
+  return Request(builder());
+}
+
+HttpResponsePtr HttpClientSession::Patch(const std::string& url,
+                                         std::string&& data, bool json,
+                                         const std::vector<std::string>& headers) {
+  HttpRequestBuilder builder{http::methods::kPatch};
+  builder.url(url);
+
+  SetHeaders(headers, &builder);
+
+  builder.data(std::move(data));
+  builder.json(json);
+
+  return Request(builder());
 }
 
 void HttpClientSession::InitHeaders() {
@@ -92,14 +150,14 @@ HttpResponsePtr HttpClientSession::Send(HttpRequestPtr request) {
 
   HttpClientPtr client = pool_.Get(key);
   if (!client) {
-    client.reset(new HttpClient{ssl_verify_});
+    client.reset(new HttpClient{});
     reuse = false;
   } else {
-    client->set_ssl_verify(ssl_verify_);
-    reuse = true;
     LOG_VERB("Reuse an existing connection.");
+    reuse = true;
   }
 
+  client->set_ssl_verify(ssl_verify_);
   client->set_timeout(timeout_);
 
   bool ok = client->Request(request, !reuse);

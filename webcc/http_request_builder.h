@@ -4,26 +4,25 @@
 #include <string>
 #include <vector>
 
-#include "boost/optional.hpp"
-
 #include "webcc/http_request.h"
 
 namespace webcc {
 
-// TODO: Add timeout()
-
-// HTTP request builder.
 class HttpRequestBuilder {
 public:
-  HttpRequestBuilder() = default;
+  explicit HttpRequestBuilder(const std::string& method = "")
+      : method_(method) {
+  }
 
   // Build the request.
   HttpRequestPtr operator()();
 
-  HttpRequestBuilder& Get() { return method(http::kGet); }
-  HttpRequestBuilder& Post() { return method(http::kPost); }
-  HttpRequestBuilder& Put() { return method(http::kPut); }
-  HttpRequestBuilder& Delete() { return method(http::kDelete); }
+  HttpRequestBuilder& Get() { return method(http::methods::kGet); }
+  HttpRequestBuilder& Head() { return method(http::methods::kHead); }
+  HttpRequestBuilder& Post() { return method(http::methods::kPost); }
+  HttpRequestBuilder& Put() { return method(http::methods::kPut); }
+  HttpRequestBuilder& Delete() { return method(http::methods::kDelete); }
+  HttpRequestBuilder& Patch() { return method(http::methods::kPatch); }
 
   HttpRequestBuilder& method(const std::string& method) {
     method_ = method;
@@ -69,11 +68,6 @@ public:
     return *this;
   }
 
-  HttpRequestBuilder& ssl_verify(bool ssl_verify = true) {
-    ssl_verify_.emplace(ssl_verify);
-    return *this;
-  }
-
   HttpRequestBuilder& buffer(std::size_t buffer) {
     buffer_ = buffer;
     return *this;
@@ -106,9 +100,6 @@ private:
 
   // Additional request headers.
   std::vector<std::string> headers_;
-
-  // Verify the certificate of the peer or not.
-  boost::optional<bool> ssl_verify_;
 
   // Size of the buffer to read response.
   // Leave it to 0 for using default value.

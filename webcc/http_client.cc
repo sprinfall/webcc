@@ -9,9 +9,9 @@ using boost::asio::ip::tcp;
 
 namespace webcc {
 
-HttpClient::HttpClient(bool ssl_verify)
+HttpClient::HttpClient()
     : timer_(io_context_),
-      ssl_verify_(ssl_verify),
+      ssl_verify_(true),
       timeout_(kMaxReadSeconds),
       closed_(false),
       timer_canceled_(false),

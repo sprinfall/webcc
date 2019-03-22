@@ -25,8 +25,7 @@ int main() {
   try {
     webcc::HttpClientSession session;
 
-    auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
-                             url("http://httpbin.org/get")());
+    auto r = session.Get("http://httpbin.org/get");
 
     std::cout << r->content() << std::endl;
 
@@ -40,8 +39,7 @@ int main() {
 
 List GitHub public events:
 ```cpp
-  auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
-                           url("https://api.github.com/events")());
+  auto r = session.Get("https://api.github.com/events");
 
   // Parse r->content() to JSON object...
 ```

@@ -39,14 +39,22 @@ const std::size_t kGzipThreshold = 1400;
 // HTTP headers.
 namespace http {
 
+namespace methods {
+
 // HTTP methods (verbs) in string.
 // Don't use enum to avoid converting back and forth.
-const char* const kHead   = "HEAD";
-const char* const kGet    = "GET";
-const char* const kPost   = "POST";
-const char* const kPatch  = "PATCH";
-const char* const kPut    = "PUT";
-const char* const kDelete = "DELETE";
+
+const char* const kGet      = "GET";
+const char* const kHead     = "HEAD";
+const char* const kPost     = "POST";
+const char* const kPut      = "PUT";
+const char* const kDelete   = "DELETE";
+const char* const kConnect  = "CONNECT";
+const char* const kOptions  = "OPTIONS";
+const char* const kTrace    = "TRACE";
+const char* const kPatch    = "PATCH";
+
+}  // namespace methods
 
 // HTTP response status.
 // This is not a full list.
@@ -69,6 +77,7 @@ namespace headers {
 
 // NOTE: Field names are case-insensitive.
 //   See https://stackoverflow.com/a/5259004 for more details.
+
 const char* const kHost = "Host";
 const char* const kDate = "Date";
 const char* const kContentType = "Content-Type";

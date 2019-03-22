@@ -40,7 +40,7 @@ public:
       : sleep_seconds_(sleep_seconds) {
   }
 
-public:
+protected:
   // Get a list of books based on query parameters.
   void Get(const webcc::UrlQuery& query, webcc::RestResponse* response) final;
 
@@ -64,7 +64,7 @@ public:
       : sleep_seconds_(sleep_seconds) {
   }
 
-public:
+protected:
   // Get the detailed information of a book.
   void Get(const webcc::UrlMatches& url_matches,
            const webcc::UrlQuery& query,

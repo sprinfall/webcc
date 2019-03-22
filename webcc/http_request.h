@@ -11,7 +11,6 @@
 namespace webcc {
 
 class HttpRequest;
-
 typedef std::shared_ptr<HttpRequest> HttpRequestPtr;
 
 class HttpRequest : public HttpMessage {
@@ -35,6 +34,14 @@ public:
   // Add URL query parameter.
   void AddParameter(const std::string& key, const std::string& value) {
     url_.AddParameter(key, value);
+  }
+
+  void set_buffer_size(std::size_t buffer_size) {
+    buffer_size_ = buffer_size;
+  }
+
+  void set_ssl_verify(bool ssl_verify) {
+    ssl_verify_ = ssl_verify;
   }
 
   const std::string& method() const {
@@ -61,8 +68,8 @@ public:
     return buffer_size_;
   }
 
-  void set_buffer_size(std::size_t buffer_size) {
-    buffer_size_ = buffer_size;
+  bool ssl_verify() const {
+    return ssl_verify_;
   }
 
   // Prepare payload.
@@ -73,6 +80,11 @@ private:
   std::string method_;
   Url url_;
 
+  // Verify the certificate of the peer or not (for HTTPS).
+  bool ssl_verify_ = true;
+
+  // The size of the buffer for reading response.
+  // 0 means default value will be used.
   std::size_t buffer_size_ = 0;
 };
 

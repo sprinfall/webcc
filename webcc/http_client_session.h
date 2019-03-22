@@ -41,11 +41,34 @@ public:
     }
   }
 
-  void AddHeader(const std::string& key, const std::string& value) {
+  void SetHeader(const std::string& key, const std::string& value) {
     headers_.Set(key, value);
   }
 
+  // Send a request.
+  // Please use HttpRequestBuilder to build the request.
   HttpResponsePtr Request(HttpRequestPtr request);
+
+  // Shortcut for GET request.
+  HttpResponsePtr Get(const std::string& url,
+                      const std::vector<std::string>& parameters = {},
+                      const std::vector<std::string>& headers = {});
+
+  // Shortcut for POST request.
+  HttpResponsePtr Post(const std::string& url, std::string&& data, bool json,
+                       const std::vector<std::string>& headers = {});
+
+  // Shortcut for PUT request.
+  HttpResponsePtr Put(const std::string& url, std::string&& data, bool json,
+                      const std::vector<std::string>& headers = {});
+
+  // Shortcut for DELETE request.
+  HttpResponsePtr Delete(const std::string& url,
+                         const std::vector<std::string>& headers = {});
+
+  // Shortcut for PATCH request.
+  HttpResponsePtr Patch(const std::string& url, std::string&& data, bool json,
+                        const std::vector<std::string>& headers = {});
 
 private:
   void InitHeaders();
