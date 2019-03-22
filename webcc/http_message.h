@@ -31,13 +31,11 @@ public:
     return headers_;
   }
 
-  void Add(const std::string& key, const std::string& value);
+  void Set(const std::string& key, const std::string& value);
 
-  void Add(std::string&& key, std::string&& value);
+  void Set(std::string&& key, std::string&& value);
 
-  bool Has(const std::string& key) const {
-    return const_cast<HttpHeaderDict*>(this)->Find(key) != headers_.end();
-  }
+  bool Have(const std::string& key) const;
 
   // Get header by index.
   const HttpHeader& Get(std::size_t index) const {
@@ -85,16 +83,20 @@ public:
   bool IsConnectionKeepAlive() const;
 
   void SetHeader(const std::string& key, const std::string& value) {
-    headers_.Add(key, value);
+    headers_.Set(key, value);
   }
 
   void SetHeader(std::string&& key, std::string&& value) {
-    headers_.Add(std::move(key), std::move(value));
+    headers_.Set(std::move(key), std::move(value));
   }
 
   const std::string& GetHeader(const std::string& key,
                                bool* existed = nullptr) const {
     return headers_.Get(key, existed);
+  }
+
+  bool HaveHeader(const std::string& key) const {
+    return headers_.Have(key);
   }
 
   http::ContentEncoding GetContentEncoding() const;

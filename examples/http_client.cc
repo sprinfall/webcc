@@ -19,55 +19,27 @@ bool kSslVerify = true;
 // Examples
 
 void ExampleBasic() {
-  HttpClientSession session;
-
-  auto r = session.Request(HttpRequestArgs{"GET"}
-                               .url("http://httpbin.org/get")
-                               .parameters({"key1", "value1", "key2", "value2"})
-                               .headers({"Accept", "application/json"})
-                               .buffer_size(1000));
+  webcc::HttpClientSession session;
+ 
+  auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
+                           url("http://httpbin.org/get").
+                           parameter("key1", "value1").
+                           parameter("key2", "value2").
+                           header("Accept", "application/json").
+                           buffer(1000)());
 
   std::cout << r->content() << std::endl;
 }
 
-// If you want to create the args object firstly, there might be an extra
-// call to its move constructor (maybe only for MSVC).
-//   - constructor: HttpRequestArgs{ "GET" }
-//   - move constructor: auto args = ...
-void ExampleArgs() {
-  HttpClientSession session;
-
-  auto args = HttpRequestArgs{"GET"}
-                  .url("http://httpbin.org/get")
-                  .parameters({"key1", "value1", "key2", "value2"})
-                  .headers({"Accept", "application/json"})
-                  .buffer_size(1000);
-
-  // Note the std::move().
-  session.Request(std::move(args));
-}
-
-// Use pre-defined wrappers.
-void ExampleWrappers() {
-  HttpClientSession session;
-
-  session.Get("http://httpbin.org/get", {"key1", "value1", "key2", "value2"},
-              {"Accept", "application/json"},
-              HttpRequestArgs{}.buffer_size(1000));
-
-  session.Post("http://httpbin.org/post", "{'key': 'value'}", true,
-               {"Accept", "application/json"});
-}
-
 // HTTPS is auto-detected from the URL scheme.
 void ExampleHttps() {
-  HttpClientSession session;
+  webcc::HttpClientSession session;
+  session.set_ssl_verify(kSslVerify);
 
-  auto r = session.Request(HttpRequestArgs{"GET"}
-                               .url("https://httpbin.org/get")
-                               .parameters({"key1", "value1", "key2", "value2"})
-                               .headers({"Accept", "application/json"})
-                               .ssl_verify(kSslVerify));
+  auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
+                           url("https://httpbin.org/get").
+                           parameter("key1", "value1").
+                           header("Accept", "application/json")());
 
   std::cout << r->content() << std::endl;
 }
@@ -86,27 +58,29 @@ void ExampleHttps() {
 //
 void ExampleKeepAlive(const std::string& url) {
   HttpClientSession session;
+  session.set_ssl_verify(kSslVerify);
 
   // Keep-Alive
-  session.Request(webcc::HttpRequestArgs("GET").url(url).
-                  ssl_verify(kSslVerify));
+  session.Request(webcc::HttpRequestBuilder{}.Get().url(url)());
 
   // Close
-  session.Request(webcc::HttpRequestArgs("GET").url(url).
-                  ssl_verify(kSslVerify).keep_alive(false));
+  session.Request(webcc::HttpRequestBuilder{}.Get().url(url).keep_alive(false)());
 
   // Keep-Alive
-  session.Request(webcc::HttpRequestArgs("GET").url(url).
-                  ssl_verify(kSslVerify));
+  session.Request(webcc::HttpRequestBuilder{}.Get().url(url)());
 }
 
 void ExampleCompression() {
   HttpClientSession session;
 
-  auto r = session.Get("http://httpbin.org/gzip");
+  auto r = session.Request(webcc::HttpRequestBuilder{}.
+                           Get().url("http://httpbin.org/gzip")());
+
   std::cout << r->content() << std::endl;
 
-  r = session.Get("http://httpbin.org/deflate");
+  r = session.Request(webcc::HttpRequestBuilder{}.
+                      Get().url("http://httpbin.org/deflate")());
+
   std::cout << r->content() << std::endl;
 }
 

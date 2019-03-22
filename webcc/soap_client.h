@@ -14,8 +14,7 @@ namespace webcc {
 class SoapClient {
 public:
   explicit SoapClient(const std::string& url,
-                      SoapVersion soap_version = kSoapV12,
-                      std::size_t buffer_size = 0);
+                      SoapVersion soap_version = kSoapV12);
 
   ~SoapClient() = default;
 

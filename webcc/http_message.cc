@@ -24,7 +24,7 @@ std::ostream& operator<<(std::ostream& os, const HttpMessage& message) {
 
 // -----------------------------------------------------------------------------
 
-void HttpHeaderDict::Add(const std::string& key, const std::string& value) {
+void HttpHeaderDict::Set(const std::string& key, const std::string& value) {
   auto it = Find(key);
   if (it != headers_.end()) {
     it->second = value;
@@ -33,13 +33,17 @@ void HttpHeaderDict::Add(const std::string& key, const std::string& value) {
   }
 }
 
-void HttpHeaderDict::Add(std::string&& key, std::string&& value) {
+void HttpHeaderDict::Set(std::string&& key, std::string&& value) {
   auto it = Find(key);
   if (it != headers_.end()) {
     it->second = std::move(value);
   } else {
     headers_.push_back({ std::move(key), std::move(value) });
   }
+}
+
+bool HttpHeaderDict::Have(const std::string& key) const {
+  return const_cast<HttpHeaderDict*>(this)->Find(key) != headers_.end();
 }
 
 const std::string& HttpHeaderDict::Get(const std::string& key,

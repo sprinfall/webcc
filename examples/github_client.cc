@@ -65,8 +65,11 @@ void PrettyPrintJsonString(const std::string& str) {
 // List public events.
 void ListEvents(webcc::HttpClientSession& session) {
   try {
-    auto r = session.Get(kUrlRoot + "/events");
+    auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
+                             url(kUrlRoot + "/events")());
+
     PRINT_JSON_STRING(r->content());
+
   } catch (const webcc::Exception& e) {
     std::cout << e.what() << std::endl;
   }
@@ -78,8 +81,11 @@ void ListEvents(webcc::HttpClientSession& session) {
 void ListUserFollowers(webcc::HttpClientSession& session,
                        const std::string& user) {
   try {
-    auto r = session.Get(kUrlRoot + "/users/" + user + "/followers");
+    auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
+                             url(kUrlRoot + "/users/" + user + "/followers")());
+
     PRINT_JSON_STRING(r->content());
+
   } catch (const webcc::Exception& e) {
     std::cout << e.what() << std::endl;
   }
@@ -93,8 +99,9 @@ void ListUserFollowers(webcc::HttpClientSession& session,
 void ListAuthUserFollowers(webcc::HttpClientSession& session,
                            const std::string& auth) {
   try {
-    auto r = session.Get(kUrlRoot + "/user/followers", {},
-                        { "Authorization", auth });
+    auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
+                             url(kUrlRoot + "/user/followers").
+                             header("Authorization", auth)());
 
     PRINT_JSON_STRING(r->content());
 
@@ -109,8 +116,11 @@ void CreateAuthorization(webcc::HttpClientSession& session,
 
     std::string data = "{'note': 'Webcc test', 'scopes': ['public_repo', 'repo', 'repo:status', 'user']}";
 
-    auto r = session.Post(kUrlRoot + "/authorizations", std::move(data), true,
-                          {"Authorization", auth});
+    auto r = session.Request(webcc::HttpRequestBuilder{}.Post().
+                             url(kUrlRoot + "/authorizations").
+                             data(std::move(data)).
+                             json(true).
+                             header("Authorization", auth)());
 
     std::cout << r->content() << std::endl;
 
@@ -125,7 +135,6 @@ int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
   webcc::HttpClientSession session;
-
   session.set_ssl_verify(kSslVerify);
 
   ListEvents(session);

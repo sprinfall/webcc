@@ -57,6 +57,14 @@ public:
     return port().empty() ? default_port : port();
   }
 
+  std::size_t buffer_size() const {
+    return buffer_size_;
+  }
+
+  void set_buffer_size(std::size_t buffer_size) {
+    buffer_size_ = buffer_size;
+  }
+
   // Prepare payload.
   // Compose start line, set Host header, etc.
   bool Prepare() final;
@@ -64,6 +72,8 @@ public:
 private:
   std::string method_;
   Url url_;
+
+  std::size_t buffer_size_ = 0;
 };
 
 }  // namespace webcc

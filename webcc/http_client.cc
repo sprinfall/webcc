@@ -9,10 +9,9 @@ using boost::asio::ip::tcp;
 
 namespace webcc {
 
-HttpClient::HttpClient(bool ssl_verify, std::size_t buffer_size)
+HttpClient::HttpClient(bool ssl_verify)
     : timer_(io_context_),
       ssl_verify_(ssl_verify),
-      buffer_size_(buffer_size == 0 ? kBufferSize : buffer_size),
       timeout_(kMaxReadSeconds),
       closed_(false),
       timer_canceled_(false),
@@ -20,7 +19,7 @@ HttpClient::HttpClient(bool ssl_verify, std::size_t buffer_size)
       error_(kNoError) {
 }
 
-bool HttpClient::Request(const HttpRequest& request, bool connect) {
+bool HttpClient::Request(HttpRequestPtr request, bool connect) {
   io_context_.restart();
 
   response_.reset(new HttpResponse());
@@ -31,9 +30,14 @@ bool HttpClient::Request(const HttpRequest& request, bool connect) {
   timed_out_ = false;
   error_ = kNoError;
 
-  if (buffer_.size() != buffer_size_) {
-    LOG_VERB("Resize buffer: %u -> %u.", buffer_.size(), buffer_size_);
-    buffer_.resize(buffer_size_);
+  std::size_t buffer_size = request->buffer_size();
+  if (buffer_size == 0) {
+    buffer_size = kBufferSize;
+  }
+
+  if (buffer_.size() != buffer_size) {
+    LOG_VERB("Resize buffer: %u -> %u.", buffer_.size(), buffer_size);
+    buffer_.resize(buffer_size);
   }
 
   if (connect) {
@@ -71,8 +75,8 @@ void HttpClient::Close() {
   }
 }
 
-Error HttpClient::Connect(const HttpRequest& request) {
-  if (request.url().scheme() == "https") {
+Error HttpClient::Connect(HttpRequestPtr request) {
+  if (request->url().scheme() == "https") {
     socket_.reset(new HttpSslSocket{ io_context_, ssl_verify_ });
     return DoConnect(request, kPort443);
   } else {
@@ -81,25 +85,25 @@ Error HttpClient::Connect(const HttpRequest& request) {
   }
 }
 
-Error HttpClient::DoConnect(const HttpRequest& request,
+Error HttpClient::DoConnect(HttpRequestPtr request,
                             const std::string& default_port) {
   tcp::resolver resolver(io_context_);
 
-  std::string port = request.port(default_port);
+  std::string port = request->port(default_port);
 
   boost::system::error_code ec;
-  auto endpoints = resolver.resolve(tcp::v4(), request.host(), port, ec);
+  auto endpoints = resolver.resolve(tcp::v4(), request->host(), port, ec);
 
   if (ec) {
     LOG_ERRO("Host resolve error (%s): %s, %s.", ec.message().c_str(),
-             request.host().c_str(), port.c_str());
+             request->host().c_str(), port.c_str());
     return kHostResolveError;
   }
 
   LOG_VERB("Connect to server...");
 
   // Use sync API directly since we don't need timeout control.
-  socket_->Connect(request.host(), endpoints, &ec);
+  socket_->Connect(request->host(), endpoints, &ec);
 
   // Determine whether a connection was successfully established.
   if (ec) {
@@ -113,8 +117,8 @@ Error HttpClient::DoConnect(const HttpRequest& request,
   return kNoError;
 }
 
-Error HttpClient::WriteReqeust(const HttpRequest& request) {
-  LOG_VERB("HTTP request:\n%s", request.Dump(4, "> ").c_str());
+Error HttpClient::WriteReqeust(HttpRequestPtr request) {
+  LOG_VERB("HTTP request:\n%s", request->Dump(4, "> ").c_str());
 
   // NOTE:
   // It doesn't make much sense to set a timeout for socket write.
@@ -124,7 +128,7 @@ Error HttpClient::WriteReqeust(const HttpRequest& request) {
   boost::system::error_code ec;
 
   // Use sync API directly since we don't need timeout control.
-  socket_->Write(request, &ec);
+  socket_->Write(*request, &ec);
 
   if (ec) {
     LOG_ERRO("Socket write error (%s).", ec.message().c_str());

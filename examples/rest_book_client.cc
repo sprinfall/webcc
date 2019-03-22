@@ -55,7 +55,8 @@ public:
 
   bool ListBooks(std::list<Book>* books) {
     try {
-      auto r = session_.Get(url_ + "/books");
+      auto r = session_.Request(webcc::HttpRequestBuilder{}.Get().
+                                url(url_ + "/books")());
       
       if (!CheckStatus(r, webcc::http::Status::kOK)) {
         // Response HTTP status error.
@@ -86,7 +87,10 @@ public:
     req_json["price"] = price;
 
     try {
-      auto r = session_.Post(url_ + "/books", JsonToString(req_json), true);
+      auto r = session_.Request(webcc::HttpRequestBuilder{}.Post().
+                                url(url_ + "/books").
+                                data(JsonToString(req_json)).
+                                json(true)());
 
       if (!CheckStatus(r, webcc::http::Status::kCreated)) {
         return false;
@@ -114,7 +118,8 @@ public:
 
   bool GetBook(const std::string& id, Book* book) {
     try {
-      auto r = session_.Get(url_ + "/books/" + id);
+      auto r = session_.Request(webcc::HttpRequestBuilder{}.Get().
+                                url(url_ + "/books/" + id)());
 
       if (!CheckStatus(r, webcc::http::Status::kOK)) {
         return false;
@@ -135,7 +140,10 @@ public:
     json["price"] = price;
 
     try {
-      auto r = session_.Put(url_ + "/books/" + id, JsonToString(json), true);
+      auto r = session_.Request(webcc::HttpRequestBuilder{}.Put().
+                                url(url_ + "/books/" + id).
+                                data(JsonToString(json)).
+                                json(true)());
 
       if (!CheckStatus(r, webcc::http::Status::kOK)) {
         return false;
@@ -151,7 +159,8 @@ public:
 
   bool DeleteBook(const std::string& id) {
     try {
-      auto r = session_.Delete(url_ + "/books/" + id);
+      auto r = session_.Request(webcc::HttpRequestBuilder{}.Delete().
+                                url(url_ + "/books/" + id)());
 
       if (!CheckStatus(r, webcc::http::Status::kOK)) {
         return false;

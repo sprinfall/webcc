@@ -10,11 +10,12 @@
 
 namespace webcc {
 
-SoapClient::SoapClient(const std::string& url, SoapVersion soap_version,
-                       std::size_t buffer_size)
-    : url_(url), soap_version_(soap_version),
-      http_client_(buffer_size),
-      format_raw_(true), error_(kNoError) {
+SoapClient::SoapClient(const std::string& url, SoapVersion soap_version)
+    : url_(url),
+      soap_version_(soap_version),
+      http_client_(true),
+      format_raw_(true),
+      error_(kNoError) {
 }
 
 bool SoapClient::Request(const std::string& operation,
@@ -47,23 +48,25 @@ bool SoapClient::Request(const std::string& operation,
   std::string http_content;
   soap_request.ToXml(format_raw_, indent_str_, &http_content);
 
-  HttpRequest http_request(http::kPost, url_);
+  auto http_request = std::make_shared<HttpRequest>(http::kPost, url_);
 
-  http_request.SetContent(std::move(http_content), true);
+  http_request->SetContent(std::move(http_content), true);
 
   if (soap_version_ == kSoapV11) {
-    http_request.SetContentType(http::media_types::kTextXml,
-                                http::charsets::kUtf8);
+    http_request->SetContentType(http::media_types::kTextXml,
+                                 http::charsets::kUtf8);
   } else {
-    http_request.SetContentType(http::media_types::kApplicationSoapXml,
-                                http::charsets::kUtf8);
+    http_request->SetContentType(http::media_types::kApplicationSoapXml,
+                                 http::charsets::kUtf8);
   }
 
-  http_request.SetHeader(kSoapAction, operation);
+  http_request->SetHeader(kSoapAction, operation);
 
-  http_request.Prepare();
+  http_request->set_buffer_size(buffer_size);
 
-  if (!http_client_.Request(http_request, buffer_size)) {
+  http_request->Prepare();
+
+  if (!http_client_.Request(http_request, true)) {
     error_ = http_client_.error();
     return false;
   }

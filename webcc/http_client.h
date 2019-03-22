@@ -27,16 +27,12 @@ typedef std::shared_ptr<HttpClient> HttpClientPtr;
 // Please don't use the same client object in multiple threads.
 class HttpClient {
 public:
-  explicit HttpClient(bool ssl_verify = true, std::size_t buffer_size = 0);
+  explicit HttpClient(bool ssl_verify = true);
 
   virtual ~HttpClient() = default;
 
   HttpClient(const HttpClient&) = delete;
   HttpClient& operator=(const HttpClient&) = delete;
-
-  void set_buffer_size(std::size_t buffer_size) {
-    buffer_size_ = (buffer_size == 0 ? kBufferSize : buffer_size);
-  }
 
   void set_ssl_verify(bool ssl_verify) {
     ssl_verify_ = ssl_verify;
@@ -50,22 +46,12 @@ public:
   }
 
   // Connect to server, send request, wait until response is received.
-  bool Request(const HttpRequest& request, bool connect = true);
+  bool Request(HttpRequestPtr request, bool connect = true);
 
   // Close the socket.
   void Close();
 
   HttpResponsePtr response() const { return response_; }
-
-  int response_status() const {
-    assert(response_);
-    return response_->status();
-  }
-
-  const std::string& response_content() const {
-    assert(response_);
-    return response_->content();
-  }
 
   bool closed() const { return closed_; }
 
@@ -74,11 +60,11 @@ public:
   Error error() const { return error_; }
 
 private:
-  Error Connect(const HttpRequest& request);
+  Error Connect(HttpRequestPtr request);
 
-  Error DoConnect(const HttpRequest& request, const std::string& default_port);
+  Error DoConnect(HttpRequestPtr request, const std::string& default_port);
 
-  Error WriteReqeust(const HttpRequest& request);
+  Error WriteReqeust(HttpRequestPtr request);
 
   Error ReadResponse();
 
@@ -107,10 +93,6 @@ private:
 
   // Verify the certificate of the peer or not (for HTTPS).
   bool ssl_verify_;
-
-  // The size of the buffer for reading response.
-  // Set 0 for using default value (e.g., 1024).
-  std::size_t buffer_size_;
 
   // Maximum seconds to wait before the client cancels the operation.
   // Only for reading response from server.

@@ -1,7 +1,7 @@
 #include "webcc/http_client_session.h"
 
+#include "webcc/logger.h"
 #include "webcc/url.h"
-#include "webcc/zlib_wrapper.h"
 
 namespace webcc {
 
@@ -10,25 +10,15 @@ namespace {
 // -----------------------------------------------------------------------------
 // Helper functions.
 
-bool GetSslVerify(const boost::optional<bool>& session_ssl_verify,
-                  const boost::optional<bool>& request_ssl_verify) {
-  if (request_ssl_verify) {
-    return request_ssl_verify.value();
-  } else if (session_ssl_verify) {
-    return session_ssl_verify.value();
-  }
-  return true;
-}
-
-std::size_t GetBufferSize(std::size_t session_buffer_size,
-                          std::size_t request_buffer_size) {
-  if (request_buffer_size != 0) {
-    return request_buffer_size;
-  } else if (session_buffer_size != 0) {
-    return session_buffer_size;
-  }
-  return 0;
-}
+//bool GetSslVerify(const boost::optional<bool>& session_ssl_verify,
+//                  const boost::optional<bool>& request_ssl_verify) {
+//  if (request_ssl_verify) {
+//    return request_ssl_verify.value();
+//  } else if (session_ssl_verify) {
+//    return session_ssl_verify.value();
+//  }
+//  return true;
+//}
 
 }  // namespace
 
@@ -38,72 +28,74 @@ HttpClientSession::HttpClientSession() {
   InitHeaders();
 }
 
-HttpResponsePtr HttpClientSession::Request(HttpRequestArgs&& args) {
-  assert(args.parameters_.size() % 2 == 0);
-  assert(args.headers_.size() % 2 == 0);
+HttpResponsePtr HttpClientSession::Request(HttpRequestPtr request) {
+  assert(request);
 
-  HttpRequest request{args.method_, args.url_};
-
-  for (std::size_t i = 1; i < args.parameters_.size(); i += 2) {
-    request.AddParameter(args.parameters_[i - 1], args.parameters_[i]);
-  }
-
-  // Apply the session-level headers.
-  for (const HttpHeader& h : headers_.data()) {
-    request.SetHeader(h.first, h.second);
-  }
-
-  // Apply the request-level headers.
-  // This will overwrite the session-level headers.
-  for (std::size_t i = 1; i < args.headers_.size(); i += 2) {
-    request.SetHeader(std::move(args.headers_[i - 1]),
-                      std::move(args.headers_[i]));
-  }
-
-  // No keep-alive?
-  if (!args.keep_alive_) {
-    request.SetHeader(http::headers::kConnection, "Close");
-  }
-
-  if (!args.data_.empty()) {
-    if (gzip_ && args.data_.size() > kGzipThreshold) {
-      std::string compressed;
-      if (Compress(args.data_, &compressed)) {
-        request.SetContent(std::move(compressed), true);
-        request.SetHeader(http::headers::kContentEncoding, "gzip");
-      } else {
-        LOG_WARN("Cannot compress the content data!");
-        request.SetContent(std::move(args.data_), true);
-      }
-    } else {
-      request.SetContent(std::move(args.data_), true);
-    }
-
-    // TODO: Request-level charset.
-    if (args.json_) {
-      request.SetContentType(http::media_types::kApplicationJson, charset_);
-    } else if (!content_type_.empty()) {
-      request.SetContentType(content_type_, charset_);
+  for (const auto& h : headers_.data()) {
+    if (!request->HaveHeader(h.first)) {
+      request->SetHeader(h.first, h.second);
     }
   }
 
-  request.Prepare();
+  if (!content_type_.empty() &&
+      !request->HaveHeader(http::headers::kContentType)) {
+    request->SetContentType(content_type_, charset_);
+  }
 
-  bool ssl_verify = GetSslVerify(ssl_verify_, args.ssl_verify_);
-  std::size_t buffer_size = GetBufferSize(buffer_size_, args.buffer_size_);
+  request->Prepare();
 
-  const HttpClientPool::Key key{request.url()};
+  return Send(request);
+}
+
+void HttpClientSession::InitHeaders() {
+  using namespace http::headers;
+
+  headers_.Set(kUserAgent, http::UserAgent());
+
+  // Content-Encoding Tokens:
+  //   (https://en.wikipedia.org/wiki/HTTP_compression)
+  // * compress 每 UNIX "compress" program method (historic; deprecated in most
+  //              applications and replaced by gzip or deflate);
+  // * deflate  每 compression based on the deflate algorithm, a combination of
+  //              the LZ77 algorithm and Huffman coding, wrapped inside the
+  //              zlib data format;
+  // * gzip     每 GNU zip format. Uses the deflate algorithm for compression,
+  //              but the data format and the checksum algorithm differ from
+  //              the "deflate" content-encoding. This method is the most
+  //              broadly supported as of March 2011.
+  // * identity 每 No transformation is used. This is the default value for
+  //              content coding.
+  //
+  // A note about "deflate":
+  //   (https://www.zlib.net/zlib_faq.html#faq39)
+  // "gzip" is the gzip format, and "deflate" is the zlib format. They should
+  // probably have called the second one "zlib" instead to avoid confusion with
+  // the raw deflate compressed data format.
+  // Simply put, "deflate" is not recommended for HTTP 1.1 encoding.
+  //
+  headers_.Set(kAcceptEncoding, "gzip, deflate");
+
+  headers_.Set(kAccept, "*/*");
+
+  headers_.Set(kConnection, "Keep-Alive");
+}
+
+HttpResponsePtr HttpClientSession::Send(HttpRequestPtr request) {
+  if (request->buffer_size() == 0) {
+    request->set_buffer_size(buffer_size_);
+  }
+
+  const HttpClientPool::Key key{request->url()};
 
   // Reuse a connection or not.
   bool reuse = false;
 
   HttpClientPtr client = pool_.Get(key);
   if (!client) {
-    client.reset(new HttpClient{ssl_verify, buffer_size});
+    client.reset(new HttpClient{ssl_verify_});
     reuse = false;
   } else {
-    client->set_buffer_size(buffer_size);
-    client->set_ssl_verify(ssl_verify);
+    client->set_ssl_verify(ssl_verify_);
     reuse = true;
     LOG_VERB("Reuse an existing connection.");
   }
@@ -141,79 +133,6 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestArgs&& args) {
   }
 
   return client->response();
-}
-
-HttpResponsePtr HttpClientSession::Get(const std::string& url,
-                                       std::vector<std::string>&& parameters,
-                                       std::vector<std::string>&& headers,
-                                       HttpRequestArgs&& args) {
-  return Request(args.method(http::kGet)
-                     .url(url)
-                     .parameters(std::move(parameters))
-                     .headers(std::move(headers)));
-}
-
-HttpResponsePtr HttpClientSession::Post(const std::string& url,
-                                        std::string&& data, bool json,
-                                        std::vector<std::string>&& headers,
-                                        HttpRequestArgs&& args) {
-  return Request(args.method(http::kPost)
-                     .url(url)
-                     .data(std::move(data))
-                     .json(json)
-                     .headers(std::move(headers)));
-}
-
-HttpResponsePtr HttpClientSession::Put(const std::string& url,
-                                       std::string&& data, bool json,
-                                       std::vector<std::string>&& headers,
-                                       HttpRequestArgs&& args) {
-  return Request(args.method(http::kPut)
-                     .url(url)
-                     .data(std::move(data))
-                     .json(json)
-                     .headers(std::move(headers)));
-}
-
-HttpResponsePtr HttpClientSession::Delete(const std::string& url,
-                                          std::vector<std::string>&& headers,
-                                          HttpRequestArgs&& args) {
-  return Request(args.method(http::kDelete)
-                 .url(url)
-                 .headers(std::move(headers)));
-}
-
-void HttpClientSession::InitHeaders() {
-  using namespace http::headers;
-
-  headers_.Add(kUserAgent, http::UserAgent());
-
-  // Content-Encoding Tokens:
-  //   (https://en.wikipedia.org/wiki/HTTP_compression)
-  // * compress 每 UNIX "compress" program method (historic; deprecated in most
-  //              applications and replaced by gzip or deflate);
-  // * deflate  每 compression based on the deflate algorithm, a combination of
-  //              the LZ77 algorithm and Huffman coding, wrapped inside the
-  //              zlib data format;
-  // * gzip     每 GNU zip format. Uses the deflate algorithm for compression,
-  //              but the data format and the checksum algorithm differ from
-  //              the "deflate" content-encoding. This method is the most
-  //              broadly supported as of March 2011.
-  // * identity 每 No transformation is used. This is the default value for
-  //              content coding.
-  //
-  // A note about "deflate":
-  //   (https://www.zlib.net/zlib_faq.html#faq39)
-  // "gzip" is the gzip format, and "deflate" is the zlib format. They should
-  // probably have called the second one "zlib" instead to avoid confusion with
-  // the raw deflate compressed data format.
-  // Simply put, "deflate" is not recommended for HTTP 1.1 encoding.
-  //
-  headers_.Add(kAcceptEncoding, "gzip, deflate");
-
-  headers_.Add(kAccept, "*/*");
-
-  headers_.Add(kConnection, "Keep-Alive");
 }
 
 }  // namespace webcc

@@ -8,7 +8,7 @@
 #include "boost/optional.hpp"
 
 #include "webcc/http_client_pool.h"
-#include "webcc/http_request_args.h"
+#include "webcc/http_request_builder.h"
 #include "webcc/http_response.h"
 
 namespace webcc {
@@ -28,7 +28,7 @@ public:
   }
 
   void set_ssl_verify(bool ssl_verify) {
-    ssl_verify_.emplace(ssl_verify);
+    ssl_verify_ = ssl_verify;
   }
 
   void set_buffer_size(std::size_t buffer_size) {
@@ -41,35 +41,16 @@ public:
     }
   }
 
-  void set_gzip(bool gzip) {
-    gzip_ = gzip;
-  }
-
   void AddHeader(const std::string& key, const std::string& value) {
-    headers_.Add(key, value);
+    headers_.Set(key, value);
   }
 
-  HttpResponsePtr Request(HttpRequestArgs&& args);
-
-  HttpResponsePtr Get(const std::string& url,
-                      std::vector<std::string>&& parameters = {},
-                      std::vector<std::string>&& headers = {},
-                      HttpRequestArgs&& args = HttpRequestArgs());
-
-  HttpResponsePtr Post(const std::string& url, std::string&& data, bool json,
-                       std::vector<std::string>&& headers = {},
-                       HttpRequestArgs&& args = HttpRequestArgs());
-
-  HttpResponsePtr Put(const std::string& url, std::string&& data, bool json,
-                      std::vector<std::string>&& headers = {},
-                      HttpRequestArgs&& args = HttpRequestArgs());
-
-  HttpResponsePtr Delete(const std::string& url,
-                         std::vector<std::string>&& headers = {},
-                         HttpRequestArgs&& args = HttpRequestArgs());
+  HttpResponsePtr Request(HttpRequestPtr request);
 
 private:
   void InitHeaders();
+
+  HttpResponsePtr Send(HttpRequestPtr request);
 
 private:
   // E.g., "application/json".
@@ -82,7 +63,7 @@ private:
   HttpHeaderDict headers_;
 
   // Verify the certificate of the peer or not.
-  boost::optional<bool> ssl_verify_;
+  bool ssl_verify_ = true;
 
   // The size of the buffer for reading response.
   // 0 means default value will be used.
@@ -90,12 +71,6 @@ private:
 
   // Timeout in seconds for receiving response.
   int timeout_ = 0;
-
-  // Compress the request content.
-  // NOTE: Most servers don't support compressed requests.
-  // Even the requests module from Python doesn't have a built-in support.
-  // See: https://github.com/kennethreitz/requests/issues/1753
-  bool gzip_ = false;
 
   // Connection pool for keep-alive.
   HttpClientPool pool_;

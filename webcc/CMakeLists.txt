@@ -22,7 +22,7 @@ set(HEADERS
     http_message.h
     http_parser.h
     http_request.h
-    http_request_args.h
+    http_request_builder.h
     http_request_handler.h
     http_request_parser.h
     http_response.h
@@ -49,6 +49,7 @@ set(SOURCES
     http_message.cc
     http_parser.cc
     http_request.cc
+    http_request_builder.cc
     http_request_handler.cc
     http_request_parser.cc
     http_response.cc
