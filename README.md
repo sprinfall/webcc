@@ -1,6 +1,6 @@
 # webcc
 
-A lightweight C++ REST and SOAP client and server library based on *Boost.Asio*.
+C++ client and server library for HTTP, REST and SOAP based on *Boost.Asio*.
 
 Please turn to our [Wiki](https://github.com/sprinfall/webcc/wiki) for more tutorials and guides, or just follow the links below:
 
@@ -10,14 +10,59 @@ Please turn to our [Wiki](https://github.com/sprinfall/webcc/wiki) for more tuto
 - [SOAP Server Tutorial](https://github.com/sprinfall/webcc/wiki/SOAP-Server-Tutorial)
 - [REST Server Tutorial](https://github.com/sprinfall/webcc/wiki/REST-Server-Tutorial)
 
+## Quickstart
+
+A complete client example: 
+```cpp
+#include <iostream>
+
+#include "webcc/http_client_session.h"
+#include "webcc/logger.h"
+
+int main() {
+  WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
+
+  try {
+    webcc::HttpClientSession session;
+
+    auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
+                             url("http://httpbin.org/get")());
+
+    std::cout << r->content() << std::endl;
+
+  } catch (const webcc::Exception& e) {
+    std::cout << e.what() << std::endl;
+  }
+
+  return 0;
+}
+```
+
+List GitHub public events:
+```cpp
+  auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
+                           url("https://api.github.com/events")());
+
+  // Parse r->content() to JSON object...
+```
+
+For more examples, see the Wiki tutorials.
+
 ## Build Instructions
 
-A lot of C++11 features are used, e.g., `std::move`. But C++14 is not required.
-(It means that you can still build `webcc` using VS2013 on Windows.)
+### General
 
-[CMake 3.1.0+](https://cmake.org/) is required as the build system. But if you don't use CMake, you can just copy the `src/webcc` folder to your own project then manage it by yourself, though some changes are needed to make it work. See [Wiki/Integrate Into Your Project]( https://github.com/sprinfall/webcc/wiki/Integrate-Into-Your-Project) for more details.
+A lot of C++11 features are used, e.g., `std::move`.
 
-[C++ Boost](https://www.boost.org/) should be 1.66+ because Asio made some broken changes to the API in 1.66.
+VS2015 and above is required for building `webcc` on Windows. No support for VS2013 any more!
+
+[CMake 3.1.0+](https://cmake.org/) is used as the build system. But if you don't use CMake, you can just copy the `src/webcc` folder to your own project then manage it by yourself, though some changes are needed to make it work. See [Wiki/Integrate Into Your Project]( https://github.com/sprinfall/webcc/wiki/Integrate-Into-Your-Project) for more details.
+
+[C++ Boost](https://www.boost.org/) should be 1.66+ because Asio made some broken changes to the API since 1.66.
+
+OpenSSL is required for HTTPS support. Already included in the `third_party` folder for Windows.
+
+Zlib is required for compressing and decompressing HTTP requests and responses.
 
 ### Build Options
 
@@ -25,7 +70,6 @@ The following CMake options determine how you build the projects. They are quite
 
 ```cmake
 option(WEBCC_ENABLE_SOAP "Enable SOAP support (need pugixml)?" ON)
-option(WEBCC_ENABLE_SSL "Enable SSL/HTTPS support (need OpenSSL)?" OFF)
 option(WEBCC_ENABLE_UNITTEST "Build unit test?" ON)
 option(WEBCC_ENABLE_EXAMPLES "Build examples?" ON)
 
@@ -51,7 +95,6 @@ cmake -G"Unix Makefiles" \
     -DWEBCC_ENABLE_LOG=1 \
     -DWEBCC_LOG_LEVEL=2 \
     -DWEBCC_ENABLE_SOAP=ON \
-    -DWEBCC_ENABLE_SSL=OFF \
     -DWEBCC_ENABLE_UNITTEST=OFF \
     -DWEBCC_ENABLE_EXAMPLES=ON \
     ..
