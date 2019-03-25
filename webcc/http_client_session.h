@@ -13,6 +13,10 @@
 
 namespace webcc {
 
+// HTTP requests session providing connection-pooling, configuration and more.
+// NOTE:
+// A session shouldn't be shared by multiple threads. Please create a new
+// session for each thread instead.
 class HttpClientSession {
 public:
   HttpClientSession();

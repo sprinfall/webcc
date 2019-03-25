@@ -5,8 +5,6 @@
 
 using namespace webcc;
 
-// -----------------------------------------------------------------------------
-
 #if (defined(WIN32) || defined(_WIN64))
 // You need to set environment variable SSL_CERT_FILE properly to enable
 // SSL verification.
@@ -14,9 +12,6 @@ bool kSslVerify = false;
 #else
 bool kSslVerify = true;
 #endif
-
-// -----------------------------------------------------------------------------
-// Examples
 
 void ExampleBasic() {
   webcc::HttpClientSession session;

@@ -37,9 +37,9 @@ static void SetHeaders(const std::vector<std::string>& headers,
   }
 }
 
-HttpResponsePtr HttpClientSession::Get(const std::string& url,
-                                       const std::vector<std::string>& parameters,
-                                       const std::vector<std::string>& headers) {
+HttpResponsePtr HttpClientSession::Get(
+    const std::string& url, const std::vector<std::string>& parameters,
+    const std::vector<std::string>& headers) {
   HttpRequestBuilder builder{http::methods::kGet};
   builder.url(url);
 
@@ -53,9 +53,9 @@ HttpResponsePtr HttpClientSession::Get(const std::string& url,
   return Request(builder());
 }
 
-HttpResponsePtr HttpClientSession::Post(const std::string& url,
-                                        std::string&& data, bool json,
-                                        const std::vector<std::string>& headers) {
+HttpResponsePtr HttpClientSession::Post(
+    const std::string& url, std::string&& data, bool json,
+    const std::vector<std::string>& headers) {
   HttpRequestBuilder builder{http::methods::kPost};
   builder.url(url);
 
@@ -67,9 +67,9 @@ HttpResponsePtr HttpClientSession::Post(const std::string& url,
   return Request(builder());
 }
 
-HttpResponsePtr HttpClientSession::Put(const std::string& url,
-                                       std::string&& data, bool json,
-                                       const std::vector<std::string>& headers) {
+HttpResponsePtr HttpClientSession::Put(
+    const std::string& url, std::string&& data, bool json,
+    const std::vector<std::string>& headers) {
   HttpRequestBuilder builder{http::methods::kPut};
   builder.url(url);
 
@@ -81,8 +81,8 @@ HttpResponsePtr HttpClientSession::Put(const std::string& url,
   return Request(builder());
 }
 
-HttpResponsePtr HttpClientSession::Delete(const std::string& url,
-                                          const std::vector<std::string>& headers) {
+HttpResponsePtr HttpClientSession::Delete(
+    const std::string& url, const std::vector<std::string>& headers) {
   HttpRequestBuilder builder{http::methods::kDelete};
   builder.url(url);
 
@@ -91,9 +91,9 @@ HttpResponsePtr HttpClientSession::Delete(const std::string& url,
   return Request(builder());
 }
 
-HttpResponsePtr HttpClientSession::Patch(const std::string& url,
-                                         std::string&& data, bool json,
-                                         const std::vector<std::string>& headers) {
+HttpResponsePtr HttpClientSession::Patch(
+    const std::string& url, std::string&& data, bool json,
+    const std::vector<std::string>& headers) {
   HttpRequestBuilder builder{http::methods::kPatch};
   builder.url(url);
 
@@ -130,7 +130,7 @@ void HttpClientSession::InitHeaders() {
   // probably have called the second one "zlib" instead to avoid confusion with
   // the raw deflate compressed data format.
   // Simply put, "deflate" is not recommended for HTTP 1.1 encoding.
-  //
+
   headers_.Set(kAcceptEncoding, "gzip, deflate");
 
   headers_.Set(kAccept, "*/*");
@@ -145,7 +145,7 @@ HttpResponsePtr HttpClientSession::Send(HttpRequestPtr request) {
 
   const HttpClientPool::Key key{request->url()};
 
-  // Reuse a connection or not.
+  // Reuse a pooled connection.
   bool reuse = false;
 
   HttpClientPtr client = pool_.Get(key);
