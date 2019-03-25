@@ -11,12 +11,14 @@ class HttpRequest;
 
 class HttpRequestParser : public HttpParser {
 public:
-  explicit HttpRequestParser(HttpRequest* request);
+  explicit HttpRequestParser(HttpRequest* request = nullptr);
 
   ~HttpRequestParser() override = default;
 
+  void Init(HttpRequest* request);
+
 private:
-  bool ParseStartLine(const std::string& line) override;
+  bool ParseStartLine(const std::string& line) final;
 
   HttpRequest* request_;
 };

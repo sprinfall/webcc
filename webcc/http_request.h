@@ -64,10 +64,12 @@ public:
     return port().empty() ? default_port : port();
   }
 
+  // TODO: Remove
   std::size_t buffer_size() const {
     return buffer_size_;
   }
 
+  // TODO: Remove
   bool ssl_verify() const {
     return ssl_verify_;
   }

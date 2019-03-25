@@ -41,6 +41,11 @@ public:
     return message;
   }
 
+  void Clear() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    message_list_.clear();
+  }
+
   void Push(const T& message) {
     {
       std::lock_guard<std::mutex> lock(mutex_);

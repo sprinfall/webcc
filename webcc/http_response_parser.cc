@@ -2,13 +2,18 @@
 
 #include "boost/algorithm/string.hpp"
 
-#include "webcc/logger.h"
 #include "webcc/http_response.h"
+#include "webcc/logger.h"
 
 namespace webcc {
 
 HttpResponseParser::HttpResponseParser(HttpResponse* response)
     : HttpParser(response), response_(response) {
+}
+
+void HttpResponseParser::Init(HttpResponse* response) {
+  HttpParser::Init(response);
+  response_ = response;
 }
 
 bool HttpResponseParser::ParseStartLine(const std::string& line) {

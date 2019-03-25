@@ -22,8 +22,8 @@ HttpClient::HttpClient()
 bool HttpClient::Request(HttpRequestPtr request, bool connect) {
   io_context_.restart();
 
-  response_.reset(new HttpResponse());
-  response_parser_.reset(new HttpResponseParser(response_.get()));
+  response_.reset(new HttpResponse{});
+  response_parser_.Init(response_.get());
 
   closed_ = false;
   timer_canceled_ = false;
@@ -166,7 +166,7 @@ void HttpClient::DoReadResponse(Error* error) {
 
     LOG_VERB("Socket async read handler.");
 
-    // Stop the deadline timer once the read has started.
+    // Stop the deadline timer once the read has started (or failed).
     CancelTimer();
 
     if (ec || length == 0) {
@@ -179,19 +179,16 @@ void HttpClient::DoReadResponse(Error* error) {
     LOG_INFO("Read data, length: %u.", length);
 
     // Parse the response piece just read.
-    if (!response_parser_->Parse(buffer_.data(), length)) {
-      //CancelTimer();
+    if (!response_parser_.Parse(buffer_.data(), length)) {
       Close();
       *error = kHttpError;
       LOG_ERRO("Failed to parse HTTP response.");
       return;
     }
 
-    if (response_parser_->finished()) {
+    if (response_parser_.finished()) {
       // Stop trying to read once all content has been received, because
       // some servers will block extra call to read_some().
-
-      //CancelTimer();
 
       if (response_->IsConnectionKeepAlive()) {
         // Close the timer but keep the socket connection.
@@ -220,22 +217,24 @@ void HttpClient::DoReadResponse(Error* error) {
 }
 
 void HttpClient::DoWaitTimer() {
+  LOG_VERB("Wait timer asynchronously.");
   timer_.async_wait(
       std::bind(&HttpClient::OnTimer, this, std::placeholders::_1));
 }
 
 void HttpClient::OnTimer(boost::system::error_code ec) {
-  if (closed_) {
+  LOG_VERB("On deadline timer.");
+
+  // timer_.cancel() was called.
+  if (ec == boost::asio::error::operation_aborted) {
+    LOG_VERB("Deadline timer canceled.");
     return;
   }
 
-  LOG_VERB("On deadline timer.");
-
-  // NOTE: Can't check this:
-  //   if (ec == boost::asio::error::operation_aborted) {
-  //     LOG_VERB("Deadline timer canceled.");
-  //     return;
-  //   }
+  if (closed_) {
+    LOG_VERB("Socket has been closed.");
+    return;
+  }
 
   if (timer_.expires_at() <= boost::asio::deadline_timer::traits_type::now()) {
     // The deadline has passed.

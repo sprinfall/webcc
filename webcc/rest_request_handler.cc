@@ -15,12 +15,13 @@ bool RestRequestHandler::Bind(RestServicePtr service, const std::string& url,
 }
 
 void RestRequestHandler::HandleConnection(HttpConnectionPtr connection) {
-  const HttpRequest& http_request = connection->request();
+  HttpRequestPtr http_request = connection->request();
+  assert(http_request);
 
-  const Url& url = http_request.url();
+  const Url& url = http_request->url();
 
   RestRequest rest_request{
-    http_request.method(), http_request.content(), url.query()
+    http_request->method(), http_request->content(), url.query()
   };
 
   // Get service by URL path.
@@ -46,7 +47,7 @@ void RestRequestHandler::HandleConnection(HttpConnectionPtr connection) {
 
     // Only support gzip for response compression.
     if (rest_response.content.size() > kGzipThreshold &&
-        http_request.AcceptEncodingGzip()) {
+        http_request->AcceptEncodingGzip()) {
       std::string compressed;
       if (Compress(rest_response.content, &compressed)) {
         http_response->SetHeader(http::headers::kContentEncoding, "gzip");

@@ -48,6 +48,10 @@ public:
   // optional |existed| parameter will be set to false.
   const std::string& Get(const std::string& key, bool* existed = nullptr) const;
 
+  void Clear() {
+    headers_.clear();
+  }
+
 private:
   std::vector<HttpHeader>::iterator Find(const std::string& key);
 

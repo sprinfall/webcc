@@ -9,6 +9,7 @@
 
 #include "webcc/globals.h"
 #include "webcc/http_connection.h"
+#include "webcc/http_connection_pool.h"
 
 namespace webcc {
 
@@ -46,6 +47,9 @@ private:
 
   // Acceptor used to listen for incoming connections.
   boost::asio::ip::tcp::acceptor acceptor_;
+
+  // The connection pool which owns all live connections.
+  HttpConnectionPool pool_;
 
   // The signal_set is used to register for process termination notifications.
   boost::asio::signal_set signals_;

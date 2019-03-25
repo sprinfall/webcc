@@ -16,12 +16,15 @@ bool SoapRequestHandler::Bind(SoapServicePtr service, const std::string& url) {
 }
 
 void SoapRequestHandler::HandleConnection(HttpConnectionPtr connection) {
+  HttpRequestPtr http_request = connection->request();
+  assert(http_request);
+
   auto http_response = std::make_shared<HttpResponse>();
 
   // TODO: Support keep-alive.
   http_response->SetHeader(http::headers::kConnection, "Close");
 
-  std::string path = "/" + connection->request().url().path();
+  std::string path = "/" + http_request->url().path();
   SoapServicePtr service = GetServiceByUrl(path);
   if (!service) {
     http_response->set_status(http::Status::kBadRequest);
@@ -31,7 +34,7 @@ void SoapRequestHandler::HandleConnection(HttpConnectionPtr connection) {
 
   // Parse the SOAP request XML.
   SoapRequest soap_request;
-  if (!soap_request.FromXml(connection->request().content())) {
+  if (!soap_request.FromXml(http_request->content())) {
     http_response->set_status(http::Status::kBadRequest);
     connection->SendResponse(http_response);
     return;

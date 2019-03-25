@@ -83,7 +83,7 @@ private:
   std::unique_ptr<HttpSocketBase> socket_;
 
   HttpResponsePtr response_;
-  std::unique_ptr<HttpResponseParser> response_parser_;
+  HttpResponseParser response_parser_;
 
   // Timer for the timeout control.
   boost::asio::deadline_timer timer_;

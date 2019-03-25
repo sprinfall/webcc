@@ -4,6 +4,7 @@
 
 #include "boost/asio/write.hpp"
 
+#include "webcc/http_connection_pool.h"
 #include "webcc/http_request_handler.h"
 #include "webcc/logger.h"
 
@@ -11,14 +12,17 @@ using boost::asio::ip::tcp;
 
 namespace webcc {
 
-HttpConnection::HttpConnection(tcp::socket socket, HttpRequestHandler* handler)
+HttpConnection::HttpConnection(tcp::socket socket, HttpConnectionPool* pool,
+                               HttpRequestHandler* handler)
     : socket_(std::move(socket)),
+      pool_(pool),
       buffer_(kBufferSize),
-      request_handler_(handler),
-      request_parser_(&request_) {
+      request_handler_(handler) {
 }
 
 void HttpConnection::Start() {
+  request_.reset(new HttpRequest{});
+  request_parser_.Init(request_.get());
   DoRead();
 }
 
@@ -37,8 +41,11 @@ void HttpConnection::SendResponse(HttpResponsePtr response) {
 
   response_ = response;
 
-  // TODO: Support keep-alive.
-  response_->SetHeader(http::headers::kConnection, "Close");
+  if (request_->IsConnectionKeepAlive()) {
+    response_->SetHeader(http::headers::kConnection, "Keep-Alive");
+  } else {
+    response_->SetHeader(http::headers::kConnection, "Close");
+  }
 
   response_->Prepare();
 
@@ -60,7 +67,7 @@ void HttpConnection::OnRead(boost::system::error_code ec, std::size_t length) {
   if (ec) {
     LOG_ERRO("Socket read error (%s).", ec.message().c_str());
     if (ec != boost::asio::error::operation_aborted) {
-      Close();
+      pool_->Close(shared_from_this());
     }
     return;
   }
@@ -79,7 +86,7 @@ void HttpConnection::OnRead(boost::system::error_code ec, std::size_t length) {
     return;
   }
 
-  LOG_VERB("HTTP request:\n%s", request_.Dump(4, "> ").c_str());
+  LOG_VERB("HTTP request:\n%s", request_->Dump(4, "> ").c_str());
 
   // Enqueue this connection.
   // Some worker thread will handle it later.
@@ -104,13 +111,19 @@ void HttpConnection::OnWrite(boost::system::error_code ec, std::size_t length) {
     LOG_ERRO("Socket write error (%s).", ec.message().c_str());
 
     if (ec != boost::asio::error::operation_aborted) {
-      Close();
+      pool_->Close(shared_from_this());
     }
   } else {
     LOG_INFO("Response has been sent back, length: %u.", length);
 
-    Shutdown();
-    Close();  // Necessary even after shutdown!
+    if (request_->IsConnectionKeepAlive()) {
+      LOG_INFO("The client asked for keep-alive connection.");
+      LOG_INFO("Continue to read next request...");
+      Start();
+    } else {
+      Shutdown();
+      pool_->Close(shared_from_this());
+    }
   }
 }
 

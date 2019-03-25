@@ -29,7 +29,7 @@ public:
   // Start worker threads.
   void Start(std::size_t count);
 
-  // Close pending connections and stop worker threads.
+  // Clear pending connections from the queue and stop worker threads.
   void Stop();
 
 private:

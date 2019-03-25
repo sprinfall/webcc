@@ -33,6 +33,11 @@ HttpParser::HttpParser(HttpMessage* message)
       finished_(false) {
 }
 
+void HttpParser::Init(HttpMessage* message) {
+  Reset();
+  message_ = message;
+}
+
 bool HttpParser::Parse(const char* data, std::size_t length) {
   // Append the new data to the pending data.
   pending_data_.append(data, length);
@@ -61,6 +66,19 @@ bool HttpParser::Parse(const char* data, std::size_t length) {
   } else {
     return ParseFixedContent();
   }
+}
+
+void HttpParser::Reset() {
+  pending_data_.clear();
+  content_.clear();
+
+  content_length_ = kInvalidLength;
+  start_line_parsed_ = false;
+  content_length_parsed_ = false;
+  header_ended_ = false;
+  chunked_ = false;
+  chunk_size_ = kInvalidLength;
+  finished_ = false;
 }
 
 bool HttpParser::ParseHeaders() {

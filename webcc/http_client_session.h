@@ -1,11 +1,8 @@
 #ifndef WEBCC_HTTP_CLIENT_SESSION_H_
 #define WEBCC_HTTP_CLIENT_SESSION_H_
 
-#include <memory>
 #include <string>
 #include <vector>
-
-#include "boost/optional.hpp"
 
 #include "webcc/http_client_pool.h"
 #include "webcc/http_request_builder.h"

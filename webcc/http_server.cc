@@ -96,8 +96,10 @@ void HttpServer::DoAccept() {
         if (!ec) {
           LOG_INFO("Accepted a connection.");
 
-          std::make_shared<HttpConnection>(std::move(socket),
-                                           GetRequestHandler())->Start();
+          auto connection = std::make_shared<HttpConnection>(
+              std::move(socket), &pool_, GetRequestHandler());
+
+          pool_.Start(connection);
         }
 
         DoAccept();
@@ -111,8 +113,14 @@ void HttpServer::DoAwaitStop() {
         // operations. Once all operations have finished the io_context::run()
         // call will exit.
         LOG_INFO("On signal %d, stopping the server...", signo);
+
         acceptor_.close();
+
+        // Stop worker threads.
         GetRequestHandler()->Stop();
+
+        // Close all connections.
+        pool_.CloseAll();
       });
 }
 

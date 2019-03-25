@@ -11,6 +11,11 @@ HttpRequestParser::HttpRequestParser(HttpRequest* request)
     : HttpParser(request), request_(request) {
 }
 
+void HttpRequestParser::Init(HttpRequest* request) {
+  HttpParser::Init(request);
+  request_ = request;
+}
+
 bool HttpRequestParser::ParseStartLine(const std::string& line) {
   std::vector<std::string> strs;
   boost::split(strs, line, boost::is_any_of(" "), boost::token_compress_on);

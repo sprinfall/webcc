@@ -19,6 +19,8 @@ public:
   HttpParser(const HttpParser&) = delete;
   HttpParser& operator=(const HttpParser&) = delete;
 
+  void Init(HttpMessage* message);
+
   bool finished() const { return finished_; }
 
   std::size_t content_length() const { return content_length_; }
@@ -26,6 +28,9 @@ public:
   bool Parse(const char* data, std::size_t length);
 
 protected:
+  // Reset for next parse.
+  void Reset();
+
   // Parse headers from pending data.
   // Return false only on syntax errors.
   bool ParseHeaders();

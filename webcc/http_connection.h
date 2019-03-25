@@ -15,13 +15,14 @@
 namespace webcc {
 
 class HttpConnection;
+class HttpConnectionPool;
 class HttpRequestHandler;
 
 typedef std::shared_ptr<HttpConnection> HttpConnectionPtr;
 
 class HttpConnection : public std::enable_shared_from_this<HttpConnection> {
 public:
-  HttpConnection(boost::asio::ip::tcp::socket socket,
+  HttpConnection(boost::asio::ip::tcp::socket socket, HttpConnectionPool* pool,
                  HttpRequestHandler* handler);
 
   ~HttpConnection() = default;
@@ -29,7 +30,7 @@ public:
   HttpConnection(const HttpConnection&) = delete;
   HttpConnection& operator=(const HttpConnection&) = delete;
 
-  const HttpRequest& request() const {
+  HttpRequestPtr request() const {
     return request_;
   }
 
@@ -57,6 +58,9 @@ private:
   // Socket for the connection.
   boost::asio::ip::tcp::socket socket_;
 
+  // The pool for this connection.
+  HttpConnectionPool* pool_;
+
   // Buffer for incoming data.
   std::vector<char> buffer_;
 
@@ -64,7 +68,7 @@ private:
   HttpRequestHandler* request_handler_;
 
   // The incoming request.
-  HttpRequest request_;
+  HttpRequestPtr request_;
 
   // The parser for the incoming request.
   HttpRequestParser request_parser_;

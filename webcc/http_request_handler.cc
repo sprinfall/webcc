@@ -24,11 +24,10 @@ void HttpRequestHandler::Start(std::size_t count) {
 void HttpRequestHandler::Stop() {
   LOG_INFO("Stopping workers...");
 
-  // Close pending connections.
-  for (HttpConnectionPtr s = queue_.Pop(); s; s = queue_.Pop()) {
-    LOG_INFO("Closing pending connection...");
-    s->Close();
-  }
+  // Clear pending connections.
+  // The connections will be closed later (see HttpServer::DoAwaitStop).
+  LOG_INFO("Clear pending connections...");
+  queue_.Clear();
 
   // Enqueue a null connection to trigger the first worker to stop.
   queue_.Push(HttpConnectionPtr());
