@@ -21,8 +21,7 @@ void ExampleBasic() {
                                .url("http://httpbin.org/get")
                                .parameter("key1", "value1")
                                .parameter("key2", "value2")
-                               .header("Accept", "application/json")
-                               .buffer(1000)());
+                               .header("Accept", "application/json")());
 
   std::cout << r->content() << std::endl;
 }

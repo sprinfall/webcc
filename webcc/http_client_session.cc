@@ -139,10 +139,6 @@ void HttpClientSession::InitHeaders() {
 }
 
 HttpResponsePtr HttpClientSession::Send(HttpRequestPtr request) {
-  if (request->buffer_size() == 0) {
-    request->set_buffer_size(buffer_size_);
-  }
-
   const HttpClientPool::Key key{request->url()};
 
   // Reuse a pooled connection.
@@ -158,6 +154,7 @@ HttpResponsePtr HttpClientSession::Send(HttpRequestPtr request) {
   }
 
   client->set_ssl_verify(ssl_verify_);
+  client->set_buffer_size(buffer_size_);
   client->set_timeout(timeout_);
 
   bool ok = client->Request(request, !reuse);

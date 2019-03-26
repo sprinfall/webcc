@@ -12,6 +12,7 @@ namespace webcc {
 HttpClient::HttpClient()
     : timer_(io_context_),
       ssl_verify_(true),
+      buffer_size_(kBufferSize),
       timeout_(kMaxReadSeconds),
       closed_(false),
       timer_canceled_(false),
@@ -30,14 +31,9 @@ bool HttpClient::Request(HttpRequestPtr request, bool connect) {
   timed_out_ = false;
   error_ = kNoError;
 
-  std::size_t buffer_size = request->buffer_size();
-  if (buffer_size == 0) {
-    buffer_size = kBufferSize;
-  }
-
-  if (buffer_.size() != buffer_size) {
-    LOG_VERB("Resize buffer: %u -> %u.", buffer_.size(), buffer_size);
-    buffer_.resize(buffer_size);
+  if (buffer_.size() != buffer_size_) {
+    LOG_VERB("Resize buffer: %u -> %u.", buffer_.size(), buffer_size_);
+    buffer_.resize(buffer_size_);
   }
 
   if (connect) {

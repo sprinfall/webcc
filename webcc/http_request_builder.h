@@ -68,11 +68,6 @@ public:
     return *this;
   }
 
-  HttpRequestBuilder& buffer(std::size_t buffer) {
-    buffer_ = buffer;
-    return *this;
-  }
-
   HttpRequestBuilder& keep_alive(bool keep_alive) {
     keep_alive_ = keep_alive;
     return *this;
@@ -100,10 +95,6 @@ private:
 
   // Additional request headers.
   std::vector<std::string> headers_;
-
-  // Size of the buffer to read response.
-  // Leave it to 0 for using default value.
-  std::size_t buffer_ = 0;
 
   // Persistent connection.
   bool keep_alive_ = true;

@@ -36,14 +36,6 @@ public:
     url_.AddParameter(key, value);
   }
 
-  void set_buffer_size(std::size_t buffer_size) {
-    buffer_size_ = buffer_size;
-  }
-
-  void set_ssl_verify(bool ssl_verify) {
-    ssl_verify_ = ssl_verify;
-  }
-
   const std::string& method() const {
     return method_;
   }
@@ -64,16 +56,6 @@ public:
     return port().empty() ? default_port : port();
   }
 
-  // TODO: Remove
-  std::size_t buffer_size() const {
-    return buffer_size_;
-  }
-
-  // TODO: Remove
-  bool ssl_verify() const {
-    return ssl_verify_;
-  }
-
   // Prepare payload.
   // Compose start line, set Host header, etc.
   bool Prepare() final;
@@ -81,13 +63,6 @@ public:
 private:
   std::string method_;
   Url url_;
-
-  // Verify the certificate of the peer or not (for HTTPS).
-  bool ssl_verify_ = true;
-
-  // The size of the buffer for reading response.
-  // 0 means default value will be used.
-  std::size_t buffer_size_ = 0;
 };
 
 }  // namespace webcc

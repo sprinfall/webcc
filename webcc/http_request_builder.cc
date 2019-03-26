@@ -44,8 +44,6 @@ HttpRequestPtr HttpRequestBuilder::operator()() {
     }
   }
 
-  request->set_buffer_size(buffer_);
-
   return request;
 }
 
