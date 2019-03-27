@@ -37,23 +37,6 @@ TEST(RestServiceManager, URL_RegexBasic) {
   EXPECT_FALSE(!!service);
 }
 
-TEST(RestServiceManager, URL_Temp) {
-  webcc::RestServiceManager service_manager;
-
-  service_manager.AddService(std::make_shared<TestRestService>(),
-                             "/instance/([\\w.]+)", true);
-
-  std::vector<std::string> matches;
-
-  std::string url = "/instance/123.45-+6aaa";
-  webcc::RestServicePtr service = service_manager.GetService(url, &matches);
-
-  EXPECT_TRUE(!!service);
-
-  EXPECT_EQ(1, matches.size());
-  EXPECT_EQ("123.45-6aaa", matches[0]);
-}
-
 TEST(RestServiceManager, URL_RegexMultiple) {
   webcc::RestServiceManager service_manager;
 

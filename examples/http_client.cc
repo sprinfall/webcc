@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include "webcc/http_client_session.h"
 #include "webcc/logger.h"
@@ -87,6 +88,21 @@ void ExampleCompression() {
   r = session.Get("http://httpbin.org/deflate");
 
   std::cout << r->content() << std::endl;
+}
+
+// Get an image from HttpBin.org and save to the given file path.
+// E.g., ExampleImage("E:\\example.jpeg")
+void ExampleImage(const std::string& path) {
+  HttpClientSession session;
+
+  auto r = session.Get("http://httpbin.org/image/jpeg");
+
+  // Or
+  //   auto r = session.Get("http://httpbin.org/image", {},
+  //                        {"Accept", "image/jpeg"});
+
+  std::ofstream ofs(path, std::ios::binary);
+  ofs << r->content();
 }
 
 int main() {

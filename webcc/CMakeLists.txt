@@ -14,6 +14,7 @@ configure_file(
 include(GNUInstallDirs)
 
 set(HEADERS
+    base64.h
     globals.h
     http_client.h
     http_client_pool.h
@@ -42,6 +43,7 @@ set(HEADERS
     )
 
 set(SOURCES
+    base64.cc
     globals.cc
     http_client.cc
     http_client_pool.cc
