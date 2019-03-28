@@ -172,7 +172,7 @@ HttpResponsePtr HttpClientSession::Send(HttpRequestPtr request) {
       // Remove the failed connection from pool.
       pool_.Remove(key);
     }
-    throw Exception(client->error(), client->timed_out());
+    throw Exception(client->error(), "", client->timed_out());
   }
 
   // Update connection pool.

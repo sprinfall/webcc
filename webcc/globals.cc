@@ -31,6 +31,8 @@ const char* DescribeError(Error error) {
       return "HTTP error";
     case kServerError:
       return "Server error";
+    case kFileIOError:
+      return "File IO error";
     case kXmlError:
       return "XML error";
     default:
@@ -38,13 +40,13 @@ const char* DescribeError(Error error) {
   }
 }
 
-Exception::Exception(Error error, bool timeout, const std::string& details)
-    : error_(error), timeout_(timeout), msg_(DescribeError(error)) {
-  if (timeout) {
-    msg_ += " (timeout)";
-  }
+Exception::Exception(Error error, const std::string& details, bool timeout)
+    : error_(error), msg_(DescribeError(error)), timeout_(timeout) {
   if (!details.empty()) {
     msg_ += " (" + details + ")";
+  }
+  if (timeout) {
+    msg_ += " (timeout)";
   }
 }
 

@@ -108,6 +108,10 @@ public:
   // Return true if header Accept-Encoding contains "gzip".
   bool AcceptEncodingGzip() const;
 
+  void SetContentType(const std::string& content_type) {
+    SetHeader(http::headers::kContentType, content_type);
+  }
+
   // E.g., "text/html", "application/json; charset=utf-8", etc.
   void SetContentType(const std::string& media_type,
                       const std::string& charset);

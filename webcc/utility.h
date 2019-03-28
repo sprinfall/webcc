@@ -22,6 +22,8 @@ std::string EndpointToString(const TcpEndpoint& endpoint);
 // See: https://tools.ietf.org/html/rfc7231#section-7.1.1.2
 std::string GetHttpDateTimestamp();
 
+std::string RandomUuid();
+
 }  // namespace webcc
 
 #endif  // WEBCC_UTILITY_H_

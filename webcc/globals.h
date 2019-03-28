@@ -145,6 +145,9 @@ enum Error {
   // E.g., HTTP status 500 + SOAP Fault element.
   kServerError,
 
+  // File read/write error.
+  kFileIOError,
+
   // XML parsing error.
   kXmlError,
 };
@@ -154,25 +157,25 @@ const char* DescribeError(Error error);
 
 class Exception : public std::exception {
 public:
-  explicit Exception(Error error = kNoError, bool timeout = false,
-                     const std::string& details = "");
+  explicit Exception(Error error, const std::string& details = "",
+                     bool timeout = false);
+
+  Error error() const { return error_; }
 
   // Note that `noexcept` is required by GCC.
   const char* what() const noexcept override {
     return msg_.c_str();
   }
 
-  Error error() const { return error_; }
-
   bool timeout() const { return timeout_; }
 
 private:
   Error error_;
 
+  std::string msg_;
+
   // If the error was caused by timeout or not.
   bool timeout_;
-
-  std::string msg_;
 };
 
 }  // namespace webcc

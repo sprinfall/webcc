@@ -39,9 +39,7 @@ bool Compress(const std::string& input, std::string* output) {
 
     int err = deflate(&stream, Z_FINISH);
 
-    assert(err != Z_STREAM_ERROR);
-
-    if (err != Z_OK) {
+    if (err != Z_OK && err != Z_STREAM_END) {
       deflateEnd(&stream);
       if (stream.msg != nullptr) {
         LOG_ERRO("zlib deflate error: %s", stream.msg);
@@ -51,6 +49,7 @@ bool Compress(const std::string& input, std::string* output) {
 
     std::size_t size = buf.size() - stream.avail_out;
     output->insert(output->end(), buf.data(), buf.data() + size);
+
   } while (stream.avail_out == 0);
 
   if (deflateEnd(&stream) != Z_OK) {
@@ -105,7 +104,8 @@ bool Decompress(const std::string& input, std::string* output) {
 
     if (err == Z_STREAM_END) {
       break;
-    } else if (err != Z_OK) {
+    }
+    if (err != Z_OK) {
       inflateEnd(&stream);
       if (stream.msg != nullptr) {
         LOG_ERRO("zlib inflate error: %s", stream.msg);

@@ -51,12 +51,27 @@ public:
     return *this;
   }
 
-  HttpRequestBuilder& json(bool json) {
+  HttpRequestBuilder& json(bool json = true) {
     json_ = json;
     return *this;
   }
 
-  HttpRequestBuilder& gzip(bool gzip) {
+  // Upload a file with its path.
+  HttpRequestBuilder& file(const std::string& name,
+                           const std::string& file_name,
+                           const std::string& file_path,  // TODO: UNICODE
+                           const std::string& content_type = "");
+
+  // Upload a file with its data.
+  HttpRequestBuilder& file_data(const std::string& name,
+                                const std::string& file_name,
+                                std::string&& file_data,
+                                const std::string& content_type = "") {
+    files_.push_back({name, file_name, file_data, content_type});
+    return *this;
+  }
+
+  HttpRequestBuilder& gzip(bool gzip = true) {
     gzip_ = gzip;
     return *this;
   }
@@ -74,6 +89,11 @@ public:
   }
 
 private:
+  void SetContent(HttpRequestPtr request, std::string&& data);
+
+  void CreateFormData(std::string* data, const std::string& boundary);
+  
+private:
   std::string method_;
 
   std::string url_;
@@ -86,6 +106,19 @@ private:
 
   // Is the data to send a JSON string?
   bool json_ = false;
+
+  // Examples:
+  //   { "images", "example.jpg", "BinaryData", "image/jpeg" }
+  //   { "file", "report.csv", "BinaryData", "" }
+  struct File {
+    std::string name;
+    std::string file_name;
+    std::string file_data;  // Binary file data
+    std::string content_type;
+  };
+
+  // Files to upload for a POST (or PUT?) request.
+  std::vector<File> files_;
 
   // Compress the request content.
   // NOTE: Most servers don't support compressed requests.

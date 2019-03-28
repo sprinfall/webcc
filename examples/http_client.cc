@@ -91,7 +91,7 @@ void ExampleCompression() {
 }
 
 // Get an image from HttpBin.org and save to the given file path.
-// E.g., ExampleImage("E:\\example.jpeg")
+// E.g., ExampleImage("E:\\example.jpg")
 void ExampleImage(const std::string& path) {
   HttpClientSession session;
 
@@ -103,6 +103,35 @@ void ExampleImage(const std::string& path) {
 
   std::ofstream ofs(path, std::ios::binary);
   ofs << r->content();
+}
+
+// Post/upload files.
+void ExamplePostFiles() {
+  HttpClientSession session;
+
+  auto r = session.Request(HttpRequestBuilder{}
+                               .Post()
+                               .url("http://httpbin.org/post")
+                               .file_data("file1", "report.xls", "<xls report data>", "application/vnd.ms-excel")
+                               .file_data("file2", "report.xml", "<xml report data>", "text/xml")());
+
+  std::cout << r->content() << std::endl;
+}
+
+// Post/upload files by file path.
+void ExamplePostFiles(const std::string& name,
+                      const std::string& file_name,
+                      const std::string& file_path,
+                      const std::string& content_type) {
+  HttpClientSession session;
+
+  auto r =
+      session.Request(HttpRequestBuilder{}
+                          .Post()
+                          .url("http://httpbin.org/post")
+                          .file(name, file_name, file_path, content_type)());
+
+  std::cout << r->content() << std::endl;
 }
 
 int main() {
