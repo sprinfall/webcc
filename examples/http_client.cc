@@ -19,10 +19,10 @@ void ExampleBasic() {
 
   auto r = session.Request(webcc::HttpRequestBuilder{}
                                .Get()
-                               .url("http://httpbin.org/get")
-                               .parameter("key1", "value1")
-                               .parameter("key2", "value2")
-                               .header("Accept", "application/json")());
+                               .Url("http://httpbin.org/get")
+                               .Parameter("key1", "value1")
+                               .Parameter("key2", "value2")
+                               .Header("Accept", "application/json")());
 
   std::cout << r->content() << std::endl;
 }
@@ -45,9 +45,9 @@ void ExampleHttps() {
 
   auto r = session.Request(webcc::HttpRequestBuilder{}
                                .Get()
-                               .url("https://httpbin.org/get")
-                               .parameter("key1", "value1")
-                               .header("Accept", "application/json")());
+                               .Url("https://httpbin.org/get")
+                               .Parameter("key1", "value1")
+                               .Header("Accept", "application/json")());
 
   std::cout << r->content() << std::endl;
 }
@@ -111,9 +111,9 @@ void ExamplePostFiles() {
 
   auto r = session.Request(HttpRequestBuilder{}
                                .Post()
-                               .url("http://httpbin.org/post")
-                               .file_data("file1", "report.xls", "<xls report data>", "application/vnd.ms-excel")
-                               .file_data("file2", "report.xml", "<xml report data>", "text/xml")());
+                               .Url("http://httpbin.org/post")
+                               .FileData("file1", "report.xls", "<xls report data>", "application/vnd.ms-excel")
+                               .FileData("file2", "report.xml", "<xml report data>", "text/xml")());
 
   std::cout << r->content() << std::endl;
 }
@@ -128,8 +128,8 @@ void ExamplePostFiles(const std::string& name,
   auto r =
       session.Request(HttpRequestBuilder{}
                           .Post()
-                          .url("http://httpbin.org/post")
-                          .file(name, file_name, file_path, content_type)());
+                          .Url("http://httpbin.org/post")
+                          .File(name, file_name, file_path, content_type)());
 
   std::cout << r->content() << std::endl;
 }

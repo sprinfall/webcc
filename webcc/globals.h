@@ -80,6 +80,7 @@ namespace headers {
 
 const char* const kHost = "Host";
 const char* const kDate = "Date";
+const char* const kAuthorization = "Authorization";
 const char* const kContentType = "Content-Type";
 const char* const kContentLength = "Content-Length";
 const char* const kContentEncoding = "Content-Encoding";

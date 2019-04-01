@@ -15,78 +15,93 @@ public:
   }
 
   // Build the request.
-  HttpRequestPtr operator()();
+  HttpRequestPtr Build();
 
-  HttpRequestBuilder& Get() { return method(http::methods::kGet); }
-  HttpRequestBuilder& Head() { return method(http::methods::kHead); }
-  HttpRequestBuilder& Post() { return method(http::methods::kPost); }
-  HttpRequestBuilder& Put() { return method(http::methods::kPut); }
-  HttpRequestBuilder& Delete() { return method(http::methods::kDelete); }
-  HttpRequestBuilder& Patch() { return method(http::methods::kPatch); }
+  HttpRequestPtr operator()() {
+    return Build();
+  }
 
-  HttpRequestBuilder& method(const std::string& method) {
+  HttpRequestBuilder& Get()     { return Method(http::methods::kGet);     }
+  HttpRequestBuilder& Head()    { return Method(http::methods::kHead);    }
+  HttpRequestBuilder& Post()    { return Method(http::methods::kPost);    }
+  HttpRequestBuilder& Put()     { return Method(http::methods::kPut);     }
+  HttpRequestBuilder& Delete()  { return Method(http::methods::kDelete);  }
+  HttpRequestBuilder& Patch()   { return Method(http::methods::kPatch);   }
+
+  // NOTE:
+  // The naming convention doesn't follow Google C++ Style for
+  // consistency and simplicity.
+
+  HttpRequestBuilder& Method(const std::string& method) {
     method_ = method;
     return *this;
   }
 
-  HttpRequestBuilder& url(const std::string& url) {
+  HttpRequestBuilder& Url(const std::string& url) {
     url_ = url;
     return *this;
   }
 
-  HttpRequestBuilder& parameter(const std::string& key,
+  HttpRequestBuilder& Parameter(const std::string& key,
                                 const std::string& value) {
     parameters_.push_back(key);
     parameters_.push_back(value);
     return *this;
   }
 
-  HttpRequestBuilder& data(const std::string& data) {
+  HttpRequestBuilder& Data(const std::string& data) {
     data_ = data;
     return *this;
   }
 
-  HttpRequestBuilder& data(std::string&& data) {
+  HttpRequestBuilder& Data(std::string&& data) {
     data_ = std::move(data);
     return *this;
   }
 
-  HttpRequestBuilder& json(bool json = true) {
+  HttpRequestBuilder& Json(bool json = true) {
     json_ = json;
     return *this;
   }
 
   // Upload a file with its path.
-  HttpRequestBuilder& file(const std::string& name,
+  // TODO: UNICODE file path.
+  HttpRequestBuilder& File(const std::string& name,
                            const std::string& file_name,
-                           const std::string& file_path,  // TODO: UNICODE
+                           const std::string& file_path,
                            const std::string& content_type = "");
 
   // Upload a file with its data.
-  HttpRequestBuilder& file_data(const std::string& name,
-                                const std::string& file_name,
-                                std::string&& file_data,
-                                const std::string& content_type = "") {
+  HttpRequestBuilder& FileData(const std::string& name,
+                               const std::string& file_name,
+                               std::string&& file_data,
+                               const std::string& content_type = "") {
     files_.push_back({name, file_name, file_data, content_type});
     return *this;
   }
 
-  HttpRequestBuilder& gzip(bool gzip = true) {
+  HttpRequestBuilder& Gzip(bool gzip = true) {
     gzip_ = gzip;
     return *this;
   }
 
-  HttpRequestBuilder& header(const std::string& key,
+  HttpRequestBuilder& Header(const std::string& key,
                              const std::string& value) {
     headers_.push_back(key);
     headers_.push_back(value);
     return *this;
   }
 
-  HttpRequestBuilder& keep_alive(bool keep_alive) {
+  HttpRequestBuilder& KeepAlive(bool keep_alive) {
     keep_alive_ = keep_alive;
     return *this;
   }
+
+  HttpRequestBuilder& Auth(const std::string& type,
+                           const std::string& credentials);
+
+  HttpRequestBuilder& AuthBasic(const std::string& login,
+                                const std::string& password);
 
 private:
   void SetContent(HttpRequestPtr request, std::string&& data);
@@ -107,10 +122,11 @@ private:
   // Is the data to send a JSON string?
   bool json_ = false;
 
+  // A file to upload.
   // Examples:
   //   { "images", "example.jpg", "BinaryData", "image/jpeg" }
   //   { "file", "report.csv", "BinaryData", "" }
-  struct File {
+  struct UploadFile {
     std::string name;
     std::string file_name;
     std::string file_data;  // Binary file data
@@ -118,7 +134,7 @@ private:
   };
 
   // Files to upload for a POST (or PUT?) request.
-  std::vector<File> files_;
+  std::vector<UploadFile> files_;
 
   // Compress the request content.
   // NOTE: Most servers don't support compressed requests.

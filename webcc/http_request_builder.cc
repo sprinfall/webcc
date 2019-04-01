@@ -2,6 +2,7 @@
 
 #include <fstream>
 
+#include "webcc/base64.h"
 #include "webcc/logger.h"
 #include "webcc/utility.h"
 #include "webcc/zlib_wrapper.h"
@@ -27,7 +28,7 @@ static bool ReadFile(const std::string& path, std::string* output) {
 
 // -----------------------------------------------------------------------------
 
-HttpRequestPtr HttpRequestBuilder::operator()() {
+HttpRequestPtr HttpRequestBuilder::Build() {
   assert(parameters_.size() % 2 == 0);
   assert(headers_.size() % 2 == 0);
 
@@ -70,7 +71,7 @@ HttpRequestPtr HttpRequestBuilder::operator()() {
   return request;
 }
 
-HttpRequestBuilder& HttpRequestBuilder::file(const std::string& name,
+HttpRequestBuilder& HttpRequestBuilder::File(const std::string& name,
                                              const std::string& file_name,
                                              const std::string& file_path,
                                              const std::string& content_type) {
@@ -82,6 +83,19 @@ HttpRequestBuilder& HttpRequestBuilder::file(const std::string& name,
   files_.push_back({name, file_name, std::move(file_data), content_type});
 
   return *this;
+}
+
+HttpRequestBuilder& HttpRequestBuilder::Auth(const std::string& type,
+                                             const std::string& credentials) {
+  headers_.push_back(http::headers::kAuthorization);
+  headers_.push_back(type + " " + credentials);
+  return *this;
+}
+
+HttpRequestBuilder& HttpRequestBuilder::AuthBasic(const std::string& login,
+                                                  const std::string& password) {
+  auto credentials = Base64Encode(login + ":" + password);
+  return Auth("Basic", credentials);
 }
 
 void HttpRequestBuilder::SetContent(HttpRequestPtr request,
@@ -102,7 +116,7 @@ void HttpRequestBuilder::SetContent(HttpRequestPtr request,
 
 void HttpRequestBuilder::CreateFormData(std::string* data,
                                         const std::string& boundary) {
-  for (File& file : files_) {
+  for (UploadFile& file : files_) {
     data->append("--" + boundary + kCRLF);
 
     // Content-Disposition header

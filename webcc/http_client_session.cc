@@ -33,7 +33,7 @@ static void SetHeaders(const std::vector<std::string>& headers,
   assert(headers.size() % 2 == 0);
 
   for (std::size_t i = 1; i < headers.size(); i += 2) {
-    builder->header(headers[i - 1], headers[i]);
+    builder->Header(headers[i - 1], headers[i]);
   }
 }
 
@@ -41,11 +41,11 @@ HttpResponsePtr HttpClientSession::Get(
     const std::string& url, const std::vector<std::string>& parameters,
     const std::vector<std::string>& headers) {
   HttpRequestBuilder builder{http::methods::kGet};
-  builder.url(url);
+  builder.Url(url);
 
   assert(parameters.size() % 2 == 0);
   for (std::size_t i = 1; i < parameters.size(); i += 2) {
-    builder.parameter(parameters[i - 1], parameters[i]);
+    builder.Parameter(parameters[i - 1], parameters[i]);
   }
 
   SetHeaders(headers, &builder);
@@ -57,12 +57,12 @@ HttpResponsePtr HttpClientSession::Post(
     const std::string& url, std::string&& data, bool json,
     const std::vector<std::string>& headers) {
   HttpRequestBuilder builder{http::methods::kPost};
-  builder.url(url);
+  builder.Url(url);
 
   SetHeaders(headers, &builder);
 
-  builder.data(std::move(data));
-  builder.json(json);
+  builder.Data(std::move(data));
+  builder.Json(json);
 
   return Request(builder());
 }
@@ -71,12 +71,12 @@ HttpResponsePtr HttpClientSession::Put(
     const std::string& url, std::string&& data, bool json,
     const std::vector<std::string>& headers) {
   HttpRequestBuilder builder{http::methods::kPut};
-  builder.url(url);
+  builder.Url(url);
 
   SetHeaders(headers, &builder);
 
-  builder.data(std::move(data));
-  builder.json(json);
+  builder.Data(std::move(data));
+  builder.Json(json);
 
   return Request(builder());
 }
@@ -84,7 +84,7 @@ HttpResponsePtr HttpClientSession::Put(
 HttpResponsePtr HttpClientSession::Delete(
     const std::string& url, const std::vector<std::string>& headers) {
   HttpRequestBuilder builder{http::methods::kDelete};
-  builder.url(url);
+  builder.Url(url);
 
   SetHeaders(headers, &builder);
 
@@ -95,12 +95,12 @@ HttpResponsePtr HttpClientSession::Patch(
     const std::string& url, std::string&& data, bool json,
     const std::vector<std::string>& headers) {
   HttpRequestBuilder builder{http::methods::kPatch};
-  builder.url(url);
+  builder.Url(url);
 
   SetHeaders(headers, &builder);
 
-  builder.data(std::move(data));
-  builder.json(json);
+  builder.Data(std::move(data));
+  builder.Json(json);
 
   return Request(builder());
 }
