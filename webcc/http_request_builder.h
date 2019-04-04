@@ -1,6 +1,7 @@
 #ifndef WEBCC_HTTP_REQUEST_BUILDER_H_
 #define WEBCC_HTTP_REQUEST_BUILDER_H_
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -67,18 +68,17 @@ public:
   // Upload a file with its path.
   // TODO: UNICODE file path.
   HttpRequestBuilder& File(const std::string& name,
-                           const std::string& file_name,
                            const std::string& file_path,
-                           const std::string& content_type = "");
+                           const std::string& file_name = "",
+                           const std::string& mime_type = "");
+
+  HttpRequestBuilder& File(const std::string& name, http::File&& file);
 
   // Upload a file with its data.
   HttpRequestBuilder& FileData(const std::string& name,
-                               const std::string& file_name,
                                std::string&& file_data,
-                               const std::string& content_type = "") {
-    files_.push_back({name, file_name, file_data, content_type});
-    return *this;
-  }
+                               const std::string& file_name = "",
+                               const std::string& mime_type = "");
 
   HttpRequestBuilder& Gzip(bool gzip = true) {
     gzip_ = gzip;
@@ -122,19 +122,8 @@ private:
   // Is the data to send a JSON string?
   bool json_ = false;
 
-  // A file to upload.
-  // Examples:
-  //   { "images", "example.jpg", "BinaryData", "image/jpeg" }
-  //   { "file", "report.csv", "BinaryData", "" }
-  struct UploadFile {
-    std::string name;
-    std::string file_name;
-    std::string file_data;  // Binary file data
-    std::string content_type;
-  };
-
   // Files to upload for a POST (or PUT?) request.
-  std::vector<UploadFile> files_;
+  std::map<std::string, http::File> files_;
 
   // Compress the request content.
   // NOTE: Most servers don't support compressed requests.

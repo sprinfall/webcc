@@ -59,6 +59,12 @@ public:
   HttpResponsePtr Post(const std::string& url, std::string&& data, bool json,
                        const std::vector<std::string>& headers = {});
 
+  // Post a file.
+  HttpResponsePtr PostFile(const std::string& url,
+                           const std::string& name,
+                           http::File&& file,
+                           const std::vector<std::string>& headers = {});
+
   // Shortcut for PUT request.
   HttpResponsePtr Put(const std::string& url, std::string&& data, bool json,
                       const std::vector<std::string>& headers = {});

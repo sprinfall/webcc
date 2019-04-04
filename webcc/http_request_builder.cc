@@ -1,32 +1,11 @@
 #include "webcc/http_request_builder.h"
 
-#include <fstream>
-
 #include "webcc/base64.h"
 #include "webcc/logger.h"
 #include "webcc/utility.h"
 #include "webcc/zlib_wrapper.h"
 
 namespace webcc {
-
-// -----------------------------------------------------------------------------
-
-// Read entire file into string.
-static bool ReadFile(const std::string& path, std::string* output) {
-  std::ifstream ifs{path, std::ios::binary | std::ios::ate};
-  if (!ifs) {
-    return false;
-  }
-
-  auto size = ifs.tellg();
-  output->resize(size, '\0');
-  ifs.seekg(0);
-  ifs.read(&(*output)[0], size);  // TODO: Error handling
-
-  return true;
-}
-
-// -----------------------------------------------------------------------------
 
 HttpRequestPtr HttpRequestBuilder::Build() {
   assert(parameters_.size() % 2 == 0);
@@ -72,15 +51,33 @@ HttpRequestPtr HttpRequestBuilder::Build() {
 }
 
 HttpRequestBuilder& HttpRequestBuilder::File(const std::string& name,
-                                             const std::string& file_name,
                                              const std::string& file_path,
-                                             const std::string& content_type) {
-  std::string file_data;
-  if (!ReadFile(file_path, &file_data)) {
-    throw Exception(kFileIOError, "Cannot read the file.");
-  }
+                                             const std::string& file_name,
+                                             const std::string& mime_type) {
+  assert(!name.empty());
 
-  files_.push_back({name, file_name, std::move(file_data), content_type});
+  // TODO
+  files_[name] = http::File(file_path/*, file_name, mime_type*/);
+
+  return *this;
+}
+
+HttpRequestBuilder& HttpRequestBuilder::File(const std::string& name,
+                                             http::File&& file) {
+  files_[name] = std::move(file);
+  return *this;
+}
+
+HttpRequestBuilder& HttpRequestBuilder::FileData(const std::string& name,
+                                                 std::string&& file_data,
+                                                 const std::string& file_name,
+                                                 const std::string& mime_type) {
+  http::File file;
+  file.data = std::move(file_data);
+  file.file_name = file_name;
+  file.mime_type = mime_type;
+
+  files_[name] = std::move(file);
 
   return *this;
 }
@@ -116,29 +113,29 @@ void HttpRequestBuilder::SetContent(HttpRequestPtr request,
 
 void HttpRequestBuilder::CreateFormData(std::string* data,
                                         const std::string& boundary) {
-  for (UploadFile& file : files_) {
+  for (auto& pair : files_) {
     data->append("--" + boundary + kCRLF);
 
     // Content-Disposition header
     data->append("Content-Disposition: form-data");
-    if (!file.name.empty()) {
-      data->append("; name=\"" + file.name + "\"");
+    if (!pair.first.empty()) {
+      data->append("; name=\"" + pair.first + "\"");
     }
-    if (!file.file_name.empty()) {
-      data->append("; filename=\"" + file.file_name + "\"");
+    if (!pair.second.file_name.empty()) {
+      data->append("; filename=\"" + pair.second.file_name + "\"");
     }
     data->append(kCRLF);
 
     // Content-Type header
-    if (!file.content_type.empty()) {
-      data->append("Content-Type: " + file.content_type);
+    if (!pair.second.mime_type.empty()) {
+      data->append("Content-Type: " + pair.second.mime_type);
       data->append(kCRLF);
     }
 
     data->append(kCRLF);
 
     // Payload
-    data->append(file.file_data);
+    data->append(pair.second.data);
 
     data->append(kCRLF);
   }

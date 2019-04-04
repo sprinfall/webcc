@@ -24,8 +24,9 @@ const std::size_t kMaxDumpSize = 2048;
 // Default buffer size for socket reading.
 const std::size_t kBufferSize = 1024;
 
-// Default ports.
+// Default port for HTTP.
 const char* const kPort80 = "80";
+// Default port for HTTPS.
 const char* const kPort443 = "443";
 
 // Why 1400? See the following page:
@@ -36,7 +37,6 @@ const std::size_t kGzipThreshold = 1400;
 
 // -----------------------------------------------------------------------------
 
-// HTTP headers.
 namespace http {
 
 namespace methods {
@@ -44,15 +44,15 @@ namespace methods {
 // HTTP methods (verbs) in string.
 // Don't use enum to avoid converting back and forth.
 
-const char* const kGet      = "GET";
-const char* const kHead     = "HEAD";
-const char* const kPost     = "POST";
-const char* const kPut      = "PUT";
-const char* const kDelete   = "DELETE";
-const char* const kConnect  = "CONNECT";
-const char* const kOptions  = "OPTIONS";
-const char* const kTrace    = "TRACE";
-const char* const kPatch    = "PATCH";
+const char* const kGet = "GET";
+const char* const kHead = "HEAD";
+const char* const kPost = "POST";
+const char* const kPut = "PUT";
+const char* const kDelete = "DELETE";
+const char* const kConnect = "CONNECT";
+const char* const kOptions = "OPTIONS";
+const char* const kTrace = "TRACE";
+const char* const kPatch = "PATCH";
 
 }  // namespace methods
 
@@ -95,15 +95,16 @@ const char* const kServer = "Server";
 
 namespace media_types {
 
-// NOTE:
-// According to www.w3.org when placing SOAP messages in HTTP bodies, the HTTP
-// Content-type header must be chosen as "application/soap+xml" [RFC 3902].
-// But in practice, many web servers cannot understand it.
-// See: https://www.w3.org/TR/2007/REC-soap12-part0-20070427/#L26854
+// See the following link for the full list of media types:
+//   https://www.iana.org/assignments/media-types/media-types.xhtml
 
 const char* const kApplicationJson = "application/json";
 const char* const kApplicationSoapXml = "application/soap+xml";
 const char* const kTextXml = "text/xml";
+
+// Get media type from file extension.
+std::string FromExtension(const std::string& extension,
+                          bool default_to_plain_text = true);
 
 }  // namespace media_types
 
@@ -121,6 +122,24 @@ enum class ContentEncoding {
 
 // Return default user agent for HTTP headers.
 const std::string& UserAgent();
+
+// File for HTTP transfer (upload/download).
+class File {
+public:
+  File() = default;
+
+  File(const std::string& file_path);
+
+  // Binary file data.
+  // TODO: don't use std::string?
+  std::string data;
+
+  // E.g., example.jpg
+  std::string file_name;
+
+  // E.g., image/jpeg
+  std::string mime_type;
+};
 
 }  // namespace http
 

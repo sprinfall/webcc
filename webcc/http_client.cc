@@ -165,6 +165,7 @@ void HttpClient::DoReadResponse(Error* error) {
     // Stop the deadline timer once the read has started (or failed).
     CancelTimer();
 
+    // TODO: Is it necessary to check `length == 0`?
     if (ec || length == 0) {
       Close();
       *error = kSocketReadError;

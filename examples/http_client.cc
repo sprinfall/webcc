@@ -4,8 +4,6 @@
 #include "webcc/http_client_session.h"
 #include "webcc/logger.h"
 
-using namespace webcc;
-
 #if (defined(WIN32) || defined(_WIN64))
 // You need to set environment variable SSL_CERT_FILE properly to enable
 // SSL verification.
@@ -65,7 +63,7 @@ void ExampleHttps() {
 //   ExampleKeepAlive("https://api.github.com/events");
 //
 void ExampleKeepAlive(const std::string& url) {
-  HttpClientSession session;
+  webcc::HttpClientSession session;
   session.set_ssl_verify(kSslVerify);
 
   // Keep-Alive
@@ -79,7 +77,7 @@ void ExampleKeepAlive(const std::string& url) {
 }
 
 void ExampleCompression() {
-  HttpClientSession session;
+  webcc::HttpClientSession session;
 
   auto r = session.Get("http://httpbin.org/gzip");
 
@@ -93,7 +91,7 @@ void ExampleCompression() {
 // Get an image from HttpBin.org and save to the given file path.
 // E.g., ExampleImage("E:\\example.jpg")
 void ExampleImage(const std::string& path) {
-  HttpClientSession session;
+  webcc::HttpClientSession session;
 
   auto r = session.Get("http://httpbin.org/image/jpeg");
 
@@ -107,9 +105,9 @@ void ExampleImage(const std::string& path) {
 
 // Post/upload files.
 void ExamplePostFiles() {
-  HttpClientSession session;
+  webcc::HttpClientSession session;
 
-  auto r = session.Request(HttpRequestBuilder{}
+  auto r = session.Request(webcc::HttpRequestBuilder{}
                                .Post()
                                .Url("http://httpbin.org/post")
                                .FileData("file1", "report.xls", "<xls report data>", "application/vnd.ms-excel")
@@ -119,29 +117,28 @@ void ExamplePostFiles() {
 }
 
 // Post/upload files by file path.
-void ExamplePostFiles(const std::string& name,
+void ExamplePostFiles(const std::string& url,
+                      const std::string& name,
                       const std::string& file_name,
                       const std::string& file_path,
                       const std::string& content_type) {
-  HttpClientSession session;
+  webcc::HttpClientSession session;
 
-  auto r =
-      session.Request(HttpRequestBuilder{}
-                          .Post()
-                          .Url("http://httpbin.org/post")
-                          .File(name, file_name, file_path, content_type)());
+  auto r = session.Request(webcc::HttpRequestBuilder{}.Post().
+                           Url(url).
+                           File(name, file_name, file_path, content_type)());
 
   std::cout << r->content() << std::endl;
 }
 
 int main() {
-  WEBCC_LOG_INIT("", LOG_CONSOLE);
+  WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
   try {
 
     ExampleBasic();
 
-  } catch (const Exception& e) {
+  } catch (const webcc::Exception& e) {
     std::cout << "Exception: " << e.what() << std::endl;
   }
 

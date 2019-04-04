@@ -67,6 +67,20 @@ HttpResponsePtr HttpClientSession::Post(
   return Request(builder());
 }
 
+HttpResponsePtr HttpClientSession::PostFile(const std::string& url,
+                                            const std::string& name,
+                                            http::File&& file,
+                                            const std::vector<std::string>& headers) {
+  HttpRequestBuilder builder{http::methods::kPost};
+  builder.Url(url);
+
+  SetHeaders(headers, &builder);
+
+  builder.File(name, std::move(file));
+
+  return Request(builder());
+}
+
 HttpResponsePtr HttpClientSession::Put(
     const std::string& url, std::string&& data, bool json,
     const std::vector<std::string>& headers) {

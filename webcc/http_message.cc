@@ -166,7 +166,9 @@ void HttpMessage::Dump(std::ostream& os, std::size_t indent,
 
   os << indent_str << std::endl;
 
-  // NOTE: The content will be truncated if it's too large to display.
+  // NOTE:
+  // - The content will be truncated if it's too large to display.
+  // - Binary content will not be dumped (TODO).
 
   if (!content_.empty()) {
     if (indent == 0) {
