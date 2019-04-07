@@ -24,6 +24,16 @@
 
 namespace webcc {
 
+// -----------------------------------------------------------------------------
+
+static std::string g_main_thread_id;
+
+static const char* kLevelNames[] = {
+  "VERB", "INFO", "WARN", "ERRO", "FATA"
+};
+
+// -----------------------------------------------------------------------------
+
 struct Logger {
   Logger() : file(nullptr), modes(0) {
   }
@@ -56,11 +66,96 @@ struct Logger {
 // Global logger.
 static Logger g_logger;
 
-static std::string g_main_thread_id;
+// -----------------------------------------------------------------------------
 
-static const char* kLevelNames[] = {
-  "VERB", "INFO", "WARN", "ERRO", "FATA"
-};
+// The colors related code was adapted from Loguru. See:
+//   https://github.com/emilk/loguru/blob/master/loguru.cpp
+// Thanks to Loguru!
+
+bool g_colorlogtostderr = true;
+
+static const bool g_terminal_has_color = []() {
+#if (defined(WIN32) || defined(_WIN64))
+#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+#endif
+  HANDLE houtput = GetStdHandle(STD_OUTPUT_HANDLE);
+  if (houtput != INVALID_HANDLE_VALUE) {
+    DWORD mode = 0;
+    GetConsoleMode(houtput, &mode);
+    mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    return SetConsoleMode(houtput, mode) != 0;
+  }
+  return false;
+#else
+  const char* term = getenv("TERM");
+  if (term == nullptr) {
+    return false;
+  }
+
+  return strcmp(term, "cygwin") == 0 || strcmp(term, "linux") == 0 ||
+         strcmp(term, "rxvt-unicode-256color") == 0 ||
+         strcmp(term, "screen") == 0 || strcmp(term, "screen-256color") == 0 ||
+         strcmp(term, "tmux-256color") == 0 || strcmp(term, "xterm") == 0 ||
+         strcmp(term, "xterm-256color") == 0 ||
+         strcmp(term, "xterm-termite") == 0 || strcmp(term, "xterm-color") == 0;
+#endif
+}();
+
+// Colors
+
+#ifdef _WIN32
+#define VTSEQ(ID) ("\x1b[1;" #ID "m")
+#else
+#define VTSEQ(ID) ("\x1b[" #ID "m")
+#endif
+
+const char* TerminalBlack() {
+  return g_terminal_has_color ? VTSEQ(30) : "";
+}
+const char* TerminalRed() {
+  return g_terminal_has_color ? VTSEQ(31) : "";
+}
+const char* TerminalGreen() {
+  return g_terminal_has_color ? VTSEQ(32) : "";
+}
+const char* TerminalYellow() {
+  return g_terminal_has_color ? VTSEQ(33) : "";
+}
+const char* TerminalBlue() {
+  return g_terminal_has_color ? VTSEQ(34) : "";
+}
+const char* TerminalPurple() {
+  return g_terminal_has_color ? VTSEQ(35) : "";
+}
+const char* TerminalCyan() {
+  return g_terminal_has_color ? VTSEQ(36) : "";
+}
+const char* TerminalLightGray() {
+  return g_terminal_has_color ? VTSEQ(37) : "";
+}
+const char* TerminalWhite() {
+  return g_terminal_has_color ? VTSEQ(37) : "";
+}
+const char* TerminalLightRed() {
+  return g_terminal_has_color ? VTSEQ(91) : "";
+}
+const char* TerminalDim() {
+  return g_terminal_has_color ? VTSEQ(2) : "";
+}
+
+// Formating
+const char* TerminalBold() {
+  return g_terminal_has_color ? VTSEQ(1) : "";
+}
+const char* TerminalUnderline() {
+  return g_terminal_has_color ? VTSEQ(4) : "";
+}
+
+// You should end each line with this!
+const char* TerminalReset() {
+  return g_terminal_has_color ? VTSEQ(0) : "";
+}
 
 namespace bfs = boost::filesystem;
 
@@ -123,8 +218,8 @@ static std::string GetTimestamp() {
   ss << std::put_time(std::localtime(&t), "%Y-%m-%d %H:%M:%S");
 
   std::chrono::milliseconds milli_seconds =
-      std::chrono::duration_cast<std::chrono::milliseconds>(
-          now.time_since_epoch());
+    std::chrono::duration_cast<std::chrono::milliseconds>(
+                                                          now.time_since_epoch());
   std::string micro_seconds_str = std::to_string(milli_seconds.count() % 1000);
   while (micro_seconds_str.size() < 3) {
     micro_seconds_str = "0" + micro_seconds_str;
@@ -168,13 +263,33 @@ void LogWrite(int level, const char* file, int line, const char* format, ...) {
     va_list args;
     va_start(args, format);
 
-    fprintf(stderr, "%s, %s, %7s, %25s, %4d, ",
-            timestamp.c_str(), kLevelNames[level], thread_id.c_str(),
-            file, line);
+    if (g_colorlogtostderr && g_terminal_has_color) {
+      if (level < WEBCC_WARN) {
+        fprintf(stderr, "%s%s%s, %s, %7s, %25s, %4d, %s",
+                TerminalReset(), TerminalDim(),
+                timestamp.c_str(), kLevelNames[level], thread_id.c_str(),
+                file, line,
+                level == WEBCC_INFO ? TerminalReset() : "");  // un-dim for INFO
+      } else {
+        fprintf(stderr, "%s%s%s, %s, %7s, %25s, %4d, ",
+                TerminalReset(),
+                level == WEBCC_WARN ? TerminalYellow() : TerminalRed(),
+                timestamp.c_str(), kLevelNames[level], thread_id.c_str(),
+                file, line);
+      }
 
-    vfprintf(stderr, format, args);
+      vfprintf(stderr, format, args);
 
-    fprintf(stderr, "\n");
+      fprintf(stderr, "%s\n", TerminalReset());
+    } else {
+      fprintf(stderr, "%s, %s, %7s, %25s, %4d, ",
+              timestamp.c_str(), kLevelNames[level], thread_id.c_str(),
+              file, line);
+
+      vfprintf(stderr, format, args);
+
+      fprintf(stderr, "\n");
+    }
 
     if ((g_logger.modes & LOG_FLUSH) != 0) {
       fflush(stderr);

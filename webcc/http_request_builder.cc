@@ -43,7 +43,7 @@ HttpRequestPtr HttpRequestBuilder::Build() {
     std::string data;
     CreateFormData(&data, boundary);
 
-    // Ingore gzip since most servers don't support it. 
+    // Ingore gzip since most servers don't support it.
     request->SetContent(std::move(data), true);
   }
 

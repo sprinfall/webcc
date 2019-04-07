@@ -9,6 +9,7 @@ endif()
 project(webcc)
 
 option(WEBCC_ENABLE_SOAP "Enable SOAP support (need pugixml)?" ON)
+option(WEBCC_ENABLE_TEST "Build test?" ON)
 option(WEBCC_ENABLE_UNITTEST "Build unit test?" ON)
 option(WEBCC_ENABLE_EXAMPLES "Build examples?" ON)
 
@@ -138,6 +139,10 @@ if(WEBCC_ENABLE_EXAMPLES)
     add_subdirectory(${THIRD_PARTY_DIR}/src/jsoncpp)
 
     add_subdirectory(examples)
+endif()
+
+if(WEBCC_ENABLE_TEST)
+    add_subdirectory(test)
 endif()
 
 if(WEBCC_ENABLE_UNITTEST)
