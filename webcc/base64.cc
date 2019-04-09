@@ -72,12 +72,12 @@ static const char kInverse[] = {
 };
 
 // Return max chars needed to encode a base64 string.
-inline std::size_t constexpr EncodedSize(std::size_t n) {
+inline std::size_t EncodedSize(std::size_t n) {
   return 4 * ((n + 2) / 3);
 }
 
 // Return max bytes needed to decode a base64 string.
-inline std::size_t constexpr DecodedSize(std::size_t n) {
+inline std::size_t DecodedSize(std::size_t n) {
   // return 3 * n / 4;
   return n / 4 * 3;  // requires n&3==0, smaller
 }

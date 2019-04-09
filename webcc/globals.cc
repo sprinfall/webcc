@@ -19,7 +19,7 @@ static bool ReadFile(const std::string& path, std::string* output) {
   }
 
   auto size = ifs.tellg();
-  output->resize(size, '\0');
+  output->resize((std::size_t)size, '\0');
   ifs.seekg(0);
   ifs.read(&(*output)[0], size);  // TODO: Error handling
 

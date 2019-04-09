@@ -5,6 +5,37 @@
 #include <exception>
 #include <string>
 
+// -----------------------------------------------------------------------------
+// Macros
+
+#ifdef _MSC_VER
+
+#if _MSC_VER <= 1800  // VS 2013
+
+// Does the compiler support "= default" for move copy constructor and
+// move assignment operator?
+#define WEBCC_DEFAULT_MOVE_COPY_ASSIGN 0
+
+#define WEBCC_NOEXCEPT
+
+#else
+
+#define WEBCC_DEFAULT_MOVE_COPY_ASSIGN 1
+
+#define WEBCC_NOEXCEPT noexcept
+
+#endif  // _MSC_VER <= 1800
+
+#else
+
+// GCC, Clang, etc.
+
+#define WEBCC_DEFAULT_MOVE_COPY_ASSIGN 1
+
+#define WEBCC_NOEXCEPT noexcept
+
+#endif  // _MSC_VER
+
 namespace webcc {
 
 // -----------------------------------------------------------------------------
@@ -183,7 +214,7 @@ public:
   Error error() const { return error_; }
 
   // Note that `noexcept` is required by GCC.
-  const char* what() const noexcept override {
+  const char* what() const WEBCC_NOEXCEPT override{
     return msg_.c_str();
   }
 

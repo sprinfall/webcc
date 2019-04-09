@@ -1,7 +1,7 @@
 #ifndef WEBCC_BASE64_H_
 #define WEBCC_BASE64_H_
 
-#include <cctype>
+#include <cstdint>
 #include <string>
 
 namespace webcc {

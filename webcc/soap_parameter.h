@@ -46,8 +46,29 @@ public:
         as_cdata_(false) {
   }
 
+#if WEBCC_DEFAULT_MOVE_COPY_ASSIGN
+
   SoapParameter(SoapParameter&&) = default;
   SoapParameter& operator=(SoapParameter&&) = default;
+
+#else
+
+  SoapParameter(SoapParameter&& rhs)
+      : key_(std::move(rhs.key_)),
+        value_(std::move(rhs.value_)),
+        as_cdata_(rhs.as_cdata_) {
+  }
+
+  SoapParameter& operator=(SoapParameter&& rhs) {
+    if (&rhs != this) {
+      key_ = std::move(rhs.key_);
+      value_ = std::move(rhs.value_);
+      as_cdata_ = rhs.as_cdata_;
+    }
+    return *this;
+  }
+
+#endif  // WEBCC_DEFAULT_MOVE_COPY_ASSIGN
 
   const std::string& key() const { return key_; }
   const std::string& value() const { return value_; }
