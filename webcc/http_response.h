@@ -25,10 +25,7 @@ public:
 
   // Set start line according to status code.
   bool Prepare() final;
-
-  // Get a fault response when HTTP status is not OK.
-  static HttpResponsePtr Fault(http::Status status);
-
+  
 private:
   int status_;
 };

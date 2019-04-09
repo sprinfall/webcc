@@ -66,17 +66,4 @@ bool HttpResponse::Prepare() {
   return true;
 }
 
-HttpResponsePtr HttpResponse::Fault(http::Status status) {
-  assert(status != http::Status::kOK);
-
-  auto response = std::make_shared<HttpResponse>(status);
-
-  // TODO
-  response->SetHeader(http::headers::kConnection, "Close");
-
-  //response->Prepare();
-
-  return response;
-}
-
 }  // namespace webcc

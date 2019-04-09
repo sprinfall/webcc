@@ -75,8 +75,7 @@ void HttpConnection::OnRead(boost::system::error_code ec, std::size_t length) {
   if (!request_parser_.Parse(buffer_.data(), length)) {
     // Bad request.
     LOG_ERRO("Failed to parse HTTP request.");
-    response_ = HttpResponse::Fault(http::Status::kBadRequest);
-    DoWrite();
+    SendResponse(http::Status::kBadRequest);
     return;
   }
 
@@ -117,8 +116,8 @@ void HttpConnection::OnWrite(boost::system::error_code ec, std::size_t length) {
     LOG_INFO("Response has been sent back, length: %u.", length);
 
     if (request_->IsConnectionKeepAlive()) {
-      LOG_INFO("The client asked for keep-alive connection.");
-      LOG_INFO("Continue to read next request...");
+      LOG_INFO("The client asked for a keep-alive connection.");
+      LOG_INFO("Continue to read the next request...");
       Start();
     } else {
       Shutdown();
