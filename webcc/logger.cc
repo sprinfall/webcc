@@ -13,7 +13,7 @@
 #include <thread>
 
 #if (defined(WIN32) || defined(_WIN64))
-// Do nothing.
+#include <Windows.h>
 #else
 // For getting thread ID.
 #include <sys/syscall.h>
@@ -79,12 +79,13 @@ static const bool g_terminal_has_color = []() {
 #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
 #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
 #endif
-  HANDLE houtput = GetStdHandle(STD_OUTPUT_HANDLE);
-  if (houtput != INVALID_HANDLE_VALUE) {
+  // NOTE: Need Windows 10.
+  HANDLE h_output = GetStdHandle(STD_OUTPUT_HANDLE);
+  if (h_output != INVALID_HANDLE_VALUE) {
     DWORD mode = 0;
-    GetConsoleMode(houtput, &mode);
+    GetConsoleMode(h_output, &mode);
     mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-    return SetConsoleMode(houtput, mode) != 0;
+    return SetConsoleMode(h_output, mode) != 0;
   }
   return false;
 #else
@@ -104,7 +105,7 @@ static const bool g_terminal_has_color = []() {
 
 // Colors
 
-#ifdef _WIN32
+#if (defined(WIN32) || defined(_WIN64))
 #define VTSEQ(ID) ("\x1b[1;" #ID "m")
 #else
 #define VTSEQ(ID) ("\x1b[" #ID "m")
@@ -156,6 +157,8 @@ const char* TerminalUnderline() {
 const char* TerminalReset() {
   return g_terminal_has_color ? VTSEQ(0) : "";
 }
+
+// -----------------------------------------------------------------------------
 
 namespace bfs = boost::filesystem;
 
@@ -265,11 +268,10 @@ void LogWrite(int level, const char* file, int line, const char* format, ...) {
 
     if (g_colorlogtostderr && g_terminal_has_color) {
       if (level < WEBCC_WARN) {
-        fprintf(stderr, "%s%s%s, %s, %7s, %25s, %4d, %s",
-                TerminalReset(), TerminalDim(),
+        fprintf(stderr, "%s%s, %s, %7s, %25s, %4d, ",
+                TerminalReset(),
                 timestamp.c_str(), kLevelNames[level], thread_id.c_str(),
-                file, line,
-                level == WEBCC_INFO ? TerminalReset() : "");  // un-dim for INFO
+                file, line);
       } else {
         fprintf(stderr, "%s%s%s, %s, %7s, %25s, %4d, ",
                 TerminalReset(),

@@ -1,8 +1,6 @@
 #ifndef WEBCC_LOGGER_H_
 #define WEBCC_LOGGER_H_
 
-// Simple console logger.
-
 // This file was generated from "config.h.in" by CMake.
 #include "webcc/config.h"
 
