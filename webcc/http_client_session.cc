@@ -40,8 +40,8 @@ static void SetHeaders(const std::vector<std::string>& headers,
 HttpResponsePtr HttpClientSession::Get(
     const std::string& url, const std::vector<std::string>& parameters,
     const std::vector<std::string>& headers) {
-  HttpRequestBuilder builder{http::methods::kGet};
-  builder.Url(url);
+  HttpRequestBuilder builder;
+  builder.Get().Url(url);
 
   assert(parameters.size() % 2 == 0);
   for (std::size_t i = 1; i < parameters.size(); i += 2) {
@@ -56,8 +56,8 @@ HttpResponsePtr HttpClientSession::Get(
 HttpResponsePtr HttpClientSession::Post(
     const std::string& url, std::string&& data, bool json,
     const std::vector<std::string>& headers) {
-  HttpRequestBuilder builder{http::methods::kPost};
-  builder.Url(url);
+  HttpRequestBuilder builder;
+  builder.Post().Url(url);
 
   SetHeaders(headers, &builder);
 
@@ -67,16 +67,32 @@ HttpResponsePtr HttpClientSession::Post(
   return Request(builder());
 }
 
-HttpResponsePtr HttpClientSession::PostFile(const std::string& url,
-                                            const std::string& name,
-                                            http::File&& file,
-                                            const std::vector<std::string>& headers) {
-  HttpRequestBuilder builder{http::methods::kPost};
-  builder.Url(url);
+HttpResponsePtr HttpClientSession::PostFile(
+    const std::string& url, const std::string& name, const Path& path,
+    const std::vector<std::string>& headers) {
+  HttpRequestBuilder builder;
+  builder.Post().Url(url);
 
   SetHeaders(headers, &builder);
 
-  builder.File(name, std::move(file));
+  builder.File(name, path);
+
+  return Request(builder());
+}
+
+HttpResponsePtr HttpClientSession::PostFiles(
+    const std::string& url, const std::map<std::string, Path>& paths,
+    const std::vector<std::string>& headers) {
+  assert(!paths.empty());
+
+  HttpRequestBuilder builder;
+  builder.Post().Url(url);
+
+  SetHeaders(headers, &builder);
+
+  for (auto& pair : paths) {
+    builder.File(pair.first, pair.second);
+  }
 
   return Request(builder());
 }
@@ -84,8 +100,8 @@ HttpResponsePtr HttpClientSession::PostFile(const std::string& url,
 HttpResponsePtr HttpClientSession::Put(
     const std::string& url, std::string&& data, bool json,
     const std::vector<std::string>& headers) {
-  HttpRequestBuilder builder{http::methods::kPut};
-  builder.Url(url);
+  HttpRequestBuilder builder;
+  builder.Put().Url(url);
 
   SetHeaders(headers, &builder);
 
@@ -97,8 +113,8 @@ HttpResponsePtr HttpClientSession::Put(
 
 HttpResponsePtr HttpClientSession::Delete(
     const std::string& url, const std::vector<std::string>& headers) {
-  HttpRequestBuilder builder{http::methods::kDelete};
-  builder.Url(url);
+  HttpRequestBuilder builder;
+  builder.Delete().Url(url);
 
   SetHeaders(headers, &builder);
 
@@ -108,8 +124,8 @@ HttpResponsePtr HttpClientSession::Delete(
 HttpResponsePtr HttpClientSession::Patch(
     const std::string& url, std::string&& data, bool json,
     const std::vector<std::string>& headers) {
-  HttpRequestBuilder builder{http::methods::kPatch};
-  builder.Url(url);
+  HttpRequestBuilder builder;
+  builder.Patch().Url(url);
 
   SetHeaders(headers, &builder);
 

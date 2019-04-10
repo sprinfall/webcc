@@ -5,11 +5,13 @@
 namespace webcc {
 
 HttpClientPool::~HttpClientPool() {
-  LOG_INFO("Close socket for all (%u) connections in the pool.",
-           clients_.size());
+  if (!clients_.empty()) {
+    LOG_INFO("Close socket for all (%u) connections in the pool.",
+             clients_.size());
 
-  for (auto& pair : clients_) {
-    pair.second->Close();
+    for (auto& pair : clients_) {
+      pair.second->Close();
+    }
   }
 }
 

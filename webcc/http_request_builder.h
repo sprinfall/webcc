@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "webcc/http_file.h"
 #include "webcc/http_request.h"
 
 namespace webcc {
@@ -66,15 +67,16 @@ public:
   }
 
   // Upload a file with its path.
-  // TODO: UNICODE file path.
-  HttpRequestBuilder& File(const std::string& name,
-                           const std::string& file_path,
-                           const std::string& file_name = "",
+  HttpRequestBuilder& File(const std::string& name, const Path& path,
                            const std::string& mime_type = "");
 
-  HttpRequestBuilder& File(const std::string& name, http::File&& file);
+  HttpRequestBuilder& File(const std::string& name, HttpFile&& file) {
+    files_[name] = std::move(file);
+    return *this;
+  }
 
   // Upload a file with its data.
+  // TODO: Unicode |file_name|.
   HttpRequestBuilder& FileData(const std::string& name,
                                std::string&& file_data,
                                const std::string& file_name = "",
@@ -122,8 +124,8 @@ private:
   // Is the data to send a JSON string?
   bool json_ = false;
 
-  // Files to upload for a POST (or PUT?) request.
-  std::map<std::string, http::File> files_;
+  // Files to upload for a POST request.
+  std::map<std::string, HttpFile> files_;
 
   // Compress the request content.
   // NOTE: Most servers don't support compressed requests.

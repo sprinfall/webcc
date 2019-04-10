@@ -154,24 +154,6 @@ enum class ContentEncoding {
 // Return default user agent for HTTP headers.
 const std::string& UserAgent();
 
-// File for HTTP transfer (upload/download).
-class File {
-public:
-  File() = default;
-
-  File(const std::string& file_path);
-
-  // Binary file data.
-  // TODO: don't use std::string?
-  std::string data;
-
-  // E.g., example.jpg
-  std::string file_name;
-
-  // E.g., image/jpeg
-  std::string mime_type;
-};
-
 }  // namespace http
 
 // -----------------------------------------------------------------------------

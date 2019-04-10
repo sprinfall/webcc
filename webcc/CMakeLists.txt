@@ -21,6 +21,7 @@ set(HEADERS
     http_client_session.h
     http_connection.h
     http_connection_pool.h
+    http_file.h
     http_message.h
     http_parser.h
     http_request.h
@@ -50,6 +51,7 @@ set(SOURCES
     http_client_session.cc
     http_connection.cc
     http_connection_pool.cc
+    http_file.cc
     http_message.cc
     http_parser.cc
     http_request.cc

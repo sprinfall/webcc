@@ -1,30 +1,10 @@
 #include "webcc/globals.h"
 
-#include <fstream>
 #include <map>
-
-#include "boost/filesystem/path.hpp"
 
 #include "webcc/version.h"
 
 namespace webcc {
-
-// -----------------------------------------------------------------------------
-
-// Read entire file into string.
-static bool ReadFile(const std::string& path, std::string* output) {
-  std::ifstream ifs{path, std::ios::binary | std::ios::ate};
-  if (!ifs) {
-    return false;
-  }
-
-  auto size = ifs.tellg();
-  output->resize((std::size_t)size, '\0');
-  ifs.seekg(0);
-  ifs.read(&(*output)[0], size);  // TODO: Error handling
-
-  return true;
-}
 
 // -----------------------------------------------------------------------------
 
@@ -33,29 +13,6 @@ namespace http {
 const std::string& UserAgent() {
   static std::string s_user_agent = std::string("Webcc/") + WEBCC_VERSION;
   return s_user_agent;
-}
-
-File::File(const std::string& file_path) {
-  if (!ReadFile(file_path, &data)) {
-    throw Exception(kFileIOError, "Cannot read the file.");
-  }
-
-  namespace bfs = boost::filesystem;
-
-  // Determine file name from file path.
-  //if (file_name.empty()) {
-    file_name = bfs::path(file_path).filename().string();
-  //} else {
-  //  file_name = file_name;
-  //}
-
-  // Determine content type from file extension.
-  //if (mime_type.empty()) {
-    std::string extension = bfs::path(file_path).extension().string();
-    mime_type = http::media_types::FromExtension(extension, false);
-  //} else {
-    //mime_type = mime_type;
-  //}
 }
 
 namespace media_types {
@@ -96,6 +53,8 @@ std::string FromExtension(const std::string& extension,
 }  // namespace media_types
 
 }  // namespace http
+
+// -----------------------------------------------------------------------------
 
 const char* DescribeError(Error error) {
   switch (error) {

@@ -103,34 +103,6 @@ void ExampleImage(const std::string& path) {
   ofs << r->content();
 }
 
-// Post/upload files.
-void ExamplePostFiles() {
-  webcc::HttpClientSession session;
-
-  auto r = session.Request(webcc::HttpRequestBuilder{}
-                               .Post()
-                               .Url("http://httpbin.org/post")
-                               .FileData("file1", "report.xls", "<xls report data>", "application/vnd.ms-excel")
-                               .FileData("file2", "report.xml", "<xml report data>", "text/xml")());
-
-  std::cout << r->content() << std::endl;
-}
-
-// Post/upload files by file path.
-void ExamplePostFiles(const std::string& url,
-                      const std::string& name,
-                      const std::string& file_name,
-                      const std::string& file_path,
-                      const std::string& content_type) {
-  webcc::HttpClientSession session;
-
-  auto r = session.Request(webcc::HttpRequestBuilder{}.Post().
-                           Url(url).
-                           File(name, file_name, file_path, content_type)());
-
-  std::cout << r->content() << std::endl;
-}
-
 int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 

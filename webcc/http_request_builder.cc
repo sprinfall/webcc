@@ -51,20 +51,12 @@ HttpRequestPtr HttpRequestBuilder::Build() {
 }
 
 HttpRequestBuilder& HttpRequestBuilder::File(const std::string& name,
-                                             const std::string& file_path,
-                                             const std::string& file_name,
+                                             const Path& path,
                                              const std::string& mime_type) {
   assert(!name.empty());
 
-  // TODO
-  files_[name] = http::File(file_path/*, file_name, mime_type*/);
+  files_[name] = HttpFile(path, mime_type);
 
-  return *this;
-}
-
-HttpRequestBuilder& HttpRequestBuilder::File(const std::string& name,
-                                             http::File&& file) {
-  files_[name] = std::move(file);
   return *this;
 }
 
@@ -72,12 +64,9 @@ HttpRequestBuilder& HttpRequestBuilder::FileData(const std::string& name,
                                                  std::string&& file_data,
                                                  const std::string& file_name,
                                                  const std::string& mime_type) {
-  http::File file;
-  file.data = std::move(file_data);
-  file.file_name = file_name;
-  file.mime_type = mime_type;
+  assert(!name.empty());
 
-  files_[name] = std::move(file);
+  files_[name] = HttpFile(std::move(file_data), file_name, mime_type);
 
   return *this;
 }
@@ -121,21 +110,21 @@ void HttpRequestBuilder::CreateFormData(std::string* data,
     if (!pair.first.empty()) {
       data->append("; name=\"" + pair.first + "\"");
     }
-    if (!pair.second.file_name.empty()) {
-      data->append("; filename=\"" + pair.second.file_name + "\"");
+    if (!pair.second.file_name().empty()) {
+      data->append("; filename=\"" + pair.second.file_name() + "\"");
     }
     data->append(kCRLF);
 
     // Content-Type header
-    if (!pair.second.mime_type.empty()) {
-      data->append("Content-Type: " + pair.second.mime_type);
+    if (!pair.second.mime_type().empty()) {
+      data->append("Content-Type: " + pair.second.mime_type());
       data->append(kCRLF);
     }
 
     data->append(kCRLF);
 
     // Payload
-    data->append(pair.second.data);
+    data->append(pair.second.data());
 
     data->append(kCRLF);
   }
