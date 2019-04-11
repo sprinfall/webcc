@@ -21,6 +21,7 @@ public:
 private:
   void HandleConnection(HttpConnectionPtr connection) final;
 
+private:
   RestServiceManager service_manager_;
 };
 

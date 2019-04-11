@@ -49,8 +49,20 @@ public:
     return data_;
   }
 
+  void AppendData(const std::string& data) {
+    data_.append(data);
+  }
+
+  void AppendData(const char* data, std::size_t size) {
+    data_.append(data, size);
+  }
+
   const std::string& file_name() const {
     return file_name_;
+  }
+
+  void set_file_name(const std::string& file_name) {
+    file_name_ = file_name;
   }
 
   const std::string& mime_type() const {

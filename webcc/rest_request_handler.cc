@@ -20,7 +20,9 @@ void RestRequestHandler::HandleConnection(HttpConnectionPtr connection) {
 
   const Url& url = http_request->url();
 
+  // TODO
   RestRequest rest_request{
+    http_request,
     http_request->method(), http_request->content(), url.query()
   };
 

@@ -36,6 +36,7 @@ private:
     return &request_handler_;
   }
 
+private:
   RestRequestHandler request_handler_;
 };
 

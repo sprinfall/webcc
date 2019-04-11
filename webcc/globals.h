@@ -115,6 +115,7 @@ const char* const kAuthorization = "Authorization";
 const char* const kContentType = "Content-Type";
 const char* const kContentLength = "Content-Length";
 const char* const kContentEncoding = "Content-Encoding";
+const char* const kContentDisposition = "Content-Disposition";
 const char* const kConnection = "Connection";
 const char* const kTransferEncoding = "Transfer-Encoding";
 const char* const kAccept = "Accept";
@@ -131,6 +132,7 @@ namespace media_types {
 
 const char* const kApplicationJson = "application/json";
 const char* const kApplicationSoapXml = "application/soap+xml";
+const char* const kTextPlain = "text/plain";
 const char* const kTextXml = "text/xml";
 
 // Get media type from file extension.

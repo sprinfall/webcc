@@ -4,6 +4,9 @@
 
 #include "boost/algorithm/string.hpp"
 
+#include "webcc/logger.h"
+#include "webcc/utility.h"
+
 namespace webcc {
 
 // -----------------------------------------------------------------------------
@@ -20,56 +23,6 @@ const char CRLF[] = { '\r', '\n' };
 std::ostream& operator<<(std::ostream& os, const HttpMessage& message) {
   message.Dump(os);
   return os;
-}
-
-// -----------------------------------------------------------------------------
-
-void HttpHeaderDict::Set(const std::string& key, const std::string& value) {
-  auto it = Find(key);
-  if (it != headers_.end()) {
-    it->second = value;
-  } else {
-    headers_.push_back({ key, value });
-  }
-}
-
-void HttpHeaderDict::Set(std::string&& key, std::string&& value) {
-  auto it = Find(key);
-  if (it != headers_.end()) {
-    it->second = std::move(value);
-  } else {
-    headers_.push_back({ std::move(key), std::move(value) });
-  }
-}
-
-bool HttpHeaderDict::Have(const std::string& key) const {
-  return const_cast<HttpHeaderDict*>(this)->Find(key) != headers_.end();
-}
-
-const std::string& HttpHeaderDict::Get(const std::string& key,
-                                       bool* existed) const {
-  auto it = const_cast<HttpHeaderDict*>(this)->Find(key);
-
-  if (existed != nullptr) {
-    *existed = (it != headers_.end());
-  }
-
-  if (it != headers_.end()) {
-    return it->second;
-  }
-
-  static const std::string s_no_value;
-  return s_no_value;
-}
-
-std::vector<HttpHeader>::iterator HttpHeaderDict::Find(const std::string& key) {
-  auto it = headers_.begin();
-  for (; it != headers_.end(); ++it) {
-    if (boost::iequals(it->first, key)) {
-      break;
-    }
-  }
-  return it;
 }
 
 // -----------------------------------------------------------------------------
@@ -180,12 +133,12 @@ void HttpMessage::Dump(std::ostream& os, std::size_t indent,
       }
     } else {
       // Split by EOL to achieve more readability.
-      std::vector<std::string> splitted;
-      boost::split(splitted, content_, boost::is_any_of("\n"));
+      std::vector<std::string> lines;
+      boost::split(lines, content_, boost::is_any_of("\n"));
 
       std::size_t size = 0;
 
-      for (const std::string& line : splitted) {
+      for (const std::string& line : lines) {
         os << indent_str;
 
         if (line.size() + size > kMaxDumpSize) {

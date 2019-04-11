@@ -22,15 +22,21 @@ set(REST_BOOK_SRCS
 	)
 
 add_executable(http_client http_client.cc)
-add_executable(github_client github_client.cc)
-
 target_link_libraries(http_client ${EXAMPLE_COMMON_LIBS})
+
+add_executable(github_client github_client.cc)
 target_link_libraries(github_client ${EXAMPLE_COMMON_LIBS} jsoncpp)
 
-add_executable(rest_book_server rest_book_server.cc ${REST_BOOK_SRCS})
-add_executable(rest_book_client rest_book_client.cc ${REST_BOOK_SRCS})
+add_executable(file_upload_client file_upload_client.cc)
+target_link_libraries(file_upload_client ${EXAMPLE_COMMON_LIBS})
 
+add_executable(file_upload_server file_upload_server.cc)
+target_link_libraries(file_upload_server ${EXAMPLE_COMMON_LIBS})
+
+add_executable(rest_book_server rest_book_server.cc ${REST_BOOK_SRCS})
 target_link_libraries(rest_book_server ${EXAMPLE_COMMON_LIBS} jsoncpp)
+
+add_executable(rest_book_client rest_book_client.cc ${REST_BOOK_SRCS})
 target_link_libraries(rest_book_client ${EXAMPLE_COMMON_LIBS} jsoncpp)
 
 if(WEBCC_ENABLE_SOAP)

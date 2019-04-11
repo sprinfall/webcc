@@ -198,14 +198,14 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  WEBCC_LOG_INIT("", webcc::LOG_CONSOLE_FILE_OVERWRITE);
-
   std::string url = argv[1];
 
   int timeout = 0;
   if (argc > 2) {
     timeout = std::atoi(argv[2]);
   }
+
+  WEBCC_LOG_INIT("", webcc::LOG_CONSOLE_FILE_OVERWRITE);
 
   // Share the same session.
   webcc::HttpClientSession session;

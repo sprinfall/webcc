@@ -1,6 +1,7 @@
 #ifndef WEBCC_HTTP_REQUEST_H_
 #define WEBCC_HTTP_REQUEST_H_
 
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -56,13 +57,26 @@ public:
     return port().empty() ? default_port : port();
   }
 
+  const std::map<std::string, HttpFile>& files() const {
+    return files_;
+  }
+
+  // Add a file to upload.
+  void AddFile(const std::string& name, HttpFile&& file) {
+    files_[name] = std::move(file);
+  }
+
   // Prepare payload.
   // Compose start line, set Host header, etc.
   bool Prepare() final;
 
 private:
   std::string method_;
+
   Url url_;
+
+  // Files to upload for a POST request.
+  std::map<std::string, HttpFile> files_;
 };
 
 }  // namespace webcc

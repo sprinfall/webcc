@@ -4,6 +4,7 @@
 #include <string>
 
 #include "webcc/globals.h"
+#include "webcc/http_file.h"
 
 namespace webcc {
 
@@ -37,13 +38,15 @@ protected:
 
   // Get next line (using delimiter CRLF) from the pending data.
   // The line will not contain a trailing CRLF.
-  // If |remove| is true, the line, as well as the trailing CRLF, will be erased
+  // If |erase| is true, the line, as well as the trailing CRLF, will be erased
   // from the pending data.
-  bool NextPendingLine(std::size_t off, std::string* line, bool remove);
+  bool GetNextLine(std::size_t off, std::string* line, bool erase);
 
   virtual bool ParseStartLine(const std::string& line) = 0;
 
   bool ParseHeaderLine(const std::string& line);
+
+  virtual bool ParseContent();
 
   bool ParseFixedContent();
 
@@ -77,6 +80,19 @@ protected:
   bool chunked_;
   std::size_t chunk_size_;
   bool finished_;
+
+  struct Part {
+    enum Step {
+      kStart,
+      kBoundaryParsed,
+      kHeadersParsed,
+      kEnded,
+    };
+    Step step = kStart;
+    std::string name;
+    HttpFile file;
+  };
+  Part part_;
 };
 
 }  // namespace webcc

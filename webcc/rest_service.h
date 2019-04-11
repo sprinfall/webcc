@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "webcc/globals.h"
+#include "webcc/http_request.h"
 #include "webcc/url.h"
 
 namespace webcc {
@@ -24,6 +25,9 @@ namespace webcc {
 typedef std::vector<std::string> UrlMatches;
 
 struct RestRequest {
+  // Original HTTP request.
+  HttpRequestPtr http;
+
   // HTTP method (GET, POST, etc.).
   const std::string& method;
 
@@ -65,9 +69,7 @@ class RestListService : public RestService {
 public:
   void Handle(const RestRequest& request, RestResponse* response) final;
 
-public:
-  RestListService() = default;
-
+protected:
   virtual void Get(const UrlQuery& query, RestResponse* response) {
   }
 
@@ -82,7 +84,7 @@ class RestDetailService : public RestService {
 public:
   void Handle(const RestRequest& request, RestResponse* response) final;
 
-public:
+protected:
   virtual void Get(const UrlMatches& url_matches,
                    const UrlQuery& query,
                    RestResponse* response) {

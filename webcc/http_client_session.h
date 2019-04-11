@@ -59,16 +59,6 @@ public:
   HttpResponsePtr Post(const std::string& url, std::string&& data, bool json,
                        const std::vector<std::string>& headers = {});
 
-  // Post a file.
-  HttpResponsePtr PostFile(const std::string& url, const std::string& name,
-                           const Path& path,
-                           const std::vector<std::string>& headers = {});
-
-  // Post multiple files.
-  HttpResponsePtr PostFiles(const std::string& url,
-                            const std::map<std::string, Path>& paths,
-                            const std::vector<std::string>& headers = {});
-
   // Shortcut for PUT request.
   HttpResponsePtr Put(const std::string& url, std::string&& data, bool json,
                       const std::vector<std::string>& headers = {});
@@ -80,6 +70,16 @@ public:
   // Shortcut for PATCH request.
   HttpResponsePtr Patch(const std::string& url, std::string&& data, bool json,
                         const std::vector<std::string>& headers = {});
+
+  // Post a file.
+  HttpResponsePtr PostFile(const std::string& url, const std::string& name,
+                           const Path& path,
+                           const std::vector<std::string>& headers = {});
+
+  // Post multiple files.
+  HttpResponsePtr PostFiles(const std::string& url,
+                            const std::map<std::string, Path>& paths,
+                            const std::vector<std::string>& headers = {});
 
 private:
   void InitHeaders();
@@ -94,7 +94,7 @@ private:
   std::string charset_;
 
   // Additional headers for each request.
-  HttpHeaderDict headers_;
+  HttpHeaders headers_;
 
   // Verify the certificate of the peer or not.
   bool ssl_verify_ = true;

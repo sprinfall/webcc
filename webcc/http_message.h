@@ -8,57 +8,14 @@
 
 #include "boost/asio/buffer.hpp"  // for const_buffer
 
+#include "webcc/common.h"
+#include "webcc/http_file.h"
 #include "webcc/globals.h"
 
 namespace webcc {
 
-// -----------------------------------------------------------------------------
-
 class HttpMessage;
 std::ostream& operator<<(std::ostream& os, const HttpMessage& message);
-
-// -----------------------------------------------------------------------------
-
-typedef std::pair<std::string, std::string> HttpHeader;
-
-class HttpHeaderDict {
-public:
-  std::size_t size() const {
-    return headers_.size();
-  }
-
-  const std::vector<HttpHeader>& data() const {
-    return headers_;
-  }
-
-  void Set(const std::string& key, const std::string& value);
-
-  void Set(std::string&& key, std::string&& value);
-
-  bool Have(const std::string& key) const;
-
-  // Get header by index.
-  const HttpHeader& Get(std::size_t index) const {
-    assert(index < size());
-    return headers_[index];
-  }
-
-  // Get header value by key.
-  // If there's no such header with the given key, besides return empty, the
-  // optional |existed| parameter will be set to false.
-  const std::string& Get(const std::string& key, bool* existed = nullptr) const;
-
-  void Clear() {
-    headers_.clear();
-  }
-
-private:
-  std::vector<HttpHeader>::iterator Find(const std::string& key);
-
-  std::vector<HttpHeader> headers_;
-};
-
-// -----------------------------------------------------------------------------
 
 // Base class for HTTP request and response messages.
 class HttpMessage {
@@ -86,12 +43,12 @@ public:
 
   bool IsConnectionKeepAlive() const;
 
-  void SetHeader(const std::string& key, const std::string& value) {
-    headers_.Set(key, value);
+  void SetHeader(HttpHeader&& header) {
+    headers_.Set(std::move(header.first), std::move(header.second));
   }
 
-  void SetHeader(std::string&& key, std::string&& value) {
-    headers_.Set(std::move(key), std::move(value));
+  void SetHeader(const std::string& key, const std::string& value) {
+    headers_.Set(key, value);
   }
 
   const std::string& GetHeader(const std::string& key,
@@ -99,8 +56,8 @@ public:
     return headers_.Get(key, existed);
   }
 
-  bool HaveHeader(const std::string& key) const {
-    return headers_.Have(key);
+  bool HasHeader(const std::string& key) const {
+    return headers_.Has(key);
   }
 
   http::ContentEncoding GetContentEncoding() const;
@@ -108,11 +65,20 @@ public:
   // Return true if header Accept-Encoding contains "gzip".
   bool AcceptEncodingGzip() const;
 
+  const ContentType& content_type() const {
+    return content_type_;
+  }
+
+  // TODO: Set header?
+  void SetContentType(const ContentType& content_type) {
+    content_type_ = content_type;
+  }
+
   void SetContentType(const std::string& content_type) {
     SetHeader(http::headers::kContentType, content_type);
   }
 
-  // E.g., "text/html", "application/json; charset=utf-8", etc.
+  // Example: SetContentType("application/json", "utf-8")
   void SetContentType(const std::string& media_type,
                       const std::string& charset);
 
@@ -141,14 +107,18 @@ protected:
     SetHeader(http::headers::kContentLength, std::to_string(content_length));
   }
 
+protected:
   // Start line with trailing CRLF.
+  // TODO: Don't include trailing CRLF since it's confusing.
   std::string start_line_;
+
+  std::string content_;
+
+  ContentType content_type_;
 
   std::size_t content_length_;
 
-  HttpHeaderDict headers_;
-
-  std::string content_;
+  HttpHeaders headers_;
 };
 
 }  // namespace webcc

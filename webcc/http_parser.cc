@@ -4,14 +4,16 @@
 
 #include "webcc/http_message.h"
 #include "webcc/logger.h"
+#include "webcc/utility.h"
 #include "webcc/zlib_wrapper.h"
 
 namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-static bool StringToSizeT(const std::string& str, int base,
-                          std::size_t* output) {
+namespace {
+
+bool StringToSizeT(const std::string& str, int base, std::size_t* output) {
   try {
     *output = static_cast<std::size_t>(std::stoul(str, 0, base));
   } catch (const std::exception&) {
@@ -19,6 +21,8 @@ static bool StringToSizeT(const std::string& str, int base,
   }
   return true;
 }
+
+}  // namespace
 
 // -----------------------------------------------------------------------------
 
@@ -60,12 +64,7 @@ bool HttpParser::Parse(const char* data, std::size_t length) {
   }
 
   // Now, parse the content.
-
-  if (chunked_) {
-    return ParseChunkedContent();
-  } else {
-    return ParseFixedContent();
-  }
+  return ParseContent();
 }
 
 void HttpParser::Reset() {
@@ -86,7 +85,7 @@ bool HttpParser::ParseHeaders() {
 
   while (true) {
     std::string line;
-    if (!NextPendingLine(off, &line, false)) {
+    if (!GetNextLine(off, &line, false)) {
       // Can't find a full header line, need more data from next read.
       break;
     }
@@ -109,14 +108,14 @@ bool HttpParser::ParseHeaders() {
     }
   }
 
-  // Remove the parsed data.
+  // Remove the data which has just been parsed.
   pending_data_.erase(0, off);
 
   return true;
 }
 
-bool HttpParser::NextPendingLine(std::size_t off, std::string* line,
-                                 bool remove) {
+bool HttpParser::GetNextLine(std::size_t off, std::string* line,
+                                 bool erase) {
   std::size_t pos = pending_data_.find(kCRLF, off);
 
   if (pos == std::string::npos) {
@@ -125,11 +124,11 @@ bool HttpParser::NextPendingLine(std::size_t off, std::string* line,
 
   std::size_t count = pos - off;
 
-  if (pos > off) {
+  if (count > 0) {
     *line = pending_data_.substr(off, count);
   }  // else: empty line
 
-  if (remove) {
+  if (erase) {
     pending_data_.erase(off, count + 2);
   }
 
@@ -137,25 +136,18 @@ bool HttpParser::NextPendingLine(std::size_t off, std::string* line,
 }
 
 bool HttpParser::ParseHeaderLine(const std::string& line) {
-  // NOTE: Can't split with ":" because date time also contains ":".
-  std::size_t pos = line.find(':');
-  if (pos == std::string::npos) {
+  HttpHeader header;
+  if (!Split2(line, ':', &header.first, &header.second)) {
     return false;
   }
 
-  std::string name = line.substr(0, pos);
-  boost::trim(name);
-
-  std::string value = line.substr(pos + 1);
-  boost::trim(value);
-
   do {
     if (!chunked_ && !content_length_parsed_) {
-      if (boost::iequals(name, http::headers::kContentLength)) {
+      if (boost::iequals(header.first, http::headers::kContentLength)) {
         content_length_parsed_ = true;
 
-        if (!StringToSizeT(value, 10, &content_length_)) {
-          LOG_ERRO("Invalid content length: %s.", value.c_str());
+        if (!StringToSizeT(header.second, 10, &content_length_)) {
+          LOG_ERRO("Invalid content length: %s.", header.second.c_str());
           return false;
         }
 
@@ -175,8 +167,8 @@ bool HttpParser::ParseHeaderLine(const std::string& line) {
 
     // TODO: Replace `!chunked_` with <TransferEncodingParsed>.
     if (!chunked_ && !content_length_parsed_) {
-      if (boost::iequals(name, http::headers::kTransferEncoding)) {
-        if (value == "chunked") {
+      if (boost::iequals(header.first, http::headers::kTransferEncoding)) {
+        if (header.second == "chunked") {
           // The content is chunked.
           chunked_ = true;
         }
@@ -186,10 +178,27 @@ bool HttpParser::ParseHeaderLine(const std::string& line) {
     }
   } while (false);
 
-  // Save the header to the result message.
-  message_->SetHeader(std::move(name), std::move(value));
+  // Parse Content-Type.
+  if (boost::iequals(header.first, http::headers::kContentType)) {
+    ContentType content_type(header.second);
+    if (!content_type.Valid()) {
+      LOG_ERRO("Invalid content-type header.");
+      return false;
+    }
+    message_->SetContentType(content_type);
+  }
+
+  message_->SetHeader(std::move(header));
 
   return true;
+}
+
+bool HttpParser::ParseContent() {
+  if (chunked_) {
+    return ParseChunkedContent();
+  } else {
+    return ParseFixedContent();
+  }
 }
 
 bool HttpParser::ParseFixedContent() {
@@ -201,7 +210,6 @@ bool HttpParser::ParseFixedContent() {
 
   if (content_length_ == kInvalidLength) {
     // Invalid content length (syntax error).
-    // Normally, shouldn't be here.
     return false;
   }
 
@@ -273,9 +281,8 @@ bool HttpParser::ParseChunkedContent() {
 bool HttpParser::ParseChunkSize() {
   LOG_VERB("Parse chunk size.");
 
-  std::size_t off = 0;
   std::string line;
-  if (!NextPendingLine(off, &line, true)) {
+  if (!GetNextLine(0, &line, true)) {
     return true;
   }
 

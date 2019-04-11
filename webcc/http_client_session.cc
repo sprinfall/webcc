@@ -13,13 +13,13 @@ HttpResponsePtr HttpClientSession::Request(HttpRequestPtr request) {
   assert(request);
 
   for (const auto& h : headers_.data()) {
-    if (!request->HaveHeader(h.first)) {
+    if (!request->HasHeader(h.first)) {
       request->SetHeader(h.first, h.second);
     }
   }
 
   if (!content_type_.empty() &&
-      !request->HaveHeader(http::headers::kContentType)) {
+      !request->HasHeader(http::headers::kContentType)) {
     request->SetContentType(content_type_, charset_);
   }
 
@@ -67,36 +67,6 @@ HttpResponsePtr HttpClientSession::Post(
   return Request(builder());
 }
 
-HttpResponsePtr HttpClientSession::PostFile(
-    const std::string& url, const std::string& name, const Path& path,
-    const std::vector<std::string>& headers) {
-  HttpRequestBuilder builder;
-  builder.Post().Url(url);
-
-  SetHeaders(headers, &builder);
-
-  builder.File(name, path);
-
-  return Request(builder());
-}
-
-HttpResponsePtr HttpClientSession::PostFiles(
-    const std::string& url, const std::map<std::string, Path>& paths,
-    const std::vector<std::string>& headers) {
-  assert(!paths.empty());
-
-  HttpRequestBuilder builder;
-  builder.Post().Url(url);
-
-  SetHeaders(headers, &builder);
-
-  for (auto& pair : paths) {
-    builder.File(pair.first, pair.second);
-  }
-
-  return Request(builder());
-}
-
 HttpResponsePtr HttpClientSession::Put(
     const std::string& url, std::string&& data, bool json,
     const std::vector<std::string>& headers) {
@@ -131,6 +101,36 @@ HttpResponsePtr HttpClientSession::Patch(
 
   builder.Data(std::move(data));
   builder.Json(json);
+
+  return Request(builder());
+}
+
+HttpResponsePtr HttpClientSession::PostFile(
+    const std::string& url, const std::string& name, const Path& path,
+    const std::vector<std::string>& headers) {
+  HttpRequestBuilder builder;
+  builder.Post().Url(url);
+
+  SetHeaders(headers, &builder);
+
+  builder.File(name, path);
+
+  return Request(builder());
+}
+
+HttpResponsePtr HttpClientSession::PostFiles(
+    const std::string& url, const std::map<std::string, Path>& paths,
+    const std::vector<std::string>& headers) {
+  assert(!paths.empty());
+
+  HttpRequestBuilder builder;
+  builder.Post().Url(url);
+
+  SetHeaders(headers, &builder);
+
+  for (auto& pair : paths) {
+    builder.File(pair.first, pair.second);
+  }
 
   return Request(builder());
 }
