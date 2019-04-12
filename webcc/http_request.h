@@ -59,7 +59,7 @@ public:
     return form_parts_;
   }
 
-  void set_form_parts_(std::vector<FormPart>&& form_parts) {
+  void set_form_parts(std::vector<FormPart>&& form_parts) {
     form_parts_ = std::move(form_parts);
   }
 

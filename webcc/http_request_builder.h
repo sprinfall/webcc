@@ -70,21 +70,17 @@ public:
     return *this;
   }
 
-  // Upload a file with its path.
+  // Upload a file.
   HttpRequestBuilder& File(const std::string& name, const Path& path,
                            const std::string& mime_type = "");
 
-  HttpRequestBuilder& File(FormPart&& file) {
-    files_.push_back(std::move(file));
+  HttpRequestBuilder& Form(FormPart&& part) {
+    form_parts_.push_back(std::move(part));
     return *this;
   }
 
-  // Upload a file with its data.
-  // TODO: Unicode |file_name|.
-  HttpRequestBuilder& FileData(const std::string& name,
-                               std::string&& file_data,
-                               const std::string& file_name = "",
-                               const std::string& mime_type = "");
+  HttpRequestBuilder& Form(const std::string& name, std::string&& data,
+                           const std::string& mime_type = "");
 
   HttpRequestBuilder& Gzip(bool gzip = true) {
     gzip_ = gzip;
@@ -129,7 +125,7 @@ private:
   bool json_ = false;
 
   // Files to upload for a POST request.
-  std::vector<FormPart> files_;
+  std::vector<FormPart> form_parts_;
 
   // Compress the request content.
   // NOTE: Most servers don't support compressed requests.

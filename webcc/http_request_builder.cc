@@ -33,20 +33,8 @@ HttpRequestPtr HttpRequestBuilder::Build() {
     if (json_) {
       request->SetContentType(http::media_types::kApplicationJson, "");
     }
-  } else if (!files_.empty()) {
-    request->set_form_parts_(std::move(files_));
-
-    //// Another choice to generate the boundary is what Apache does.
-    //// See: https://stackoverflow.com/a/5686863
-    //const std::string boundary = RandomUuid();
-
-    //request->SetContentType("multipart/form-data; boundary=" + boundary);
-
-    //std::string data;
-    //CreateFormData(&data, boundary);
-
-    //// Ingore gzip since most servers don't support it.
-    //request->SetContent(std::move(data), true);
+  } else if (!form_parts_.empty()) {
+    request->set_form_parts(std::move(form_parts_));
   }
 
   return request;
@@ -56,21 +44,15 @@ HttpRequestBuilder& HttpRequestBuilder::File(const std::string& name,
                                              const Path& path,
                                              const std::string& mime_type) {
   assert(!name.empty());
-
-  files_.push_back(FormPart{ name, path, mime_type });
-
+  form_parts_.push_back(FormPart{ name, path, mime_type });
   return *this;
 }
 
-HttpRequestBuilder& HttpRequestBuilder::FileData(const std::string& name,
-                                                 std::string&& file_data,
-                                                 const std::string& file_name,
-                                                 const std::string& mime_type) {
+HttpRequestBuilder& HttpRequestBuilder::Form(const std::string& name,
+                                             std::string&& data,
+                                             const std::string& mime_type) {
   assert(!name.empty());
-
-  // TODO
-  //files_[name] = HttpFile(std::move(file_data), file_name, mime_type);
-
+  form_parts_.push_back(FormPart{ name, std::move(data), mime_type });
   return *this;
 }
 

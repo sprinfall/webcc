@@ -215,22 +215,9 @@ FormPart::FormPart(const std::string& name, const Path& path,
   }
 }
 
-FormPart::FormPart(std::string&& data, const std::string& file_name,
-                   const std::string& mime_type) {
-  data_ = std::move(data);
-
-  file_name_ = file_name;
-
-  mime_type_ = mime_type;
-
-  // Determine content type from file extension.
-  if (mime_type_.empty()) {
-    std::size_t pos = file_name_.find_last_of('.');
-    if (pos != std::string::npos) {
-      std::string extension = file_name_.substr(pos + 1);
-      mime_type_ = http::media_types::FromExtension(extension, false);
-    }
-  }
+FormPart::FormPart(const std::string& name, std::string&& data,
+                   const std::string& mime_type)
+    : name_(name), data_(std::move(data)), mime_type_(mime_type) {
 }
 
 void FormPart::Prepare(std::vector<boost::asio::const_buffer>& payload) {

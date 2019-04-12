@@ -159,7 +159,7 @@ public:
   explicit FormPart(const std::string& name, const Path& path,
                     const std::string& mime_type = "");
 
-  FormPart(std::string&& data, const std::string& file_name,
+  FormPart(const std::string& name, std::string&& data,
            const std::string& mime_type = "");
 
 #if WEBCC_DEFAULT_MOVE_COPY_ASSIGN

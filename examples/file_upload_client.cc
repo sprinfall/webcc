@@ -50,8 +50,14 @@ int main(int argc, char* argv[]) {
   webcc::HttpClientSession session;
 
   try {
-    auto r = session.PostFile(url, "file",
-                              upload_dir / "remember.txt");
+  //  auto r = session.PostFile(url, "file",
+  //                            upload_dir / "remember.txt");
+
+    auto r = session.Request(webcc::HttpRequestBuilder{}.Post().
+                             Url(url).
+                             File("file", upload_dir / "remember.txt").
+                             Form("text", "text default")
+                             ());
 
     //std::cout << r->content() << std::endl;
 
