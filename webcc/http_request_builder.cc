@@ -14,7 +14,7 @@ HttpRequestPtr HttpRequestBuilder::Build() {
   auto request = std::make_shared<HttpRequest>(method_, url_);
 
   for (std::size_t i = 1; i < parameters_.size(); i += 2) {
-    request->AddParameter(parameters_[i - 1], parameters_[i]);
+    request->AddQuery(parameters_[i - 1], parameters_[i]);
   }
 
   for (std::size_t i = 1; i < headers_.size(); i += 2) {
@@ -34,17 +34,19 @@ HttpRequestPtr HttpRequestBuilder::Build() {
       request->SetContentType(http::media_types::kApplicationJson, "");
     }
   } else if (!files_.empty()) {
-    // Another choice to generate the boundary is what Apache does, see:
-    //   https://stackoverflow.com/a/5686863
-    const std::string boundary = RandomUuid();
+    request->set_form_parts_(std::move(files_));
 
-    request->SetContentType("multipart/form-data; boundary=" + boundary);
+    //// Another choice to generate the boundary is what Apache does.
+    //// See: https://stackoverflow.com/a/5686863
+    //const std::string boundary = RandomUuid();
 
-    std::string data;
-    CreateFormData(&data, boundary);
+    //request->SetContentType("multipart/form-data; boundary=" + boundary);
 
-    // Ingore gzip since most servers don't support it.
-    request->SetContent(std::move(data), true);
+    //std::string data;
+    //CreateFormData(&data, boundary);
+
+    //// Ingore gzip since most servers don't support it.
+    //request->SetContent(std::move(data), true);
   }
 
   return request;
@@ -55,7 +57,7 @@ HttpRequestBuilder& HttpRequestBuilder::File(const std::string& name,
                                              const std::string& mime_type) {
   assert(!name.empty());
 
-  files_[name] = HttpFile(path, mime_type);
+  files_.push_back(FormPart{ name, path, mime_type });
 
   return *this;
 }
@@ -66,7 +68,8 @@ HttpRequestBuilder& HttpRequestBuilder::FileData(const std::string& name,
                                                  const std::string& mime_type) {
   assert(!name.empty());
 
-  files_[name] = HttpFile(std::move(file_data), file_name, mime_type);
+  // TODO
+  //files_[name] = HttpFile(std::move(file_data), file_name, mime_type);
 
   return *this;
 }
@@ -100,37 +103,37 @@ void HttpRequestBuilder::SetContent(HttpRequestPtr request,
   request->SetContent(std::move(data), true);
 }
 
-void HttpRequestBuilder::CreateFormData(std::string* data,
-                                        const std::string& boundary) {
-  for (auto& pair : files_) {
-    data->append("--" + boundary + kCRLF);
-
-    // Content-Disposition header
-    data->append("Content-Disposition: form-data");
-    if (!pair.first.empty()) {
-      data->append("; name=\"" + pair.first + "\"");
-    }
-    if (!pair.second.file_name().empty()) {
-      data->append("; filename=\"" + pair.second.file_name() + "\"");
-    }
-    data->append(kCRLF);
-
-    // Content-Type header
-    if (!pair.second.mime_type().empty()) {
-      data->append("Content-Type: " + pair.second.mime_type());
-      data->append(kCRLF);
-    }
-
-    data->append(kCRLF);
-
-    // Payload
-    data->append(pair.second.data());
-
-    data->append(kCRLF);
-  }
-
-  data->append("--" + boundary + "--");
-  data->append(kCRLF);
-}
+//void HttpRequestBuilder::CreateFormData(std::string* data,
+//                                        const std::string& boundary) {
+//  for (auto& pair : files_) {
+//    data->append("--" + boundary + kCRLF);
+//
+//    // Content-Disposition header
+//    data->append("Content-Disposition: form-data");
+//    if (!pair.first.empty()) {
+//      data->append("; name=\"" + pair.first + "\"");
+//    }
+//    if (!pair.second.file_name().empty()) {
+//      data->append("; filename=\"" + pair.second.file_name() + "\"");
+//    }
+//    data->append(kCRLF);
+//
+//    // Content-Type header
+//    if (!pair.second.mime_type().empty()) {
+//      data->append("Content-Type: " + pair.second.mime_type());
+//      data->append(kCRLF);
+//    }
+//
+//    data->append(kCRLF);
+//
+//    // Payload
+//    data->append(pair.second.data());
+//
+//    data->append(kCRLF);
+//  }
+//
+//  data->append("--" + boundary + "--");
+//  data->append(kCRLF);
+//}
 
 }  // namespace webcc

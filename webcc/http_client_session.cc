@@ -45,7 +45,7 @@ HttpResponsePtr HttpClientSession::Get(
 
   assert(parameters.size() % 2 == 0);
   for (std::size_t i = 1; i < parameters.size(); i += 2) {
-    builder.Parameter(parameters[i - 1], parameters[i]);
+    builder.Query(parameters[i - 1], parameters[i]);
   }
 
   SetHeaders(headers, &builder);

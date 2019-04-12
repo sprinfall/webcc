@@ -12,11 +12,11 @@ public:
   void Handle(const webcc::RestRequest& request,
               webcc::RestResponse* response) final {
     if (request.http->method() == webcc::http::methods::kPost) {
-      std::cout << "files: " << request.http->files().size() << std::endl;
+      std::cout << "files: " << request.http->form_parts().size() << std::endl;
 
-      for (auto& pair : request.http->files()) {
-        std::cout << "name: " << pair.first << std::endl;
-        std::cout << "data: " << std::endl << pair.second.data() << std::endl;
+      for (auto& file : request.http->form_parts()) {
+        std::cout << "name: " << file.name() << std::endl;
+        std::cout << "data: " << std::endl << file.data() << std::endl;
       }
 
       response->content = "OK";

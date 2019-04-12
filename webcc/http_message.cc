@@ -13,7 +13,7 @@ namespace webcc {
 
 namespace misc_strings {
 
-const char NAME_VALUE_SEPARATOR[] = { ':', ' ' };
+const char HEADER_SEPARATOR[] = { ':', ' ' };
 const char CRLF[] = { '\r', '\n' };
 
 }  // misc_strings
@@ -79,28 +79,28 @@ void HttpMessage::SetContent(std::string&& content, bool set_length) {
   }
 }
 
-// ATTENTION: The buffers don't hold the memory!
-std::vector<boost::asio::const_buffer> HttpMessage::ToBuffers() const {
+void HttpMessage::Prepare() {
   assert(!start_line_.empty());
 
-  std::vector<boost::asio::const_buffer> buffers;
+  using boost::asio::buffer;
 
-  buffers.push_back(boost::asio::buffer(start_line_));
+  payload_.clear();
+
+  payload_.push_back(buffer(start_line_));
+  payload_.push_back(buffer(misc_strings::CRLF));
 
   for (const HttpHeader& h : headers_.data()) {
-    buffers.push_back(boost::asio::buffer(h.first));
-    buffers.push_back(boost::asio::buffer(misc_strings::NAME_VALUE_SEPARATOR));
-    buffers.push_back(boost::asio::buffer(h.second));
-    buffers.push_back(boost::asio::buffer(misc_strings::CRLF));
+    payload_.push_back(buffer(h.first));
+    payload_.push_back(buffer(misc_strings::HEADER_SEPARATOR));
+    payload_.push_back(buffer(h.second));
+    payload_.push_back(buffer(misc_strings::CRLF));
   }
 
-  buffers.push_back(boost::asio::buffer(misc_strings::CRLF));
+  payload_.push_back(buffer(misc_strings::CRLF));
 
-  if (content_length_ > 0) {
-    buffers.push_back(boost::asio::buffer(content_));
+  if (!content_.empty()) {
+    payload_.push_back(buffer(content_));
   }
-
-  return buffers;
 }
 
 void HttpMessage::Dump(std::ostream& os, std::size_t indent,
@@ -111,7 +111,7 @@ void HttpMessage::Dump(std::ostream& os, std::size_t indent,
   }
   indent_str.append(prefix);
 
-  os << indent_str << start_line_;
+  os << indent_str << start_line_ << std::endl;
 
   for (const HttpHeader& h : headers_.data()) {
     os << indent_str << h.first << ": " << h.second << std::endl;

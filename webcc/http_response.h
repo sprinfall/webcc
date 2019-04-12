@@ -19,13 +19,17 @@ public:
 
   ~HttpResponse() override = default;
 
-  int status() const { return status_; }
+  int status() const {
+    return status_;
+  }
 
-  void set_status(int status) { status_ = status; }
+  void set_status(int status) {
+    status_ = status;
+  }
 
   // Set start line according to status code.
-  bool Prepare() final;
-  
+  void Prepare() final;
+
 private:
   int status_;
 };

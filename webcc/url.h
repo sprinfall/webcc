@@ -111,8 +111,8 @@ public:
     return query_;
   }
 
-  // Add a parameter to the query string.
-  void AddParameter(const std::string& key, const std::string& value);
+  // Add a query parameter.
+  void AddQuery(const std::string& key, const std::string& value);
 
 private:
   void Parse(const std::string& str);

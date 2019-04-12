@@ -268,7 +268,7 @@ void Url::Init(const std::string& str, bool decode, bool clear) {
   }
 }
 
-void Url::AddParameter(const std::string& key, const std::string& value) {
+void Url::AddQuery(const std::string& key, const std::string& value) {
   if (!query_.empty()) {
     query_ += "&";
   }

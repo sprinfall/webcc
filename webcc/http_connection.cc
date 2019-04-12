@@ -95,7 +95,7 @@ void HttpConnection::OnRead(boost::system::error_code ec, std::size_t length) {
 void HttpConnection::DoWrite() {
   LOG_VERB("HTTP response:\n%s", response_->Dump(4, "> ").c_str());
 
-  boost::asio::async_write(socket_, response_->ToBuffers(),
+  boost::asio::async_write(socket_, response_->payload(),
                            std::bind(&HttpConnection::OnWrite, shared_from_this(),
                                      std::placeholders::_1,
                                      std::placeholders::_2));

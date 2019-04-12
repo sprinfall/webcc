@@ -1,7 +1,6 @@
 #ifndef WEBCC_HTTP_REQUEST_H_
 #define WEBCC_HTTP_REQUEST_H_
 
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -32,9 +31,8 @@ public:
     url_.Init(url);
   }
 
-  // Add URL query parameter.
-  void AddParameter(const std::string& key, const std::string& value) {
-    url_.AddParameter(key, value);
+  void AddQuery(const std::string& key, const std::string& value) {
+    url_.AddQuery(key, value);
   }
 
   const std::string& method() const {
@@ -57,18 +55,23 @@ public:
     return port().empty() ? default_port : port();
   }
 
-  const std::map<std::string, HttpFile>& files() const {
-    return files_;
+  const std::vector<FormPart>& form_parts() const {
+    return form_parts_;
   }
 
-  // Add a file to upload.
-  void AddFile(const std::string& name, HttpFile&& file) {
-    files_[name] = std::move(file);
+  void set_form_parts_(std::vector<FormPart>&& form_parts) {
+    form_parts_ = std::move(form_parts);
+  }
+
+  void AddFormPart(FormPart&& form_part) {
+    form_parts_.push_back(std::move(form_part));
   }
 
   // Prepare payload.
-  // Compose start line, set Host header, etc.
-  bool Prepare() final;
+  void Prepare() final;
+
+private:
+  void CreateStartLine();
 
 private:
   std::string method_;
@@ -76,7 +79,9 @@ private:
   Url url_;
 
   // Files to upload for a POST request.
-  std::map<std::string, HttpFile> files_;
+  std::vector<FormPart> form_parts_;
+
+  std::string boundary_;
 };
 
 }  // namespace webcc

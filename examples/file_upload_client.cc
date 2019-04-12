@@ -14,9 +14,13 @@ bool kSslVerify = true;
 #endif
 
 void Help(const char* argv0) {
-  std::cout << "Usage: " << argv0 << " <upload_dir>" << std::endl;
+  std::cout << "Usage: " << argv0 << " <upload_dir> [url]" << std::endl;
+  std::cout << "Default Url: http://httpbin.org/post" << std::endl;
   std::cout << "  E.g.," << std::endl;
   std::cout << "    " << argv0 << "E:/github/webcc/data/upload" << std::endl;
+  std::cout << "    " << argv0
+            << "E:/github/webcc/data/upload http://httpbin.org/post"
+            << std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -29,6 +33,13 @@ int main(int argc, char* argv[]) {
 
   const webcc::Path upload_dir(argv[1]);
 
+  std::string url;
+  if (argc == 3) {
+    url = argv[2];
+  } else {
+    url = "http://httpbin.org/post";
+  }
+
   namespace bfs = boost::filesystem;
 
   if (!bfs::is_directory(upload_dir) || !bfs::exists(upload_dir)) {
@@ -37,9 +48,6 @@ int main(int argc, char* argv[]) {
   }
 
   webcc::HttpClientSession session;
-
-  //std::string url = "http://httpbin.org/post";
-  std::string url = "http://localhost:8080/upload";
 
   try {
     auto r = session.PostFile(url, "file",

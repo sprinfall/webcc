@@ -61,7 +61,7 @@ bool HttpRequestParser::ParseMultipartContent() {
       break;
     }
 
-    if (part_.step == Part::Step::kStart) {
+    if (step_ == Step::kStart) {
       std::string line;
       if (!GetNextLine(0, &line, true)) {
         break;  // Not enough data
@@ -72,15 +72,15 @@ bool HttpRequestParser::ParseMultipartContent() {
       }
       LOG_INFO("Boundary line: %s", line.c_str());
       // Go to next step.
-      part_.step = Part::Step::kBoundaryParsed;
+      step_ = Step::kBoundaryParsed;
       continue;
     }
 
-    if (part_.step == Part::Step::kBoundaryParsed) {
+    if (step_ == Step::kBoundaryParsed) {
       bool need_more_data = false;
       if (ParsePartHeaders(&need_more_data)) {
         // Go to next step.
-        part_.step = Part::Step::kHeadersParsed;
+        step_ = Step::kHeadersParsed;
         LOG_INFO("Part headers just ended.");
         continue;
       } else {
@@ -93,13 +93,13 @@ bool HttpRequestParser::ParseMultipartContent() {
       }
     }
 
-    if (part_.step == Part::Step::kHeadersParsed) {
+    if (step_ == Step::kHeadersParsed) {
       std::size_t off = 0;
       std::size_t count = 0;
       bool ended = false;
       if (!GetNextBoundaryLine(&off, &count, &ended)) {
         // All pending data belongs to this part.
-        part_.file.AppendData(pending_data_);
+        part_.AppendData(pending_data_);
         pending_data_.clear();
         break;
       }
@@ -109,24 +109,24 @@ bool HttpRequestParser::ParseMultipartContent() {
       // This part has ended.
       if (off > 2) {
         // -2 for exluding the CRLF after the data.
-        part_.file.AppendData(pending_data_.data(), off - 2);
+        part_.AppendData(pending_data_.data(), off - 2);
       }
 
-      request_->AddFile(part_.name, std::move(part_.file));
+      request_->AddFormPart(std::move(part_));
 
       if (ended) {
         // Go to the end step.
-        part_.step = Part::Step::kEnded;
+        step_ = Step::kEnded;
         break;
       } else {
         // Go to next step.
-        part_.step = Part::Step::kBoundaryParsed;
+        step_ = Step::kBoundaryParsed;
         continue;
       }
     }
   }
 
-  if (part_.step == Part::Step::kEnded) {
+  if (step_ == Step::kEnded) {
     LOG_INFO("Multipart data has ended.");
     Finish();
   }
@@ -169,10 +169,10 @@ bool HttpRequestParser::ParsePartHeaders(bool* need_more_data) {
                  header.second.c_str());
         return false;
       }
-      part_.name = content_disposition.name();
-      part_.file.set_file_name(content_disposition.file_name());
+      part_.set_name(content_disposition.name());
+      part_.set_file_name(content_disposition.file_name());
       LOG_INFO("Content-Disposition (name=%s; filename=%s)",
-               part_.name.c_str(), part_.file.file_name().c_str());
+               part_.name().c_str(), part_.file_name().c_str());
     }
 
     // TODO: Parse other headers.

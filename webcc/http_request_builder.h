@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-#include "webcc/http_file.h"
 #include "webcc/http_request.h"
 
 namespace webcc {
@@ -15,6 +14,11 @@ public:
   explicit HttpRequestBuilder(const std::string& method = "")
       : method_(method) {
   }
+
+  ~HttpRequestBuilder() = default;
+
+  HttpRequestBuilder(const HttpRequestBuilder&) = delete;
+  HttpRequestBuilder& operator=(const HttpRequestBuilder&) = delete;
 
   // Build the request.
   HttpRequestPtr Build();
@@ -44,8 +48,8 @@ public:
     return *this;
   }
 
-  HttpRequestBuilder& Parameter(const std::string& key,
-                                const std::string& value) {
+  HttpRequestBuilder& Query(const std::string& key,
+                            const std::string& value) {
     parameters_.push_back(key);
     parameters_.push_back(value);
     return *this;
@@ -70,8 +74,8 @@ public:
   HttpRequestBuilder& File(const std::string& name, const Path& path,
                            const std::string& mime_type = "");
 
-  HttpRequestBuilder& File(const std::string& name, HttpFile&& file) {
-    files_[name] = std::move(file);
+  HttpRequestBuilder& File(FormPart&& file) {
+    files_.push_back(std::move(file));
     return *this;
   }
 
@@ -108,7 +112,7 @@ public:
 private:
   void SetContent(HttpRequestPtr request, std::string&& data);
 
-  void CreateFormData(std::string* data, const std::string& boundary);
+  //void CreateFormData(std::string* data, const std::string& boundary);
   
 private:
   std::string method_;
@@ -125,7 +129,7 @@ private:
   bool json_ = false;
 
   // Files to upload for a POST request.
-  std::map<std::string, HttpFile> files_;
+  std::vector<FormPart> files_;
 
   // Compress the request content.
   // NOTE: Most servers don't support compressed requests.

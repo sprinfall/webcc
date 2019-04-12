@@ -18,8 +18,8 @@ void ExampleBasic() {
   auto r = session.Request(webcc::HttpRequestBuilder{}
                                .Get()
                                .Url("http://httpbin.org/get")
-                               .Parameter("key1", "value1")
-                               .Parameter("key2", "value2")
+                               .Query("key1", "value1")
+                               .Query("key2", "value2")
                                .Header("Accept", "application/json")());
 
   std::cout << r->content() << std::endl;
@@ -44,7 +44,7 @@ void ExampleHttps() {
   auto r = session.Request(webcc::HttpRequestBuilder{}
                                .Get()
                                .Url("https://httpbin.org/get")
-                               .Parameter("key1", "value1")
+                               .Query("key1", "value1")
                                .Header("Accept", "application/json")());
 
   std::cout << r->content() << std::endl;

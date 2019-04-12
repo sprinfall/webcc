@@ -3,14 +3,14 @@
 
 #include <string>
 
+#include "webcc/common.h"
 #include "webcc/globals.h"
-#include "webcc/http_file.h"
 
 namespace webcc {
 
 class HttpMessage;
 
-// HttpParser parses HTTP request and response.
+// HTTP request and response parser.
 class HttpParser {
 public:
   explicit HttpParser(HttpMessage* message);
@@ -80,19 +80,6 @@ protected:
   bool chunked_;
   std::size_t chunk_size_;
   bool finished_;
-
-  struct Part {
-    enum Step {
-      kStart,
-      kBoundaryParsed,
-      kHeadersParsed,
-      kEnded,
-    };
-    Step step = kStart;
-    std::string name;
-    HttpFile file;
-  };
-  Part part_;
 };
 
 }  // namespace webcc

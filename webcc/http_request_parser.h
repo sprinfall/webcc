@@ -34,6 +34,16 @@ private:
 
 private:
   HttpRequest* request_;
+
+  enum Step {
+    kStart,
+    kBoundaryParsed,
+    kHeadersParsed,
+    kEnded,
+  };
+  Step step_ = kStart;
+
+  FormPart part_;
 };
 
 }  // namespace webcc

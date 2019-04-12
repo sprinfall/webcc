@@ -24,7 +24,7 @@ void HttpSocket::Connect(const std::string& /*host*/,
 
 void HttpSocket::Write(const HttpRequest& request,
                        boost::system::error_code* ec) {
-  boost::asio::write(socket_, request.ToBuffers(), *ec);
+  boost::asio::write(socket_, request.payload(), *ec);
 }
 
 void HttpSocket::AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) {
@@ -60,7 +60,7 @@ void HttpSslSocket::Connect(const std::string& host,
 
 void HttpSslSocket::Write(const HttpRequest& request,
                           boost::system::error_code* ec) {
-  boost::asio::write(ssl_socket_, request.ToBuffers(), *ec);
+  boost::asio::write(ssl_socket_, request.payload(), *ec);
 }
 
 void HttpSslSocket::AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) {

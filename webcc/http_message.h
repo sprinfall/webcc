@@ -6,10 +6,7 @@
 #include <utility>  // for move()
 #include <vector>
 
-#include "boost/asio/buffer.hpp"  // for const_buffer
-
 #include "webcc/common.h"
-#include "webcc/http_file.h"
 #include "webcc/globals.h"
 
 namespace webcc {
@@ -84,14 +81,12 @@ public:
 
   void SetContent(std::string&& content, bool set_length);
 
-  // Make the message (e.g., update start line).
-  // Must be called before ToBuffers()!
-  virtual bool Prepare() = 0;
+  // Prepare payload.
+  virtual void Prepare();
 
-  // Convert the message into a vector of buffers. The buffers do not own the
-  // underlying memory blocks, therefore the message object must remain valid
-  // and not be changed until the write operation has completed.
-  std::vector<boost::asio::const_buffer> ToBuffers() const;
+  const Payload& payload() const {
+    return payload_;
+  }
 
   // Dump to output stream.
   void Dump(std::ostream& os, std::size_t indent = 0,
@@ -119,6 +114,9 @@ protected:
   std::size_t content_length_;
 
   HttpHeaders headers_;
+
+  // NOTE: The payload itself doesn't hold the memory!
+  Payload payload_;
 };
 
 }  // namespace webcc
