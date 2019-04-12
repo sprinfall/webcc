@@ -20,11 +20,7 @@ void RestRequestHandler::HandleConnection(HttpConnectionPtr connection) {
 
   const Url& url = http_request->url();
 
-  // TODO
-  RestRequest rest_request{
-    http_request,
-    http_request->method(), http_request->content(), url.query()
-  };
+  RestRequest rest_request{ http_request };
 
   // Get service by URL path.
   std::string path = "/" + url.path();

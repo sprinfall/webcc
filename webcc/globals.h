@@ -195,14 +195,18 @@ public:
   explicit Exception(Error error, const std::string& details = "",
                      bool timeout = false);
 
-  Error error() const { return error_; }
+  Error error() const {
+    return error_;
+  }
 
   // Note that `noexcept` is required by GCC.
   const char* what() const WEBCC_NOEXCEPT override{
     return msg_.c_str();
   }
 
-  bool timeout() const { return timeout_; }
+  bool timeout() const {
+    return timeout_;
+  }
 
 private:
   Error error_;

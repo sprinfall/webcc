@@ -28,15 +28,6 @@ struct RestRequest {
   // Original HTTP request.
   HttpRequestPtr http;
 
-  // HTTP method (GET, POST, etc.).
-  const std::string& method;
-
-  // Request content (JSON string).
-  const std::string& content;
-
-  // Query string of the URL (only for GET).
-  const std::string& url_query_str;
-
   // Regex sub-matches of the URL (usually resource ID's).
   UrlMatches url_matches;
 };
@@ -67,7 +58,7 @@ typedef std::shared_ptr<RestService> RestServicePtr;
 
 class RestListService : public RestService {
 public:
-  void Handle(const RestRequest& request, RestResponse* response) final;
+  void Handle(const RestRequest& request, RestResponse* response) override;
 
 protected:
   virtual void Get(const UrlQuery& query, RestResponse* response) {
@@ -82,7 +73,7 @@ protected:
 
 class RestDetailService : public RestService {
 public:
-  void Handle(const RestRequest& request, RestResponse* response) final;
+  void Handle(const RestRequest& request, RestResponse* response) override;
 
 protected:
   virtual void Get(const UrlMatches& url_matches,

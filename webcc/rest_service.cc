@@ -8,13 +8,16 @@ namespace webcc {
 
 void RestListService::Handle(const RestRequest& request,
                              RestResponse* response) {
-  if (request.method == http::methods::kGet) {
-    Get(UrlQuery(request.url_query_str), response);
-  } else if (request.method == http::methods::kPost) {
-    Post(request.content, response);
+  const std::string& method = request.http->method();
+
+  if (method == http::methods::kGet) {
+    Get(UrlQuery(request.http->url().query()), response);
+
+  } else if (method == http::methods::kPost) {
+    Post(request.http->content(), response);
+
   } else {
-    LOG_ERRO("RestListService doesn't support '%s' method.",
-             request.method.c_str());
+    LOG_ERRO("RestListService doesn't support '%s' method.", method.c_str());
   }
 }
 
@@ -22,17 +25,22 @@ void RestListService::Handle(const RestRequest& request,
 
 void RestDetailService::Handle(const RestRequest& request,
                                RestResponse* response) {
-  if (request.method == http::methods::kGet) {
-    Get(request.url_matches, UrlQuery(request.url_query_str), response);
-  } else if (request.method == http::methods::kPut) {
-    Put(request.url_matches, request.content, response);
-  } else if (request.method == http::methods::kPatch) {
-    Patch(request.url_matches, request.content, response);
-  } else if (request.method == http::methods::kDelete) {
+  const std::string& method = request.http->method();
+
+  if (method == http::methods::kGet) {
+    Get(request.url_matches, UrlQuery(request.http->url().query()), response);
+
+  } else if (method == http::methods::kPut) {
+    Put(request.url_matches, request.http->content(), response);
+
+  } else if (method == http::methods::kPatch) {
+    Patch(request.url_matches, request.http->content(), response);
+
+  } else if (method == http::methods::kDelete) {
     Delete(request.url_matches, response);
+
   } else {
-    LOG_ERRO("RestDetailService doesn't support '%s' method.",
-             request.method.c_str());
+    LOG_ERRO("RestDetailService doesn't support '%s' method.", method.c_str());
   }
 }
 
