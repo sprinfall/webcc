@@ -85,37 +85,4 @@ void HttpRequestBuilder::SetContent(HttpRequestPtr request,
   request->SetContent(std::move(data), true);
 }
 
-//void HttpRequestBuilder::CreateFormData(std::string* data,
-//                                        const std::string& boundary) {
-//  for (auto& pair : files_) {
-//    data->append("--" + boundary + kCRLF);
-//
-//    // Content-Disposition header
-//    data->append("Content-Disposition: form-data");
-//    if (!pair.first.empty()) {
-//      data->append("; name=\"" + pair.first + "\"");
-//    }
-//    if (!pair.second.file_name().empty()) {
-//      data->append("; filename=\"" + pair.second.file_name() + "\"");
-//    }
-//    data->append(kCRLF);
-//
-//    // Content-Type header
-//    if (!pair.second.mime_type().empty()) {
-//      data->append("Content-Type: " + pair.second.mime_type());
-//      data->append(kCRLF);
-//    }
-//
-//    data->append(kCRLF);
-//
-//    // Payload
-//    data->append(pair.second.data());
-//
-//    data->append(kCRLF);
-//  }
-//
-//  data->append("--" + boundary + "--");
-//  data->append(kCRLF);
-//}
-
 }  // namespace webcc

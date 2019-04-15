@@ -25,34 +25,6 @@ void ExampleBasic() {
   std::cout << r->content() << std::endl;
 }
 
-// Use predefined shortcuts.
-void ExampleShortcut() {
-  webcc::HttpClientSession session;
-
-  auto r = session.Get("http://httpbin.org/get",
-                       {"key1", "value1", "key2", "value2"},
-                       {"Accept", "application/json"});
-
-  std::cout << r->content() << std::endl;
-}
-
-#if WEBCC_ENABLE_SSL
-
-// HTTPS is auto-detected from the URL scheme.
-void ExampleHttps() {
-  webcc::HttpClientSession session;
-  session.set_ssl_verify(kSslVerify);
-
-  auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
-                           Url("https://httpbin.org/get").
-                           Query("key1", "value1").
-                           Header("Accept", "application/json")());
-
-  std::cout << r->content() << std::endl;
-}
-
-#endif  // WEBCC_ENABLE_SSL
-
 // Example for testing Keep-Alive connection.
 //
 // Boost.org doesn't support persistent connection so always includes
@@ -77,33 +49,6 @@ void ExampleKeepAlive(const std::string& url) {
 
   // Keep-Alive
   session.Get(url);
-}
-
-void ExampleCompression() {
-  webcc::HttpClientSession session;
-
-  auto r = session.Get("http://httpbin.org/gzip");
-
-  std::cout << r->content() << std::endl;
-
-  r = session.Get("http://httpbin.org/deflate");
-
-  std::cout << r->content() << std::endl;
-}
-
-// Get an image from HttpBin.org and save to the given file path.
-// E.g., ExampleImage("E:\\example.jpg")
-void ExampleImage(const std::string& path) {
-  webcc::HttpClientSession session;
-
-  auto r = session.Get("http://httpbin.org/image/jpeg");
-
-  // Or
-  //   auto r = session.Get("http://httpbin.org/image", {},
-  //                        {"Accept", "image/jpeg"});
-
-  std::ofstream ofs(path, std::ios::binary);
-  ofs << r->content();
 }
 
 int main() {

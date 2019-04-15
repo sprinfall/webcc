@@ -21,7 +21,7 @@ bool kSslVerify = true;
 const std::string kUrlRoot = "https://api.github.com";
 
 // -----------------------------------------------------------------------------
-// JSON helper functions (based on cppjson).
+// JSON helper functions (based on jsoncpp).
 
 // Parse a string to JSON object.
 Json::Value StringToJson(const std::string& str) {

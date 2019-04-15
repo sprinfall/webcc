@@ -94,7 +94,7 @@ public:
     return *this;
   }
 
-  HttpRequestBuilder& KeepAlive(bool keep_alive) {
+  HttpRequestBuilder& KeepAlive(bool keep_alive = true) {
     keep_alive_ = keep_alive;
     return *this;
   }
@@ -107,8 +107,6 @@ public:
 
 private:
   void SetContent(HttpRequestPtr request, std::string&& data);
-
-  //void CreateFormData(std::string* data, const std::string& boundary);
   
 private:
   std::string method_;
