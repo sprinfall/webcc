@@ -6,8 +6,6 @@
 
 #include "webcc/logger.h"
 
-namespace ssl = boost::asio::ssl;
-
 namespace webcc {
 
 // -----------------------------------------------------------------------------
@@ -36,6 +34,10 @@ void HttpSocket::Close(boost::system::error_code* ec) {
 }
 
 // -----------------------------------------------------------------------------
+
+#if WEBCC_ENABLE_SSL
+
+namespace ssl = boost::asio::ssl;
 
 HttpSslSocket::HttpSslSocket(boost::asio::io_context& io_context,
                              bool ssl_verify)
@@ -88,5 +90,7 @@ void HttpSslSocket::Handshake(const std::string& host,
     LOG_ERRO("Handshake error (%s).", ec->message().c_str());
   }
 }
+
+#endif  // WEBCC_ENABLE_SSL
 
 }  // namespace webcc

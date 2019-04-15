@@ -73,8 +73,13 @@ void HttpClient::Close() {
 
 Error HttpClient::Connect(HttpRequestPtr request) {
   if (request->url().scheme() == "https") {
+#if WEBCC_ENABLE_SSL
     socket_.reset(new HttpSslSocket{ io_context_, ssl_verify_ });
     return DoConnect(request, kPort443);
+#else
+    LOG_ERRO("SSL/HTTPS support is not enabled.");
+    return kSchemaError;
+#endif  // WEBCC_ENABLE_SSL
   } else {
     socket_.reset(new HttpSocket{ io_context_ });
     return DoConnect(request, kPort80);

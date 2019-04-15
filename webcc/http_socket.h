@@ -4,9 +4,13 @@
 #include <vector>
 
 #include "boost/asio/ip/tcp.hpp"
-#include "boost/asio/ssl.hpp"
 
+#include "webcc/config.h"
 #include "webcc/http_request.h"
+
+#if WEBCC_ENABLE_SSL
+#include "boost/asio/ssl.hpp"
+#endif  // WEBCC_ENABLE_SSL
 
 namespace webcc {
 
@@ -58,6 +62,8 @@ private:
 
 // -----------------------------------------------------------------------------
 
+#if WEBCC_ENABLE_SSL
+
 class HttpSslSocket : public HttpSocketBase {
 public:
   explicit HttpSslSocket(boost::asio::io_context& io_context,
@@ -84,6 +90,8 @@ private:
   // Verify the certificate of the peer (remote server) or not.
   bool ssl_verify_;
 };
+
+#endif  // WEBCC_ENABLE_SSL
 
 }  // namespace webcc
 
