@@ -103,8 +103,6 @@ protected:
   }
 
 protected:
-  // Start line with trailing CRLF.
-  // TODO: Don't include trailing CRLF since it's confusing.
   std::string start_line_;
 
   std::string content_;

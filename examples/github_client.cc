@@ -109,7 +109,8 @@ void CreateAuthorization(webcc::HttpClientSession& session,
                          const std::string& auth) {
   try {
 
-    std::string data = "{'note': 'Webcc test', 'scopes': ['public_repo', 'repo', 'repo:status', 'user']}";
+    std::string data = "{'note': 'Webcc test', 'scopes': ['public_repo',\
+                       'repo', 'repo:status', 'user']}";
 
     auto r = session.Post(kUrlRoot + "/authorizations", std::move(data), true,
                           {"Authorization", auth});

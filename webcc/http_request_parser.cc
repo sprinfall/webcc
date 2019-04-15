@@ -34,19 +34,24 @@ bool HttpRequestParser::ParseStartLine(const std::string& line) {
   return true;
 }
 
-bool HttpRequestParser::ParseContent() {
+bool HttpRequestParser::ParseContent(const char* data, std::size_t length) {
   if (chunked_) {
-    return ParseChunkedContent();
+    return ParseChunkedContent(data, length);
   } else {
     if (request_->content_type().multipart()) {
-      return ParseMultipartContent();
+      return ParseMultipartContent(data, length);
     } else {
-      return ParseFixedContent();
+      return ParseFixedContent(data, length);
     }
   }
 }
 
-bool HttpRequestParser::ParseMultipartContent() {
+bool HttpRequestParser::ParseMultipartContent(const char* data,
+                                              std::size_t length) {
+  // Append the new data to the pending data.
+  // NOTE: It's more difficult to avoid this than normal fixed-length content.
+  pending_data_.append(data, length);
+
   LOG_VERB("Parse multipart content (pending data size: %u).",
            pending_data_.size());
 

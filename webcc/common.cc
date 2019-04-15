@@ -142,7 +142,17 @@ bool ContentType::Valid() const {
 
 void ContentType::Init(const std::string& str) {
   std::string other;
-  Split2(str, ';', &media_type_, &other);
+
+  std::size_t pos = str.find(';');
+  if (pos == std::string::npos) {
+    media_type_ = str;
+  } else {
+    media_type_ = str.substr(0, pos);
+    other = str.substr(pos + 1);
+  }
+
+  boost::trim(media_type_);
+  boost::trim(other);
 
   if (media_type_ == "multipart/form-data") {
     multipart_ = true;

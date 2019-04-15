@@ -21,11 +21,11 @@ private:
   bool ParseStartLine(const std::string& line) final;
 
   // Override to handle multipart form data which is request only.
-  bool ParseContent() final;
+  bool ParseContent(const char* data, std::size_t length) final;
 
   // Multipart specific parsing helpers.
 
-  bool ParseMultipartContent();
+  bool ParseMultipartContent(const char* data, std::size_t length);
   bool ParsePartHeaders(bool* need_more_data);
   bool GetNextBoundaryLine(std::size_t* b_off, std::size_t* b_count,
                            bool* ended);

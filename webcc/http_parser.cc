@@ -43,28 +43,25 @@ void HttpParser::Init(HttpMessage* message) {
 }
 
 bool HttpParser::Parse(const char* data, std::size_t length) {
+  if (header_ended_) {
+    return ParseContent(data, length);
+  }
+
   // Append the new data to the pending data.
   pending_data_.append(data, length);
 
-  if (!header_ended_) {
-    // If headers not ended yet, continue to parse headers.
-    if (!ParseHeaders()) {
-      return false;
-    }
-
-    if (header_ended_) {
-      LOG_INFO("HTTP headers just ended.");
-    }
+  if (!ParseHeaders()) {
+    return false;
   }
 
-  // If headers still not ended, just return and wait for next read.
   if (!header_ended_) {
     LOG_INFO("HTTP headers will continue in next read.");
     return true;
+  } else {
+    LOG_INFO("HTTP headers just ended.");
+    // NOTE: The left data, if any, is still in the pending data.
+    return ParseContent("", 0);
   }
-
-  // Now, parse the content.
-  return ParseContent();
 }
 
 void HttpParser::Reset() {
@@ -99,12 +96,14 @@ bool HttpParser::ParseHeaders() {
 
     if (!start_line_parsed_) {
       start_line_parsed_ = true;
-      message_->set_start_line(line + kCRLF);
+      message_->set_start_line(line);
       if (!ParseStartLine(line)) {
         return false;
       }
     } else {
-      ParseHeaderLine(line);
+      if (!ParseHeaderLine(line)) {
+        return false;
+      }
     }
   }
 
@@ -182,7 +181,7 @@ bool HttpParser::ParseHeaderLine(const std::string& line) {
   if (boost::iequals(header.first, http::headers::kContentType)) {
     ContentType content_type(header.second);
     if (!content_type.Valid()) {
-      LOG_ERRO("Invalid content-type header.");
+      LOG_ERRO("Invalid content-type header: %s", header.second.c_str());
       return false;
     }
     message_->SetContentType(content_type);
@@ -193,15 +192,15 @@ bool HttpParser::ParseHeaderLine(const std::string& line) {
   return true;
 }
 
-bool HttpParser::ParseContent() {
+bool HttpParser::ParseContent(const char* data, std::size_t length) {
   if (chunked_) {
-    return ParseChunkedContent();
+    return ParseChunkedContent(data, length);
   } else {
-    return ParseFixedContent();
+    return ParseFixedContent(data, length);
   }
 }
 
-bool HttpParser::ParseFixedContent() {
+bool HttpParser::ParseFixedContent(const char* data, std::size_t length) {
   if (!content_length_parsed_) {
     // No Content-Length, no content.
     Finish();
@@ -213,10 +212,14 @@ bool HttpParser::ParseFixedContent() {
     return false;
   }
 
-  // TODO: Avoid copy using std::move.
-  AppendContent(pending_data_);
+  if (!pending_data_.empty()) {
+    // This is the data left after the headers are parsed.
+    AppendContent(pending_data_);
+    pending_data_.clear();
+  }
 
-  pending_data_.clear();
+  // NOTE: Don't have to firstly put the data to the pending data.
+  AppendContent(data, length);
 
   if (IsContentFull()) {
     // All content has been read.
@@ -226,7 +229,11 @@ bool HttpParser::ParseFixedContent() {
   return true;
 }
 
-bool HttpParser::ParseChunkedContent() {
+bool HttpParser::ParseChunkedContent(const char* data, std::size_t length) {
+  // Append the new data to the pending data.
+  // NOTE: It's more difficult to avoid this than fixed-length content.
+  pending_data_.append(data, length);
+
   LOG_VERB("Parse chunked content (pending data size: %u).",
            pending_data_.size());
 

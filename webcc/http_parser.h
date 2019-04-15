@@ -46,11 +46,11 @@ protected:
 
   bool ParseHeaderLine(const std::string& line);
 
-  virtual bool ParseContent();
+  virtual bool ParseContent(const char* data, std::size_t length);
 
-  bool ParseFixedContent();
+  bool ParseFixedContent(const char* data, std::size_t length);
 
-  bool ParseChunkedContent();
+  bool ParseChunkedContent(const char* data, std::size_t length);
   bool ParseChunkSize();
 
   // Return false if the compressed content cannot be decompressed.

@@ -15,12 +15,12 @@ bool kSslVerify = true;
 void ExampleBasic() {
   webcc::HttpClientSession session;
 
-  auto r = session.Request(webcc::HttpRequestBuilder{}
-                               .Get()
-                               .Url("http://httpbin.org/get")
-                               .Query("key1", "value1")
-                               .Query("key2", "value2")
-                               .Header("Accept", "application/json")());
+  auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
+                           Url("http://httpbin.org/get").
+                           Query("key1", "value1").
+                           Query("key2", "value2").
+                           Header("Accept", "application/json")
+                           ());
 
   std::cout << r->content() << std::endl;
 }
@@ -36,19 +36,22 @@ void ExampleShortcut() {
   std::cout << r->content() << std::endl;
 }
 
+#if WEBCC_ENABLE_SSL
+
 // HTTPS is auto-detected from the URL scheme.
 void ExampleHttps() {
   webcc::HttpClientSession session;
   session.set_ssl_verify(kSslVerify);
 
-  auto r = session.Request(webcc::HttpRequestBuilder{}
-                               .Get()
-                               .Url("https://httpbin.org/get")
-                               .Query("key1", "value1")
-                               .Header("Accept", "application/json")());
+  auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
+                           Url("https://httpbin.org/get").
+                           Query("key1", "value1").
+                           Header("Accept", "application/json")());
 
   std::cout << r->content() << std::endl;
 }
+
+#endif  // WEBCC_ENABLE_SSL
 
 // Example for testing Keep-Alive connection.
 //
@@ -105,6 +108,8 @@ void ExampleImage(const std::string& path) {
 
 int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
+
+  webcc::HttpClientSession session;
 
   try {
 
