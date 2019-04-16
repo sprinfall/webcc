@@ -152,8 +152,8 @@ bool HttpParser::ParseHeaderLine(const std::string& line) {
 
         LOG_INFO("Content length: %u.", content_length_);
 
+        // Reserve memory to avoid frequent reallocation when append.
         try {
-          // Reserve memory to avoid frequent reallocation when append.
           content_.reserve(content_length_);
         } catch (const std::exception& e) {
           LOG_ERRO("Failed to reserve content memory: %s.", e.what());

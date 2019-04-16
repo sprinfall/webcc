@@ -28,9 +28,10 @@ std::ostream& operator<<(std::ostream& os, const HttpMessage& message) {
 // -----------------------------------------------------------------------------
 
 bool HttpMessage::IsConnectionKeepAlive() const {
+  using http::headers::kConnection;
+
   bool existed = false;
-  const std::string& connection =
-      GetHeader(http::headers::kConnection, &existed);
+  const std::string& connection = GetHeader(kConnection, &existed);
 
   if (!existed) {
     // Keep-Alive is by default for HTTP/1.1.
@@ -45,7 +46,9 @@ bool HttpMessage::IsConnectionKeepAlive() const {
 }
 
 http::ContentEncoding HttpMessage::GetContentEncoding() const {
-  const std::string& encoding = GetHeader(http::headers::kContentEncoding);
+  using http::headers::kContentEncoding;
+
+  const std::string& encoding = GetHeader(kContentEncoding);
   if (encoding == "gzip") {
     return http::ContentEncoding::kGzip;
   }
@@ -64,11 +67,12 @@ bool HttpMessage::AcceptEncodingGzip() const {
 // See: https://tools.ietf.org/html/rfc7231#section-3.1.1.1
 void HttpMessage::SetContentType(const std::string& media_type,
                                  const std::string& charset) {
+  using http::headers::kContentType;
+
   if (charset.empty()) {
-    SetHeader(http::headers::kContentType, media_type);
+    SetHeader(kContentType, media_type);
   } else {
-    SetHeader(http::headers::kContentType,
-              media_type + ";charset=" + charset);
+    SetHeader(kContentType, media_type + ";charset=" + charset);
   }
 }
 
@@ -101,6 +105,18 @@ void HttpMessage::Prepare() {
   if (!content_.empty()) {
     payload_.push_back(buffer(content_));
   }
+}
+
+void HttpMessage::CopyPayload(std::ostream& os) const {
+  for (const boost::asio::const_buffer& b : payload_) {
+    os.write(static_cast<const char*>(b.data()), b.size());
+  }
+}
+
+void HttpMessage::CopyPayload(std::string* str) const {
+  std::stringstream ss;
+  CopyPayload(ss);
+  *str = ss.str();
 }
 
 void HttpMessage::Dump(std::ostream& os, std::size_t indent,

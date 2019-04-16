@@ -88,6 +88,12 @@ public:
     return payload_;
   }
 
+  // Copy the exact payload to the given output stream.
+  void CopyPayload(std::ostream& os) const;
+
+  // Copy the exact payload to the given string.
+  void CopyPayload(std::string* str) const;
+
   // Dump to output stream.
   void Dump(std::ostream& os, std::size_t indent = 0,
             const std::string& prefix = "") const;
