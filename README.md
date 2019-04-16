@@ -60,9 +60,9 @@ session.Request(webcc::HttpRequestBuilder{}.Get().
 
 Adding additional headers is also easy:
 ```cpp
-r = session.Get("http://httpbin.org/get",
-                {"key1", "value1", "key2", "value2"},
-                {"Accept", "application/json"});  // Also a std::vector
+session.Get("http://httpbin.org/get",
+            {"key1", "value1", "key2", "value2"},
+            {"Accept", "application/json"});  // Also a std::vector
                 
 session.Request(webcc::HttpRequestBuilder{}.Get().
                 Url("http://httpbin.org/get").
