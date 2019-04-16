@@ -35,8 +35,6 @@ Json::Value StringToJson(const std::string& str) {
 
 // -----------------------------------------------------------------------------
 
-#if 1
-
 static void AssertGet(webcc::HttpResponsePtr r) {
   Json::Value json = StringToJson(r->content());
 
@@ -137,8 +135,6 @@ TEST(TestHttpClient, Compression_Deflate) {
   try {
     auto r = session.Get("http://httpbin.org/deflate");
 
-    std::cout << r->content() << std::endl;
-
     Json::Value json = StringToJson(r->content());
 
     EXPECT_EQ(true, json["deflated"].asBool());
@@ -150,7 +146,19 @@ TEST(TestHttpClient, Compression_Deflate) {
 
 // -----------------------------------------------------------------------------
 
-// Test persistent connections.
+// Test persistent (keep-alive) connections.
+//
+// NOTE:
+// Boost.org doesn't support persistent connection and always includes
+// "Connection: Close" header in the response.
+// Both Google and GitHub support persistent connection but they don't like
+// to include "Connection: Keep-Alive" header in the responses.
+// URLs:
+//   "http://httpbin.org/get";
+//   "https://www.boost.org/LICENSE_1_0.txt";
+//   "https://www.google.com";
+//   "https://api.github.com/events";
+//
 TEST(TestHttpClient, KeepAlive) {
   webcc::HttpClientSession session;
 
@@ -171,14 +179,14 @@ TEST(TestHttpClient, KeepAlive) {
 
     // Close by using request builder.
     r = session.Request(webcc::HttpRequestBuilder{}.Get().
-                        KeepAlive(false)
+                        Url(url).KeepAlive(false)
                         ());
 
     EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Close"));
 
     // Keep-Alive explicitly by using request builder.
     r = session.Request(webcc::HttpRequestBuilder{}.Get().
-                        KeepAlive(true)
+                        Url(url).KeepAlive(true)
                         ());
 
     EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Keep-alive"));
@@ -212,8 +220,6 @@ TEST(TestHttpClient, GetImageJpeg) {
     std::cerr << e.what() << std::endl;
   }
 }
-
-#endif
 
 // -----------------------------------------------------------------------------
 

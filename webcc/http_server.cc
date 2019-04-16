@@ -5,7 +5,6 @@
 
 #include "webcc/http_request_handler.h"
 #include "webcc/logger.h"
-#include "webcc/soap_service.h"
 #include "webcc/utility.h"
 
 using tcp = boost::asio::ip::tcp;

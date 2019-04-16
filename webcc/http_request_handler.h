@@ -7,7 +7,6 @@
 
 #include "webcc/http_connection.h"
 #include "webcc/queue.h"
-#include "webcc/soap_service.h"
 
 namespace webcc {
 

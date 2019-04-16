@@ -18,8 +18,5 @@ if(UNIX)
     set(TEST_LIBS ${TEST_LIBS} ${CMAKE_DL_LIBS})
 endif()
 
-add_executable(test_logger test_logger.cc)
-target_link_libraries(test_logger ${TEST_LIBS})
-
 add_executable(test_http_client test_http_client.cc)
 target_link_libraries(test_http_client gtest jsoncpp ${TEST_LIBS})
