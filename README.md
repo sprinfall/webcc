@@ -115,6 +115,8 @@ set(WEBCC_LOG_LEVEL 2 CACHE STRING "Log level (0:VERB, 1:INFO, 2:WARN, 3:ERRO or
 set(WEBCC_ENABLE_SSL 0 CACHE STRING "Enable SSL/HTTPS (need OpenSSL)? (1:Yes, 0:No)")
 ```
 
+Option `WEBCC_ENABLE_TEST` enables/disables the automation test based on real servers (mostly [httpbin.org](http://httpbin.org/)).
+
 Options `WEBCC_ENABLE_LOG` and `WEBCC_LOG_LEVEL` together define how logging behaves. See [Wiki/Logging](https://github.com/sprinfall/webcc/wiki/Logging) for more details.
 
 You should install OpenSSL development files before try to enable `WEBCC_ENABLE_SSL`.
@@ -133,7 +135,7 @@ cmake -G"Unix Makefiles" \
     -DWEBCC_ENABLE_LOG=1 \
     -DWEBCC_LOG_LEVEL=2 \
     -DWEBCC_ENABLE_SSL=ON \
-    -DWEBCC_ENABLE_UNITTEST=ON \
+    -DWEBCC_ENABLE_TEST=ON \
     -DWEBCC_ENABLE_UNITTEST=ON \
     -DWEBCC_ENABLE_EXAMPLES=ON \
     ..
