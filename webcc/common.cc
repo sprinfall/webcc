@@ -1,5 +1,7 @@
 #include "webcc/common.h"
 
+#include <codecvt>
+
 #include "boost/algorithm/string.hpp"
 #include "boost/filesystem/fstream.hpp"
 
@@ -215,8 +217,8 @@ FormPart::FormPart(const std::string& name, const Path& path,
   }
 
   // Determine file name from file path.
-  // TODO: Encoding
-  file_name_ = path.filename().string();
+  // TODO: encoding
+  file_name_ = path.filename().string(std::codecvt_utf8<wchar_t>());
 
   // Determine content type from file extension.
   if (mime_type_.empty()) {

@@ -156,8 +156,8 @@ class FormPart {
 public:
   FormPart() = default;
 
-  explicit FormPart(const std::string& name, const Path& path,
-                    const std::string& mime_type = "");
+  FormPart(const std::string& name, const Path& path,
+           const std::string& mime_type = "");
 
   FormPart(const std::string& name, std::string&& data,
            const std::string& mime_type = "");

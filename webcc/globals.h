@@ -164,7 +164,7 @@ const std::string& UserAgent();
 enum Error {
   kNoError = 0,  // i.e., OK
 
-  kSchemaError,
+  kSchemaError,  // TODO
 
   kHostResolveError,
   kEndpointConnectError,
@@ -176,15 +176,8 @@ enum Error {
   // E.g., failed to parse HTTP response (invalid content length, etc.).
   kHttpError,
 
-  // Server error.
-  // E.g., HTTP status 500 + SOAP Fault element.
-  kServerError,
-
   // File read/write error.
   kFileIOError,
-
-  // XML parsing error.
-  kXmlError,
 };
 
 // Return a descriptive message for the given error code.
