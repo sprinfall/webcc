@@ -1,5 +1,6 @@
 #include "webcc/http_client_session.h"
 
+#include "webcc/base64.h"
 #include "webcc/logger.h"
 #include "webcc/url.h"
 
@@ -7,6 +8,21 @@ namespace webcc {
 
 HttpClientSession::HttpClientSession() {
   InitHeaders();
+}
+
+void HttpClientSession::Auth(const std::string& type,
+                             const std::string& credentials) {
+  headers_.Set(http::headers::kAuthorization, type + " " + credentials);
+}
+
+void HttpClientSession::AuthBasic(const std::string& login,
+                                  const std::string& password) {
+  auto credentials = Base64Encode(login + ":" + password);
+  return Auth("Basic", credentials);
+}
+
+void HttpClientSession::AuthToken(const std::string& token) {
+  return Auth("Token", token);
 }
 
 HttpResponsePtr HttpClientSession::Request(HttpRequestPtr request) {

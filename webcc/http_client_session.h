@@ -20,14 +20,6 @@ public:
 
   ~HttpClientSession() = default;
 
-  void set_content_type(const std::string& content_type) {
-    content_type_ = content_type;
-  }
-
-  void set_charset(const std::string& charset) {
-    charset_ = charset;
-  }
-
   void set_ssl_verify(bool ssl_verify) {
     ssl_verify_ = ssl_verify;
   }
@@ -45,6 +37,23 @@ public:
   void SetHeader(const std::string& key, const std::string& value) {
     headers_.Set(key, value);
   }
+
+  void set_content_type(const std::string& content_type) {
+    content_type_ = content_type;
+  }
+
+  void set_charset(const std::string& charset) {
+    charset_ = charset;
+  }
+
+  // Set authorization.
+  void Auth(const std::string& type, const std::string& credentials);
+
+  // Set Basic authorization.
+  void AuthBasic(const std::string& login, const std::string& password);
+
+  // Set Token authorization.
+  void AuthToken(const std::string& token);
 
   // Send a request.
   // Please use HttpRequestBuilder to build the request.

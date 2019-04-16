@@ -87,16 +87,17 @@ void ListUserFollowers(webcc::HttpClientSession& session,
   }
 }
 
-// List the followers of the current authorized user.
-// Header syntax: Authorization: <type> <credentials>
-// Example:
-//   ListAuthUserFollowers(session, "Basic <base64 encoded login:password>")
-//   ListAuthUserFollowers(session, "Token <token>")
+// List the followers of the current authorized user using Basic authorization.
+// E.g., list my own followers:
+//   ListAuthUserFollowers(session, "sprinfall@gmail.com", "<MyPassword>");
 void ListAuthUserFollowers(webcc::HttpClientSession& session,
-                           const std::string& auth) {
+                           const std::string& login,
+                           const std::string& password) {
   try {
-    auto r = session.Get(kUrlRoot + "/user/followers", {},
-                         {"Authorization", auth});
+    auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
+                             Url(kUrlRoot + "/user/followers").
+                             AuthBasic(login, password)
+                             ());
 
     PRINT_JSON_STRING(r->content());
 
@@ -108,9 +109,11 @@ void ListAuthUserFollowers(webcc::HttpClientSession& session,
 void CreateAuthorization(webcc::HttpClientSession& session,
                          const std::string& auth) {
   try {
-
-    std::string data = "{'note': 'Webcc test', 'scopes': ['public_repo',\
-                       'repo', 'repo:status', 'user']}";
+    std::string data =
+      "{\n"
+      "  'note': 'Webcc test',\n"
+      "  'scopes': ['public_repo', 'repo', 'repo:status', 'user']\n"
+      "}";
 
     auto r = session.Post(kUrlRoot + "/authorizations", std::move(data), true,
                           {"Authorization", auth});
@@ -128,6 +131,7 @@ int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
   webcc::HttpClientSession session;
+
   session.set_ssl_verify(kSslVerify);
 
   ListEvents(session);

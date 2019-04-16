@@ -105,6 +105,8 @@ public:
   HttpRequestBuilder& AuthBasic(const std::string& login,
                                 const std::string& password);
 
+  HttpRequestBuilder& AuthToken(const std::string& token);
+
 private:
   void SetContent(HttpRequestPtr request, std::string&& data);
   

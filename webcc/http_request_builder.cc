@@ -69,6 +69,10 @@ HttpRequestBuilder& HttpRequestBuilder::AuthBasic(const std::string& login,
   return Auth("Basic", credentials);
 }
 
+HttpRequestBuilder& HttpRequestBuilder::AuthToken(const std::string& token) {
+  return Auth("Token", token);
+}
+
 void HttpRequestBuilder::SetContent(HttpRequestPtr request,
                                     std::string&& data) {
   if (gzip_ && data.size() > kGzipThreshold) {

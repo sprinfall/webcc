@@ -23,8 +23,16 @@ public:
 
   ~HttpRequest() override = default;
 
+  const std::string& method() const {
+    return method_;
+  }
+
   void set_method(const std::string& method) {
     method_ = method;
+  }
+
+  const Url& url() const {
+    return url_;
   }
 
   void set_url(const std::string& url) {
@@ -33,14 +41,6 @@ public:
 
   void AddQuery(const std::string& key, const std::string& value) {
     url_.AddQuery(key, value);
-  }
-
-  const std::string& method() const {
-    return method_;
-  }
-
-  const Url& url() const {
-    return url_;
   }
 
   const std::string& host() const {
