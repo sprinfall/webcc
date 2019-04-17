@@ -1,4 +1,10 @@
-# Tests
+# Auto test
+
+set(AT_SRCS
+    test_http_client.cc
+    )
+
+set(AT_TARGET_NAME webcc_autotest)
 
 # Common libraries to link.
 set(TEST_LIBS webcc ${Boost_LIBRARIES} "${CMAKE_THREAD_LIBS_INIT}")
@@ -18,5 +24,5 @@ if(UNIX)
     set(TEST_LIBS ${TEST_LIBS} ${CMAKE_DL_LIBS})
 endif()
 
-add_executable(test_http_client test_http_client.cc)
-target_link_libraries(test_http_client gtest jsoncpp ${TEST_LIBS})
+add_executable(${AT_TARGET_NAME} ${AT_SRCS})
+target_link_libraries(${AT_TARGET_NAME} webcc gtest ${TEST_LIBS})

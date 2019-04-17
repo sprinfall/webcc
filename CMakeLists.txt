@@ -8,9 +8,9 @@ endif()
 
 project(webcc)
 
-option(WEBCC_ENABLE_TEST "Build test?" ON)
-option(WEBCC_ENABLE_UNITTEST "Build unit test?" ON)
-option(WEBCC_ENABLE_EXAMPLES "Build examples?" ON)
+option(WEBCC_ENABLE_AUTOTEST "Build automation test?" OFF)
+option(WEBCC_ENABLE_UNITTEST "Build unit test?" OFF)
+option(WEBCC_ENABLE_EXAMPLES "Build examples?" OFF)
 
 if(WIN32)
     option(WEBCC_ENABLE_VLD "Enable VLD (Visual Leak Detector)?" OFF)
@@ -139,8 +139,8 @@ if(WEBCC_ENABLE_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
-if(WEBCC_ENABLE_TEST)
-    add_subdirectory(test)
+if(WEBCC_ENABLE_AUTOTEST)
+    add_subdirectory(autotest)
 endif()
 
 if(WEBCC_ENABLE_UNITTEST)
