@@ -11,12 +11,12 @@ class FileUploadService : public webcc::RestService {
 public:
   void Handle(const webcc::RestRequest& request,
               webcc::RestResponse* response) final {
-    if (request.http->method() == webcc::http::methods::kPost) {
+    if (request.http->method() == "POST") {
       std::cout << "files: " << request.http->form_parts().size() << std::endl;
 
-      for (auto& file : request.http->form_parts()) {
-        std::cout << "name: " << file.name() << std::endl;
-        std::cout << "data: " << std::endl << file.data() << std::endl;
+      for (auto& part : request.http->form_parts()) {
+        std::cout << "name: " << part.name() << std::endl;
+        std::cout << "data: " << std::endl << part.data() << std::endl;
       }
 
       response->content = "OK";

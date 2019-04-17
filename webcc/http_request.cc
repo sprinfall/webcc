@@ -9,6 +9,8 @@ namespace webcc {
 
 namespace misc_strings {
 
+// Literal strings can't be used because they have an extra '\0'.
+
 const char CRLF[] = { '\r', '\n' };
 const char DOUBLE_DASHES[] = { '-', '-' };
 
@@ -27,49 +29,50 @@ void HttpRequest::Prepare() {
 
   if (form_parts_.empty()) {
     HttpMessage::Prepare();
-  } else {
-    // Multipart form data.
+    return;
+  }
 
-    // Another choice to generate the boundary is what Apache does.
-    // See: https://stackoverflow.com/a/5686863
-    if (boundary_.empty()) {
-      boundary_ = RandomUuid();
-    }
+  // Multipart form data.
 
-    SetContentType("multipart/form-data; boundary=" + boundary_);
+  // Another choice to generate the boundary is like what Apache does.
+  // See: https://stackoverflow.com/a/5686863
+  if (boundary_.empty()) {
+    boundary_ = RandomUuid();
+  }
 
-    Payload data_payload;
+  SetContentType("multipart/form-data; boundary=" + boundary_);
 
-    using boost::asio::buffer;
+  Payload data_payload;
 
-    for (auto& part : form_parts_) {
-      // Boundary
-      data_payload.push_back(buffer(misc_strings::DOUBLE_DASHES));
-      data_payload.push_back(buffer(boundary_));
-      data_payload.push_back(buffer(misc_strings::CRLF));
+  using boost::asio::buffer;
 
-      part.Prepare(data_payload);
-    }
-
-    // Boundary end
+  for (auto& part : form_parts_) {
+    // Boundary
     data_payload.push_back(buffer(misc_strings::DOUBLE_DASHES));
     data_payload.push_back(buffer(boundary_));
-    data_payload.push_back(buffer(misc_strings::DOUBLE_DASHES));
     data_payload.push_back(buffer(misc_strings::CRLF));
 
-    // Update Content-Length header.
-    std::size_t content_length = 0;
-    for (auto& buffer : data_payload) {
-      content_length += buffer.size();
-    }
-    SetContentLength(content_length);
-
-    // Prepare start line and headers.
-    HttpMessage::Prepare();
-
-    // Append payload of content data.
-    payload_.insert(payload_.end(), data_payload.begin(), data_payload.end());
+    part.Prepare(&data_payload);
   }
+
+  // Boundary end
+  data_payload.push_back(buffer(misc_strings::DOUBLE_DASHES));
+  data_payload.push_back(buffer(boundary_));
+  data_payload.push_back(buffer(misc_strings::DOUBLE_DASHES));
+  data_payload.push_back(buffer(misc_strings::CRLF));
+
+  // Update Content-Length header.
+  std::size_t content_length = 0;
+  for (auto& buffer : data_payload) {
+    content_length += buffer.size();
+  }
+  SetContentLength(content_length);
+
+  // Prepare start line and headers.
+  HttpMessage::Prepare();
+
+  // Append payload of content data.
+  payload_.insert(payload_.end(), data_payload.begin(), data_payload.end());
 }
 
 void HttpRequest::CreateStartLine() {

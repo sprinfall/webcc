@@ -15,6 +15,8 @@ namespace webcc {
 
 namespace misc_strings {
 
+// Literal strings can't be used because they have an extra '\0'.
+
 const char HEADER_SEPARATOR[] = { ':', ' ' };
 const char CRLF[] = { '\r', '\n' };
 
@@ -210,8 +212,8 @@ bool ContentDisposition::Init(const std::string& str) {
 // -----------------------------------------------------------------------------
 
 FormPart::FormPart(const std::string& name, const Path& path,
-                   const std::string& mime_type)
-    : name_(name), mime_type_(mime_type) {
+                   const std::string& media_type)
+    : name_(name), media_type_(media_type) {
   if (!ReadFile(path, &data_)) {
     throw Exception(kFileIOError, "Cannot read the file.");
   }
@@ -220,50 +222,61 @@ FormPart::FormPart(const std::string& name, const Path& path,
   // TODO: encoding
   file_name_ = path.filename().string(std::codecvt_utf8<wchar_t>());
 
-  // Determine content type from file extension.
-  if (mime_type_.empty()) {
+  // Determine media type from file extension.
+  if (media_type_.empty()) {
     std::string extension = path.extension().string();
-    mime_type_ = http::media_types::FromExtension(extension, false);
+    media_type_ = http::media_types::FromExtension(extension, false);
   }
 }
 
 FormPart::FormPart(const std::string& name, std::string&& data,
-                   const std::string& mime_type)
-    : name_(name), data_(std::move(data)), mime_type_(mime_type) {
+                   const std::string& media_type)
+    : name_(name), data_(std::move(data)), media_type_(media_type) {
 }
 
-void FormPart::Prepare(std::vector<boost::asio::const_buffer>& payload) {
+void FormPart::Prepare(Payload* payload) {
+  // The payload buffers don't own the memory.
+  // It depends on some existing variables/objects to keep the memory.
+  // That's why we need |headers_|.
   if (headers_.empty()) {
-    std::string value = "form-data";
-    if (!name_.empty()) {
-      value.append("; name=\"" + name_ + "\"");
-    }
-    if (!file_name_.empty()) {
-      value.append("; filename=\"" + file_name_ + "\"");
-    }
-    headers_.Set(http::headers::kContentDisposition, value);
-
-    if (!mime_type_.empty()) {
-      headers_.Set(http::headers::kContentType, mime_type_);
-    }
+    SetHeaders();
   }
 
   using boost::asio::buffer;
 
   for (const HttpHeader& h : headers_.data()) {
-    payload.push_back(buffer(h.first));
-    payload.push_back(buffer(misc_strings::HEADER_SEPARATOR));
-    payload.push_back(buffer(h.second));
-    payload.push_back(buffer(misc_strings::CRLF));
+    payload->push_back(buffer(h.first));
+    payload->push_back(buffer(misc_strings::HEADER_SEPARATOR));
+    payload->push_back(buffer(h.second));
+    payload->push_back(buffer(misc_strings::CRLF));
   }
 
-  payload.push_back(buffer(misc_strings::CRLF));
+  payload->push_back(buffer(misc_strings::CRLF));
 
   if (!data_.empty()) {
-    payload.push_back(buffer(data_));
+    payload->push_back(buffer(data_));
   }
 
-  payload.push_back(buffer(misc_strings::CRLF));
+  payload->push_back(buffer(misc_strings::CRLF));
+}
+
+void FormPart::SetHeaders() {
+  // Header: Content-Disposition
+
+  std::string content_disposition = "form-data";
+  if (!name_.empty()) {
+    content_disposition.append("; name=\"" + name_ + "\"");
+  }
+  if (!file_name_.empty()) {
+    content_disposition.append("; filename=\"" + file_name_ + "\"");
+  }
+  headers_.Set(http::headers::kContentDisposition, content_disposition);
+
+  // Header: Content-Type
+
+  if (!media_type_.empty()) {
+    headers_.Set(http::headers::kContentType, media_type_);
+  }
 }
 
 }  // namespace webcc

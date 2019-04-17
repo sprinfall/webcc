@@ -13,6 +13,8 @@ namespace webcc {
 
 namespace misc_strings {
 
+// Literal strings can't be used because they have an extra '\0'.
+
 const char HEADER_SEPARATOR[] = { ':', ' ' };
 const char CRLF[] = { '\r', '\n' };
 

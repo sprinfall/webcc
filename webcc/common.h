@@ -151,16 +151,23 @@ private:
 
 // -----------------------------------------------------------------------------
 
-// Form data part.
+// A part of the multipart form data.
 class FormPart {
 public:
   FormPart() = default;
 
+  // Construct a file part.
+  // The file name will be extracted from path.
+  // The media type, if not provided, will be inferred from file extension.
   FormPart(const std::string& name, const Path& path,
-           const std::string& mime_type = "");
+           const std::string& media_type = "");
 
+  // Construct a non-file part.
+  // The data will be moved, no file name is needed.
+  // The media type is optional. If the data is a JSON string, you can specify
+  // media type as "application/json".
   FormPart(const std::string& name, std::string&& data,
-           const std::string& mime_type = "");
+           const std::string& media_type = "");
 
 #if WEBCC_DEFAULT_MOVE_COPY_ASSIGN
 
@@ -172,7 +179,7 @@ public:
   FormPart(FormPart&& rhs)
       : name_(std::move(rhs.name_)),
         file_name_(std::move(rhs.file_name_)),
-        mime_type_(std::move(rhs.mime_type_)),
+        media_type_(std::move(rhs.media_type_)),
         data_(std::move(rhs.data_)) {
   }
 
@@ -180,7 +187,7 @@ public:
     if (&rhs != this) {
       name_ = std::move(rhs.name_);
       file_name_ = std::move(rhs.file_name_);
-      mime_type_ = std::move(rhs.mime_type_);
+      media_type_ = std::move(rhs.media_type_);
       data_ = std::move(rhs.data_);
     }
     return *this;
@@ -188,53 +195,74 @@ public:
 
 #endif  // WEBCC_DEFAULT_MOVE_COPY_ASSIGN
 
+  // API: SERVER
   const std::string& name() const {
     return name_;
   }
 
+  // API: SERVER/PARSER
   void set_name(const std::string& name) {
     name_ = name;
   }
 
+  // API: SERVER
   const std::string& file_name() const {
     return file_name_;
   }
 
+  // API: SERVER/PARSER
   void set_file_name(const std::string& file_name) {
     file_name_ = file_name;
   }
 
-  const std::string& mime_type() const {
-    return mime_type_;
+  // API: SERVER
+  const std::string& media_type() const {
+    return media_type_;
   }
 
+  // API: SERVER
   const std::string& data() const {
     return data_;
   }
 
+  // API: SERVER/PARSER
   void AppendData(const std::string& data) {
     data_.append(data);
   }
 
-  void AppendData(const char* data, std::size_t size) {
-    data_.append(data, size);
+  // API: SERVER/PARSER
+  void AppendData(const char* data, std::size_t count) {
+    data_.append(data, count);
   }
 
-  void Prepare(Payload& payload);
+  // API: CLIENT
+  void Prepare(Payload* payload);
 
 private:
+  // Generate headers from properties.
+  void SetHeaders();
+
+private:
+  // The <input> name within the original HTML form.
+  // E.g., given HTML form:
+  //   <input name="file1" type="file">
+  // the name will be "file1".
   std::string name_;
 
-  // E.g., example.jpg
-  // TODO: Unicode
+  // The original local file name.
+  // E.g., "baby.jpg".
   std::string file_name_;
 
-  // E.g., image/jpeg
-  std::string mime_type_;
+  // The content-type if the media type is known (e.g., inferred from the file
+  // extension or operating system typing information) or as
+  // application/octet-stream.
+  // E.g., "image/jpeg".
+  std::string media_type_;
 
+  // Headers generated from the above properties.
+  // Only Used to prepare payload.
   HttpHeaders headers_;
 
-  // Binary file data.
   std::string data_;
 };
 

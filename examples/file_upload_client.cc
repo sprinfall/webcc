@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     auto r = session.Request(webcc::HttpRequestBuilder{}.Post().
                              Url(url).
                              File("file", upload_dir / "remember.txt").
-                             Form("text", "text default")
+                             Form("json", "{}", "application/json")
                              ());
 
     //std::cout << r->content() << std::endl;
