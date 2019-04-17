@@ -4,6 +4,8 @@ C++ client and server library for HTTP and REST based on *Boost Asio*.
 
 Please turn to our [Wiki](https://github.com/sprinfall/webcc/wiki) (under construction) for more tutorials and guides.
 
+Wondering how to build Webcc? Click [Build Instructions](https://github.com/sprinfall/webcc/wiki/Build-Instructions).
+
 ## Client API Examples
 
 A complete client example: 
@@ -83,72 +85,3 @@ Listing GitHub public events is not a big deal:
 auto r = session.Get("https://api.github.com/events");
 ```
 You can then parse `r->content()` to JSON object with your favorite JSON library. My choice for the examples is [jsoncpp](https://github.com/open-source-parsers/jsoncpp). But the library itself doesn't understand JSON nor require one. It's up to you to choose the most appropriate JSON library.
-
-## Build Instructions
-
-### General
-
-A lot of C++11 features are used, e.g., `std::move`.
-
-VS2013 and above is required for building `webcc` on Windows.
-
-[CMake 3.1.0+](https://cmake.org/) is used as the build system. But if you don't use CMake, you can just copy the `src/webcc` folder to your own project then manage it by yourself, though some changes are needed to make it work. See [Wiki/Integrate Into Your Project]( https://github.com/sprinfall/webcc/wiki/Integrate-Into-Your-Project) for more details.
-
-[C++ Boost](https://www.boost.org/) should be 1.66+ because Asio made some broken changes to the API since 1.66.
-
-OpenSSL is required for HTTPS support. See `WEBCC_ENABLE_SSL` option.
-
-Zlib is required for compressing and decompressing HTTP requests and responses. Already included in the `third_party` folder for Windows.
-
-### Build Options
-
-The following CMake options determine how you build the projects. They are quite self-explanatory.
-
-```cmake
-option(WEBCC_ENABLE_TEST "Build test?" ON)
-option(WEBCC_ENABLE_UNITTEST "Build unit test?" ON)
-option(WEBCC_ENABLE_EXAMPLES "Build examples?" ON)
-
-set(WEBCC_ENABLE_LOG 1 CACHE STRING "Enable logging? (1:Yes, 0:No)")
-set(WEBCC_LOG_LEVEL 2 CACHE STRING "Log level (0:VERB, 1:INFO, 2:WARN, 3:ERRO or 4:FATA)")
-
-set(WEBCC_ENABLE_SSL 0 CACHE STRING "Enable SSL/HTTPS (need OpenSSL)? (1:Yes, 0:No)")
-```
-
-Option `WEBCC_ENABLE_TEST` enables/disables the automation test based on real servers (mostly [httpbin.org](http://httpbin.org/)).
-
-Options `WEBCC_ENABLE_LOG` and `WEBCC_LOG_LEVEL` together define how logging behaves. See [Wiki/Logging](https://github.com/sprinfall/webcc/wiki/Logging) for more details.
-
-You should install OpenSSL development files before try to enable `WEBCC_ENABLE_SSL`.
-
-### Build on Linux
-
-Create a build folder under the root (or any other) directory, and `cd` to it:
-```bash
-mkdir build
-cd build
-```
-Generate Makefiles with the following command:
-```bash
-cmake -G"Unix Makefiles" \
-    -DCMAKE_INSTALL_PREFIX=~ \
-    -DWEBCC_ENABLE_LOG=1 \
-    -DWEBCC_LOG_LEVEL=2 \
-    -DWEBCC_ENABLE_SSL=ON \
-    -DWEBCC_ENABLE_TEST=ON \
-    -DWEBCC_ENABLE_UNITTEST=ON \
-    -DWEBCC_ENABLE_EXAMPLES=ON \
-    ..
-```
-Feel free to change the build options.
-CMake variable `CMAKE_INSTALL_PREFIX` defines where to install the output library and header files. The default is `/usr/local`.
-
-If everything is OK, then you can build with `make`:
-```bash
-$ make -j4  # or -j8, depending on how many CPU cores you have.
-```
-
-Then install:
-```bash
-$ make install
-```
