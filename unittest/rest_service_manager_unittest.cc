@@ -4,7 +4,7 @@
 
 // -----------------------------------------------------------------------------
 
-class TestRestService : public webcc::RestService {
+class MyRestService : public webcc::RestService {
 public:
   void Handle(const webcc::RestRequest& request,
               webcc::RestResponse* response) final {
@@ -14,10 +14,10 @@ public:
 
 // -----------------------------------------------------------------------------
 
-TEST(RestServiceManager, URL_RegexBasic) {
+TEST(RestServiceManagerTest, URL_RegexBasic) {
   webcc::RestServiceManager service_manager;
 
-  service_manager.AddService(std::make_shared<TestRestService>(),
+  service_manager.AddService(std::make_shared<MyRestService>(),
                              "/instance/(\\d+)", true);
 
   std::vector<std::string> matches;
@@ -37,10 +37,10 @@ TEST(RestServiceManager, URL_RegexBasic) {
   EXPECT_FALSE(!!service);
 }
 
-TEST(RestServiceManager, URL_RegexMultiple) {
+TEST(RestServiceManagerTest, URL_RegexMultiple) {
   webcc::RestServiceManager service_manager;
 
-  service_manager.AddService(std::make_shared<TestRestService>(),
+  service_manager.AddService(std::make_shared<MyRestService>(),
                              "/study/(\\d+)/series/(\\d+)/instance/(\\d+)",
                              true);
 
@@ -63,10 +63,10 @@ TEST(RestServiceManager, URL_RegexMultiple) {
   EXPECT_FALSE(!!service);
 }
 
-TEST(RestServiceManager, URL_NonRegex) {
+TEST(RestServiceManagerTest, URL_NonRegex) {
   webcc::RestServiceManager service_manager;
 
-  service_manager.AddService(std::make_shared<TestRestService>(), "/instances",
+  service_manager.AddService(std::make_shared<MyRestService>(), "/instances",
                              false);
 
   std::vector<std::string> matches;

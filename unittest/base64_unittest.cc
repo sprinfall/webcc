@@ -2,7 +2,7 @@
 
 #include "webcc/base64.h"
 
-TEST(Base64, Encode) {
+TEST(Base64Test, Encode) {
   std::string encoded;
 
   encoded = webcc::Base64Encode("ban");
@@ -15,7 +15,7 @@ TEST(Base64, Encode) {
   EXPECT_EQ("YmFuYW4=", encoded);
 }
 
-TEST(Base64, Decode) {
+TEST(Base64Test, Decode) {
   std::string decoded;
 
   decoded = webcc::Base64Decode("YmFu");

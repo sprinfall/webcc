@@ -1,10 +1,10 @@
 # Unit test
 
 set(UT_SRCS
-    base64_test.cc
-    http_parser_test.cc
-    rest_service_manager_test.cc
-    url_test.cc
+    base64_unittest.cc
+    http_parser_unittest.cc
+    rest_service_manager_unittest.cc
+    url_unittest.cc
     )
 
 set(UT_TARGET_NAME webcc_unittest)

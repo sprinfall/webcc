@@ -17,10 +17,11 @@ bool kSslVerify = true;
 #endif
 
 // -----------------------------------------------------------------------------
+
 // JSON helper functions (based on jsoncpp).
 
 // Parse a string to JSON object.
-Json::Value StringToJson(const std::string& str) {
+static Json::Value StringToJson(const std::string& str) {
   Json::Value json;
 
   Json::CharReaderBuilder builder;
@@ -51,7 +52,7 @@ static void AssertGet(webcc::HttpResponsePtr r) {
   EXPECT_EQ("httpbin.org", headers["Host"].asString());
 }
 
-TEST(TestHttpClient, Get_RequestFunc) {
+TEST(HttpClientTest, Get_RequestFunc) {
   webcc::HttpClientSession session;
 
   try {
@@ -69,12 +70,10 @@ TEST(TestHttpClient, Get_RequestFunc) {
   }
 }
 
-TEST(TestHttpClient, Get_Shortcut) {
+TEST(HttpClientTest, Get_Shortcut) {
   webcc::HttpClientSession session;
 
   try {
-    // Use predefined shortcuts.
-
     auto r = session.Get("http://httpbin.org/get",
                          { "key1", "value1", "key2", "value2" },
                          { "Accept", "application/json" });
@@ -87,14 +86,13 @@ TEST(TestHttpClient, Get_Shortcut) {
 }
 
 #if WEBCC_ENABLE_SSL
-TEST(TestHttpClient, Get_SSL) {
+TEST(HttpClientTest, Get_SSL) {
   webcc::HttpClientSession session;
 
   session.set_ssl_verify(kSslVerify);
 
   try {
     // HTTPS is auto-detected from the URL scheme.
-
     auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
                              Url("https://httpbin.org/get").
                              Query("key1", "value1").
@@ -113,7 +111,7 @@ TEST(TestHttpClient, Get_SSL) {
 // -----------------------------------------------------------------------------
 
 // Test Gzip compressed response.
-TEST(TestHttpClient, Compression_Gzip) {
+TEST(HttpClientTest, Compression_Gzip) {
   webcc::HttpClientSession session;
 
   try {
@@ -129,7 +127,7 @@ TEST(TestHttpClient, Compression_Gzip) {
 }
 
 // Test Deflate compressed response.
-TEST(TestHttpClient, Compression_Deflate) {
+TEST(HttpClientTest, Compression_Deflate) {
   webcc::HttpClientSession session;
 
   try {
@@ -159,7 +157,7 @@ TEST(TestHttpClient, Compression_Deflate) {
 //   "https://www.google.com";
 //   "https://api.github.com/events";
 //
-TEST(TestHttpClient, KeepAlive) {
+TEST(HttpClientTest, KeepAlive) {
   webcc::HttpClientSession session;
 
   std::string url = "http://httpbin.org/get";
@@ -199,7 +197,7 @@ TEST(TestHttpClient, KeepAlive) {
 // -----------------------------------------------------------------------------
 
 // Get a JPEG image.
-TEST(TestHttpClient, GetImageJpeg) {
+TEST(HttpClientTest, GetImageJpeg) {
   webcc::HttpClientSession session;
 
   std::string url = "http://httpbin.org/get";
