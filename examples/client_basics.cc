@@ -11,6 +11,11 @@ bool kSslVerify = false;
 bool kSslVerify = true;
 #endif
 
+static void PrintSeparator() {
+  static const std::string s_line(80, '-');
+  std::cout << s_line << std::endl;
+}
+
 int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
@@ -19,6 +24,8 @@ int main() {
   session.set_ssl_verify(kSslVerify);
 
   try {
+    PrintSeparator();
+
     // Using request builder:
     auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
                              Url("http://httpbin.org/get").
@@ -29,6 +36,8 @@ int main() {
 
     std::cout << r->content() << std::endl;
     
+    PrintSeparator();
+
     // Using shortcut:
     r = session.Get("http://httpbin.org/get",
                     { "key1", "value1", "key2", "value2" },
@@ -37,6 +46,8 @@ int main() {
     std::cout << r->content() << std::endl;
 
 #if WEBCC_ENABLE_SSL
+
+    PrintSeparator();
 
     // HTTPS support.
 

@@ -25,4 +25,4 @@ if(UNIX)
 endif()
 
 add_executable(${AT_TARGET_NAME} ${AT_SRCS})
-target_link_libraries(${AT_TARGET_NAME} webcc gtest ${TEST_LIBS})
+target_link_libraries(${AT_TARGET_NAME} webcc jsoncpp gtest ${TEST_LIBS})

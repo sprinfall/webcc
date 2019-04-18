@@ -169,7 +169,8 @@ public:
 // -----------------------------------------------------------------------------
 
 void PrintSeparator() {
-  std::cout << std::string(80, '-') << std::endl;
+  static const std::string s_line(80, '-');
+  std::cout << s_line << std::endl;
 }
 
 void PrintBook(const Book& book) {
