@@ -41,7 +41,7 @@ const int LOG_FILE_OVERWRITE = LOG_FILE | LOG_OVERWRITE;
 // If |dir| is empty, log file will be generated in current directory.
 void LogInit(const std::string& dir, int modes);
 
-void LogWrite(int level, const char* file, int line, const char* format, ...);
+void Log(int level, const char* file, int line, const char* format, ...);
 
 }  // namespace webcc
 
@@ -58,35 +58,35 @@ void LogWrite(int level, const char* file, int line, const char* format, ...);
 
 #if WEBCC_LOG_LEVEL <= WEBCC_VERB
 #define LOG_VERB(format, ...) \
-    webcc::LogWrite(WEBCC_VERB, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
+    webcc::Log(WEBCC_VERB, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
 #else
 #define LOG_VERB(format, ...)
 #endif
 
 #if WEBCC_LOG_LEVEL <= WEBCC_INFO
 #define LOG_INFO(format, ...) \
-    webcc::LogWrite(WEBCC_INFO, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
+    webcc::Log(WEBCC_INFO, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
 #else
 #define LOG_INFO(format, ...)
 #endif
 
 #if WEBCC_LOG_LEVEL <= WEBCC_WARN
 #define LOG_WARN(format, ...) \
-    webcc::LogWrite(WEBCC_WARN, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
+    webcc::Log(WEBCC_WARN, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
 #else
 #define LOG_WARN(format, ...)
 #endif
 
 #if WEBCC_LOG_LEVEL <= WEBCC_ERRO
 #define LOG_ERRO(format, ...) \
-    webcc::LogWrite(WEBCC_ERRO, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
+    webcc::Log(WEBCC_ERRO, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
 #else
 #define LOG_ERRO(format, ...)
 #endif
 
 #if WEBCC_LOG_LEVEL <= WEBCC_FATA
 #define LOG_FATA(format, ...) \
-    webcc::LogWrite(WEBCC_FATA, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
+    webcc::Log(WEBCC_FATA, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
 #else
 #define LOG_FATA(format, ...)
 #endif
@@ -98,35 +98,35 @@ void LogWrite(int level, const char* file, int line, const char* format, ...);
 
 #if WEBCC_LOG_LEVEL <= WEBCC_VERB
 #define LOG_VERB(format, args...) \
-    webcc::LogWrite(WEBCC_VERB, __FILENAME__, __LINE__, format, ##args);
+    webcc::Log(WEBCC_VERB, __FILENAME__, __LINE__, format, ##args);
 #else
 #define LOG_VERB(format, args...)
 #endif
 
 #if WEBCC_LOG_LEVEL <= WEBCC_INFO
 #define LOG_INFO(format, args...) \
-    webcc::LogWrite(WEBCC_INFO, __FILENAME__, __LINE__, format, ##args);
+    webcc::Log(WEBCC_INFO, __FILENAME__, __LINE__, format, ##args);
 #else
 #define LOG_INFO(format, args...)
 #endif
 
 #if WEBCC_LOG_LEVEL <= WEBCC_WARN
 #define LOG_WARN(format, args...) \
-    webcc::LogWrite(WEBCC_WARN, __FILENAME__, __LINE__, format, ##args);
+    webcc::Log(WEBCC_WARN, __FILENAME__, __LINE__, format, ##args);
 #else
 #define LOG_WARN(format, args...)
 #endif
 
 #if WEBCC_LOG_LEVEL <= WEBCC_ERRO
 #define LOG_ERRO(format, args...) \
-    webcc::LogWrite(WEBCC_ERRO, __FILENAME__, __LINE__, format, ##args);
+    webcc::Log(WEBCC_ERRO, __FILENAME__, __LINE__, format, ##args);
 #else
 #define LOG_ERRO(format, args...)
 #endif
 
 #if WEBCC_LOG_LEVEL <= WEBCC_FATA
 #define LOG_FATA(format, args...) \
-    webcc::LogWrite(WEBCC_FATA, __FILENAME__, __LINE__, format, ##args);
+    webcc::Log(WEBCC_FATA, __FILENAME__, __LINE__, format, ##args);
 #else
 #define LOG_FATA(format, args...)
 #endif

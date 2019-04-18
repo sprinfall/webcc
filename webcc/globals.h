@@ -68,8 +68,6 @@ const std::size_t kGzipThreshold = 1400;
 
 // -----------------------------------------------------------------------------
 
-namespace http {
-
 namespace methods {
 
 // HTTP methods (verbs) in string.
@@ -155,8 +153,6 @@ enum class ContentEncoding {
 
 // Return default user agent for HTTP headers.
 const std::string& UserAgent();
-
-}  // namespace http
 
 // -----------------------------------------------------------------------------
 

@@ -4,18 +4,7 @@
 #include <iosfwd>
 #include <string>
 
-#include "boost/asio/ip/tcp.hpp"
-
 namespace webcc {
-
-typedef boost::asio::ip::tcp::endpoint TcpEndpoint;
-typedef boost::asio::ip::tcp::resolver::results_type TcpEndpoints;
-
-void PrintEndpoint(std::ostream& ostream, const TcpEndpoint& endpoint);
-
-void PrintEndpoints(std::ostream& ostream, const TcpEndpoints& endpoints);
-
-std::string EndpointToString(const TcpEndpoint& endpoint);
 
 // Get the timestamp for HTTP Date header field.
 // E.g., Wed, 21 Oct 2015 07:28:00 GMT

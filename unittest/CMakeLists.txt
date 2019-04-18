@@ -2,7 +2,7 @@
 
 set(UT_SRCS
     base64_unittest.cc
-    http_parser_unittest.cc
+    parser_unittest.cc
     rest_service_manager_unittest.cc
     url_unittest.cc
     )

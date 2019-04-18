@@ -214,15 +214,17 @@ void LogInit(const std::string& dir, int modes) {
 }
 
 static std::string GetTimestamp() {
-  auto now = std::chrono::system_clock::now();
-  std::time_t t = std::chrono::system_clock::to_time_t(now);
+  using system_clock = std::chrono::system_clock;
+  using milliseconds = std::chrono::milliseconds;
+
+  auto now = system_clock::now();
+  std::time_t t = system_clock::to_time_t(now);
 
   std::stringstream ss;
   ss << std::put_time(std::localtime(&t), "%Y-%m-%d %H:%M:%S");
 
-  std::chrono::milliseconds milli_seconds =
-    std::chrono::duration_cast<std::chrono::milliseconds>(
-                                                          now.time_since_epoch());
+  milliseconds milli_seconds =
+      std::chrono::duration_cast<milliseconds>(now.time_since_epoch());
   std::string micro_seconds_str = std::to_string(milli_seconds.count() % 1000);
   while (micro_seconds_str.size() < 3) {
     micro_seconds_str = "0" + micro_seconds_str;
@@ -233,7 +235,7 @@ static std::string GetTimestamp() {
   return ss.str();
 }
 
-void LogWrite(int level, const char* file, int line, const char* format, ...) {
+void Log(int level, const char* file, int line, const char* format, ...) {
   assert(format != nullptr);
 
   std::string timestamp = GetTimestamp();

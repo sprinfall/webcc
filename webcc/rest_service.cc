@@ -10,10 +10,10 @@ void RestListService::Handle(const RestRequest& request,
                              RestResponse* response) {
   const std::string& method = request.http->method();
 
-  if (method == http::methods::kGet) {
+  if (method == methods::kGet) {
     Get(UrlQuery(request.http->url().query()), response);
 
-  } else if (method == http::methods::kPost) {
+  } else if (method == methods::kPost) {
     Post(request.http->content(), response);
 
   } else {
@@ -27,16 +27,16 @@ void RestDetailService::Handle(const RestRequest& request,
                                RestResponse* response) {
   const std::string& method = request.http->method();
 
-  if (method == http::methods::kGet) {
+  if (method == methods::kGet) {
     Get(request.url_matches, UrlQuery(request.http->url().query()), response);
 
-  } else if (method == http::methods::kPut) {
+  } else if (method == methods::kPut) {
     Put(request.url_matches, request.http->content(), response);
 
-  } else if (method == http::methods::kPatch) {
+  } else if (method == methods::kPatch) {
     Patch(request.url_matches, request.http->content(), response);
 
-  } else if (method == http::methods::kDelete) {
+  } else if (method == methods::kDelete) {
     Delete(request.url_matches, response);
 
   } else {

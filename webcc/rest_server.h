@@ -5,16 +5,16 @@
 
 #include <string>
 
-#include "webcc/http_server.h"
+#include "webcc/server.h"
 #include "webcc/rest_request_handler.h"
 #include "webcc/rest_service.h"
 
 namespace webcc {
 
-class RestServer : public HttpServer {
+class RestServer : public Server {
 public:
   RestServer(std::uint16_t port, std::size_t workers)
-      : HttpServer(port, workers) {
+      : Server(port, workers) {
   }
 
   ~RestServer() override = default;
@@ -32,7 +32,7 @@ public:
   }
 
 private:
-  HttpRequestHandler* GetRequestHandler() final {
+  RequestHandler* GetRequestHandler() final {
     return &request_handler_;
   }
 

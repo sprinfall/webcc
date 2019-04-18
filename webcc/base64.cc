@@ -116,7 +116,7 @@ std::size_t Encode(const void* src, std::size_t len, void* dst) {
   return out - static_cast<char*>(dst);
 }
 
-typedef std::pair<std::size_t, std::size_t> SizePair;
+using SizePair = std::pair<std::size_t, std::size_t>;
 
 SizePair Decode(const char* src, std::size_t len, void* dst) {
   auto in = reinterpret_cast<const unsigned char*>(src);
@@ -161,21 +161,22 @@ SizePair Decode(const char* src, std::size_t len, void* dst) {
 
 }  // namespace base64
 
-std::string Base64Encode(const std::uint8_t* data, std::size_t len) {
+std::string Base64Encode(const std::uint8_t* data, std::size_t length) {
   std::string dst;
-  dst.resize(base64::EncodedSize(len));
-  dst.resize(base64::Encode(data, len, &dst[0]));
+  dst.resize(base64::EncodedSize(length));
+  dst.resize(base64::Encode(data, length, &dst[0]));
   return dst;
 }
 
-std::string Base64Encode(const std::string& s) {
-  return Base64Encode(reinterpret_cast<const std::uint8_t*>(s.data()), s.size());
+std::string Base64Encode(const std::string& input) {
+  return Base64Encode(reinterpret_cast<const std::uint8_t*>(input.data()),
+                      input.size());
 }
 
-std::string Base64Decode(const std::string& data) {
+std::string Base64Decode(const std::string& input) {
   std::string dst;
-  dst.resize(base64::DecodedSize(data.size()));
-  auto result = base64::Decode(data.data(), data.size(), &dst[0]);
+  dst.resize(base64::DecodedSize(input.size()));
+  auto result = base64::Decode(input.data(), input.size(), &dst[0]);
   dst.resize(result.first);
   return dst;
 }

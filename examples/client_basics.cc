@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "webcc/http_client_session.h"
+#include "webcc/client_session.h"
 #include "webcc/logger.h"
 
 #if (defined(WIN32) || defined(_WIN64))
@@ -19,7 +19,7 @@ static void PrintSeparator() {
 int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
-  webcc::HttpClientSession session;
+  webcc::ClientSession session;
 
   session.set_ssl_verify(kSslVerify);
 
@@ -27,7 +27,7 @@ int main() {
     PrintSeparator();
 
     // Using request builder:
-    auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
+    auto r = session.Request(webcc::RequestBuilder{}.Get().
                              Url("http://httpbin.org/get").
                              Query("key1", "value1").
                              Query("key2", "value2").

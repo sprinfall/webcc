@@ -20,9 +20,9 @@ public:
       }
 
       response->content = "OK";
-      response->media_type = webcc::http::media_types::kTextPlain;
+      response->media_type = webcc::media_types::kTextPlain;
       response->charset = "utf-8";
-      response->status = webcc::http::Status::kCreated;
+      response->status = webcc::Status::kCreated;
     }
   }
 };

@@ -2,7 +2,7 @@
 
 #include "boost/filesystem.hpp"
 
-#include "webcc/http_client_session.h"
+#include "webcc/client_session.h"
 #include "webcc/logger.h"
 
 #if (defined(WIN32) || defined(_WIN64))
@@ -47,12 +47,12 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  webcc::HttpClientSession session;
+  webcc::ClientSession session;
 
   try {
     //auto r = session.PostFile(url, "file", upload_dir / "remember.txt");
 
-    auto r = session.Request(webcc::HttpRequestBuilder{}.Post().
+    auto r = session.Request(webcc::RequestBuilder{}.Post().
                              Url(url).
                              File("file", upload_dir / "remember.txt").
                              Form("json", "{}", "application/json")

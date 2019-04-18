@@ -30,9 +30,9 @@ bool ReadFile(const Path& path, std::string* output);
 
 // -----------------------------------------------------------------------------
 
-typedef std::pair<std::string, std::string> HttpHeader;
+using Header = std::pair<std::string, std::string>;
 
-class HttpHeaders {
+class Headers {
 public:
   std::size_t size() const {
     return headers_.size();
@@ -42,7 +42,7 @@ public:
     return headers_.empty();
   }
 
-  const std::vector<HttpHeader>& data() const {
+  const std::vector<Header>& data() const {
     return headers_;
   }
 
@@ -53,7 +53,7 @@ public:
   bool Has(const std::string& key) const;
 
   // Get header by index.
-  const HttpHeader& Get(std::size_t index) const {
+  const Header& Get(std::size_t index) const {
     assert(index < size());
     return headers_[index];
   }
@@ -68,9 +68,9 @@ public:
   }
 
 private:
-  std::vector<HttpHeader>::iterator Find(const std::string& key);
+  std::vector<Header>::iterator Find(const std::string& key);
 
-  std::vector<HttpHeader> headers_;
+  std::vector<Header> headers_;
 };
 
 // -----------------------------------------------------------------------------
@@ -261,7 +261,7 @@ private:
 
   // Headers generated from the above properties.
   // Only Used to prepare payload.
-  HttpHeaders headers_;
+  Headers headers_;
 
   std::string data_;
 };

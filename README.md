@@ -12,7 +12,7 @@ A complete client example:
 ```cpp
 #include <iostream>
 
-#include "webcc/http_client_session.h"
+#include "webcc/client_session.h"
 #include "webcc/logger.h"
 
 int main() {
@@ -21,7 +21,7 @@ int main() {
   
   // Session provides convenient request APIs, stores request configurations
   // and manages persistent connenction.
-  webcc::HttpClientSession session;
+  webcc::ClientSession session;
 
   // Catch exceptions for error handling.
   try {
@@ -41,11 +41,11 @@ int main() {
 
 The `Get()` method is nothing but a shortcut of `Request()`. Using `Request()` directly is more complicated:
 ```cpp
-auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
+auto r = session.Request(webcc::RequestBuilder{}.Get().
                          Url("http://httpbin.org/get")
                          ());
 ```
-As you can see, a helper class named `HttpRequestBuilder` is used to chain the parameters and finally build (don't miss the `()` operator) a request object.
+As you can see, a helper class named `RequestBuilder` is used to chain the parameters and finally build (don't miss the `()` operator) a request object.
 
 Both the shortcut and `Request()` accept URL query parameters:
 
@@ -53,7 +53,7 @@ Both the shortcut and `Request()` accept URL query parameters:
 // Query parameters are passed using a std::vector. 
 session.Get("http://httpbin.org/get", { "key1", "value1", "key2", "value2" });
 
-session.Request(webcc::HttpRequestBuilder{}.Get().
+session.Request(webcc::RequestBuilder{}.Get().
                 Url("http://httpbin.org/get").
                 Query("key1", "value1").
                 Query("key2", "value2")
@@ -66,7 +66,7 @@ session.Get("http://httpbin.org/get",
             {"key1", "value1", "key2", "value2"},
             {"Accept", "application/json"});  // Also a std::vector
                 
-session.Request(webcc::HttpRequestBuilder{}.Get().
+session.Request(webcc::RequestBuilder{}.Get().
                 Url("http://httpbin.org/get").
                 Query("key1", "value1").
                 Query("key2", "value2").

@@ -8,8 +8,6 @@ namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-namespace http {
-
 const std::string& UserAgent() {
   static std::string s_user_agent = std::string("Webcc/") + WEBCC_VERSION;
   return s_user_agent;
@@ -51,8 +49,6 @@ std::string FromExtension(const std::string& extension,
 }
 
 }  // namespace media_types
-
-}  // namespace http
 
 // -----------------------------------------------------------------------------
 

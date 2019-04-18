@@ -16,8 +16,8 @@ namespace webcc {
 // URL query parameters.
 class UrlQuery {
 public:
-  typedef std::pair<std::string, std::string> Parameter;
-  typedef std::vector<Parameter> Parameters;
+  using Parameter = std::pair<std::string, std::string>;
+  using Parameters = std::vector<Parameter>;
 
   UrlQuery() = default;
 
@@ -47,7 +47,7 @@ public:
   std::string ToString() const;
 
 private:
-  typedef Parameters::const_iterator ConstIterator;
+  using ConstIterator = Parameters::const_iterator;
   ConstIterator Find(const std::string& key) const;
 
   Parameters parameters_;

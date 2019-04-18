@@ -2,7 +2,7 @@
 
 #include "json/json.h"
 
-#include "webcc/http_client_session.h"
+#include "webcc/client_session.h"
 #include "webcc/logger.h"
 
 // -----------------------------------------------------------------------------
@@ -61,7 +61,7 @@ void PrettyPrintJsonString(const std::string& str) {
 // -----------------------------------------------------------------------------
 
 // List public events.
-void ListEvents(webcc::HttpClientSession& session) {
+void ListEvents(webcc::ClientSession& session) {
   try {
     auto r = session.Get(kUrlRoot + "/events");
 
@@ -75,8 +75,7 @@ void ListEvents(webcc::HttpClientSession& session) {
 // List the followers of the given user.
 // Example:
 //   ListUserFollowers(session, "<login>")
-void ListUserFollowers(webcc::HttpClientSession& session,
-                       const std::string& user) {
+void ListUserFollowers(webcc::ClientSession& session, const std::string& user) {
   try {
     auto r = session.Get(kUrlRoot + "/users/" + user + "/followers");
 
@@ -90,11 +89,11 @@ void ListUserFollowers(webcc::HttpClientSession& session,
 // List the followers of the current authorized user using Basic authorization.
 // E.g., list my own followers:
 //   ListAuthUserFollowers(session, "sprinfall@gmail.com", "<MyPassword>");
-void ListAuthUserFollowers(webcc::HttpClientSession& session,
+void ListAuthUserFollowers(webcc::ClientSession& session,
                            const std::string& login,
                            const std::string& password) {
   try {
-    auto r = session.Request(webcc::HttpRequestBuilder{}.Get().
+    auto r = session.Request(webcc::RequestBuilder{}.Get().
                              Url(kUrlRoot + "/user/followers").
                              AuthBasic(login, password)
                              ());
@@ -106,8 +105,9 @@ void ListAuthUserFollowers(webcc::HttpClientSession& session,
   }
 }
 
-void CreateAuthorization(webcc::HttpClientSession& session,
-                         const std::string& auth) {
+void CreateAuthorization(webcc::ClientSession& session,
+                         const std::string& login,
+                         const std::string& password) {
   try {
     std::string data =
       "{\n"
@@ -115,8 +115,12 @@ void CreateAuthorization(webcc::HttpClientSession& session,
       "  'scopes': ['public_repo', 'repo', 'repo:status', 'user']\n"
       "}";
 
-    auto r = session.Post(kUrlRoot + "/authorizations", std::move(data), true,
-                          {"Authorization", auth});
+    auto r = session.Request(webcc::RequestBuilder{}.Post().
+                             Url(kUrlRoot + "/authorizations").
+                             Data(std::move(data)).
+                             Json(true).
+                             AuthBasic(login, password)
+                             ());
 
     std::cout << r->content() << std::endl;
 
@@ -130,7 +134,7 @@ void CreateAuthorization(webcc::HttpClientSession& session,
 int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
-  webcc::HttpClientSession session;
+  webcc::ClientSession session;
 
   session.set_ssl_verify(kSslVerify);
 

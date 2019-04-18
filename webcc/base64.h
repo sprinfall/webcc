@@ -6,11 +6,11 @@
 
 namespace webcc {
 
-std::string Base64Encode(const std::uint8_t* data, std::size_t len);
+std::string Base64Encode(const std::uint8_t* data, std::size_t length);
 
 std::string Base64Encode(const std::string& input);
 
-std::string Base64Decode(const std::string& data);
+std::string Base64Decode(const std::string& input);
 
 }  // namespace webcc
 

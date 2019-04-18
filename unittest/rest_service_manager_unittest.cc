@@ -8,7 +8,7 @@ class MyRestService : public webcc::RestService {
 public:
   void Handle(const webcc::RestRequest& request,
               webcc::RestResponse* response) final {
-    response->status = webcc::http::Status::kOK;
+    response->status = webcc::Status::kOK;
   }
 };
 

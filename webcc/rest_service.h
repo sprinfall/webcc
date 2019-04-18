@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "webcc/globals.h"
-#include "webcc/http_request.h"
+#include "webcc/request.h"
 #include "webcc/url.h"
 
 namespace webcc {
@@ -22,18 +22,18 @@ namespace webcc {
 // -----------------------------------------------------------------------------
 
 // Regex sub-matches of the URL.
-typedef std::vector<std::string> UrlMatches;
+using UrlMatches = std::vector<std::string>;
 
 struct RestRequest {
   // Original HTTP request.
-  HttpRequestPtr http;
+  RequestPtr http;
 
   // Regex sub-matches of the URL (usually resource ID's).
   UrlMatches url_matches;
 };
 
 struct RestResponse {
-  http::Status status;
+  Status status;
 
   std::string content;
 
@@ -52,7 +52,7 @@ public:
   virtual void Handle(const RestRequest& request, RestResponse* response) = 0;
 };
 
-typedef std::shared_ptr<RestService> RestServicePtr;
+using RestServicePtr = std::shared_ptr<RestService>;
 
 // -----------------------------------------------------------------------------
 

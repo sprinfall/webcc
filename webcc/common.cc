@@ -56,7 +56,7 @@ bool ReadFile(const Path& path, std::string* output) {
 
 // -----------------------------------------------------------------------------
 
-void HttpHeaders::Set(const std::string& key, const std::string& value) {
+void Headers::Set(const std::string& key, const std::string& value) {
   auto it = Find(key);
   if (it != headers_.end()) {
     it->second = value;
@@ -65,7 +65,7 @@ void HttpHeaders::Set(const std::string& key, const std::string& value) {
   }
 }
 
-void HttpHeaders::Set(std::string&& key, std::string&& value) {
+void Headers::Set(std::string&& key, std::string&& value) {
   auto it = Find(key);
   if (it != headers_.end()) {
     it->second = std::move(value);
@@ -74,13 +74,13 @@ void HttpHeaders::Set(std::string&& key, std::string&& value) {
   }
 }
 
-bool HttpHeaders::Has(const std::string& key) const {
-  return const_cast<HttpHeaders*>(this)->Find(key) != headers_.end();
+bool Headers::Has(const std::string& key) const {
+  return const_cast<Headers*>(this)->Find(key) != headers_.end();
 }
 
-const std::string& HttpHeaders::Get(const std::string& key,
+const std::string& Headers::Get(const std::string& key,
                                     bool* existed) const {
-  auto it = const_cast<HttpHeaders*>(this)->Find(key);
+  auto it = const_cast<Headers*>(this)->Find(key);
 
   if (existed != nullptr) {
     *existed = (it != headers_.end());
@@ -94,7 +94,7 @@ const std::string& HttpHeaders::Get(const std::string& key,
   return s_no_value;
 }
 
-std::vector<HttpHeader>::iterator HttpHeaders::Find(const std::string& key) {
+std::vector<Header>::iterator Headers::Find(const std::string& key) {
   auto it = headers_.begin();
   for (; it != headers_.end(); ++it) {
     if (boost::iequals(it->first, key)) {
@@ -225,7 +225,7 @@ FormPart::FormPart(const std::string& name, const Path& path,
   // Determine media type from file extension.
   if (media_type_.empty()) {
     std::string extension = path.extension().string();
-    media_type_ = http::media_types::FromExtension(extension, false);
+    media_type_ = media_types::FromExtension(extension, false);
   }
 }
 
@@ -244,7 +244,7 @@ void FormPart::Prepare(Payload* payload) {
 
   using boost::asio::buffer;
 
-  for (const HttpHeader& h : headers_.data()) {
+  for (const Header& h : headers_.data()) {
     payload->push_back(buffer(h.first));
     payload->push_back(buffer(misc_strings::HEADER_SEPARATOR));
     payload->push_back(buffer(h.second));
@@ -270,12 +270,12 @@ void FormPart::SetHeaders() {
   if (!file_name_.empty()) {
     content_disposition.append("; filename=\"" + file_name_ + "\"");
   }
-  headers_.Set(http::headers::kContentDisposition, content_disposition);
+  headers_.Set(headers::kContentDisposition, content_disposition);
 
   // Header: Content-Type
 
   if (!media_type_.empty()) {
-    headers_.Set(http::headers::kContentType, media_type_);
+    headers_.Set(headers::kContentType, media_type_);
   }
 }
 

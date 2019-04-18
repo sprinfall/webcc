@@ -14,8 +14,8 @@ bool RestRequestHandler::Bind(RestServicePtr service, const std::string& url,
   return service_manager_.AddService(service, url, is_regex);
 }
 
-void RestRequestHandler::HandleConnection(HttpConnectionPtr connection) {
-  HttpRequestPtr http_request = connection->request();
+void RestRequestHandler::HandleConnection(ConnectionPtr connection) {
+  RequestPtr http_request = connection->request();
   assert(http_request);
 
   const Url& url = http_request->url();
@@ -28,14 +28,14 @@ void RestRequestHandler::HandleConnection(HttpConnectionPtr connection) {
 
   if (!service) {
     LOG_WARN("No service matches the URL path: %s", url.path().c_str());
-    connection->SendResponse(http::Status::kNotFound);
+    connection->SendResponse(Status::kNotFound);
     return;
   }
 
   RestResponse rest_response;
   service->Handle(rest_request, &rest_response);
 
-  auto http_response = std::make_shared<HttpResponse>(rest_response.status);
+  auto http_response = std::make_shared<Response>(rest_response.status);
 
   if (!rest_response.content.empty()) {
     if (!rest_response.media_type.empty()) {
@@ -48,7 +48,7 @@ void RestRequestHandler::HandleConnection(HttpConnectionPtr connection) {
         http_request->AcceptEncodingGzip()) {
       std::string compressed;
       if (Compress(rest_response.content, &compressed)) {
-        http_response->SetHeader(http::headers::kContentEncoding, "gzip");
+        http_response->SetHeader(headers::kContentEncoding, "gzip");
         http_response->SetContent(std::move(compressed), true);
       }
     } else {

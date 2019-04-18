@@ -96,7 +96,7 @@ if(WEBCC_ENABLE_SSL)
 endif()
 
 include_directories(
-    # For including its own headers as "webcc/http_client.h".
+    # For including its own headers as "webcc/client.h".
     ${PROJECT_SOURCE_DIR}
     # For including config.h as "webcc/config.h".
     ${PROJECT_BINARY_DIR}
@@ -109,8 +109,6 @@ if(WIN32)
     link_directories(${THIRD_PARTY_DIR}/win32/lib)
 endif()
 
-# For including pugixml as "pugixml/pugixml.hpp" or gtest as
-# "gtest/gtest.h".
 include_directories(${THIRD_PARTY_DIR}/src)
 
 # For using zlib on Windows.

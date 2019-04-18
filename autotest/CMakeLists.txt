@@ -1,7 +1,7 @@
 # Auto test
 
 set(AT_SRCS
-    http_client_autotest.cc
+    client_autotest.cc
     )
 
 set(AT_TARGET_NAME webcc_autotest)

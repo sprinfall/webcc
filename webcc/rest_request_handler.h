@@ -5,12 +5,12 @@
 
 #include <string>
 
-#include "webcc/http_request_handler.h"
+#include "webcc/request_handler.h"
 #include "webcc/rest_service_manager.h"
 
 namespace webcc {
 
-class RestRequestHandler : public HttpRequestHandler {
+class RestRequestHandler : public RequestHandler {
 public:
   RestRequestHandler() = default;
 
@@ -19,7 +19,7 @@ public:
   bool Bind(RestServicePtr service, const std::string& url, bool is_regex);
 
 private:
-  void HandleConnection(HttpConnectionPtr connection) final;
+  void HandleConnection(ConnectionPtr connection) final;
 
 private:
   RestServiceManager service_manager_;

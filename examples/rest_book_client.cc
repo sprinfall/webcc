@@ -3,7 +3,7 @@
 
 #include "json/json.h"
 
-#include "webcc/http_client_session.h"
+#include "webcc/client_session.h"
 #include "webcc/logger.h"
 
 #include "examples/common/book.h"
@@ -21,7 +21,7 @@
 
 class BookClientBase {
 public:
-  BookClientBase(webcc::HttpClientSession& session, const std::string& url)
+  BookClientBase(webcc::ClientSession& session, const std::string& url)
       : session_(session), url_(url) {
   }
 
@@ -29,7 +29,7 @@ public:
 
 protected:
   // Check HTTP response status.
-  bool CheckStatus(webcc::HttpResponsePtr response, int expected_status) {
+  bool CheckStatus(webcc::ResponsePtr response, int expected_status) {
     int status = response->status();
     if (status != expected_status) {
       LOG_ERRO("HTTP status error (actual: %d, expected: %d).",
@@ -42,14 +42,14 @@ protected:
 protected:
   std::string url_;
 
-  webcc::HttpClientSession& session_;
+  webcc::ClientSession& session_;
 };
 
 // -----------------------------------------------------------------------------
 
 class BookListClient : public BookClientBase {
 public:
-  BookListClient(webcc::HttpClientSession& session, const std::string& url)
+  BookListClient(webcc::ClientSession& session, const std::string& url)
       : BookClientBase(session, url) {
   }
 
@@ -57,7 +57,7 @@ public:
     try {
       auto r = session_.Get(url_ + "/books");
       
-      if (!CheckStatus(r, webcc::http::Status::kOK)) {
+      if (!CheckStatus(r, webcc::Status::kOK)) {
         // Response HTTP status error.
         return false;
       }
@@ -88,7 +88,7 @@ public:
     try {
       auto r = session_.Post(url_ + "/books", JsonToString(req_json), true);
 
-      if (!CheckStatus(r, webcc::http::Status::kCreated)) {
+      if (!CheckStatus(r, webcc::Status::kCreated)) {
         return false;
       }
 
@@ -108,7 +108,7 @@ public:
 
 class BookDetailClient : public BookClientBase {
 public:
-  BookDetailClient(webcc::HttpClientSession& session, const std::string& url)
+  BookDetailClient(webcc::ClientSession& session, const std::string& url)
       : BookClientBase(session, url) {
   }
 
@@ -116,7 +116,7 @@ public:
     try {
       auto r = session_.Get(url_ + "/books/" + id);
 
-      if (!CheckStatus(r, webcc::http::Status::kOK)) {
+      if (!CheckStatus(r, webcc::Status::kOK)) {
         return false;
       }
 
@@ -137,7 +137,7 @@ public:
     try {
       auto r = session_.Put(url_ + "/books/" + id, JsonToString(json), true);
 
-      if (!CheckStatus(r, webcc::http::Status::kOK)) {
+      if (!CheckStatus(r, webcc::Status::kOK)) {
         return false;
       }
 
@@ -153,7 +153,7 @@ public:
     try {
       auto r = session_.Delete(url_ + "/books/" + id);
 
-      if (!CheckStatus(r, webcc::http::Status::kOK)) {
+      if (!CheckStatus(r, webcc::Status::kOK)) {
         return false;
       }
 
@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE_FILE_OVERWRITE);
 
   // Share the same session.
-  webcc::HttpClientSession session;
+  webcc::ClientSession session;
 
   // Session-level settings.
   session.set_timeout(timeout);
