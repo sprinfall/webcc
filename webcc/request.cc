@@ -2,6 +2,7 @@
 
 #include "webcc/logger.h"
 #include "webcc/utility.h"
+#include <iostream>
 
 namespace webcc {
 
@@ -52,7 +53,7 @@ void Request::Prepare() {
     data_payload.push_back(buffer(boundary_));
     data_payload.push_back(buffer(misc_strings::CRLF));
 
-    part.Prepare(&data_payload);
+    part->Prepare(&data_payload);
   }
 
   // Boundary end
@@ -73,6 +74,10 @@ void Request::Prepare() {
 
   // Append payload of content data.
   payload_.insert(payload_.end(), data_payload.begin(), data_payload.end());
+
+  std::string str;
+  CopyPayload(&str);
+  std::cout << str;
 }
 
 void Request::CreateStartLine() {

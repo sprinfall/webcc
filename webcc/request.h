@@ -55,16 +55,16 @@ public:
     return port().empty() ? default_port : port();
   }
 
-  const std::vector<FormPart>& form_parts() const {
+  const std::vector<FormPartPtr>& form_parts() const {
     return form_parts_;
   }
 
-  void set_form_parts(std::vector<FormPart>&& form_parts) {
+  void set_form_parts(std::vector<FormPartPtr>&& form_parts) {
     form_parts_ = std::move(form_parts);
   }
 
-  void AddFormPart(FormPart&& form_part) {
-    form_parts_.push_back(std::move(form_part));
+  void AddFormPart(FormPartPtr form_part) {
+    form_parts_.push_back(form_part);
   }
 
   // Prepare payload.
@@ -79,7 +79,7 @@ private:
   Url url_;
 
   // Files to upload for a POST request.
-  std::vector<FormPart> form_parts_;
+  std::vector<FormPartPtr> form_parts_;
 
   std::string boundary_;
 };

@@ -7,7 +7,7 @@
 
 namespace webcc {
 
-RequestPtr RequestBuilder::Build() {
+RequestPtr RequestBuilder::operator()() {
   assert(parameters_.size() % 2 == 0);
   assert(headers_.size() % 2 == 0);
 
@@ -44,7 +44,8 @@ RequestBuilder& RequestBuilder::File(const std::string& name,
                                      const Path& path,
                                      const std::string& media_type) {
   assert(!name.empty());
-  form_parts_.push_back(FormPart{ name, path, media_type });
+  auto part = std::make_shared<FormPart>(name, path, media_type);
+  form_parts_.push_back(part);
   return *this;
 }
 
@@ -52,7 +53,8 @@ RequestBuilder& RequestBuilder::Form(const std::string& name,
                                      std::string&& data,
                                      const std::string& media_type) {
   assert(!name.empty());
-  form_parts_.push_back(FormPart{ name, std::move(data), media_type });
+  auto part = std::make_shared<FormPart>(name, std::move(data), media_type);
+  form_parts_.push_back(part);
   return *this;
 }
 

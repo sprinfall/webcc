@@ -43,7 +43,7 @@ private:
   };
   Step step_ = kStart;
 
-  FormPart part_;
+  FormPartPtr part_;
 };
 
 }  // namespace webcc

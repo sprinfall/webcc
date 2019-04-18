@@ -169,31 +169,8 @@ public:
   FormPart(const std::string& name, std::string&& data,
            const std::string& media_type = "");
 
-#if WEBCC_DEFAULT_MOVE_COPY_ASSIGN
-
-  FormPart(FormPart&&) = default;
-  FormPart& operator=(FormPart&&) = default;
-
-#else
-
-  FormPart(FormPart&& rhs)
-      : name_(std::move(rhs.name_)),
-        file_name_(std::move(rhs.file_name_)),
-        media_type_(std::move(rhs.media_type_)),
-        data_(std::move(rhs.data_)) {
-  }
-
-  FormPart& operator=(FormPart&& rhs) {
-    if (&rhs != this) {
-      name_ = std::move(rhs.name_);
-      file_name_ = std::move(rhs.file_name_);
-      media_type_ = std::move(rhs.media_type_);
-      data_ = std::move(rhs.data_);
-    }
-    return *this;
-  }
-
-#endif  // WEBCC_DEFAULT_MOVE_COPY_ASSIGN
+  FormPart(const FormPart&) = delete;
+  FormPart& operator=(const FormPart&) = delete;
 
   // API: SERVER
   const std::string& name() const {
@@ -265,6 +242,8 @@ private:
 
   std::string data_;
 };
+
+using FormPartPtr = std::shared_ptr<FormPart>;
 
 }  // namespace webcc
 

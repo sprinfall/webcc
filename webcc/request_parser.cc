@@ -47,12 +47,12 @@ bool RequestParser::ParseContent(const char* data, std::size_t length) {
 }
 
 bool RequestParser::ParseMultipartContent(const char* data,
-                                              std::size_t length) {
+                                          std::size_t length) {
   // Append the new data to the pending data.
   // NOTE: It's more difficult to avoid this than normal fixed-length content.
   pending_data_.append(data, length);
 
-  LOG_VERB("Parse multipart content (pending data size: %u).",
+  LOG_VERB("Parse multipart content (3pending data size: %u).",
            pending_data_.size());
 
   if (!content_length_parsed_ || content_length_ == kInvalidLength) {
@@ -82,6 +82,9 @@ bool RequestParser::ParseMultipartContent(const char* data,
     }
 
     if (step_ == Step::kBoundaryParsed) {
+      if (!part_) {
+        part_.reset(new FormPart{});
+      }
       bool need_more_data = false;
       if (ParsePartHeaders(&need_more_data)) {
         // Go to next step.
@@ -103,9 +106,7 @@ bool RequestParser::ParseMultipartContent(const char* data,
       std::size_t count = 0;
       bool ended = false;
       if (!GetNextBoundaryLine(&off, &count, &ended)) {
-        // All pending data belongs to this part.
-        part_.AppendData(pending_data_);
-        pending_data_.clear();
+        // Wait until next boundary.
         break;
       }
 
@@ -113,11 +114,22 @@ bool RequestParser::ParseMultipartContent(const char* data,
 
       // This part has ended.
       if (off > 2) {
-        // -2 for exluding the CRLF after the data.
-        part_.AppendData(pending_data_.data(), off - 2);
+        // -2 for excluding the CRLF after the data.
+        part_->AppendData(pending_data_.data(), off - 2);
+
+        // Erase the data of this part and the next boundary.
+        // +2 for including the CRLF after the boundary.
+        pending_data_.erase(0, off + count + 2);
+      } else {
+        LOG_ERRO("Invalid part data.");
+        return false;
       }
 
-      request_->AddFormPart(std::move(part_));
+      // Add this part to request.
+      request_->AddFormPart(part_);
+
+      // Reset for next part.
+      part_.reset();
 
       if (ended) {
         // Go to the end step.
@@ -174,10 +186,10 @@ bool RequestParser::ParsePartHeaders(bool* need_more_data) {
                  header.second.c_str());
         return false;
       }
-      part_.set_name(content_disposition.name());
-      part_.set_file_name(content_disposition.file_name());
+      part_->set_name(content_disposition.name());
+      part_->set_file_name(content_disposition.file_name());
       LOG_INFO("Content-Disposition (name=%s; filename=%s)",
-               part_.name().c_str(), part_.file_name().c_str());
+               part_->name().c_str(), part_->file_name().c_str());
     }
 
     // TODO: Parse other headers.
@@ -190,8 +202,8 @@ bool RequestParser::ParsePartHeaders(bool* need_more_data) {
 }
 
 bool RequestParser::GetNextBoundaryLine(std::size_t* b_off,
-                                            std::size_t* b_count,
-                                            bool* ended) {
+                                        std::size_t* b_count,
+                                        bool* ended) {
   std::size_t off = 0;
 
   while (true) {

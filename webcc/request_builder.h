@@ -10,21 +10,14 @@ namespace webcc {
 
 class RequestBuilder {
 public:
-  explicit RequestBuilder(const std::string& method = "")
-      : method_(method) {
-  }
-
+  RequestBuilder() = default;
   ~RequestBuilder() = default;
 
   RequestBuilder(const RequestBuilder&) = delete;
   RequestBuilder& operator=(const RequestBuilder&) = delete;
 
   // Build the request.
-  RequestPtr Build();
-
-  RequestPtr operator()() {
-    return Build();
-  }
+  RequestPtr operator()();
 
   RequestBuilder& Get()     { return Method(methods::kGet);     }
   RequestBuilder& Head()    { return Method(methods::kHead);    }
@@ -72,8 +65,8 @@ public:
   RequestBuilder& File(const std::string& name, const Path& path,
                        const std::string& media_type = "");
 
-  RequestBuilder& Form(FormPart&& part) {
-    form_parts_.push_back(std::move(part));
+  RequestBuilder& Form(FormPartPtr part) {
+    form_parts_.push_back(part);
     return *this;
   }
 
@@ -121,7 +114,7 @@ private:
   bool json_ = false;
 
   // Files to upload for a POST request.
-  std::vector<FormPart> form_parts_;
+  std::vector<FormPartPtr> form_parts_;
 
   // Compress the request content.
   // NOTE: Most servers don't support compressed requests.
