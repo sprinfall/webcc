@@ -75,9 +75,9 @@ find_package(Threads REQUIRED)
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 if(WIN32)
-    find_package(Boost 1.66.0 REQUIRED)
+    find_package(Boost REQUIRED)
 else()
-    find_package(Boost 1.66.0 REQUIRED COMPONENTS system filesystem)
+    find_package(Boost REQUIRED COMPONENTS system filesystem date_time)
 endif()
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
@@ -128,20 +128,25 @@ endif()
 
 add_subdirectory(webcc)
 
-if(WEBCC_ENABLE_EXAMPLES)
+if(WEBCC_ENABLE_AUTOTEST OR WEBCC_ENABLE_EXAMPLES)
     # For including jsoncpp as "json/json.h".
     include_directories(${THIRD_PARTY_DIR}/src/jsoncpp)
-    # REST examples need jsoncpp to parse and create JSON.
-    add_subdirectory(${THIRD_PARTY_DIR}/src/jsoncpp)
 
-    add_subdirectory(examples)
+    add_subdirectory(${THIRD_PARTY_DIR}/src/jsoncpp)
+endif()
+
+if(WEBCC_ENABLE_AUTOTEST OR WEBCC_ENABLE_UNITTEST)
+    add_subdirectory(${THIRD_PARTY_DIR}/src/gtest)
 endif()
 
 if(WEBCC_ENABLE_AUTOTEST)
     add_subdirectory(autotest)
 endif()
 
+if(WEBCC_ENABLE_EXAMPLES)
+    add_subdirectory(examples)
+endif()
+
 if(WEBCC_ENABLE_UNITTEST)
-    add_subdirectory(${THIRD_PARTY_DIR}/src/gtest)
     add_subdirectory(unittest)
 endif()
