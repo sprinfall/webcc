@@ -16,4 +16,7 @@
 // Set 1/0 to enable/disable SSL/HTTPS.
 #define WEBCC_ENABLE_SSL @WEBCC_ENABLE_SSL@
 
+// Set 1/0 to enable/disable GZIP compression.
+#define WEBCC_ENABLE_GZIP @WEBCC_ENABLE_GZIP@
+
 #endif  // WEBCC_CONFIG_H_

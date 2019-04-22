@@ -158,6 +158,7 @@ void ClientSession::InitHeaders() {
 
   // Content-Encoding Tokens:
   //   (https://en.wikipedia.org/wiki/HTTP_compression)
+  //
   // * compress ¨C UNIX "compress" program method (historic; deprecated in most
   //              applications and replaced by gzip or deflate);
   // * deflate  ¨C compression based on the deflate algorithm, a combination of
@@ -177,7 +178,11 @@ void ClientSession::InitHeaders() {
   // the raw deflate compressed data format.
   // Simply put, "deflate" is not recommended for HTTP 1.1 encoding.
 
+#if WEBCC_ENABLE_GZIP
   headers_.Set(kAcceptEncoding, "gzip, deflate");
+#else
+  headers_.Set(kAcceptEncoding, "identity");
+#endif  // WEBCC_ENABLE_GZIP
 
   headers_.Set(kAccept, "*/*");
 

@@ -48,8 +48,13 @@ static void AssertGet(webcc::ResponsePtr r) {
   Json::Value headers = json["headers"];
 
   EXPECT_EQ("application/json", headers["Accept"].asString());
-  EXPECT_EQ("gzip, deflate", headers["Accept-Encoding"].asString());
   EXPECT_EQ("httpbin.org", headers["Host"].asString());
+
+#if WEBCC_ENABLE_GZIP
+  EXPECT_EQ("gzip, deflate", headers["Accept-Encoding"].asString());
+#else
+  EXPECT_EQ("identity", headers["Accept-Encoding"].asString());
+#endif  // WEBCC_ENABLE_GZIP
 }
 
 TEST(ClientTest, Get_RequestFunc) {
@@ -110,6 +115,8 @@ TEST(ClientTest, Get_SSL) {
 
 // -----------------------------------------------------------------------------
 
+#if WEBCC_ENABLE_GZIP
+
 // Test Gzip compressed response.
 TEST(ClientTest, Compression_Gzip) {
   webcc::ClientSession session;
@@ -141,6 +148,8 @@ TEST(ClientTest, Compression_Deflate) {
     std::cerr << e.what() << std::endl;
   }
 }
+
+#endif  // WEBCC_ENABLE_GZIP
 
 // -----------------------------------------------------------------------------
 

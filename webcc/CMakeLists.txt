@@ -18,6 +18,10 @@ file(GLOB SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/*.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
+if(NOT WEBCC_ENABLE_GZIP)
+    list(REMOVE_ITEM SRCS "gzip.h" "gzip.cc")
+endif()
+
 set(TARGET webcc)
 
 add_library(${TARGET} STATIC ${SRCS})

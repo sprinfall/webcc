@@ -8,7 +8,7 @@
 #include <iostream>
 
 // -----------------------------------------------------------------------------
-#if 0
+
 // HTTP GET request parser test fixture.
 class GetRequestParserTest : public testing::Test {
 protected:
@@ -145,7 +145,6 @@ TEST_F(PostRequestParserTest, ParseByteWise) {
 
   CheckResult();
 }
-#endif
 
 // -----------------------------------------------------------------------------
 

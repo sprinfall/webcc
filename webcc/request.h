@@ -78,7 +78,6 @@ private:
 
   Url url_;
 
-  // Files to upload for a POST request.
   std::vector<FormPartPtr> form_parts_;
 
   std::string boundary_;

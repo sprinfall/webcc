@@ -4,13 +4,15 @@
 set(EXAMPLE_LIBS webcc ${Boost_LIBRARIES} "${CMAKE_THREAD_LIBS_INIT}")
 
 if(WEBCC_ENABLE_SSL)
-    set(EXAMPLE_LIBS ${EXAMPLE_LIBS} ${OPENSSL_LIBRARIES})
+    set(EXAMPLE_LIBS ${EXAMPLE_LIBS} ${OPENSSL_LIBRARIES} crypt32)
 endif()
 
-if(WIN32)
-    set(EXAMPLE_LIBS ${EXAMPLE_LIBS} zlibstatic crypt32)
-else()
-    set(EXAMPLE_LIBS ${EXAMPLE_LIBS} ${ZLIB_LIBRARIES})
+if(WEBCC_ENABLE_GZIP)
+    if(WIN32)
+        set(EXAMPLE_LIBS ${EXAMPLE_LIBS} zlibstatic)
+    else()
+        set(EXAMPLE_LIBS ${EXAMPLE_LIBS} ${ZLIB_LIBRARIES})
+    endif()
 endif()
 
 if(UNIX)

@@ -5,6 +5,8 @@
 #include <exception>
 #include <string>
 
+#include "webcc/config.h"
+
 // -----------------------------------------------------------------------------
 // Macros
 

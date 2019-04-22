@@ -21,6 +21,9 @@ public:
 private:
   void HandleConnection(ConnectionPtr connection) final;
 
+  void SetContent(RequestPtr request, ResponsePtr response,
+                  std::string&& content);
+
 private:
   RestServiceManager service_manager_;
 };

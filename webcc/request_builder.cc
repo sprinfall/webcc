@@ -3,7 +3,10 @@
 #include "webcc/base64.h"
 #include "webcc/logger.h"
 #include "webcc/utility.h"
-#include "webcc/zlib_wrapper.h"
+
+#if WEBCC_ENABLE_GZIP
+#include "webcc/gzip.h"
+#endif
 
 namespace webcc {
 
@@ -76,9 +79,10 @@ RequestBuilder& RequestBuilder::AuthToken(const std::string& token) {
 }
 
 void RequestBuilder::SetContent(RequestPtr request, std::string&& data) {
+#if WEBCC_ENABLE_GZIP
   if (gzip_ && data.size() > kGzipThreshold) {
     std::string compressed;
-    if (Compress(data, &compressed)) {
+    if (gzip::Compress(data, &compressed)) {
       request->SetContent(std::move(compressed), true);
       request->SetHeader(headers::kContentEncoding, "gzip");
       return;
@@ -86,6 +90,7 @@ void RequestBuilder::SetContent(RequestPtr request, std::string&& data) {
 
     LOG_WARN("Cannot compress the content data!");
   }
+#endif  // WEBCC_ENABLE_GZIP
 
   request->SetContent(std::move(data), true);
 }

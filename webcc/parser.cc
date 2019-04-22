@@ -5,7 +5,10 @@
 #include "webcc/logger.h"
 #include "webcc/message.h"
 #include "webcc/utility.h"
-#include "webcc/zlib_wrapper.h"
+
+#if WEBCC_ENABLE_GZIP
+#include "webcc/gzip.h"
+#endif
 
 namespace webcc {
 
@@ -323,16 +326,29 @@ bool Parser::Finish() {
     return true;
   }
 
+#if WEBCC_ENABLE_GZIP
+
   LOG_INFO("Decompress the HTTP content...");
 
   std::string decompressed;
-  if (!Decompress(content_, &decompressed)) {
+  if (!gzip::Decompress(content_, &decompressed)) {
     LOG_ERRO("Cannot decompress the HTTP content!");
     return false;
   }
 
   message_->SetContent(std::move(decompressed), false);
+
   return true;
+
+#else
+
+  LOG_WARN("Compressed HTTP content remains untouched.");
+
+  message_->SetContent(std::move(content_), false);
+
+  return true;
+
+#endif  // WEBCC_ENABLE_GZIP
 }
 
 void Parser::AppendContent(const char* data, std::size_t count) {

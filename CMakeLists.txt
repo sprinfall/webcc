@@ -23,6 +23,7 @@ set(WEBCC_ENABLE_LOG 1 CACHE STRING "Enable logging? (1:Yes, 0:No)")
 set(WEBCC_LOG_LEVEL 2 CACHE STRING "Log level (0:VERB, 1:INFO, 2:WARN, 3:ERRO or 4:FATA)")
 
 set(WEBCC_ENABLE_SSL 0 CACHE STRING "Enable SSL/HTTPS (need OpenSSL)? (1:Yes, 0:No)")
+set(WEBCC_ENABLE_GZIP 0 CACHE STRING "Enable gzip compression (need Zlib)? (1:Yes, 0:No)")
 
 if(WEBCC_ENABLE_UNITTEST)
     enable_testing()
@@ -111,18 +112,20 @@ endif()
 
 include_directories(${THIRD_PARTY_DIR}/src)
 
-# For using zlib on Windows.
-if(WIN32)
-    add_subdirectory(${THIRD_PARTY_DIR}/src/zlib)
+if(WEBCC_ENABLE_GZIP)
+    # For using zlib on Windows.
+    if(WIN32)
+        add_subdirectory(${THIRD_PARTY_DIR}/src/zlib)
 
-    include_directories(${THIRD_PARTY_DIR}/src/zlib)
+        include_directories(${THIRD_PARTY_DIR}/src/zlib)
 
-    # For including CMake generated zconf.h.
-    include_directories(${PROJECT_BINARY_DIR}/third_party/src/zlib)
-else()
-    find_package(ZLIB REQUIRED)
-    if(ZLIB_FOUND)
-        include_directories(${ZLIB_INCLUDE_DIRS})
+        # For including CMake generated zconf.h.
+        include_directories(${PROJECT_BINARY_DIR}/third_party/src/zlib)
+    else()
+        find_package(ZLIB REQUIRED)
+        if(ZLIB_FOUND)
+            include_directories(${ZLIB_INCLUDE_DIRS})
+        endif()
     endif()
 endif()
 

@@ -1,4 +1,4 @@
-#include "webcc/zlib_wrapper.h"
+#include "webcc/gzip.h"
 
 #include <cassert>
 #include <utility>  // std::move
@@ -8,6 +8,7 @@
 #include "webcc/logger.h"
 
 namespace webcc {
+namespace gzip {
 
 bool Compress(const std::string& input, std::string* output) {
   output->clear();
@@ -125,4 +126,5 @@ bool Decompress(const std::string& input, std::string* output) {
   return true;
 }
 
+}  // namespace gzip
 }  // namespace webcc

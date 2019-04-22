@@ -1,9 +1,10 @@
-#ifndef WEBCC_ZLIB_WRAPPER_H_
-#define WEBCC_ZLIB_WRAPPER_H_
+#ifndef WEBCC_GZIP_H_
+#define WEBCC_GZIP_H_
 
 #include <string>
 
 namespace webcc {
+namespace gzip {
 
 // Compress the input string to gzip format output.
 bool Compress(const std::string& input, std::string* output);
@@ -12,6 +13,7 @@ bool Compress(const std::string& input, std::string* output);
 // formats.
 bool Decompress(const std::string& input, std::string* output);
 
+}  // namespace gzip
 }  // namespace webcc
 
-#endif  // WEBCC_ZLIB_WRAPPER_H_
+#endif  // WEBCC_GZIP_H_
