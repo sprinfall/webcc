@@ -29,8 +29,10 @@ private:
   bool ParsePartHeaders(bool* need_more_data);
   bool GetNextBoundaryLine(std::size_t* b_off, std::size_t* b_count,
                            bool* ended);
-  bool IsBoundary(const std::string& line) const;
-  bool IsBoundaryEnd(const std::string& line) const;
+
+  // Check if the str.substr(off, count) is a boundary.
+  bool IsBoundary(const std::string& str, std::size_t off,
+                  std::size_t count, bool* end = nullptr) const;
 
 private:
   Request* request_;

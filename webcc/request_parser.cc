@@ -48,12 +48,7 @@ bool RequestParser::ParseContent(const char* data, std::size_t length) {
 
 bool RequestParser::ParseMultipartContent(const char* data,
                                           std::size_t length) {
-  // Append the new data to the pending data.
-  // NOTE: It's more difficult to avoid this than normal fixed-length content.
   pending_data_.append(data, length);
-
-  LOG_VERB("Parse multipart content (3pending data size: %u).",
-           pending_data_.size());
 
   if (!content_length_parsed_ || content_length_ == kInvalidLength) {
     // Invalid content length (syntax error).
@@ -71,7 +66,7 @@ bool RequestParser::ParseMultipartContent(const char* data,
       if (!GetNextLine(0, &line, true)) {
         break;  // Not enough data
       }
-      if (!IsBoundary(line)) {
+      if (!IsBoundary(line, 0, line.size())) {
         LOG_ERRO("Invalid boundary: %s", line.c_str());
         return false;
       }
@@ -105,12 +100,13 @@ bool RequestParser::ParseMultipartContent(const char* data,
       std::size_t off = 0;
       std::size_t count = 0;
       bool ended = false;
+      // TODO: Remember last CRLF position.
       if (!GetNextBoundaryLine(&off, &count, &ended)) {
         // Wait until next boundary.
         break;
       }
 
-      LOG_INFO("Next boundary has been found.");
+      LOG_INFO("Next boundary found.");
 
       // This part has ended.
       if (off > 2) {
@@ -218,19 +214,9 @@ bool RequestParser::GetNextBoundaryLine(std::size_t* b_off,
       continue;  // Empty line
     }
 
-    // TODO: Avoid temp string.
-    std::string line = pending_data_.substr(off, count);
-
-    if (IsBoundary(line)) {
+    if (IsBoundary(pending_data_, off, count, ended)) {
       *b_off = off;
       *b_count = count;
-      return true;
-    }
-
-    if (IsBoundaryEnd(line)) {
-      *b_off = off;
-      *b_count = count;
-      *ended = true;
       return true;
     }
 
@@ -240,18 +226,28 @@ bool RequestParser::GetNextBoundaryLine(std::size_t* b_off,
   return false;
 }
 
-bool RequestParser::IsBoundary(const std::string& line) const {
-  if (line == "--" + request_->content_type().boundary()) {
-    return true;
-  }
-  return false;
-}
+bool RequestParser::IsBoundary(const std::string& str, std::size_t off,
+                               std::size_t count, bool* end) const {
+  const std::string& boundary = request_->content_type().boundary();
 
-bool RequestParser::IsBoundaryEnd(const std::string& line) const {
-  if (line == "--" + request_->content_type().boundary() + "--") {
-    return true;
+  if (count != boundary.size() + 2 && count != boundary.size() + 4) {
+    return false;
   }
-  return false;
+
+  if (str[off] != '-' || str[off + 1] != '-') {
+    return false;
+  }
+
+  if (count == boundary.size() + 4) {
+    if (str[off + count - 1] != '-' || str[off + count - 2] != '-') {
+      return false;
+    }
+    if (end != nullptr) {
+      *end = true;
+    }
+  }
+  
+  return strncmp(boundary.c_str(), &str[off + 2], boundary.size()) == 0;
 }
 
 }  // namespace webcc

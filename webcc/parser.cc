@@ -139,54 +139,40 @@ bool Parser::GetNextLine(std::size_t off, std::string* line, bool erase) {
 bool Parser::ParseHeaderLine(const std::string& line) {
   Header header;
   if (!Split2(line, ':', &header.first, &header.second)) {
+    LOG_ERRO("Invalid header: %s", line.c_str());
     return false;
   }
 
-  do {
-    if (!chunked_ && !content_length_parsed_) {
-      if (boost::iequals(header.first, headers::kContentLength)) {
-        content_length_parsed_ = true;
+  if (boost::iequals(header.first, headers::kContentLength)) {
+    content_length_parsed_ = true;
 
-        if (!StringToSizeT(header.second, 10, &content_length_)) {
-          LOG_ERRO("Invalid content length: %s.", header.second.c_str());
-          return false;
-        }
-
-        LOG_INFO("Content length: %u.", content_length_);
-
-        // Reserve memory to avoid frequent reallocation when append.
-        try {
-          content_.reserve(content_length_);
-        } catch (const std::exception& e) {
-          LOG_ERRO("Failed to reserve content memory: %s.", e.what());
-          return false;
-        }
-
-        break;
-      }
+    if (!StringToSizeT(header.second, 10, &content_length_)) {
+      LOG_ERRO("Invalid content length: %s.", header.second.c_str());
+      return false;
     }
 
-    // TODO: Replace `!chunked_` with <TransferEncodingParsed>.
-    if (!chunked_ && !content_length_parsed_) {
-      if (boost::iequals(header.first, headers::kTransferEncoding)) {
-        if (header.second == "chunked") {
-          // The content is chunked.
-          chunked_ = true;
-        }
+    LOG_INFO("Content length: %u.", content_length_);
 
-        break;
-      }
+    // Reserve memory to avoid frequent reallocation when append.
+    try {
+      content_.reserve(content_length_);
+    } catch (const std::exception& e) {
+      LOG_ERRO("Failed to reserve content memory: %s.", e.what());
+      return false;
     }
-  } while (false);
-
-  // Parse Content-Type.
-  if (boost::iequals(header.first, headers::kContentType)) {
+  } else if (boost::iequals(header.first, headers::kContentType)) {
     ContentType content_type(header.second);
     if (!content_type.Valid()) {
       LOG_ERRO("Invalid content-type header: %s", header.second.c_str());
       return false;
+    } else {
+      message_->SetContentType(content_type);
     }
-    message_->SetContentType(content_type);
+  } else if (boost::iequals(header.first, headers::kTransferEncoding)) {
+    if (header.second == "chunked") {
+      // The content is chunked.
+      chunked_ = true;
+    }
   }
 
   message_->SetHeader(std::move(header));
@@ -220,7 +206,7 @@ bool Parser::ParseFixedContent(const char* data, std::size_t length) {
     pending_data_.clear();
   }
 
-  // NOTE: Don't have to firstly put the data to the pending data.
+  // Don't have to firstly put the data to the pending data.
   AppendContent(data, length);
 
   if (IsContentFull()) {
@@ -232,12 +218,7 @@ bool Parser::ParseFixedContent(const char* data, std::size_t length) {
 }
 
 bool Parser::ParseChunkedContent(const char* data, std::size_t length) {
-  // Append the new data to the pending data.
-  // NOTE: It's more difficult to avoid this than fixed-length content.
   pending_data_.append(data, length);
-
-  LOG_VERB("Parse chunked content (pending data size: %u).",
-           pending_data_.size());
 
   while (true) {
     // Read chunk-size if necessary.
@@ -320,6 +301,9 @@ bool Parser::Finish() {
   if (content_.empty()) {
     return true;
   }
+
+  // Could be kInvalidLength when chunked.
+  message_->set_content_length(content_length_);
 
   if (!IsContentCompressed()) {
     message_->SetContent(std::move(content_), false);

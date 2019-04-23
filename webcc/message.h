@@ -34,6 +34,10 @@ public:
     return content_length_;
   }
 
+  void set_content_length(std::size_t content_length) {
+    content_length_ = content_length;
+  }
+
   const std::string& content() const {
     return content_;
   }

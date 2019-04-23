@@ -59,6 +59,7 @@ protected:
   void AppendContent(const char* data, std::size_t count);
   void AppendContent(const std::string& data);
 
+  // TODO: Rename to IsFixedContentFull.
   bool IsContentFull() const;
 
   // Check header Content-Encoding to see if the content is compressed.

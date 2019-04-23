@@ -2,10 +2,6 @@
 
 #include "webcc/request.h"
 #include "webcc/request_parser.h"
-#include "webcc/response.h"
-#include "webcc/response_parser.h"
-
-#include <iostream>
 
 // -----------------------------------------------------------------------------
 
@@ -30,7 +26,7 @@ protected:
     EXPECT_EQ("Close", request_.GetHeader("Connection"));
 
     EXPECT_EQ("", request_.content());
-    EXPECT_EQ(0, request_.content_length());
+    EXPECT_EQ(webcc::kInvalidLength, request_.content_length());
   }
 
   std::string payload_;
@@ -39,7 +35,7 @@ protected:
   webcc::RequestParser parser_;
 };
 
-TEST_F(GetRequestParserTest, ParseFullDataOnce) {
+TEST_F(GetRequestParserTest, ParseOnce) {
   bool ok = parser_.Parse(payload_.data(), payload_.size());
 
   EXPECT_TRUE(ok);
@@ -125,7 +121,7 @@ protected:
   webcc::RequestParser parser_;
 };
 
-TEST_F(PostRequestParserTest, ParseFullDataOnce) {
+TEST_F(PostRequestParserTest, ParseOnce) {
   bool ok = parser_.Parse(payload_.data(), payload_.size());
 
   EXPECT_TRUE(ok);
@@ -213,7 +209,7 @@ protected:
   webcc::RequestParser parser_;
 };
 
-TEST_F(MultipartRequestParserTest, ParseFullDataOnce) {
+TEST_F(MultipartRequestParserTest, ParseOnce) {
   bool ok = parser_.Parse(payload_.data(), payload_.size());
 
   EXPECT_TRUE(ok);
