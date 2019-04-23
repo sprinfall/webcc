@@ -10,7 +10,11 @@ set(AT_TARGET_NAME webcc_autotest)
 set(AT_LIBS webcc ${Boost_LIBRARIES} "${CMAKE_THREAD_LIBS_INIT}")
 
 if(WEBCC_ENABLE_SSL)
-    set(AT_LIBS ${AT_LIBS} ${OPENSSL_LIBRARIES} crypt32)
+    set(AT_LIBS ${AT_LIBS} ${OPENSSL_LIBRARIES})
+
+    if(WIN32)
+        set(AT_LIBS ${AT_LIBS} crypt32)
+    endif()
 endif()
 
 if(WEBCC_ENABLE_GZIP)

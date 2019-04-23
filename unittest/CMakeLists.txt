@@ -13,7 +13,11 @@ set(UT_TARGET_NAME webcc_unittest)
 set(UT_LIBS webcc ${Boost_LIBRARIES} "${CMAKE_THREAD_LIBS_INIT}")
 
 if(WEBCC_ENABLE_SSL)
-    set(UT_LIBS ${UT_LIBS} ${OPENSSL_LIBRARIES} crypt32)
+    set(UT_LIBS ${UT_LIBS} ${OPENSSL_LIBRARIES})
+
+    if(WIN32)
+        set(UT_LIBS ${UT_LIBS} crypt32)
+    endif()
 endif()
 
 if(WEBCC_ENABLE_GZIP)
