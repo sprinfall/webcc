@@ -32,7 +32,7 @@ public:
   }
 
 private:
-  RequestHandler* GetRequestHandler() final {
+  RequestHandler* GetRequestHandler() override {
     return &request_handler_;
   }
 

@@ -121,36 +121,6 @@ ResponsePtr ClientSession::Patch(const std::string& url, std::string&& data,
   return Request(builder());
 }
 
-ResponsePtr ClientSession::PostFile(const std::string& url,
-                                    const std::string& name, const Path& path,
-                                    const std::vector<std::string>& headers) {
-  RequestBuilder builder;
-  builder.Post().Url(url);
-
-  SetHeaders(headers, &builder);
-
-  builder.File(name, path);
-
-  return Request(builder());
-}
-
-ResponsePtr ClientSession::PostFiles(const std::string& url,
-                                     const std::map<std::string, Path>& paths,
-                                     const std::vector<std::string>& headers) {
-  assert(!paths.empty());
-
-  RequestBuilder builder;
-  builder.Post().Url(url);
-
-  SetHeaders(headers, &builder);
-
-  for (auto& pair : paths) {
-    builder.File(pair.first, pair.second);
-  }
-
-  return Request(builder());
-}
-
 void ClientSession::InitHeaders() {
   using namespace headers;
 

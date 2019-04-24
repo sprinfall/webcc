@@ -18,10 +18,10 @@ public:
   void Init(Request* request);
 
 private:
-  bool ParseStartLine(const std::string& line) final;
+  bool ParseStartLine(const std::string& line) override;
 
   // Override to handle multipart form data which is request only.
-  bool ParseContent(const char* data, std::size_t length) final;
+  bool ParseContent(const char* data, std::size_t length) override;
 
   // Multipart specific parsing helpers.
 

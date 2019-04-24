@@ -28,7 +28,7 @@ public:
   }
 
   // Set start line according to status code.
-  void Prepare() final;
+  void Prepare() override;
 
 private:
   int status_;

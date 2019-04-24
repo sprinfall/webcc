@@ -6,6 +6,7 @@
 #include "boost/filesystem/fstream.hpp"
 
 #include "webcc/logger.h"
+#include "webcc/utility.h"
 
 namespace bfs = boost::filesystem;
 
@@ -24,33 +25,21 @@ const char CRLF[] = { '\r', '\n' };
 
 // -----------------------------------------------------------------------------
 
-bool Split2(const std::string& str, char token, std::string* part1,
-            std::string* part2) {
-  std::size_t pos = str.find(token);
-  if (pos == std::string::npos) {
+// Read entire file into string.
+static bool ReadFile(const Path& path, std::string* output) {
+  // Flag "ate": seek to the end of stream immediately after open.
+  bfs::ifstream stream{ path, std::ios::binary | std::ios::ate };
+  if (stream.fail()) {
     return false;
   }
 
-  *part1 = str.substr(0, pos);
-  *part2 = str.substr(pos + 1);
-
-  boost::trim(*part1);
-  boost::trim(*part2);
-
-  return true;
-}
-
-bool ReadFile(const Path& path, std::string* output) {
-  bfs::ifstream ifs{ path, std::ios::binary | std::ios::ate };
-  if (!ifs) {
-    return false;
-  }
-
-  auto size = ifs.tellg();
+  auto size = stream.tellg();
   output->resize(static_cast<std::size_t>(size), '\0');
-  ifs.seekg(0);
-  ifs.read(&(*output)[0], size);  // TODO: Error handling
-
+  stream.seekg(std::ios::beg);
+  stream.read(&(*output)[0], size);
+  if (stream.fail()) {
+    return false;
+  }
   return true;
 }
 

@@ -21,15 +21,6 @@ using Payload = std::vector<boost::asio::const_buffer>;
 
 // -----------------------------------------------------------------------------
 
-// Split a string to two parts by the given token.
-bool Split2(const std::string& str, char token, std::string* part1,
-            std::string* part2);
-
-// Read entire file into string.
-bool ReadFile(const Path& path, std::string* output);
-
-// -----------------------------------------------------------------------------
-
 using Header = std::pair<std::string, std::string>;
 
 class Headers {

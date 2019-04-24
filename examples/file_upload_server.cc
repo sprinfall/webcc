@@ -10,7 +10,7 @@
 class FileUploadService : public webcc::RestService {
 public:
   void Handle(const webcc::RestRequest& request,
-              webcc::RestResponse* response) final {
+              webcc::RestResponse* response) override {
     if (request.http->method() == "POST") {
       std::cout << "files: " << request.http->form_parts().size() << std::endl;
 

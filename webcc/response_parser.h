@@ -19,7 +19,7 @@ public:
 
 private:
   // Parse HTTP start line; E.g., "HTTP/1.1 200 OK".
-  bool ParseStartLine(const std::string& line) final;
+  bool ParseStartLine(const std::string& line) override;
 
   // The result response message.
   Response* response_;

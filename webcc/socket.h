@@ -47,14 +47,14 @@ public:
 
   void Connect(const std::string& host,
                const Endpoints& endpoints,
-               boost::system::error_code* ec) final;
+               boost::system::error_code* ec) override;
 
   void Write(const Request& request,
-             boost::system::error_code* ec) final;
+             boost::system::error_code* ec) override;
 
-  void AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) final;
+  void AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) override;
 
-  void Close(boost::system::error_code* ec) final;
+  void Close(boost::system::error_code* ec) override;
 
 private:
   boost::asio::ip::tcp::socket socket_;
@@ -71,14 +71,14 @@ public:
 
   void Connect(const std::string& host,
                const Endpoints& endpoints,
-               boost::system::error_code* ec) final;
+               boost::system::error_code* ec) override;
 
   void Write(const Request& request,
-             boost::system::error_code* ec) final;
+             boost::system::error_code* ec) override;
 
-  void AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) final;
+  void AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) override;
 
-  void Close(boost::system::error_code* ec) final;
+  void Close(boost::system::error_code* ec) override;
 
 private:
   void Handshake(const std::string& host, boost::system::error_code* ec);

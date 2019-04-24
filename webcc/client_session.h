@@ -79,16 +79,6 @@ public:
   ResponsePtr Patch(const std::string& url, std::string&& data, bool json,
                     const std::vector<std::string>& headers = {});
 
-  // Post a file.
-  ResponsePtr PostFile(const std::string& url, const std::string& name,
-                       const Path& path,
-                       const std::vector<std::string>& headers = {});
-
-  // Post multiple files.
-  ResponsePtr PostFiles(const std::string& url,
-                        const std::map<std::string, Path>& paths,
-                        const std::vector<std::string>& headers = {});
-
 private:
   void InitHeaders();
 

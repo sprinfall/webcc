@@ -50,15 +50,13 @@ int main(int argc, char* argv[]) {
   webcc::ClientSession session;
 
   try {
-    //auto r = session.PostFile(url, "file", upload_dir / "remember.txt");
-
     auto r = session.Request(webcc::RequestBuilder{}.Post().
                              Url(url).
                              File("file", upload_dir / "remember.txt").
                              Form("json", "{}", "application/json")
                              ());
 
-    //std::cout << r->content() << std::endl;
+    std::cout << r->status() << std::endl;
 
   } catch (const webcc::Exception& e) {
     std::cout << "Exception: " << e.what() << std::endl;

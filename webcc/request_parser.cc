@@ -4,8 +4,9 @@
 
 #include "boost/algorithm/string.hpp"
 
-#include "webcc/request.h"
 #include "webcc/logger.h"
+#include "webcc/request.h"
+#include "webcc/utility.h"
 
 namespace webcc {
 

@@ -16,6 +16,7 @@ void ResponseParser::Init(Response* response) {
   response_ = response;
 }
 
+// TODO: Keep the original message.
 bool ResponseParser::ParseStartLine(const std::string& line) {
   std::vector<std::string> parts;
   boost::split(parts, line, boost::is_any_of(" "), boost::token_compress_on);

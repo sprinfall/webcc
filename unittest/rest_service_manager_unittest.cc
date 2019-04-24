@@ -7,7 +7,7 @@
 class MyRestService : public webcc::RestService {
 public:
   void Handle(const webcc::RestRequest& request,
-              webcc::RestResponse* response) final {
+              webcc::RestResponse* response) override {
     response->status = webcc::Status::kOK;
   }
 };

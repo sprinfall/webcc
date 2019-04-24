@@ -42,11 +42,11 @@ public:
 
 protected:
   // Get a list of books based on query parameters.
-  void Get(const webcc::UrlQuery& query, webcc::RestResponse* response) final;
+  void Get(const webcc::UrlQuery& query, webcc::RestResponse* response) override;
 
   // Create a new book.
   void Post(const std::string& request_content,
-            webcc::RestResponse* response) final;
+            webcc::RestResponse* response) override;
 
 private:
   // Sleep some seconds before send back the response.
@@ -68,16 +68,16 @@ protected:
   // Get the detailed information of a book.
   void Get(const webcc::UrlMatches& url_matches,
            const webcc::UrlQuery& query,
-           webcc::RestResponse* response) final;
+           webcc::RestResponse* response) override;
 
   // Update a book.
   void Put(const webcc::UrlMatches& url_matches,
            const std::string& request_content,
-           webcc::RestResponse* response) final;
+           webcc::RestResponse* response) override;
 
   // Delete a book.
   void Delete(const webcc::UrlMatches& url_matches,
-              webcc::RestResponse* response) final;
+              webcc::RestResponse* response) override;
 
 private:
   // Sleep some seconds before send back the response.

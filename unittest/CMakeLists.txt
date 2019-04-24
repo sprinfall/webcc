@@ -10,7 +10,7 @@ set(UT_SRCS
 set(UT_TARGET_NAME webcc_unittest)
 
 # Common libraries to link.
-set(UT_LIBS webcc ${Boost_LIBRARIES} "${CMAKE_THREAD_LIBS_INIT}")
+set(UT_LIBS webcc gtest ${Boost_LIBRARIES} "${CMAKE_THREAD_LIBS_INIT}")
 
 if(WEBCC_ENABLE_SSL)
     set(UT_LIBS ${UT_LIBS} ${OPENSSL_LIBRARIES})
@@ -34,6 +34,6 @@ if(UNIX)
 endif()
 
 add_executable(${UT_TARGET_NAME} ${UT_SRCS})
-target_link_libraries(${UT_TARGET_NAME} webcc gtest ${UT_LIBS})
+target_link_libraries(${UT_TARGET_NAME} ${UT_LIBS})
 
 add_test(${UT_TARGET_NAME} ${UT_TARGET_NAME})
