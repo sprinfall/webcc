@@ -14,7 +14,6 @@
 #define WEBCC_INFO 1
 #define WEBCC_WARN 2
 #define WEBCC_ERRO 3
-#define WEBCC_FATA 4
 
 // Default log level.
 #ifndef WEBCC_LOG_LEVEL
@@ -84,13 +83,6 @@ void Log(int level, const char* file, int line, const char* format, ...);
 #define LOG_ERRO(format, ...)
 #endif
 
-#if WEBCC_LOG_LEVEL <= WEBCC_FATA
-#define LOG_FATA(format, ...) \
-    webcc::Log(WEBCC_FATA, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
-#else
-#define LOG_FATA(format, ...)
-#endif
-
 #else
 
 // See: https://stackoverflow.com/a/8488201
@@ -124,13 +116,6 @@ void Log(int level, const char* file, int line, const char* format, ...);
 #define LOG_ERRO(format, args...)
 #endif
 
-#if WEBCC_LOG_LEVEL <= WEBCC_FATA
-#define LOG_FATA(format, args...) \
-    webcc::Log(WEBCC_FATA, __FILENAME__, __LINE__, format, ##args);
-#else
-#define LOG_FATA(format, args...)
-#endif
-
 #endif  // defined(WIN32) || defined(_WIN64)
 
 #else  // WEBCC_ENABLE_LOG == 0
@@ -142,13 +127,11 @@ void Log(int level, const char* file, int line, const char* format, ...);
 #define LOG_INFO(format, ...)
 #define LOG_WARN(format, ...)
 #define LOG_ERRO(format, ...)
-#define LOG_FATA(format, ...)
 #else
 #define LOG_VERB(format, args...)
 #define LOG_INFO(format, args...)
 #define LOG_WARN(format, args...)
 #define LOG_ERRO(format, args...)
-#define LOG_FATA(format, args...)
 #endif  // defined(WIN32) || defined(_WIN64)
 
 #endif  // WEBCC_ENABLE_LOG
