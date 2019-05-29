@@ -3,6 +3,7 @@
 #include "boost/asio/connect.hpp"
 #include "boost/asio/read.hpp"
 #include "boost/asio/write.hpp"
+#include "boost/core/ignore_unused.hpp"
 
 #include "webcc/logger.h"
 
@@ -14,14 +15,14 @@ Socket::Socket(boost::asio::io_context& io_context)
     : socket_(io_context) {
 }
 
-void Socket::Connect(const std::string& /*host*/,
-                         const Endpoints& endpoints,
-                         boost::system::error_code* ec) {
+void Socket::Connect(const std::string& host, const Endpoints& endpoints,
+                     boost::system::error_code* ec) {
+  boost::ignore_unused(host);
+
   boost::asio::connect(socket_, endpoints, *ec);
 }
 
-void Socket::Write(const Request& request,
-                       boost::system::error_code* ec) {
+void Socket::Write(const Request& request, boost::system::error_code* ec) {
   boost::asio::write(socket_, request.payload(), *ec);
 }
 
