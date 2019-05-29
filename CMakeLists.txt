@@ -87,8 +87,10 @@ if(Boost_FOUND)
 endif()
 
 if(WEBCC_ENABLE_SSL)
-    set(OPENSSL_USE_STATIC_LIBS ON)
-    set(OPENSSL_MSVC_STATIC_RT ON)
+    # Commented on 20190529.
+    # The static libs have linkage issues with VS2015 on Win10.
+    # set(OPENSSL_USE_STATIC_LIBS ON)
+    # set(OPENSSL_MSVC_STATIC_RT ON)
     find_package(OpenSSL)
     if(OPENSSL_FOUND)
         include_directories(${OPENSSL_INCLUDE_DIR})
