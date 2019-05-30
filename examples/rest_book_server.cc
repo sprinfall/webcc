@@ -13,7 +13,7 @@
 #include "examples/common/book.h"
 #include "examples/common/book_json.h"
 
-#if (defined(WIN32) || defined(_WIN64))
+#if (defined(_WIN32) || defined(_WIN64))
 #if defined(_DEBUG) && defined(WEBCC_ENABLE_VLD)
 #pragma message ("< include vld.h >")
 #include "vld/vld.h"

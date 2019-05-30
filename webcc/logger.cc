@@ -12,7 +12,7 @@
 #include <string>
 #include <thread>
 
-#if (defined(WIN32) || defined(_WIN64))
+#if (defined(_WIN32) || defined(_WIN64))
 #include <Windows.h>
 #else
 // For getting thread ID.
@@ -75,7 +75,7 @@ static Logger g_logger;
 bool g_colorlogtostderr = true;
 
 static const bool g_terminal_has_color = []() {
-#if (defined(WIN32) || defined(_WIN64))
+#if (defined(_WIN32) || defined(_WIN64))
 #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
 #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
 #endif
@@ -105,7 +105,7 @@ static const bool g_terminal_has_color = []() {
 
 // Colors
 
-#if (defined(WIN32) || defined(_WIN64))
+#if (defined(_WIN32) || defined(_WIN64))
 #define VTSEQ(ID) ("\x1b[1;" #ID "m")
 #else
 #define VTSEQ(ID) ("\x1b[" #ID "m")
@@ -166,7 +166,7 @@ namespace bfs = boost::filesystem;
 // on Linux, e.g., 140219133990656. syscall(SYS_gettid) is much prefered because
 // it's shorter and the same as `ps -T -p <pid>` output.
 static std::string DoGetThreadID() {
-#if (defined(WIN32) || defined(_WIN64))
+#if (defined(_WIN32) || defined(_WIN64))
   auto thread_id = std::this_thread::get_id();
   std::stringstream ss;
   ss << thread_id;

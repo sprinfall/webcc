@@ -5,7 +5,7 @@
 #include "webcc/client_session.h"
 #include "webcc/logger.h"
 
-#if (defined(WIN32) || defined(_WIN64))
+#if (defined(_WIN32) || defined(_WIN64))
 // You need to set environment variable SSL_CERT_FILE properly to enable
 // SSL verification.
 bool kSslVerify = false;
