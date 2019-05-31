@@ -16,24 +16,55 @@ void ResponseParser::Init(Response* response) {
   response_ = response;
 }
 
-// TODO: Keep the original message.
+namespace {
+
+void SplitStartLine(const std::string& line, std::vector<std::string>* parts) {
+  const char SPACE = ' ';
+
+  std::size_t off = 0;
+  std::size_t pos = 0;
+
+  for (std::size_t i = 0; i < 2; ++i) {
+    pos = line.find(SPACE, off);
+    if (pos == std::string::npos) {
+      break;
+    }
+
+    parts->push_back(line.substr(off, pos - off));
+    off = pos + 1;
+
+    for (; off < line.size() && line[off] == SPACE; ++off) {}
+  }
+
+  if (off < line.size()) {
+    parts->push_back(line.substr(off));
+  }
+}
+
+}  // namespace
+
 bool ResponseParser::ParseStartLine(const std::string& line) {
   std::vector<std::string> parts;
-  boost::split(parts, line, boost::is_any_of(" "), boost::token_compress_on);
+  SplitStartLine(line, &parts);
 
-  if (parts.size() < 3) {
+  if (parts.size() != 3) {
     LOG_ERRO("Invalid HTTP response status line: %s", line.c_str());
     return false;
   }
 
-  std::string& status_str = parts[1];
-
-  try {
-    response_->set_status(std::stoi(status_str));
-  } catch (const std::exception&) {
-    LOG_ERRO("Invalid HTTP status code: %s", status_str.c_str());
+  if (!boost::starts_with(parts[0], "HTTP/1.")) {
+    LOG_ERRO("Invalid HTTP version: %s", parts[0].c_str());
     return false;
   }
+
+  try {
+    response_->set_status(std::stoi(parts[1]));
+  } catch (const std::exception&) {
+    LOG_ERRO("Invalid HTTP status code: %s", parts[1].c_str());
+    return false;
+  }
+
+  response_->set_reason(parts[2]);
 
   return true;
 }

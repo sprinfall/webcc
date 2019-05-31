@@ -15,9 +15,9 @@ std::string RandomUuid() {
   return ss.str();
 }
 
-bool Split2(const std::string& str, char token, std::string* part1,
-            std::string* part2) {
-  std::size_t pos = str.find(token);
+bool SplitKV(const std::string& str, char delimiter,
+             std::string* part1, std::string* part2) {
+  std::size_t pos = str.find(delimiter);
   if (pos == std::string::npos) {
     return false;
   }

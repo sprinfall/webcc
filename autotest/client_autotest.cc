@@ -37,6 +37,9 @@ static Json::Value StringToJson(const std::string& str) {
 // -----------------------------------------------------------------------------
 
 static void AssertGet(webcc::ResponsePtr r) {
+  EXPECT_EQ(webcc::Status::kOK, r->status());
+  EXPECT_EQ("OK", r->reason());
+
   Json::Value json = StringToJson(r->content());
 
   Json::Value args = json["args"];

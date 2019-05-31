@@ -138,7 +138,7 @@ bool Parser::GetNextLine(std::size_t off, std::string* line, bool erase) {
 
 bool Parser::ParseHeaderLine(const std::string& line) {
   Header header;
-  if (!Split2(line, ':', &header.first, &header.second)) {
+  if (!SplitKV(line, ':', &header.first, &header.second)) {
     LOG_ERRO("Invalid header: %s", line.c_str());
     return false;
   }

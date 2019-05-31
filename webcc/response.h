@@ -27,11 +27,19 @@ public:
     status_ = status;
   }
 
-  // Set start line according to status code.
+  const std::string& reason() const {
+    return reason_;
+  }
+
+  void set_reason(const std::string& reason) {
+    reason_ = reason;
+  }
+
   void Prepare() override;
 
 private:
-  int status_;
+  int status_;  // Status code
+  std::string reason_;  // Reason phrase
 };
 
 }  // namespace webcc

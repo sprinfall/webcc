@@ -5,6 +5,7 @@ set(UT_SRCS
     request_parser_unittest.cc
     rest_service_manager_unittest.cc
     url_unittest.cc
+    utility_unittest.cc
     )
 
 set(UT_TARGET_NAME webcc_unittest)
