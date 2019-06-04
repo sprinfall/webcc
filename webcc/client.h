@@ -6,9 +6,9 @@
 #include <string>
 #include <vector>
 
-#include "boost/asio/deadline_timer.hpp"
 #include "boost/asio/io_context.hpp"
 #include "boost/asio/ip/tcp.hpp"
+#include "boost/asio/steady_timer.hpp"
 
 #include "webcc/globals.h"
 #include "webcc/request.h"
@@ -92,7 +92,7 @@ private:
   ResponseParser response_parser_;
 
   // Timer for the timeout control.
-  boost::asio::deadline_timer timer_;
+  boost::asio::steady_timer timer_;
 
   // The buffer for reading response.
   std::vector<char> buffer_;

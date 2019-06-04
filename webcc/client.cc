@@ -1,7 +1,5 @@
 #include "webcc/client.h"
 
-#include "boost/date_time/posix_time/posix_time.hpp"
-
 #include "webcc/logger.h"
 #include "webcc/utility.h"
 
@@ -18,6 +16,8 @@ Client::Client()
       timer_canceled_(false),
       timed_out_(false),
       error_(kNoError) {
+
+
 }
 
 bool Client::Request(RequestPtr request, bool connect) {
@@ -144,7 +144,8 @@ Error Client::WriteReqeust(RequestPtr request) {
 Error Client::ReadResponse() {
   LOG_VERB("Read response (timeout: %ds)...", timeout_);
 
-  timer_.expires_from_now(boost::posix_time::seconds(timeout_));
+  timer_.expires_after(std::chrono::seconds(timeout_));
+
   DoWaitTimer();
 
   Error error = kNoError;
@@ -223,11 +224,11 @@ void Client::DoWaitTimer() {
 }
 
 void Client::OnTimer(boost::system::error_code ec) {
-  LOG_VERB("On deadline timer.");
+  LOG_VERB("On timer.");
 
   // timer_.cancel() was called.
   if (ec == boost::asio::error::operation_aborted) {
-    LOG_VERB("Deadline timer canceled.");
+    LOG_VERB("Timer canceled.");
     return;
   }
 
@@ -236,10 +237,9 @@ void Client::OnTimer(boost::system::error_code ec) {
     return;
   }
 
-  if (timer_.expires_at() <= boost::asio::deadline_timer::traits_type::now()) {
-    // The deadline has passed.
-    // The socket is closed so that any outstanding asynchronous operations
-    // are canceled.
+  if (timer_.expiry() <= boost::asio::steady_timer::clock_type::now()) {
+    // The deadline has passed. The socket is closed so that any outstanding
+    // asynchronous operations are canceled.
     LOG_WARN("HTTP client timed out.");
     timed_out_ = true;
     Close();
@@ -255,7 +255,7 @@ void Client::CancelTimer() {
     return;
   }
 
-  LOG_INFO("Cancel deadline timer...");
+  LOG_INFO("Cancel timer...");
   timer_.cancel();
 
   timer_canceled_ = true;
