@@ -38,6 +38,8 @@
 
 #endif  // _MSC_VER
 
+#define ARRAY_SIZE(A) (sizeof(A) / sizeof(*(A)))
+
 namespace webcc {
 
 // -----------------------------------------------------------------------------
@@ -57,15 +59,9 @@ const std::size_t kMaxDumpSize = 2048;
 // Default buffer size for socket reading.
 const std::size_t kBufferSize = 1024;
 
-// Default port for HTTP.
-const char* const kPort80 = "80";
-// Default port for HTTPS.
-const char* const kPort443 = "443";
-
 // Why 1400? See the following page:
 // https://www.itworld.com/article/2693941/why-it-doesn-t-make-sense-to-
 // gzip-all-content-from-your-web-server.html
-// TODO: Configurable
 const std::size_t kGzipThreshold = 1400;
 
 // -----------------------------------------------------------------------------
@@ -87,10 +83,10 @@ const char* const kPatch = "PATCH";
 
 }  // namespace methods
 
-// HTTP response status.
-// This is not a full list.
-// Full list: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-// NTOE: Don't use enum class because we want to convert to/from int easily.
+// HTTP status codes.
+// Don't use "enum class" for converting to/from int easily.
+// The full list is available here:
+//   https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 enum Status {
   kOK = 200,
   kCreated = 201,

@@ -38,6 +38,9 @@ public:
   void Prepare() override;
 
 private:
+  void PrepareStatusLine();
+
+private:
   int status_;  // Status code
   std::string reason_;  // Reason phrase
 };

@@ -1,71 +1,52 @@
 #include "webcc/response.h"
 
-#include "webcc/utility.h"
-
 namespace webcc {
 
-namespace status_strings {
-
-const std::string OK = "HTTP/1.1 200 OK";
-const std::string CREATED = "HTTP/1.1 201 Created";
-const std::string ACCEPTED = "HTTP/1.1 202 Accepted";
-const std::string NO_CONTENT = "HTTP/1.1 204 No Content";
-const std::string NOT_MODIFIED = "HTTP/1.1 304 Not Modified";
-const std::string BAD_REQUEST = "HTTP/1.1 400 Bad Request";
-const std::string NOT_FOUND = "HTTP/1.1 404 Not Found";
-const std::string INTERNAL_SERVER_ERROR =
-    "HTTP/1.1 500 Internal Server Error";
-const std::string NOT_IMPLEMENTED = "HTTP/1.1 501 Not Implemented";
-const std::string SERVICE_UNAVAILABLE = "HTTP/1.1 503 Service Unavailable";
-
-const std::string& ToString(int status) {
-  switch (status) {
-    case Status::kOK:
-      return OK;
-
-    case Status::kCreated:
-      return CREATED;
-
-    case Status::kAccepted:
-      return ACCEPTED;
-
-    case Status::kNoContent:
-      return NO_CONTENT;
-
-    case Status::kNotModified:
-      return NOT_MODIFIED;
-
-    case Status::kBadRequest:
-      return BAD_REQUEST;
-
-    case Status::kNotFound:
-      return NOT_FOUND;
-
-    case Status::kInternalServerError:
-      return INTERNAL_SERVER_ERROR;
-
-    case Status::kNotImplemented:
-      return NOT_IMPLEMENTED;
-
-    case Status::kServiceUnavailable:
-      return SERVICE_UNAVAILABLE;
-
-    default:
-      return NOT_IMPLEMENTED;
-  }
-}
-
-}  // namespace status_strings
-
 void Response::Prepare() {
-  if (start_line_.empty()) {
-    start_line_ = status_strings::ToString(status_);
-  }
+  PrepareStatusLine();
 
   SetHeader(headers::kServer, UserAgent());
   SetHeader(headers::kDate, GetTimestamp());
 
   Message::Prepare();
+}
+
+static const std::pair<int, const char*> kTable[] = {
+  { Status::kOK, "OK" },
+  { Status::kCreated, "Created" },
+  { Status::kAccepted, "Accepted" },
+  { Status::kNoContent, "No Content" },
+  { Status::kNotModified, "Not Modified" },
+  { Status::kBadRequest, "Bad Request" },
+  { Status::kNotFound, "Not Found" },
+  { Status::kInternalServerError, "Internal Server Error" },
+  { Status::kNotImplemented, "Not Implemented" },
+  { Status::kServiceUnavailable, "Service Unavailable" },
+};
+
+static const char* GetReason(int status) {
+  for (auto& pair : kTable) {
+    if (pair.first == status) {
+      return pair.second;
+    }
+  }
+  return "";
+}
+
+void Response::PrepareStatusLine() {
+  if (!start_line_.empty()) {
+    return;
+  }
+
+  start_line_ = "HTTP/1.1 ";
+  start_line_ += std::to_string(status_);
+  start_line_ += " ";
+
+  if (reason_.empty()) {
+    start_line_ += GetReason(status_);
+  } else {
+    start_line_ += reason_;
+  }
 }
 
 }  // namespace webcc

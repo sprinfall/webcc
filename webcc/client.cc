@@ -1,7 +1,6 @@
 #include "webcc/client.h"
 
 #include "webcc/logger.h"
-#include "webcc/utility.h"
 
 using boost::asio::ip::tcp;
 
@@ -16,8 +15,6 @@ Client::Client()
       timer_canceled_(false),
       timed_out_(false),
       error_(kNoError) {
-
-
 }
 
 bool Client::Request(RequestPtr request, bool connect) {
@@ -75,14 +72,14 @@ Error Client::Connect(RequestPtr request) {
   if (request->url().scheme() == "https") {
 #if WEBCC_ENABLE_SSL
     socket_.reset(new SslSocket{ io_context_, ssl_verify_ });
-    return DoConnect(request, kPort443);
+    return DoConnect(request, "443");
 #else
     LOG_ERRO("SSL/HTTPS support is not enabled.");
     return kSchemaError;
 #endif  // WEBCC_ENABLE_SSL
   } else {
     socket_.reset(new Socket{ io_context_ });
-    return DoConnect(request, kPort80);
+    return DoConnect(request, "80");
   }
 }
 
