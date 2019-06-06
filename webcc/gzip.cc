@@ -49,7 +49,7 @@ bool Compress(const std::string& input, std::string* output) {
     }
 
     std::size_t size = buf.size() - stream.avail_out;
-    output->insert(output->end(), buf.data(), buf.data() + size);
+    output->append(buf.data(), size);
 
   } while (stream.avail_out == 0);
 
@@ -106,6 +106,7 @@ bool Decompress(const std::string& input, std::string* output) {
     if (err == Z_STREAM_END) {
       break;
     }
+
     if (err != Z_OK) {
       inflateEnd(&stream);
       if (stream.msg != nullptr) {

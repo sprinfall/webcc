@@ -3,6 +3,7 @@
 #include "webcc/base64.h"
 #include "webcc/logger.h"
 #include "webcc/url.h"
+#include "webcc/utility.h"
 
 namespace webcc {
 
@@ -124,7 +125,7 @@ ResponsePtr ClientSession::Patch(const std::string& url, std::string&& data,
 void ClientSession::InitHeaders() {
   using namespace headers;
 
-  headers_.Set(kUserAgent, UserAgent());
+  headers_.Set(kUserAgent, utility::UserAgent());
 
   // Content-Encoding Tokens:
   //   (https://en.wikipedia.org/wiki/HTTP_compression)

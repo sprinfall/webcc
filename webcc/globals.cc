@@ -8,11 +8,6 @@ namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-const std::string& UserAgent() {
-  static std::string s_user_agent = std::string("Webcc/") + WEBCC_VERSION;
-  return s_user_agent;
-}
-
 namespace media_types {
 
 // TODO: Add more.

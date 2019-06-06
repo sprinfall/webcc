@@ -38,8 +38,6 @@
 
 #endif  // _MSC_VER
 
-#define ARRAY_SIZE(A) (sizeof(A) / sizeof(*(A)))
-
 namespace webcc {
 
 // -----------------------------------------------------------------------------
@@ -148,9 +146,6 @@ enum class ContentEncoding {
   kGzip,
   kDeflate,
 };
-
-// Return default user agent for HTTP headers.
-const std::string& UserAgent();
 
 // -----------------------------------------------------------------------------
 

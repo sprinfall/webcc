@@ -1,7 +1,5 @@
 #include "webcc/message.h"
 
-#include <ctime>
-#include <iomanip>  // for put_time
 #include <sstream>
 
 #include "boost/algorithm/string.hpp"
@@ -178,13 +176,6 @@ std::string Message::Dump(std::size_t indent,
                           const std::string& prefix) const {
   std::stringstream ss;
   Dump(ss, indent, prefix);
-  return ss.str();
-}
-
-std::string Message::GetTimestamp() {
-  std::time_t t = std::time(nullptr);
-  std::stringstream ss;
-  ss << std::put_time(std::gmtime(&t), "%a, %d %b %Y %H:%M:%S") << " GMT";
   return ss.str();
 }
 

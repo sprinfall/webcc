@@ -96,6 +96,9 @@ public:
 
   RequestBuilder& AuthToken(const std::string& token);
 
+  // Add the Date header to the request.
+  RequestBuilder& Date();
+
 private:
   void SetContent(RequestPtr request, std::string&& data);
   

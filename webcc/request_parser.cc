@@ -167,7 +167,7 @@ bool RequestParser::ParsePartHeaders(bool* need_more_data) {
     }
 
     Header header;
-    if (!SplitKV(line, ':', &header.first, &header.second)) {
+    if (!utility::SplitKV(line, ':', &header.first, &header.second)) {
       LOG_ERRO("Invalid part header line: %s", line.c_str());
       return false;
     }

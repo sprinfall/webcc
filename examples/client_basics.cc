@@ -31,6 +31,7 @@ int main() {
                              Url("http://httpbin.org/get").
                              Query("key1", "value1").
                              Query("key2", "value2").
+                             Date().
                              Header("Accept", "application/json")
                              ());
 

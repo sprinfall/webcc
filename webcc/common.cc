@@ -98,7 +98,7 @@ std::vector<Header>::iterator Headers::Find(const std::string& key) {
 static bool ParseValue(const std::string& str, const std::string& expected_key,
                        std::string* value) {
   std::string key;
-  if (!SplitKV(str, '=', &key, value)) {
+  if (!utility::SplitKV(str, '=', &key, value)) {
     return false;
   }
 
@@ -182,7 +182,7 @@ bool ContentDisposition::Init(const std::string& str) {
   std::string key;
   std::string value;
   for (std::size_t i = 1; i < parts.size(); ++i) {
-    if (!SplitKV(parts[i], '=', &key, &value)) {
+    if (!utility::SplitKV(parts[i], '=', &key, &value)) {
       return false;
     }
 

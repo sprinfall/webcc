@@ -8,7 +8,7 @@ TEST(UtilityTest, SplitKV) {
   std::string key;
   std::string value;
 
-  bool ok = webcc::SplitKV(str, ':', &key, &value);
+  bool ok = webcc::utility::SplitKV(str, ':', &key, &value);
 
   EXPECT_EQ(true, ok);
   EXPECT_EQ("Connection", key);

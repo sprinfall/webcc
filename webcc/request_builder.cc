@@ -78,6 +78,12 @@ RequestBuilder& RequestBuilder::AuthToken(const std::string& token) {
   return Auth("Token", token);
 }
 
+RequestBuilder& RequestBuilder::Date() {
+  headers_.push_back(headers::kDate);
+  headers_.push_back(utility::GetTimestamp());
+  return *this;
+}
+
 void RequestBuilder::SetContent(RequestPtr request, std::string&& data) {
 #if WEBCC_ENABLE_GZIP
   if (gzip_ && data.size() > kGzipThreshold) {

@@ -1,12 +1,14 @@
 #include "webcc/response.h"
 
+#include "webcc/utility.h"
+
 namespace webcc {
 
 void Response::Prepare() {
   PrepareStatusLine();
 
-  SetHeader(headers::kServer, UserAgent());
-  SetHeader(headers::kDate, GetTimestamp());
+  SetHeader(headers::kServer, utility::UserAgent());
+  SetHeader(headers::kDate, utility::GetTimestamp());
 
   Message::Prepare();
 }

@@ -37,7 +37,7 @@ void Request::Prepare() {
   // Another choice to generate the boundary is like what Apache does.
   // See: https://stackoverflow.com/a/5686863
   if (boundary_.empty()) {
-    boundary_ = RandomUuid();
+    boundary_ = utility::RandomUuid();
   }
 
   SetContentType("multipart/form-data; boundary=" + boundary_);
