@@ -65,10 +65,16 @@ void Connection::DoRead() {
 
 void Connection::OnRead(boost::system::error_code ec, std::size_t length) {
   if (ec) {
-    LOG_ERRO("Socket read error (%s).", ec.message().c_str());
+    if (ec == boost::asio::error::eof) {
+      LOG_WARN("Socket read EOF.");
+    } else {
+      LOG_ERRO("Socket read error (%s).", ec.message().c_str());
+    }
+
     if (ec != boost::asio::error::operation_aborted) {
       pool_->Close(shared_from_this());
     }
+
     return;
   }
 
