@@ -25,7 +25,7 @@ bool RestServiceManager::AddService(RestServicePtr service,
     item.url_regex.assign(url, flags);
     service_items_.push_back(std::move(item));
     return true;
-  } catch (std::regex_error& e) {
+  } catch (const std::regex_error& e) {
     LOG_ERRO("URL is not a valid regular expression: %s", e.what());
     return false;
   }

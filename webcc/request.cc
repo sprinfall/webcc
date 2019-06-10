@@ -81,7 +81,7 @@ void Request::CreateStartLine() {
   }
 
   if (url_.host().empty()) {
-    throw Exception(kSchemaError, "Invalid request: host is missing.");
+    throw Error{ Error::kSyntaxError, "Host is missing" };
   }
 
   std::string target = "/" + url_.path();

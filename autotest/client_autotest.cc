@@ -73,8 +73,8 @@ TEST(ClientTest, Get_RequestFunc) {
 
     AssertGet(r);
 
-  } catch (const webcc::Exception& e) {
-    std::cerr << e.what() << std::endl;
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
   }
 }
 
@@ -88,8 +88,8 @@ TEST(ClientTest, Get_Shortcut) {
 
     AssertGet(r);
 
-  } catch (const webcc::Exception& e) {
-    std::cerr << e.what() << std::endl;
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
   }
 }
 
@@ -110,8 +110,8 @@ TEST(ClientTest, Get_SSL) {
 
     AssertGet(r);
 
-  } catch (const webcc::Exception& e) {
-    std::cerr << e.what() << std::endl;
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
   }
 }
 #endif  // WEBCC_ENABLE_SSL
@@ -131,8 +131,8 @@ TEST(ClientTest, Compression_Gzip) {
 
     EXPECT_EQ(true, json["gzipped"].asBool());
 
-  } catch (const webcc::Exception& e) {
-    std::cerr << e.what() << std::endl;
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
   }
 }
 
@@ -147,8 +147,8 @@ TEST(ClientTest, Compression_Deflate) {
 
     EXPECT_EQ(true, json["deflated"].asBool());
 
-  } catch (const webcc::Exception& e) {
-    std::cerr << e.what() << std::endl;
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
   }
 }
 
@@ -201,8 +201,8 @@ TEST(ClientTest, KeepAlive) {
 
     EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Keep-alive"));
 
-  } catch (const webcc::Exception& e) {
-    std::cerr << e.what() << std::endl;
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
   }
 }
 
@@ -226,8 +226,8 @@ TEST(ClientTest, GetImageJpeg) {
 
     // TODO: Verify the response is a valid JPEG image.
 
-  } catch (const webcc::Exception& e) {
-    std::cerr << e.what() << std::endl;
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
   }
 }
 

@@ -74,8 +74,8 @@ public:
 
       return true;
 
-    } catch (const webcc::Exception& e) {
-      std::cerr << e.what() << std::endl;
+    } catch (const webcc::Error& error) {
+      std::cerr << error << std::endl;
       return false;
     }
   }
@@ -97,8 +97,8 @@ public:
 
       return !id->empty();
 
-    } catch (const webcc::Exception& e) {
-      std::cerr << e.what() << std::endl;
+    } catch (const webcc::Error& error) {
+      std::cerr << error << std::endl;
       return false;
     }
   }
@@ -122,8 +122,8 @@ public:
 
       return JsonStringToBook(r->content(), book);
 
-    } catch (const webcc::Exception& e) {
-      std::cerr << e.what() << std::endl;
+    } catch (const webcc::Error& error) {
+      std::cerr << error << std::endl;
       return false;
     }
   }
@@ -143,8 +143,8 @@ public:
 
       return true;
 
-    } catch (const webcc::Exception& e) {
-      std::cerr << e.what() << std::endl;
+    } catch (const webcc::Error& error) {
+      std::cerr << error << std::endl;
       return false;
     }
   }
@@ -159,8 +159,8 @@ public:
 
       return true;
 
-    } catch (const webcc::Exception& e) {
-      std::cerr << e.what() << std::endl;
+    } catch (const webcc::Error& error) {
+      std::cerr << error << std::endl;
       return false;
     }
   }

@@ -204,7 +204,7 @@ FormPart::FormPart(const std::string& name, const Path& path,
                    const std::string& media_type)
     : name_(name), media_type_(media_type) {
   if (!ReadFile(path, &data_)) {
-    throw Exception(kFileIOError, "Cannot read the file.");
+    throw Error{ Error::kFileError, "Cannot read the file." };
   }
 
   // Determine file name from file path.

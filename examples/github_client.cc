@@ -67,8 +67,8 @@ void ListEvents(webcc::ClientSession& session) {
 
     PRINT_JSON_STRING(r->content());
 
-  } catch (const webcc::Exception& e) {
-    std::cout << e.what() << std::endl;
+  } catch (const webcc::Error& error) {
+    std::cout << error << std::endl;
   }
 }
 
@@ -81,8 +81,8 @@ void ListUserFollowers(webcc::ClientSession& session, const std::string& user) {
 
     PRINT_JSON_STRING(r->content());
 
-  } catch (const webcc::Exception& e) {
-    std::cout << e.what() << std::endl;
+  } catch (const webcc::Error& error) {
+    std::cout << error << std::endl;
   }
 }
 
@@ -100,8 +100,8 @@ void ListAuthUserFollowers(webcc::ClientSession& session,
 
     PRINT_JSON_STRING(r->content());
 
-  } catch (const webcc::Exception& e) {
-    std::cout << e.what() << std::endl;
+  } catch (const webcc::Error& error) {
+    std::cout << error << std::endl;
   }
 }
 
@@ -124,8 +124,8 @@ void CreateAuthorization(webcc::ClientSession& session,
 
     std::cout << r->content() << std::endl;
 
-  } catch (const webcc::Exception& e) {
-    std::cout << e.what() << std::endl;
+  } catch (const webcc::Error& error) {
+    std::cout << error << std::endl;
   }
 }
 

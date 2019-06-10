@@ -58,8 +58,8 @@ int main(int argc, char* argv[]) {
 
     std::cout << r->status() << std::endl;
 
-  } catch (const webcc::Exception& e) {
-    std::cout << "Exception: " << e.what() << std::endl;
+  } catch (const webcc::Error& error) {
+    std::cout << error << std::endl;
   }
 
   return 0;

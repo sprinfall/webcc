@@ -1,8 +1,7 @@
 #include "webcc/globals.h"
 
+#include <iostream>
 #include <map>
-
-#include "webcc/version.h"
 
 namespace webcc {
 
@@ -47,37 +46,13 @@ std::string FromExtension(const std::string& extension,
 
 // -----------------------------------------------------------------------------
 
-const char* DescribeError(Error error) {
-  switch (error) {
-    case kSchemaError:
-      return "Schema error";
-    case kHostResolveError:
-      return "Host resolve error";
-    case kEndpointConnectError:
-      return "Endpoint connect error";
-    case kHandshakeError:
-      return "Handshake error";
-    case kSocketReadError:
-      return "Socket read error";
-    case kSocketWriteError:
-      return "Socket write error";
-    case kHttpError:
-      return "HTTP error";
-    case kFileIOError:
-      return "File IO error";
-    default:
-      return "";
+std::ostream& operator<<(std::ostream& os, const Error& error) {
+  os << std::to_string(static_cast<int>(error.code()));
+  os << ": " << error.message();
+  if (error.timeout()) {
+    os << " (timeout)";
   }
-}
-
-Exception::Exception(Error error, const std::string& details, bool timeout)
-    : error_(error), msg_(DescribeError(error)), timeout_(timeout) {
-  if (!details.empty()) {
-    msg_ += " (" + details + ")";
-  }
-  if (timeout) {
-    msg_ += " (timeout)";
-  }
+  return os;
 }
 
 }  // namespace webcc

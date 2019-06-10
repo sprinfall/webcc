@@ -31,8 +31,8 @@ int main() {
     // Print the response content data.
     std::cout << r->content() << std::endl;
 
-  } catch (const webcc::Exception& e) {
-    std::cout << e.what() << std::endl;
+  } catch (const webcc::Error& error) {
+    std::cout << error << std::endl;
   }
 
   return 0;

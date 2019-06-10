@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <exception>
+#include <iosfwd>
 #include <string>
 
 #include "webcc/config.h"
@@ -149,55 +150,48 @@ enum class ContentEncoding {
 
 // -----------------------------------------------------------------------------
 
-// Client side error codes.
-enum Error {
-  kNoError = 0,  // i.e., OK
-
-  kSchemaError,  // TODO
-
-  kHostResolveError,
-  kEndpointConnectError,
-  kHandshakeError,  // HTTPS handshake
-  kSocketReadError,
-  kSocketWriteError,
-
-  // HTTP error.
-  // E.g., failed to parse HTTP response (invalid content length, etc.).
-  kHttpError,
-
-  // File read/write error.
-  kFileIOError,
-};
-
-// Return a descriptive message for the given error code.
-const char* DescribeError(Error error);
-
-class Exception : public std::exception {
+// Error (or exception) for the client.
+class Error {
 public:
-  explicit Exception(Error error, const std::string& details = "",
-                     bool timeout = false);
+  enum Code {
+    kOK = 0,
+    kSyntaxError,
+    kResolveError,
+    kConnectError,
+    kHandshakeError,
+    kSocketReadError,
+    kSocketWriteError,
+    kParseError,
+    kFileError,
+  };
 
-  Error error() const {
-    return error_;
+public:
+  Error(Code code = kOK, const std::string& message = "")
+      : code_(code), message_(message), timeout_(false) {
   }
 
-  // Note that `noexcept` is required by GCC.
-  const char* what() const WEBCC_NOEXCEPT override{
-    return msg_.c_str();
+  Code code() const { return code_; }
+
+  const std::string& message() const { return message_; }
+
+  void Set(Code code, const std::string& message) {
+    code_ = code;
+    message_ = message;
   }
 
-  bool timeout() const {
-    return timeout_;
-  }
+  bool timeout() const { return timeout_; }
+
+  void set_timeout(bool timeout) { timeout_ = timeout; }
+
+  operator bool() const { return code_ != kOK; }
 
 private:
-  Error error_;
-
-  std::string msg_;
-
-  // If the error was caused by timeout or not.
+  Code code_;
+  std::string message_;
   bool timeout_;
 };
+
+std::ostream& operator<<(std::ostream& os, const Error& error);
 
 }  // namespace webcc
 

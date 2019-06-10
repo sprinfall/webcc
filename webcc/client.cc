@@ -12,43 +12,30 @@ Client::Client()
       buffer_size_(kBufferSize),
       timeout_(kMaxReadSeconds),
       closed_(false),
-      timer_canceled_(false),
-      timed_out_(false),
-      error_(kNoError) {
+      timer_canceled_(false) {
 }
 
-bool Client::Request(RequestPtr request, bool connect) {
-  io_context_.restart();
-
-  response_.reset(new Response{});
-  response_parser_.Init(response_.get());
-
-  closed_ = false;
-  timer_canceled_ = false;
-  timed_out_ = false;
-  error_ = kNoError;
-
-  if (buffer_.size() != buffer_size_) {
-    LOG_VERB("Resize buffer: %u -> %u.", buffer_.size(), buffer_size_);
-    buffer_.resize(buffer_size_);
-  }
+Error Client::Request(RequestPtr request, bool connect) {
+  Restart();
 
   if (connect) {
     // No existing socket connection was specified, create a new one.
-    if ((error_ = Connect(request)) != kNoError) {
-      return false;
+    Connect(request);
+
+    if (error_) {
+      return error_;
     }
   }
 
-  if ((error_ = WriteReqeust(request)) != kNoError) {
-    return false;
+  WriteReqeust(request);
+
+  if (error_) {
+    return error_;
   }
 
-  if ((error_ = ReadResponse()) != kNoError) {
-    return false;
-  }
+  ReadResponse();
 
-  return true;
+  return error_;
 }
 
 void Client::Close() {
@@ -68,22 +55,38 @@ void Client::Close() {
   }
 }
 
-Error Client::Connect(RequestPtr request) {
-  if (request->url().scheme() == "https") {
-#if WEBCC_ENABLE_SSL
-    socket_.reset(new SslSocket{ io_context_, ssl_verify_ });
-    return DoConnect(request, "443");
-#else
-    LOG_ERRO("SSL/HTTPS support is not enabled.");
-    return kSchemaError;
-#endif  // WEBCC_ENABLE_SSL
-  } else {
-    socket_.reset(new Socket{ io_context_ });
-    return DoConnect(request, "80");
+void Client::Restart() {
+  io_context_.restart();
+
+  response_.reset(new Response{});
+  response_parser_.Init(response_.get());
+
+  closed_ = false;
+  timer_canceled_ = false;
+  error_ = Error{};
+
+  if (buffer_.size() != buffer_size_) {
+    LOG_VERB("Resize buffer: %u -> %u.", buffer_.size(), buffer_size_);
+    buffer_.resize(buffer_size_);
   }
 }
 
-Error Client::DoConnect(RequestPtr request, const std::string& default_port) {
+void Client::Connect(RequestPtr request) {
+  if (request->url().scheme() == "https") {
+#if WEBCC_ENABLE_SSL
+    socket_.reset(new SslSocket{ io_context_, ssl_verify_ });
+    DoConnect(request, "443");
+#else
+    LOG_ERRO("SSL/HTTPS support is not enabled.");
+    return kSyntaxError;
+#endif  // WEBCC_ENABLE_SSL
+  } else {
+    socket_.reset(new Socket{ io_context_ });
+    DoConnect(request, "80");
+  }
+}
+
+void Client::DoConnect(RequestPtr request, const std::string& default_port) {
   tcp::resolver resolver(io_context_);
 
   std::string port = request->port(default_port);
@@ -94,7 +97,7 @@ Error Client::DoConnect(RequestPtr request, const std::string& default_port) {
   if (ec) {
     LOG_ERRO("Host resolve error (%s): %s, %s.", ec.message().c_str(),
              request->host().c_str(), port.c_str());
-    return kHostResolveError;
+    error_.Set(Error::kResolveError, "Host resolve error");
   }
 
   LOG_VERB("Connect to server...");
@@ -106,15 +109,14 @@ Error Client::DoConnect(RequestPtr request, const std::string& default_port) {
   if (ec) {
     LOG_ERRO("Socket connect error (%s).", ec.message().c_str());
     Close();
-    return kEndpointConnectError;
+    // TODO: Handshake error
+    error_.Set(Error::kConnectError, "Endpoint connect error");
   }
 
   LOG_VERB("Socket connected.");
-
-  return kNoError;
 }
 
-Error Client::WriteReqeust(RequestPtr request) {
+void Client::WriteReqeust(RequestPtr request) {
   LOG_VERB("HTTP request:\n%s", request->Dump(4, "> ").c_str());
 
   // NOTE:
@@ -130,36 +132,30 @@ Error Client::WriteReqeust(RequestPtr request) {
   if (ec) {
     LOG_ERRO("Socket write error (%s).", ec.message().c_str());
     Close();
-    return kSocketWriteError;
+    error_.Set(Error::kSocketWriteError, "Socket write error");
   }
 
   LOG_INFO("Request sent.");
-
-  return kNoError;
 }
 
-Error Client::ReadResponse() {
+void Client::ReadResponse() {
   LOG_VERB("Read response (timeout: %ds)...", timeout_);
 
   timer_.expires_after(std::chrono::seconds(timeout_));
 
   DoWaitTimer();
+  DoReadResponse();
 
-  Error error = kNoError;
-  DoReadResponse(&error);
-
-  if (error == kNoError) {
+  if (!error_) {
     LOG_VERB("HTTP response:\n%s", response_->Dump(4, "> ").c_str());
   }
-
-  return error;
 }
 
-void Client::DoReadResponse(Error* error) {
+void Client::DoReadResponse() {
   boost::system::error_code ec = boost::asio::error::would_block;
 
-  auto handler = [this, &ec, error](boost::system::error_code inner_ec,
-                                    std::size_t length) {
+  auto handler = [this, &ec](boost::system::error_code inner_ec,
+                             std::size_t length) {
     ec = inner_ec;
 
     LOG_VERB("Socket async read handler.");
@@ -170,7 +166,7 @@ void Client::DoReadResponse(Error* error) {
     // TODO: Is it necessary to check `length == 0`?
     if (ec || length == 0) {
       Close();
-      *error = kSocketReadError;
+      error_.Set(Error::kSocketReadError, "Socket read error");
       LOG_ERRO("Socket read error (%s).", ec.message().c_str());
       return;
     }
@@ -180,7 +176,7 @@ void Client::DoReadResponse(Error* error) {
     // Parse the response piece just read.
     if (!response_parser_.Parse(buffer_.data(), length)) {
       Close();
-      *error = kHttpError;
+      error_.Set(Error::kParseError, "HTTP parse error");
       LOG_ERRO("Failed to parse HTTP response.");
       return;
     }
@@ -203,7 +199,7 @@ void Client::DoReadResponse(Error* error) {
     }
 
     if (!closed_) {
-      DoReadResponse(error);
+      DoReadResponse();
     }
   };
 
@@ -238,7 +234,7 @@ void Client::OnTimer(boost::system::error_code ec) {
     // The deadline has passed. The socket is closed so that any outstanding
     // asynchronous operations are canceled.
     LOG_WARN("HTTP client timed out.");
-    timed_out_ = true;
+    error_.set_timeout(true);
     Close();
     return;
   }

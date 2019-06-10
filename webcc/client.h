@@ -29,7 +29,7 @@ class Client {
 public:
   Client();
 
-  virtual ~Client() = default;
+  ~Client() = default;
 
   Client(const Client&) = delete;
   Client& operator=(const Client&) = delete;
@@ -52,7 +52,7 @@ public:
   }
 
   // Connect to server, send request, wait until response is received.
-  bool Request(RequestPtr request, bool connect = true);
+  Error Request(RequestPtr request, bool connect = true);
 
   // Close the socket.
   void Close();
@@ -61,20 +61,18 @@ public:
 
   bool closed() const { return closed_; }
 
-  bool timed_out() const { return timed_out_; }
-
-  Error error() const { return error_; }
-
 private:
-  Error Connect(RequestPtr request);
+  void Restart();
 
-  Error DoConnect(RequestPtr request, const std::string& default_port);
+  void Connect(RequestPtr request);
 
-  Error WriteReqeust(RequestPtr request);
+  void DoConnect(RequestPtr request, const std::string& default_port);
 
-  Error ReadResponse();
+  void WriteReqeust(RequestPtr request);
 
-  void DoReadResponse(Error* error);
+  void ReadResponse();
+
+  void DoReadResponse();
 
   void DoWaitTimer();
   void OnTimer(boost::system::error_code ec);
@@ -113,10 +111,6 @@ private:
   // Deadline timer canceled.
   bool timer_canceled_;
 
-  // Timeout occurred.
-  bool timed_out_;
-
-  // Error code.
   Error error_;
 };
 

@@ -143,11 +143,11 @@ void ClientSession::InitHeaders() {
   //              content coding.
   //
   // A note about "deflate":
-  //   (https://www.zlib.net/zlib_faq.html#faq39)
   // "gzip" is the gzip format, and "deflate" is the zlib format. They should
   // probably have called the second one "zlib" instead to avoid confusion with
   // the raw deflate compressed data format.
   // Simply put, "deflate" is not recommended for HTTP 1.1 encoding.
+  // (https://www.zlib.net/zlib_faq.html#faq39)
 
 #if WEBCC_ENABLE_GZIP
   headers_.Set(kAcceptEncoding, "gzip, deflate");
@@ -161,7 +161,7 @@ void ClientSession::InitHeaders() {
 }
 
 ResponsePtr ClientSession::Send(RequestPtr request) {
-  const ClientPool::Key key{request->url()};
+  const ClientPool::Key key{ request->url() };
 
   // Reuse a pooled connection.
   bool reuse = false;
@@ -179,22 +179,22 @@ ResponsePtr ClientSession::Send(RequestPtr request) {
   client->set_buffer_size(buffer_size_);
   client->set_timeout(timeout_);
 
-  bool ok = client->Request(request, !reuse);
+  Error error = client->Request(request, !reuse);
 
-  if (!ok) {
-    if (reuse && client->error() == kSocketWriteError) {
+  if (error) {
+    if (reuse && error.code() == Error::kSocketWriteError) {
       LOG_WARN("Cannot send request with the reused connection. "
                "The server must have closed it, reconnect and try again.");
-      ok = client->Request(request, true);
+      error = client->Request(request, true);
     }
   }
 
-  if (!ok) {
+  if (error) {
+    // Remove the failed connection from pool.
     if (reuse) {
-      // Remove the failed connection from pool.
       pool_.Remove(key);
     }
-    throw Exception(client->error(), "", client->timed_out());
+    throw error;
   }
 
   // Update connection pool.

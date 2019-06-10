@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     server.Run();
 
   } catch (const std::exception& e) {
-    std::cerr << "Exception: " << e.what() << std::endl;
+    std::cerr << e.what() << std::endl;
     return 1;
   }
 
