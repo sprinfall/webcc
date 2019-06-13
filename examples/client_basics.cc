@@ -59,7 +59,7 @@ int main() {
 #endif  // WEBCC_ENABLE_SSL
 
   } catch (const webcc::Error& error) {
-    std::cout << error << std::endl;
+    std::cerr << error << std::endl;
   }
 
   return 0;

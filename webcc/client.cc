@@ -78,7 +78,7 @@ void Client::Connect(RequestPtr request) {
     DoConnect(request, "443");
 #else
     LOG_ERRO("SSL/HTTPS support is not enabled.");
-    return kSyntaxError;
+    error_.Set(Error::kSyntaxError, "SSL/HTTPS is not supported");
 #endif  // WEBCC_ENABLE_SSL
   } else {
     socket_.reset(new Socket{ io_context_ });

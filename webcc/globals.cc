@@ -47,8 +47,9 @@ std::string FromExtension(const std::string& extension,
 // -----------------------------------------------------------------------------
 
 std::ostream& operator<<(std::ostream& os, const Error& error) {
+  os << "ERROR(";
   os << std::to_string(static_cast<int>(error.code()));
-  os << ": " << error.message();
+  os << "): " << error.message();
   if (error.timeout()) {
     os << " (timeout)";
   }
