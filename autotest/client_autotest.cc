@@ -8,16 +8,6 @@
 
 // -----------------------------------------------------------------------------
 
-#if (defined(_WIN32) || defined(_WIN64))
-// You need to set environment variable SSL_CERT_FILE properly to enable
-// SSL verification.
-bool kSslVerify = false;
-#else
-bool kSslVerify = true;
-#endif
-
-// -----------------------------------------------------------------------------
-
 // JSON helper functions (based on jsoncpp).
 
 // Parse a string to JSON object.
@@ -96,8 +86,6 @@ TEST(ClientTest, Get_Shortcut) {
 #if WEBCC_ENABLE_SSL
 TEST(ClientTest, Get_SSL) {
   webcc::ClientSession session;
-
-  session.set_ssl_verify(kSslVerify);
 
   try {
     // HTTPS is auto-detected from the URL scheme.

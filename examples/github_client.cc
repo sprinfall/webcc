@@ -10,14 +10,6 @@
 // Change to 1 to print response JSON.
 #define PRINT_RESPONSE 0
 
-#if (defined(_WIN32) || defined(_WIN64))
-// You need to set environment variable SSL_CERT_FILE properly to enable
-// SSL verification.
-bool kSslVerify = false;
-#else
-bool kSslVerify = true;
-#endif
-
 const std::string kUrlRoot = "https://api.github.com";
 
 // -----------------------------------------------------------------------------
@@ -135,8 +127,6 @@ int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
   webcc::ClientSession session;
-
-  session.set_ssl_verify(kSslVerify);
 
   ListEvents(session);
 

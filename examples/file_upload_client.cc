@@ -5,14 +5,6 @@
 #include "webcc/client_session.h"
 #include "webcc/logger.h"
 
-#if (defined(_WIN32) || defined(_WIN64))
-// You need to set environment variable SSL_CERT_FILE properly to enable
-// SSL verification.
-bool kSslVerify = false;
-#else
-bool kSslVerify = true;
-#endif
-
 void Help(const char* argv0) {
   std::cout << "Usage: " << argv0 << " <upload_dir> [url]" << std::endl;
   std::cout << "Default Url: http://httpbin.org/post" << std::endl;

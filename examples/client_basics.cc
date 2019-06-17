@@ -3,14 +3,6 @@
 #include "webcc/client_session.h"
 #include "webcc/logger.h"
 
-#if (defined(_WIN32) || defined(_WIN64))
-// You need to set environment variable SSL_CERT_FILE properly to enable
-// SSL verification.
-bool kSslVerify = false;
-#else
-bool kSslVerify = true;
-#endif
-
 static void PrintSeparator() {
   static const std::string s_line(80, '-');
   std::cout << s_line << std::endl;
@@ -20,8 +12,6 @@ int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
   webcc::ClientSession session;
-
-  session.set_ssl_verify(kSslVerify);
 
   try {
     PrintSeparator();

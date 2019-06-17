@@ -1,5 +1,17 @@
 #include "webcc/socket.h"
 
+#if WEBCC_ENABLE_SSL
+#if (defined(_WIN32) || defined(_WIN64))
+
+#include <windows.h>
+#include <wincrypt.h>
+#include <cryptuiapi.h>
+
+#include "openssl/x509.h"
+
+#endif  // defined(_WIN32) || defined(_WIN64)
+#endif  // WEBCC_ENABLE_SSL
+
 #include "boost/asio/connect.hpp"
 #include "boost/asio/read.hpp"
 #include "boost/asio/write.hpp"
@@ -38,14 +50,56 @@ void Socket::Close(boost::system::error_code* ec) {
 
 #if WEBCC_ENABLE_SSL
 
+#if (defined(_WIN32) || defined(_WIN64))
+
+// See: https://stackoverflow.com/a/40046425/6825348
+static bool UseSystemCertificateStore(SSL_CTX* ssl_ctx) {
+  // NOTE: Cannot use nullptr to replace NULL.
+  HCERTSTORE cert_store = ::CertOpenSystemStoreW(NULL, L"ROOT");
+
+  if (cert_store == nullptr) {
+    LOG_ERRO("Cannot open Windows system certificate store.");
+    return false;
+  }
+
+  X509_STORE* x509_store = SSL_CTX_get_cert_store(ssl_ctx);
+  PCCERT_CONTEXT cert_context = nullptr;
+
+  while (cert_context = CertEnumCertificatesInStore(cert_store, cert_context)) {
+    auto in = (const unsigned char **)&cert_context->pbCertEncoded;
+    X509* x509 = d2i_X509(nullptr, in, cert_context->cbCertEncoded);
+
+    if (x509 != nullptr) {
+      if (X509_STORE_add_cert(x509_store, x509) == 0) {
+        LOG_ERRO("Cannot add Windows root certificate.");
+      }
+
+      X509_free(x509);
+    }
+  }
+
+  CertFreeCertificateContext(cert_context);
+  CertCloseStore(cert_store, 0);
+
+  return true;
+}
+
+#endif  // defined(_WIN32) || defined(_WIN64)
+
 namespace ssl = boost::asio::ssl;
 
 SslSocket::SslSocket(boost::asio::io_context& io_context, bool ssl_verify)
     : ssl_context_(ssl::context::sslv23),
       ssl_socket_(io_context, ssl_context_),
       ssl_verify_(ssl_verify) {
+#if (defined(_WIN32) || defined(_WIN64))
+  if (ssl_verify_) {
+    UseSystemCertificateStore(ssl_context_.native_handle());
+  }
+#else
   // Use the default paths for finding CA certificates.
   ssl_context_.set_default_verify_paths();
+#endif  // defined(_WIN32) || defined(_WIN64)
 }
 
 void SslSocket::Connect(const std::string& host, const Endpoints& endpoints,
