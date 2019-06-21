@@ -1,10 +1,10 @@
 #include "gtest/gtest.h"
 
-#include "webcc/rest_service_manager.h"
+#include "webcc/service_manager.h"
 
 // -----------------------------------------------------------------------------
 
-class MyRestService : public webcc::RestService {
+class MyService : public webcc::Service {
 public:
   void Handle(const webcc::RestRequest& request,
               webcc::RestResponse* response) override {
@@ -14,16 +14,16 @@ public:
 
 // -----------------------------------------------------------------------------
 
-TEST(RestServiceManagerTest, URL_RegexBasic) {
-  webcc::RestServiceManager service_manager;
+TEST(ServiceManagerTest, URL_RegexBasic) {
+  webcc::ServiceManager service_manager;
 
-  service_manager.AddService(std::make_shared<MyRestService>(),
+  service_manager.AddService(std::make_shared<MyService>(),
                              "/instance/(\\d+)", true);
 
   std::vector<std::string> matches;
 
   std::string url = "/instance/12345";
-  webcc::RestServicePtr service = service_manager.GetService(url, &matches);
+  webcc::ServicePtr service = service_manager.GetService(url, &matches);
 
   EXPECT_TRUE(!!service);
 
@@ -38,16 +38,16 @@ TEST(RestServiceManagerTest, URL_RegexBasic) {
 }
 
 TEST(RestServiceManagerTest, URL_RegexMultiple) {
-  webcc::RestServiceManager service_manager;
+  webcc::ServiceManager service_manager;
 
-  service_manager.AddService(std::make_shared<MyRestService>(),
+  service_manager.AddService(std::make_shared<MyService>(),
                              "/study/(\\d+)/series/(\\d+)/instance/(\\d+)",
                              true);
 
   std::vector<std::string> matches;
 
   std::string url = "/study/1/series/2/instance/3";
-  webcc::RestServicePtr service = service_manager.GetService(url, &matches);
+  webcc::ServicePtr service = service_manager.GetService(url, &matches);
 
   EXPECT_TRUE(!!service);
 
@@ -64,14 +64,14 @@ TEST(RestServiceManagerTest, URL_RegexMultiple) {
 }
 
 TEST(RestServiceManagerTest, URL_NonRegex) {
-  webcc::RestServiceManager service_manager;
+  webcc::ServiceManager service_manager;
 
-  service_manager.AddService(std::make_shared<MyRestService>(), "/instances",
+  service_manager.AddService(std::make_shared<MyService>(), "/instances",
                              false);
 
   std::vector<std::string> matches;
   std::string url = "/instances";
-  webcc::RestServicePtr service = service_manager.GetService(url, &matches);
+  webcc::ServicePtr service = service_manager.GetService(url, &matches);
 
   EXPECT_TRUE(!!service);
   EXPECT_EQ(0, matches.size());

@@ -11,8 +11,10 @@ using tcp = boost::asio::ip::tcp;
 
 namespace webcc {
 
-Server::Server(std::uint16_t port, std::size_t workers)
-    : acceptor_(io_context_), signals_(io_context_), workers_(workers) {
+Server::Server(std::uint16_t port, std::size_t workers,
+               const std::string& doc_root)
+    : acceptor_(io_context_), signals_(io_context_), workers_(workers),
+      request_handler_(doc_root) {
   RegisterSignals();
 
   boost::system::error_code ec;
@@ -50,9 +52,11 @@ Server::Server(std::uint16_t port, std::size_t workers)
   }
 }
 
-void Server::Run() {
-  assert(GetRequestHandler() != nullptr);
+bool Server::Bind(ServicePtr service, const std::string& url, bool is_regex) {
+  return request_handler_.Bind(service, url, is_regex);
+}
 
+void Server::Run() {
   if (!acceptor_.is_open()) {
     LOG_ERRO("Server is NOT going to run.");
     return;
@@ -65,7 +69,7 @@ void Server::Run() {
   DoAccept();
 
   // Start worker threads.
-  GetRequestHandler()->Start(workers_);
+  request_handler_.Start(workers_);
 
   // The io_context::run() call will block until all asynchronous operations
   // have finished. While the server is running, there is always at least one
@@ -96,7 +100,7 @@ void Server::DoAccept() {
           LOG_INFO("Accepted a connection.");
 
           auto connection = std::make_shared<Connection>(
-              std::move(socket), &pool_, GetRequestHandler());
+              std::move(socket), &pool_, &request_handler_);
 
           pool_.Start(connection);
         }
@@ -116,7 +120,7 @@ void Server::DoAwaitStop() {
         acceptor_.close();
 
         // Stop worker threads.
-        GetRequestHandler()->Stop();
+        request_handler_.Stop();
 
         // Close all connections.
         pool_.CloseAll();

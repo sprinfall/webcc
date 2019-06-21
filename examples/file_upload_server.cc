@@ -2,12 +2,11 @@
 #include <string>
 
 #include "webcc/logger.h"
-#include "webcc/rest_server.h"
-#include "webcc/rest_service.h"
+#include "webcc/server.h"
 
 // -----------------------------------------------------------------------------
 
-class FileUploadService : public webcc::RestService {
+class FileUploadService : public webcc::Service {
 public:
   void Handle(const webcc::RestRequest& request,
               webcc::RestResponse* response) override {
@@ -48,7 +47,8 @@ int main(int argc, char* argv[]) {
   std::size_t workers = 2;
 
   try {
-    webcc::RestServer server(port, workers);
+    // TODO: doc root
+    webcc::Server server(port, workers);
 
     server.Bind(std::make_shared<FileUploadService>(), "/upload", false);
 

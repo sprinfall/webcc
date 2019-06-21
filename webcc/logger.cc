@@ -248,7 +248,7 @@ void Log(int level, const char* file, int line, const char* format, ...) {
     va_list args;
     va_start(args, format);
 
-    fprintf(g_logger.file, "%s, %s, %7s, %24s, %4d, ",
+    fprintf(g_logger.file, "%s, %s, %7s, %20s, %4d, ",
             timestamp.c_str(), kLevelNames[level], thread_id.c_str(),
             file, line);
 
@@ -271,12 +271,12 @@ void Log(int level, const char* file, int line, const char* format, ...) {
 
     if (g_colorlogtostderr && g_terminal_has_color) {
       if (level < WEBCC_WARN) {
-        fprintf(stderr, "%s%s, %s, %7s, %25s, %4d, ",
+        fprintf(stderr, "%s%s, %s, %7s, %20s, %4d, ",
                 TerminalReset(),
                 timestamp.c_str(), kLevelNames[level], thread_id.c_str(),
                 file, line);
       } else {
-        fprintf(stderr, "%s%s%s, %s, %7s, %25s, %4d, ",
+        fprintf(stderr, "%s%s%s, %s, %7s, %20s, %4d, ",
                 TerminalReset(),
                 level == WEBCC_WARN ? TerminalYellow() : TerminalRed(),
                 timestamp.c_str(), kLevelNames[level], thread_id.c_str(),
@@ -287,7 +287,7 @@ void Log(int level, const char* file, int line, const char* format, ...) {
 
       fprintf(stderr, "%s\n", TerminalReset());
     } else {
-      fprintf(stderr, "%s, %s, %7s, %25s, %4d, ",
+      fprintf(stderr, "%s, %s, %7s, %20s, %4d, ",
               timestamp.c_str(), kLevelNames[level], thread_id.c_str(),
               file, line);
 

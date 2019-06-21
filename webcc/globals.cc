@@ -1,7 +1,8 @@
 #include "webcc/globals.h"
 
 #include <iostream>
-#include <map>
+
+#include "boost/algorithm/string.hpp"
 
 namespace webcc {
 
@@ -9,37 +10,32 @@ namespace webcc {
 
 namespace media_types {
 
-// TODO: Add more.
-static void InitMap(std::map<std::string, std::string>& map) {
-  map["gif"] = "image/gif";
-  map["htm"] = "text/html";
-  map["html"] = "text/html";
-  map["jpg"] = "image/jpeg";
-  map["jpeg"] = "image/jpeg";
-  map["png"] = "image/png";
-  map["txt"] = "text/plain";
-  map[""] = "";
-}
+std::string FromExtension(const std::string& ext) {
+  using boost::iequals;
 
-// TODO: Ignore case on Windows.
-std::string FromExtension(const std::string& extension,
-                          bool default_to_plain_text) {
-  static std::map<std::string, std::string> s_map;
+  if (iequals(ext, ".htm"))   { return "text/html"; }
+  if (iequals(ext, ".html"))  { return "text/html"; }
+  if (iequals(ext, ".php"))   { return "text/html"; }
+  if (iequals(ext, ".css"))   { return "text/css"; }
+  if (iequals(ext, ".txt"))   { return "text/plain"; }
+  if (iequals(ext, ".js"))    { return "application/javascript"; }
+  if (iequals(ext, ".json"))  { return "application/json"; }
+  if (iequals(ext, ".xml"))   { return "application/xml"; }
+  if (iequals(ext, ".swf"))   { return "application/x-shockwave-flash"; }
+  if (iequals(ext, ".flv"))   { return "video/x-flv"; }
+  if (iequals(ext, ".png"))   { return "image/png"; }
+  if (iequals(ext, ".jpe"))   { return "image/jpeg"; }
+  if (iequals(ext, ".jpeg"))  { return "image/jpeg"; }
+  if (iequals(ext, ".jpg"))   { return "image/jpeg"; }
+  if (iequals(ext, ".gif"))   { return "image/gif"; }
+  if (iequals(ext, ".bmp"))   { return "image/bmp"; }
+  if (iequals(ext, ".ico"))   { return "image/vnd.microsoft.icon"; }
+  if (iequals(ext, ".tiff"))  { return "image/tiff"; }
+  if (iequals(ext, ".tif"))   { return "image/tiff"; }
+  if (iequals(ext, ".svg"))   { return "image/svg+xml"; }
+  if (iequals(ext, ".svgz"))  { return "image/svg+xml"; }
 
-  if (s_map.empty()) {
-    InitMap(s_map);
-  }
-
-  auto it = s_map.find(extension);
-  if (it != s_map.end()) {
-    return it->second;
-  }
-
-  if (default_to_plain_text) {
-    return "text/plain";
-  } else {
-    return "";
-  }
+  return "application/text";
 }
 
 }  // namespace media_types

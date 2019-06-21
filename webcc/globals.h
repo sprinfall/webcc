@@ -131,8 +131,7 @@ const char* const kTextPlain = "text/plain";
 const char* const kTextXml = "text/xml";
 
 // Get media type from file extension.
-std::string FromExtension(const std::string& extension,
-                          bool default_to_plain_text = true);
+std::string FromExtension(const std::string& ext);
 
 }  // namespace media_types
 

@@ -278,44 +278,44 @@ void Url::AddQuery(const std::string& key, const std::string& value) {
 void Url::Parse(const std::string& str) {
   std::string tmp = boost::trim_left_copy(str);
 
-  std::size_t pos = std::string::npos;
+  std::size_t p = std::string::npos;
 
-  pos = tmp.find("://");
-  if (pos != std::string::npos) {
-    scheme_ = tmp.substr(0, pos);
-    tmp = tmp.substr(pos + 3);
+  p = tmp.find("://");
+  if (p != std::string::npos) {
+    scheme_ = tmp.substr(0, p);
+    tmp = tmp.substr(p + 3);
   }
 
-  pos = tmp.find('/');
-  if (pos != std::string::npos) {
-    host_ = tmp.substr(0, pos);
+  p = tmp.find('/');
+  if (p != std::string::npos) {
+    host_ = tmp.substr(0, p);
 
-    tmp = tmp.substr(pos + 1);
+    tmp = tmp.substr(p);
 
-    pos = tmp.find('?');
-    if (pos != std::string::npos) {
-      path_ = tmp.substr(0, pos);
-      query_ = tmp.substr(pos + 1);
+    p = tmp.find('?');
+    if (p != std::string::npos) {
+      path_ = tmp.substr(0, p);
+      query_ = tmp.substr(p + 1);
     } else {
       path_ = tmp;
     }
   } else {
     path_ = "";
 
-    pos = tmp.find('?');
-    if (pos != std::string::npos) {
-      host_ = tmp.substr(0, pos);
-      query_ = tmp.substr(pos + 1);
+    p = tmp.find('?');
+    if (p != std::string::npos) {
+      host_ = tmp.substr(0, p);
+      query_ = tmp.substr(p + 1);
     } else {
       host_ = tmp;
     }
   }
 
   if (!host_.empty()) {
-    pos = host_.find(':');
-    if (pos != std::string::npos) {
-      port_ = host_.substr(pos + 1);
-      host_ = host_.substr(0, pos);
+    p = host_.find(':');
+    if (p != std::string::npos) {
+      port_ = host_.substr(p + 1);
+      host_ = host_.substr(0, p);
     }
   }
 }

@@ -1,4 +1,4 @@
-#include "webcc/rest_service_manager.h"
+#include "webcc/service_manager.h"
 
 #include <cassert>
 
@@ -6,15 +6,14 @@
 
 namespace webcc {
 
-bool RestServiceManager::AddService(RestServicePtr service,
-                                    const std::string& url,
-                                    bool is_regex) {
+bool ServiceManager::AddService(ServicePtr service, const std::string& url,
+                                bool is_regex) {
   assert(service);
 
-  ServiceItem item(service, url, is_regex);
+  Item item(service, url, is_regex);
 
   if (!is_regex) {
-    service_items_.push_back(std::move(item));
+    items_.push_back(std::move(item));
     return true;
   }
 
@@ -23,7 +22,7 @@ bool RestServiceManager::AddService(RestServicePtr service,
   try {
     // Compile the regex.
     item.url_regex.assign(url, flags);
-    service_items_.push_back(std::move(item));
+    items_.push_back(std::move(item));
     return true;
   } catch (const std::regex_error& e) {
     LOG_ERRO("URL is not a valid regular expression: %s", e.what());
@@ -31,11 +30,11 @@ bool RestServiceManager::AddService(RestServicePtr service,
   }
 }
 
-RestServicePtr RestServiceManager::GetService(const std::string& url,
-                                              UrlMatches* matches) {
+ServicePtr ServiceManager::GetService(const std::string& url,
+                                      UrlMatches* matches) {
   assert(matches != nullptr);
 
-  for (ServiceItem& item : service_items_) {
+  for (Item& item : items_) {
     if (item.is_regex) {
       std::smatch match;
 
@@ -55,7 +54,7 @@ RestServicePtr RestServiceManager::GetService(const std::string& url,
     }
   }
 
-  return RestServicePtr();
+  return ServicePtr();
 }
 
 }  // namespace webcc

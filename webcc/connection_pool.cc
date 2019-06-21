@@ -4,9 +4,6 @@
 
 namespace webcc {
 
-ConnectionPool::ConnectionPool() {
-}
-
 void ConnectionPool::Start(ConnectionPtr c) {
   LOG_VERB("Starting connection...");
   connections_.insert(c);

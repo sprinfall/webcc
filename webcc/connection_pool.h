@@ -9,10 +9,10 @@ namespace webcc {
 
 class ConnectionPool {
 public:
+  ConnectionPool() = default;
+
   ConnectionPool(const ConnectionPool&) = delete;
   ConnectionPool& operator=(const ConnectionPool&) = delete;
-
-  ConnectionPool();
 
   // Add a connection to the pool and start it.
   void Start(ConnectionPtr c);
@@ -24,7 +24,6 @@ public:
   void CloseAll();
 
 private:
-  /// The managed connections.
   std::set<ConnectionPtr> connections_;
 };
 

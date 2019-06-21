@@ -7,8 +7,7 @@
 #include "json/json.h"
 
 #include "webcc/logger.h"
-#include "webcc/rest_server.h"
-#include "webcc/rest_service.h"
+#include "webcc/server.h"
 
 #include "examples/common/book.h"
 #include "examples/common/book_json.h"
@@ -34,7 +33,7 @@ static void Sleep(int seconds) {
 
 // -----------------------------------------------------------------------------
 
-class BookListService : public webcc::RestListService {
+class BookListService : public webcc::ListService {
 public:
   explicit BookListService(int sleep_seconds)
       : sleep_seconds_(sleep_seconds) {
@@ -58,7 +57,7 @@ private:
 
 // The URL is like '/books/{BookID}', and the 'url_matches' parameter
 // contains the matched book ID.
-class BookDetailService : public webcc::RestDetailService {
+class BookDetailService : public webcc::DetailService {
 public:
   explicit BookDetailService(int sleep_seconds)
       : sleep_seconds_(sleep_seconds) {
@@ -227,7 +226,8 @@ int main(int argc, char* argv[]) {
   std::size_t workers = 2;
 
   try {
-    webcc::RestServer server(port, workers);
+    // TODO: doc root
+    webcc::Server server(port, workers);
 
     server.Bind(std::make_shared<BookListService>(sleep_seconds),
                 "/books", false);

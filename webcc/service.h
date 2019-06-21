@@ -1,5 +1,5 @@
-#ifndef WEBCC_REST_SERVICE_H_
-#define WEBCC_REST_SERVICE_H_
+#ifndef WEBCC_SERVICE_H_
+#define WEBCC_SERVICE_H_
 
 // NOTE:
 // The design of RestListService and RestDetailService is very similar to
@@ -32,6 +32,7 @@ struct RestRequest {
   UrlMatches url_matches;
 };
 
+// TODO: Add ResponseBuilder instead.
 struct RestResponse {
   Status status;
 
@@ -43,20 +44,20 @@ struct RestResponse {
 
 // -----------------------------------------------------------------------------
 
-// Base class for your REST service.
-class RestService {
+// Base class for your service.
+class Service {
 public:
-  virtual ~RestService() = default;
+  virtual ~Service() = default;
 
-  // Handle REST request, output response.
+  // Handle request, output response.
   virtual void Handle(const RestRequest& request, RestResponse* response) = 0;
 };
 
-using RestServicePtr = std::shared_ptr<RestService>;
+using ServicePtr = std::shared_ptr<Service>;
 
 // -----------------------------------------------------------------------------
 
-class RestListService : public RestService {
+class ListService : public Service {
 public:
   void Handle(const RestRequest& request, RestResponse* response) override;
 
@@ -71,7 +72,7 @@ protected:
 
 // -----------------------------------------------------------------------------
 
-class RestDetailService : public RestService {
+class DetailService : public Service {
 public:
   void Handle(const RestRequest& request, RestResponse* response) override;
 
@@ -98,4 +99,4 @@ protected:
 
 }  // namespace webcc
 
-#endif  // WEBCC_REST_SERVICE_H_
+#endif  // WEBCC_SERVICE_H_

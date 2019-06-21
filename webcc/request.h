@@ -73,6 +73,9 @@ public:
 private:
   void CreateStartLine();
 
+  // Add boundary to the payload for multipart form data.
+  void AddBoundary(Payload& payload, bool end = false);
+
 private:
   std::string method_;
 

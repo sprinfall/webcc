@@ -44,22 +44,11 @@ void Request::Prepare() {
 
   Payload data_payload;
 
-  using boost::asio::buffer;
-
   for (auto& part : form_parts_) {
-    // Boundary
-    data_payload.push_back(buffer(misc_strings::DOUBLE_DASHES));
-    data_payload.push_back(buffer(boundary_));
-    data_payload.push_back(buffer(misc_strings::CRLF));
-
+    AddBoundary(data_payload);
     part->Prepare(&data_payload);
   }
-
-  // Boundary end
-  data_payload.push_back(buffer(misc_strings::DOUBLE_DASHES));
-  data_payload.push_back(buffer(boundary_));
-  data_payload.push_back(buffer(misc_strings::DOUBLE_DASHES));
-  data_payload.push_back(buffer(misc_strings::CRLF));
+  AddBoundary(data_payload, true);
 
   // Update Content-Length header.
   std::size_t content_length = 0;
@@ -84,7 +73,7 @@ void Request::CreateStartLine() {
     throw Error{ Error::kSyntaxError, "Host is missing" };
   }
 
-  std::string target = "/" + url_.path();
+  std::string target = url_.path();
   if (!url_.query().empty()) {
     target += "?";
     target += url_.query();
@@ -94,6 +83,17 @@ void Request::CreateStartLine() {
   start_line_ += " ";
   start_line_ += target;
   start_line_ += " HTTP/1.1";
+}
+
+void Request::AddBoundary(Payload& payload, bool end) {
+  using boost::asio::buffer;
+
+  payload.push_back(buffer(misc_strings::DOUBLE_DASHES));
+  payload.push_back(buffer(boundary_));
+  if (end) {
+    payload.push_back(buffer(misc_strings::DOUBLE_DASHES));
+  }
+  payload.push_back(buffer(misc_strings::CRLF));
 }
 
 }  // namespace webcc

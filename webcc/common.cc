@@ -214,7 +214,8 @@ FormPart::FormPart(const std::string& name, const Path& path,
   // Determine media type from file extension.
   if (media_type_.empty()) {
     std::string extension = path.extension().string();
-    media_type_ = media_types::FromExtension(extension, false);
+    // TODO: Default to "application/text"?
+    media_type_ = media_types::FromExtension(extension);
   }
 }
 
