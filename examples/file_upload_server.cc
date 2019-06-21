@@ -8,21 +8,21 @@
 
 class FileUploadService : public webcc::Service {
 public:
-  void Handle(const webcc::RestRequest& request,
-              webcc::RestResponse* response) override {
-    if (request.http->method() == "POST") {
-      std::cout << "files: " << request.http->form_parts().size() << std::endl;
+  webcc::ResponsePtr Handle(webcc::RequestPtr request,
+                            const webcc::UrlArgs& args) override {
+    if (request->method() == "POST") {
+      std::cout << "files: " << request->form_parts().size() << std::endl;
 
-      for (auto& part : request.http->form_parts()) {
+      for (auto& part : request->form_parts()) {
         std::cout << "name: " << part->name() << std::endl;
         std::cout << "data: " << std::endl << part->data() << std::endl;
       }
 
-      response->content = "OK";
-      response->media_type = webcc::media_types::kTextPlain;
-      response->charset = "utf-8";
-      response->status = webcc::Status::kCreated;
+      // TODO: media_type: webcc::media_types::kTextPlain; charset = "utf-8";
+      return webcc::ResponseBuilder{}.Created().Data("OK")();
     }
+
+    return webcc::ResponseBuilder{}.NotImplemented()();
   }
 };
 

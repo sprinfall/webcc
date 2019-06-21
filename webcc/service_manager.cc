@@ -6,8 +6,8 @@
 
 namespace webcc {
 
-bool ServiceManager::AddService(ServicePtr service, const std::string& url,
-                                bool is_regex) {
+bool ServiceManager::Add(ServicePtr service, const std::string& url,
+                         bool is_regex) {
   assert(service);
 
   Item item(service, url, is_regex);
@@ -30,9 +30,8 @@ bool ServiceManager::AddService(ServicePtr service, const std::string& url,
   }
 }
 
-ServicePtr ServiceManager::GetService(const std::string& url,
-                                      UrlMatches* matches) {
-  assert(matches != nullptr);
+ServicePtr ServiceManager::Get(const std::string& url, UrlArgs* args) {
+  assert(args != nullptr);
 
   for (Item& item : items_) {
     if (item.is_regex) {
@@ -42,7 +41,7 @@ ServicePtr ServiceManager::GetService(const std::string& url,
         // Any sub-matches?
         // NOTE: Start from 1 because match[0] is the whole string itself.
         for (size_t i = 1; i < match.size(); ++i) {
-          matches->push_back(match[i].str());
+          args->push_back(match[i].str());
         }
 
         return item.service;

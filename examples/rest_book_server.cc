@@ -4,9 +4,12 @@
 #include <thread>
 #include <vector>
 
+#include "boost/core/ignore_unused.hpp"
+
 #include "json/json.h"
 
 #include "webcc/logger.h"
+#include "webcc/response_builder.h"
 #include "webcc/server.h"
 
 #include "examples/common/book.h"
@@ -41,11 +44,10 @@ public:
 
 protected:
   // Get a list of books based on query parameters.
-  void Get(const webcc::UrlQuery& query, webcc::RestResponse* response) override;
+  webcc::ResponsePtr Get(const webcc::UrlQuery& query) override;
 
   // Create a new book.
-  void Post(const std::string& request_content,
-            webcc::RestResponse* response) override;
+  webcc::ResponsePtr Post(webcc::RequestPtr request) override;
 
 private:
   // Sleep some seconds before send back the response.
@@ -55,7 +57,7 @@ private:
 
 // -----------------------------------------------------------------------------
 
-// The URL is like '/books/{BookID}', and the 'url_matches' parameter
+// The URL is like '/books/{BookID}', and the 'args' parameter
 // contains the matched book ID.
 class BookDetailService : public webcc::DetailService {
 public:
@@ -65,18 +67,15 @@ public:
 
 protected:
   // Get the detailed information of a book.
-  void Get(const webcc::UrlMatches& url_matches,
-           const webcc::UrlQuery& query,
-           webcc::RestResponse* response) override;
+  webcc::ResponsePtr Get(const webcc::UrlArgs& args,
+                         const webcc::UrlQuery& query) override;
 
   // Update a book.
-  void Put(const webcc::UrlMatches& url_matches,
-           const std::string& request_content,
-           webcc::RestResponse* response) override;
+  webcc::ResponsePtr Put(webcc::RequestPtr request,
+                         const webcc::UrlArgs& args) override;
 
   // Delete a book.
-  void Delete(const webcc::UrlMatches& url_matches,
-              webcc::RestResponse* response) override;
+  webcc::ResponsePtr Delete(const webcc::UrlArgs& args) override;
 
 private:
   // Sleep some seconds before send back the response.
@@ -87,8 +86,9 @@ private:
 // -----------------------------------------------------------------------------
 
 // Return all books as a JSON array.
-void BookListService::Get(const webcc::UrlQuery& /*query*/,
-                          webcc::RestResponse* response) {
+webcc::ResponsePtr BookListService::Get(const webcc::UrlQuery& query) {
+  boost::ignore_unused(query);
+
   Sleep(sleep_seconds_);
 
   Json::Value json(Json::arrayValue);
@@ -97,103 +97,86 @@ void BookListService::Get(const webcc::UrlQuery& /*query*/,
     json.append(BookToJson(book));
   }
 
-  // TODO: Simplify
-  response->content = JsonToString(json);
-  response->media_type = webcc::media_types::kApplicationJson;
-  response->charset = "utf-8";
-  response->status = webcc::Status::kOK;
+  // TODO: charset = "utf-8"
+  return webcc::ResponseBuilder{}.OK().Data(JsonToString(json)).Json()();
 }
 
-void BookListService::Post(const std::string& request_content,
-                           webcc::RestResponse* response) {
+webcc::ResponsePtr BookListService::Post(webcc::RequestPtr request) {
   Sleep(sleep_seconds_);
 
   Book book;
-  if (JsonStringToBook(request_content, &book)) {
+  if (JsonStringToBook(request->content(), &book)) {
     std::string id = g_book_store.AddBook(book);
 
     Json::Value json;
     json["id"] = id;
 
-    response->content = JsonToString(json);
-    response->media_type = webcc::media_types::kApplicationJson;
-    response->charset = "utf-8";
-    response->status = webcc::Status::kCreated;
+    // TODO: charset = "utf-8"
+    return webcc::ResponseBuilder{}.Created().Data(JsonToString(json)).Json()();
   } else {
     // Invalid JSON
-    response->status = webcc::Status::kBadRequest;
+    return webcc::ResponseBuilder{}.BadRequest()();
   }
 }
 
 // -----------------------------------------------------------------------------
 
-void BookDetailService::Get(const webcc::UrlMatches& url_matches,
-                            const webcc::UrlQuery& query,
-                            webcc::RestResponse* response) {
+webcc::ResponsePtr BookDetailService::Get(const webcc::UrlArgs& args,
+                                          const webcc::UrlQuery& query) {
   Sleep(sleep_seconds_);
 
-  if (url_matches.size() != 1) {
+  if (args.size() != 1) {
     // Using kNotFound means the resource specified by the URL cannot be found.
     // kBadRequest could be another choice.
-    response->status = webcc::Status::kNotFound;
-    return;
+    return webcc::ResponseBuilder{}.NotFound()();
   }
 
-  const std::string& book_id = url_matches[0];
+  const std::string& book_id = args[0];
 
   const Book& book = g_book_store.GetBook(book_id);
   if (book.IsNull()) {
-    response->status = webcc::Status::kNotFound;
-    return;
+    return webcc::ResponseBuilder{}.NotFound()();
   }
 
-  response->content = BookToJsonString(book);
-  response->media_type = webcc::media_types::kApplicationJson;
-  response->charset = "utf-8";
-  response->status = webcc::Status::kOK;
+  // TODO: charset = "utf-8"
+  return webcc::ResponseBuilder{}.OK().Data(BookToJsonString(book)).Json()();
 }
 
-void BookDetailService::Put(const webcc::UrlMatches& url_matches,
-                            const std::string& request_content,
-                            webcc::RestResponse* response) {
+webcc::ResponsePtr BookDetailService::Put(webcc::RequestPtr request,
+                                          const webcc::UrlArgs& args) {
   Sleep(sleep_seconds_);
 
-  if (url_matches.size() != 1) {
-    response->status = webcc::Status::kNotFound;
-    return;
+  if (args.size() != 1) {
+    return webcc::ResponseBuilder{}.NotFound()();
   }
 
-  const std::string& book_id = url_matches[0];
+  const std::string& book_id = args[0];
 
   Book book;
-  if (!JsonStringToBook(request_content, &book)) {
-    response->status = webcc::Status::kBadRequest;
-    return;
+  if (!JsonStringToBook(request->content(), &book)) {
+    return webcc::ResponseBuilder{}.BadRequest()();
   }
 
   book.id = book_id;
   g_book_store.UpdateBook(book);
 
-  response->status = webcc::Status::kOK;
+  return webcc::ResponseBuilder{}.OK()();
 }
 
-void BookDetailService::Delete(const webcc::UrlMatches& url_matches,
-                               webcc::RestResponse* response) {
+webcc::ResponsePtr BookDetailService::Delete(const webcc::UrlArgs& args) {
   Sleep(sleep_seconds_);
 
-  if (url_matches.size() != 1) {
-    response->status = webcc::Status::kNotFound;
-    return;
+  if (args.size() != 1) {
+    return webcc::ResponseBuilder{}.NotFound()();
   }
 
-  const std::string& book_id = url_matches[0];
+  const std::string& book_id = args[0];
 
   if (!g_book_store.DeleteBook(book_id)) {
-    response->status = webcc::Status::kNotFound;
-    return;
+    return webcc::ResponseBuilder{}.NotFound()();
   }
 
-  response->status = webcc::Status::kOK;
+  return webcc::ResponseBuilder{}.OK()();
 }
 
 // -----------------------------------------------------------------------------

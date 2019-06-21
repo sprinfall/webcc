@@ -21,7 +21,7 @@ RequestHandler::RequestHandler(const std::string& doc_root)
 
 bool RequestHandler::Bind(ServicePtr service, const std::string& url,
                           bool is_regex) {
-  return service_manager_.AddService(service, url, is_regex);
+  return service_manager_.Add(service, url, is_regex);
 }
 
 void RequestHandler::Enqueue(ConnectionPtr connection) {
@@ -80,14 +80,12 @@ void RequestHandler::HandleConnection(ConnectionPtr connection) {
   auto request = connection->request();
 
   const Url& url = request->url();
-
-  RestRequest rest_request{ request };
+  UrlArgs args;
 
   LOG_INFO("Request URL path: %s", url.path().c_str());
 
   // Get service by URL path.
-  auto service = service_manager_.GetService(url.path(),
-                                             &rest_request.url_matches);
+  auto service = service_manager_.Get(url.path(), &args);
 
   if (!service) {
     LOG_WARN("No service matches the URL path: %s", url.path().c_str());
@@ -99,20 +97,14 @@ void RequestHandler::HandleConnection(ConnectionPtr connection) {
     return;
   }
 
-  RestResponse rest_response;
-  service->Handle(rest_request, &rest_response);
-
-  auto response = std::make_shared<Response>(rest_response.status);
-
-  if (!rest_response.content.empty()) {
-    if (!rest_response.media_type.empty()) {
-      response->SetContentType(rest_response.media_type, rest_response.charset);
-    }
-    SetContent(request, response, std::move(rest_response.content));
-  }
-
+  ResponsePtr response = service->Handle(request, args);
+  
   // Send response back to client.
-  connection->SendResponse(response);
+  if (response) {
+    connection->SendResponse(response);
+  } else {
+    connection->SendResponse(Status::kNotImplemented);
+  }
 }
 
 bool RequestHandler::ServeStatic(ConnectionPtr connection) {

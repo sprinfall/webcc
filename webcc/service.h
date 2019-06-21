@@ -15,32 +15,17 @@
 
 #include "webcc/globals.h"
 #include "webcc/request.h"
+#include "webcc/response.h"
+#include "webcc/response_builder.h"
 #include "webcc/url.h"
 
 namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-// Regex sub-matches of the URL.
-using UrlMatches = std::vector<std::string>;
-
-struct RestRequest {
-  // Original HTTP request.
-  RequestPtr http;
-
-  // Regex sub-matches of the URL (usually resource ID's).
-  UrlMatches url_matches;
-};
-
-// TODO: Add ResponseBuilder instead.
-struct RestResponse {
-  Status status;
-
-  std::string content;
-
-  std::string media_type;
-  std::string charset;
-};
+// Regex sub-matches of the URL (usually resource ID's).
+// Could also be considered as arguments, so named as UrlArgs.
+using UrlArgs = std::vector<std::string>;
 
 // -----------------------------------------------------------------------------
 
@@ -49,8 +34,8 @@ class Service {
 public:
   virtual ~Service() = default;
 
-  // Handle request, output response.
-  virtual void Handle(const RestRequest& request, RestResponse* response) = 0;
+  // Handle request, return response.
+  virtual ResponsePtr Handle(RequestPtr request, const UrlArgs& args) = 0;
 };
 
 using ServicePtr = std::shared_ptr<Service>;
@@ -59,42 +44,28 @@ using ServicePtr = std::shared_ptr<Service>;
 
 class ListService : public Service {
 public:
-  void Handle(const RestRequest& request, RestResponse* response) override;
+  ResponsePtr Handle(RequestPtr request, const UrlArgs& args) override;
 
 protected:
-  virtual void Get(const UrlQuery& query, RestResponse* response) {
-  }
+  virtual ResponsePtr Get(const UrlQuery& query);
 
-  virtual void Post(const std::string& request_content,
-                    RestResponse* response) {
-  }
+  virtual ResponsePtr Post(RequestPtr request);
 };
 
 // -----------------------------------------------------------------------------
 
 class DetailService : public Service {
 public:
-  void Handle(const RestRequest& request, RestResponse* response) override;
+  ResponsePtr Handle(RequestPtr request, const UrlArgs& args) override;
 
 protected:
-  virtual void Get(const UrlMatches& url_matches,
-                   const UrlQuery& query,
-                   RestResponse* response) {
-  }
+  virtual ResponsePtr Get(const UrlArgs& args, const UrlQuery& query);
 
-  virtual void Put(const UrlMatches& url_matches,
-                   const std::string& request_content,
-                   RestResponse* response) {
-  }
+  virtual ResponsePtr Put(RequestPtr request, const UrlArgs& args);
 
-  virtual void Patch(const UrlMatches& url_matches,
-                     const std::string& request_content,
-                     RestResponse* response) {
-  }
+  virtual ResponsePtr Patch(RequestPtr request, const UrlArgs& args);
 
-  virtual void Delete(const UrlMatches& url_matches,
-                      RestResponse* response) {
-  }
+  virtual ResponsePtr Delete(const UrlArgs& args);
 };
 
 }  // namespace webcc

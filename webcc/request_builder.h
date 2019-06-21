@@ -11,7 +11,6 @@ namespace webcc {
 class RequestBuilder {
 public:
   RequestBuilder() = default;
-  ~RequestBuilder() = default;
 
   RequestBuilder(const RequestBuilder&) = delete;
   RequestBuilder& operator=(const RequestBuilder&) = delete;
@@ -119,13 +118,13 @@ private:
   // Files to upload for a POST request.
   std::vector<FormPartPtr> form_parts_;
 
-  // Compress the request content.
+  // Compress the content.
   // NOTE: Most servers don't support compressed requests.
   // Even the requests module from Python doesn't have a built-in support.
   // See: https://github.com/kennethreitz/requests/issues/1753
   bool gzip_ = false;
 
-  // Additional request headers.
+  // Additional headers.
   std::vector<std::string> headers_;
 
   // Persistent connection.

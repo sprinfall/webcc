@@ -13,8 +13,7 @@ using ResponsePtr = std::shared_ptr<Response>;
 
 class Response : public Message {
 public:
-  explicit Response(Status status = Status::kOK)
-      : status_(status) {
+  explicit Response(Status status = Status::kOK) : status_(status) {
   }
 
   ~Response() override = default;

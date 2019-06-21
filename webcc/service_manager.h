@@ -21,13 +21,13 @@ public:
   // The |url| should start with "/" and will be treated as a regular expression
   // if |regex| is true.
   // Examples: "/instances", "/instances/(\\d+)".
-  bool AddService(ServicePtr service, const std::string& url, bool is_regex);
+  bool Add(ServicePtr service, const std::string& url, bool is_regex);
 
   // The |matches| is only available when the |url| bound to the service is a
   // regular expression and has sub-expressions.
   // E.g., the URL bound to the service is "/instances/(\\d+)", now match
   // "/instances/12345" against it, you will get one match of "12345".
-  ServicePtr GetService(const std::string& url, UrlMatches* matches);
+  ServicePtr Get(const std::string& url, UrlArgs* args);
 
 private:
   class Item {

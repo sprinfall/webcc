@@ -43,6 +43,7 @@ public:
   // Send response to client.
   void SendResponse(ResponsePtr response);
 
+  // TODO: Remove
   void SendResponse(Status status);
 
 private:

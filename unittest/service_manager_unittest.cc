@@ -6,9 +6,9 @@
 
 class MyService : public webcc::Service {
 public:
-  void Handle(const webcc::RestRequest& request,
-              webcc::RestResponse* response) override {
-    response->status = webcc::Status::kOK;
+  webcc::ResponsePtr Handle(webcc::RequestPtr request,
+                            const webcc::UrlArgs& args) override {
+    return webcc::ResponseBuilder{}.OK()();
   }
 };
 
@@ -17,22 +17,21 @@ public:
 TEST(ServiceManagerTest, URL_RegexBasic) {
   webcc::ServiceManager service_manager;
 
-  service_manager.AddService(std::make_shared<MyService>(),
-                             "/instance/(\\d+)", true);
-
-  std::vector<std::string> matches;
+  service_manager.Add(std::make_shared<MyService>(), "/instance/(\\d+)", true);
 
   std::string url = "/instance/12345";
-  webcc::ServicePtr service = service_manager.GetService(url, &matches);
+  webcc::UrlArgs args;
+
+  webcc::ServicePtr service = service_manager.Get(url, &args);
 
   EXPECT_TRUE(!!service);
 
-  EXPECT_EQ(1, matches.size());
-  EXPECT_EQ("12345", matches[0]);
+  EXPECT_EQ(1, args.size());
+  EXPECT_EQ("12345", args[0]);
 
   url = "/instance/abcde";
-  matches.clear();
-  service = service_manager.GetService(url, &matches);
+  args.clear();
+  service = service_manager.Get(url, &args);
 
   EXPECT_FALSE(!!service);
 }
@@ -40,25 +39,24 @@ TEST(ServiceManagerTest, URL_RegexBasic) {
 TEST(RestServiceManagerTest, URL_RegexMultiple) {
   webcc::ServiceManager service_manager;
 
-  service_manager.AddService(std::make_shared<MyService>(),
-                             "/study/(\\d+)/series/(\\d+)/instance/(\\d+)",
-                             true);
-
-  std::vector<std::string> matches;
+  service_manager.Add(std::make_shared<MyService>(),
+                      "/study/(\\d+)/series/(\\d+)/instance/(\\d+)", true);
 
   std::string url = "/study/1/series/2/instance/3";
-  webcc::ServicePtr service = service_manager.GetService(url, &matches);
+  webcc::UrlArgs args;
+
+  webcc::ServicePtr service = service_manager.Get(url, &args);
 
   EXPECT_TRUE(!!service);
 
-  EXPECT_EQ(3, matches.size());
-  EXPECT_EQ("1", matches[0]);
-  EXPECT_EQ("2", matches[1]);
-  EXPECT_EQ("3", matches[2]);
+  EXPECT_EQ(3, args.size());
+  EXPECT_EQ("1", args[0]);
+  EXPECT_EQ("2", args[1]);
+  EXPECT_EQ("3", args[2]);
 
   url = "/study/a/series/b/instance/c";
-  matches.clear();
-  service = service_manager.GetService(url, &matches);
+  args.clear();
+  service = service_manager.Get(url, &args);
 
   EXPECT_FALSE(!!service);
 }
@@ -66,13 +64,13 @@ TEST(RestServiceManagerTest, URL_RegexMultiple) {
 TEST(RestServiceManagerTest, URL_NonRegex) {
   webcc::ServiceManager service_manager;
 
-  service_manager.AddService(std::make_shared<MyService>(), "/instances",
-                             false);
+  service_manager.Add(std::make_shared<MyService>(), "/instances", false);
 
-  std::vector<std::string> matches;
   std::string url = "/instances";
-  webcc::ServicePtr service = service_manager.GetService(url, &matches);
+  webcc::UrlArgs args;
+
+  webcc::ServicePtr service = service_manager.Get(url, &args);
 
   EXPECT_TRUE(!!service);
-  EXPECT_EQ(0, matches.size());
+  EXPECT_TRUE(args.empty());
 }
