@@ -1,10 +1,10 @@
 # webcc
 
-C++ client and server library for HTTP and REST based on *Boost Asio*.
+C++ client and server library for HTTP and REST based on [Boost.Asio](https://www.boost.org/doc/libs/release/libs/asio/).
 
 Please turn to our [Wiki](https://github.com/sprinfall/webcc/wiki) (under construction) for more tutorials and guides.
 
-Wondering how to build Webcc? Click [Build Instructions](https://github.com/sprinfall/webcc/wiki/Build-Instructions).
+Wondering how to build Webcc? Check [Build Instructions](https://github.com/sprinfall/webcc/wiki/Build-Instructions).
 
 ## Client API Examples
 
@@ -85,3 +85,88 @@ Listing GitHub public events is not a big deal:
 auto r = session.Get("https://api.github.com/events");
 ```
 You can then parse `r->content()` to JSON object with your favorite JSON library. My choice for the examples is [jsoncpp](https://github.com/open-source-parsers/jsoncpp). But the library itself doesn't understand JSON nor require one. It's up to you to choose the most appropriate JSON library.
+
+## Server API Examples
+
+Suppose you want to create a book server and provide the following operations with RESTful API:
+
+- Query books based on some criterias.
+- Add a new book.
+- Get the detailed information of a book.
+- Update the information of a book.
+- Delete a book.
+
+The first two operations can be implemented by deriving from `webcc::ListService`:
+
+```cpp
+class BookListService : public webcc::RestListService {
+protected:
+  // Get a list of books based on query parameters.
+  webcc::ResponsePtr Get(const webcc::UrlQuery& query) override;
+
+  // Create a new book.
+  // The new book's data is attached as request content in JSON format.
+  webcc::ResponsePtr Post(webcc::RequestPtr request) override;
+};
+```
+
+The others, derive from `webcc::DetailService`:
+
+```cpp
+// The URL is like '/books/{BookID}', and the 'url_matches' parameter
+// contains the matched book ID.
+class BookDetailService : public webcc::DetailService {
+protected:
+  // Get the detailed information of a book.
+  webcc::ResponsePtr Get(const webcc::UrlArgs& args,
+                         const webcc::UrlQuery& query) override;
+
+  // Update a book.
+  webcc::ResponsePtr Put(webcc::RequestPtr request,
+                         const webcc::UrlArgs& args) override;
+
+  // Delete a book.
+  webcc::ResponsePtr Delete(const webcc::UrlArgs& args) override;
+};
+```
+
+As you can see, all you have to do is to override the proper virtual functions which are named after HTTP methods.
+
+The detailed implementation is out of the scope of this document, but here is an example:
+
+```cpp
+webcc::ResponsePtr BookDetailService::Get(const webcc::UrlArgs& args,
+                                          const webcc::UrlQuery& query) {
+  if (args.size() != 1) {
+    // Using kNotFound means the resource specified by the URL cannot be found.
+    // kBadRequest could be another choice.
+    return webcc::ResponseBuilder{}.NotFound()();
+  }
+
+  const std::string& book_id = args[0];
+
+  // Get the book by ID from, e.g., the database.
+  // ...
+
+  if (<NotFound>) {
+    // There's no such book with the given ID. 
+    return webcc::ResponseBuilder{}.NotFound()();
+  } else {
+    // Convert the book to JSON string and set as response content.
+    return webcc::ResponseBuilder{}.OK().Data(<JsonStringOfTheBook>).Json()();
+  }
+}
+```
+
+Last step, bind the services and run the server:
+
+```cpp
+webcc::RestServer server(8080, 2);
+
+server.Bind(std::make_shared<BookListService>(), "/books", false);
+server.Bind(std::make_shared<BookDetailService>(), "/books/(\\d+)", true);
+
+server.Run();
+```
+
+Please see [examples/rest_book_server.cc](https://github.com/sprinfall/webcc/tree/master/examples/rest_book_server.cc) for more details.
