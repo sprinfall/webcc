@@ -6,6 +6,20 @@ Please turn to our [Wiki](https://github.com/sprinfall/webcc/wiki) (under constr
 
 Wondering how to build Webcc? Check [Build Instructions](https://github.com/sprinfall/webcc/wiki/Build-Instructions).
 
+**Features**
+
+- Cross-platform: Linux, Windows and Mac
+- Easy-to-use client API inspired by Python [requests](https://2.python-requests.org//en/master/)
+- SSL/HTTPS support with OpenSSL (optional)
+- GZip compression support with Zlib (optional)
+- Persistent connections (Keep-Alive)
+- Basic & Token authorization
+- Timeout control
+- Source code follows [Google C++ Style](https://google.github.io/styleguide/cppguide.html)
+- Automation tests and unit tests included
+- No memory leak detected by [VLD](https://kinddragon.github.io/vld/)
+- etc.
+
 ## Client API Examples
 
 A complete client example: 
