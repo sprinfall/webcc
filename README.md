@@ -115,7 +115,7 @@ The first two operations are implemented by `BookListView` deriving from `webcc:
 ```cpp
 class BookListView : public webcc::View {
 public:
-webcc::ResponsePtr Handle(webcc::RequestPtr request) override {
+  webcc::ResponsePtr Handle(webcc::RequestPtr request) override {
     if (request->method() == "GET") {
       return Get(request->query());
     }
