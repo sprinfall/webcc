@@ -2,26 +2,50 @@
 #define WEBCC_REQUEST_HANDLER_H_
 
 #include <list>
+#include <regex>
 #include <thread>
 #include <vector>
 
 #include "webcc/connection.h"
 #include "webcc/queue.h"
-#include "webcc/service_manager.h"
+#include "webcc/view.h"
 
 namespace webcc {
 
-// The common handler for all incoming requests.
+// -----------------------------------------------------------------------------
+
+// Wrapper for regular expression URL.
+class RegexUrl {
+public:
+  explicit RegexUrl(const std::string& url) : url_(url) {
+  }
+
+  std::regex operator()() const {
+    std::regex::flag_type flags = std::regex::ECMAScript | std::regex::icase;
+
+    return std::regex(url_, flags);
+  }
+
+private:
+  std::string url_;
+};
+
+using R = RegexUrl;  // A shortcut
+
+// -----------------------------------------------------------------------------
+
 class RequestHandler {
 public:
-  explicit RequestHandler(const std::string& doc_root);
+  explicit RequestHandler(const Path& doc_root);
 
   virtual ~RequestHandler() = default;
 
   RequestHandler(const RequestHandler&) = delete;
   RequestHandler& operator=(const RequestHandler&) = delete;
 
-  bool Bind(ServicePtr service, const std::string& url, bool is_regex);
+  bool Route(const std::string& url, ViewPtr view, const Strings& methods);
+
+  bool Route(const RegexUrl& regex_url, ViewPtr view, const Strings& methods);
 
   // Put the connection into the queue.
   void Enqueue(ConnectionPtr connection);
@@ -40,7 +64,11 @@ private:
   // then send the response back to the client.
   // The connection will keep alive if it's a persistent connection. When next
   // request comes, this connection will be put back to the queue again.
-  virtual void HandleConnection(ConnectionPtr connection);
+  virtual void Handle(ConnectionPtr connection);
+
+  // Find the view by HTTP method and URL.
+  ViewPtr FindView(const std::string& method, const std::string& url,
+                   UrlArgs* args);
 
   // TODO
   bool ServeStatic(ConnectionPtr connection);
@@ -49,14 +77,22 @@ private:
                   std::string&& content);
 
 private:
+  struct RouteInfo {
+    std::string url;
+    std::regex url_regex;
+    ViewPtr view;
+    Strings methods;
+  };
+
+private:
   // The directory containing the files to be served.
-  std::string doc_root_;
+  Path doc_root_;
 
   Queue<ConnectionPtr> queue_;
 
   std::vector<std::thread> workers_;
 
-  ServiceManager service_manager_;
+  std::vector<RouteInfo> routes_;
 };
 
 }  // namespace webcc

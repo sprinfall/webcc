@@ -13,7 +13,7 @@ public:
 };
 
 // -----------------------------------------------------------------------------
-
+/*
 TEST(ServiceManagerTest, URL_RegexBasic) {
   webcc::ServiceManager service_manager;
 
@@ -74,3 +74,4 @@ TEST(RestServiceManagerTest, URL_NonRegex) {
   EXPECT_TRUE(!!service);
   EXPECT_TRUE(args.empty());
 }
+*/

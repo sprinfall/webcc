@@ -5,6 +5,7 @@
 #include <exception>
 #include <iosfwd>
 #include <string>
+#include <vector>
 
 #include "webcc/config.h"
 
@@ -40,6 +41,14 @@
 #endif  // _MSC_VER
 
 namespace webcc {
+
+// -----------------------------------------------------------------------------
+
+using Strings = std::vector<std::string>;
+
+// Regex sub-matches of the URL (usually resource ID's).
+// Could also be considered as arguments, so named as UrlArgs.
+using UrlArgs = std::vector<std::string>;
 
 // -----------------------------------------------------------------------------
 

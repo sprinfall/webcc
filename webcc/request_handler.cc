@@ -1,8 +1,11 @@
 #include "webcc/request_handler.h"
 
+#include <algorithm>
 #include <fstream>
 #include <utility>  // for move()
-#include <vector>
+
+#include "boost/algorithm/string.hpp"
+#include "boost/filesystem/fstream.hpp"
 
 #include "webcc/logger.h"
 #include "webcc/request.h"
@@ -13,15 +16,41 @@
 #include "webcc/gzip.h"
 #endif
 
+namespace bfs = boost::filesystem;
+
 namespace webcc {
 
-RequestHandler::RequestHandler(const std::string& doc_root)
+RequestHandler::RequestHandler(const Path& doc_root)
     : doc_root_(doc_root) {
 }
 
-bool RequestHandler::Bind(ServicePtr service, const std::string& url,
-                          bool is_regex) {
-  return service_manager_.Add(service, url, is_regex);
+bool RequestHandler::Route(const std::string& url, ViewPtr view,
+                           const Strings& methods) {
+  assert(view);
+
+  // TODO: More error check
+
+  routes_.push_back({ url, {}, view, methods });
+
+  return true;
+}
+
+bool RequestHandler::Route(const RegexUrl& regex_url, ViewPtr view,
+                           const Strings& methods) {
+  assert(view);
+
+  // TODO: More error check
+
+  try {
+
+    routes_.push_back({ "", regex_url(), view, methods });
+
+  } catch (const std::regex_error& e) {
+    LOG_ERRO("Not a valid regular expression: %s", e.what());
+    return false;
+  }
+
+  return true;
 }
 
 void RequestHandler::Enqueue(ConnectionPtr connection) {
@@ -72,11 +101,11 @@ void RequestHandler::WorkerRoutine() {
       break;
     }
 
-    HandleConnection(connection);
+    Handle(connection);
   }
 }
 
-void RequestHandler::HandleConnection(ConnectionPtr connection) {
+void RequestHandler::Handle(ConnectionPtr connection) {
   auto request = connection->request();
 
   const Url& url = request->url();
@@ -84,11 +113,11 @@ void RequestHandler::HandleConnection(ConnectionPtr connection) {
 
   LOG_INFO("Request URL path: %s", url.path().c_str());
 
-  // Get service by URL path.
-  auto service = service_manager_.Get(url.path(), &args);
+  // Find view
+  auto view = FindView(request->method(), url.path(), &args);
 
-  if (!service) {
-    LOG_WARN("No service matches the URL path: %s", url.path().c_str());
+  if (!view) {
+    LOG_WARN("No view matches the URL path: %s", url.path().c_str());
 
     if (!ServeStatic(connection)) {
       connection->SendResponse(Status::kNotFound);
@@ -97,14 +126,50 @@ void RequestHandler::HandleConnection(ConnectionPtr connection) {
     return;
   }
 
-  ResponsePtr response = service->Handle(request, args);
+  // Save the (regex matched) URL args to request object.
+  request->set_args(args);
+
+  // Ask the matched view to process the request.
+  ResponsePtr response = view->Handle(request);
   
-  // Send response back to client.
+  // Send the response back.
   if (response) {
     connection->SendResponse(response);
   } else {
     connection->SendResponse(Status::kNotImplemented);
   }
+}
+
+ViewPtr RequestHandler::FindView(const std::string& method,
+                                 const std::string& url, UrlArgs* args) {
+  assert(args != nullptr);
+
+  for (auto& route : routes_) {
+    if (std::find(route.methods.begin(), route.methods.end(), method) ==
+        route.methods.end()) {
+      continue;
+    }
+
+    if (route.url.empty()) {
+      std::smatch match;
+
+      if (std::regex_match(url, match, route.url_regex)) {
+        // Any sub-matches?
+        // Start from 1 because match[0] is the whole string itself.
+        for (size_t i = 1; i < match.size(); ++i) {
+          args->push_back(match[i].str());
+        }
+
+        return route.view;
+      }
+    } else {
+      if (boost::iequals(route.url, url)) {
+        return route.view;
+      }
+    }
+  }
+
+  return ViewPtr();
 }
 
 bool RequestHandler::ServeStatic(ConnectionPtr connection) {
@@ -116,33 +181,18 @@ bool RequestHandler::ServeStatic(ConnectionPtr connection) {
     path += "index.html";
   }
 
-  // Determine the file extension.
-  std::string extension;
-  std::size_t last_slash_pos = path.find_last_of("/");
-  std::size_t last_dot_pos = path.find_last_of(".");
-  if (last_dot_pos != std::string::npos && last_dot_pos > last_slash_pos) {
-    extension = path.substr(last_dot_pos + 1);
-  }
+  Path p = doc_root_ / path;
 
-  // Open the file to send back.
-  std::string full_path = doc_root_ + path;
-  std::ifstream ifs(full_path.c_str(), std::ios::in | std::ios::binary);
-  if (!ifs) {
-    // The file doesn't exist.
+  std::string content;
+  if (!ReadFile(p, &content)) {
     connection->SendResponse(Status::kNotFound);
     return false;
   }
-
-  // Fill out the content to be sent to the client.
-  std::string content;
-  char buf[512];
-  while (ifs.read(buf, sizeof(buf)).gcount() > 0) {
-    content.append(buf, ifs.gcount());
-  }
-
+  
   auto response = std::make_shared<Response>(Status::kOK);
 
   if (!content.empty()) {
+    std::string extension = p.extension().string();
     response->SetContentType(media_types::FromExtension(extension), "");
     response->SetContent(std::move(content), true);
   }

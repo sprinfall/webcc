@@ -11,8 +11,7 @@ using tcp = boost::asio::ip::tcp;
 
 namespace webcc {
 
-Server::Server(std::uint16_t port, std::size_t workers,
-               const std::string& doc_root)
+Server::Server(std::uint16_t port, std::size_t workers, const Path& doc_root)
     : acceptor_(io_context_), signals_(io_context_), workers_(workers),
       request_handler_(doc_root) {
   RegisterSignals();
@@ -50,10 +49,6 @@ Server::Server(std::uint16_t port, std::size_t workers,
     LOG_ERRO("Acceptor listen error (%s).", ec.message().c_str());
     return;
   }
-}
-
-bool Server::Bind(ServicePtr service, const std::string& url, bool is_regex) {
-  return request_handler_.Bind(service, url, is_regex);
 }
 
 void Server::Run() {

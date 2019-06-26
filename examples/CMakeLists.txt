@@ -50,3 +50,6 @@ target_link_libraries(file_upload_client ${EXAMPLE_LIBS})
 
 add_executable(file_upload_server file_upload_server.cc)
 target_link_libraries(file_upload_server ${EXAMPLE_LIBS})
+
+add_executable(static_server static_server.cc)
+target_link_libraries(static_server ${EXAMPLE_LIBS})

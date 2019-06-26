@@ -2,14 +2,14 @@
 #include <string>
 
 #include "webcc/logger.h"
+#include "webcc/response_builder.h"
 #include "webcc/server.h"
 
 // -----------------------------------------------------------------------------
 
-class FileUploadService : public webcc::Service {
+class FileUploadView : public webcc::View {
 public:
-  webcc::ResponsePtr Handle(webcc::RequestPtr request,
-                            const webcc::UrlArgs& args) override {
+  webcc::ResponsePtr Handle(webcc::RequestPtr request) override {
     if (request->method() == "POST") {
       std::cout << "files: " << request->form_parts().size() << std::endl;
 
@@ -47,10 +47,9 @@ int main(int argc, char* argv[]) {
   std::size_t workers = 2;
 
   try {
-    // TODO: doc root
     webcc::Server server(port, workers);
 
-    server.Bind(std::make_shared<FileUploadService>(), "/upload", false);
+    server.Route("/upload", std::make_shared<FileUploadView>(), { "POST" });
 
     server.Run();
 

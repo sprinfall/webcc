@@ -25,8 +25,7 @@ const char CRLF[] = { '\r', '\n' };
 
 // -----------------------------------------------------------------------------
 
-// Read entire file into string.
-static bool ReadFile(const Path& path, std::string* output) {
+bool ReadFile(const Path& path, std::string* output) {
   // Flag "ate": seek to the end of stream immediately after open.
   bfs::ifstream stream{ path, std::ios::binary | std::ios::ate };
   if (stream.fail()) {

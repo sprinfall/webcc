@@ -3,7 +3,6 @@
 set(UT_SRCS
     base64_unittest.cc
     request_parser_unittest.cc
-    service_manager_unittest.cc
     url_unittest.cc
     utility_unittest.cc
     )

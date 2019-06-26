@@ -23,33 +23,24 @@ public:
 
   ~Request() override = default;
 
-  const std::string& method() const {
-    return method_;
-  }
+  const std::string& method() const { return method_; }
+  void set_method(const std::string& method) { method_ = method; }
 
-  void set_method(const std::string& method) {
-    method_ = method;
-  }
+  const Url& url() const { return url_; }
+  void set_url(const std::string& url) { url_.Init(url); }
 
-  const Url& url() const {
-    return url_;
-  }
+  const std::string& host() const { return url_.host(); }
+  const std::string& port() const { return url_.port(); }
 
-  void set_url(const std::string& url) {
-    url_.Init(url);
-  }
+  UrlQuery query() const { return UrlQuery(url_.query()); }
 
+  // TODO: Remove
   void AddQuery(const std::string& key, const std::string& value) {
     url_.AddQuery(key, value);
   }
 
-  const std::string& host() const {
-    return url_.host();
-  }
-
-  const std::string& port() const {
-    return url_.port();
-  }
+  const UrlArgs& args() const { return args_; }
+  void set_args(const UrlArgs& args) { args_ = args; }
 
   std::string port(const std::string& default_port) const {
     return port().empty() ? default_port : port();
@@ -80,6 +71,10 @@ private:
   std::string method_;
 
   Url url_;
+
+  // The URL regex matched arguments (usually resource ID's).
+  // Used by server only.
+  UrlArgs args_;
 
   std::vector<FormPartPtr> form_parts_;
 

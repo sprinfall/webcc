@@ -19,6 +19,9 @@ using Path = boost::filesystem::path;
 
 using Payload = std::vector<boost::asio::const_buffer>;
 
+// Read entire file into string.
+bool ReadFile(const Path& path, std::string* output);
+
 // -----------------------------------------------------------------------------
 
 using Header = std::pair<std::string, std::string>;

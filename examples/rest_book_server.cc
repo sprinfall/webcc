@@ -4,8 +4,6 @@
 #include <thread>
 #include <vector>
 
-#include "boost/core/ignore_unused.hpp"
-
 #include "json/json.h"
 
 #include "webcc/logger.h"
@@ -36,18 +34,29 @@ static void Sleep(int seconds) {
 
 // -----------------------------------------------------------------------------
 
-class BookListService : public webcc::ListService {
+class BookListView : public webcc::View {
 public:
-  explicit BookListService(int sleep_seconds)
-      : sleep_seconds_(sleep_seconds) {
+  explicit BookListView(int sleep_seconds) : sleep_seconds_(sleep_seconds) {
+  }
+
+  webcc::ResponsePtr Handle(webcc::RequestPtr request) override {
+    if (request->method() == "GET") {
+      return Get(request->query());
+    }
+
+    if (request->method() == "POST") {
+      return Post(request);
+    }
+
+    return{};
   }
 
 protected:
   // Get a list of books based on query parameters.
-  webcc::ResponsePtr Get(const webcc::UrlQuery& query) override;
+  webcc::ResponsePtr Get(const webcc::UrlQuery& query);
 
   // Create a new book.
-  webcc::ResponsePtr Post(webcc::RequestPtr request) override;
+  webcc::ResponsePtr Post(webcc::RequestPtr request);
 
 private:
   // Sleep some seconds before send back the response.
@@ -59,23 +68,38 @@ private:
 
 // The URL is like '/books/{BookID}', and the 'args' parameter
 // contains the matched book ID.
-class BookDetailService : public webcc::DetailService {
+class BookDetailView : public webcc::View {
 public:
-  explicit BookDetailService(int sleep_seconds)
-      : sleep_seconds_(sleep_seconds) {
+  explicit BookDetailView(int sleep_seconds) : sleep_seconds_(sleep_seconds) {
+  }
+
+  webcc::ResponsePtr Handle(webcc::RequestPtr request) override {
+    if (request->method() == "GET") {
+      return Get(request->args(), request->query());
+    }
+
+    if (request->method() == "PUT") {
+      return Put(request, request->args());
+    }
+
+    if (request->method() == "DELETE") {
+      return Delete(request->args());
+    }
+
+    return {};
   }
 
 protected:
   // Get the detailed information of a book.
   webcc::ResponsePtr Get(const webcc::UrlArgs& args,
-                         const webcc::UrlQuery& query) override;
+                         const webcc::UrlQuery& query);
 
   // Update a book.
   webcc::ResponsePtr Put(webcc::RequestPtr request,
-                         const webcc::UrlArgs& args) override;
+                         const webcc::UrlArgs& args);
 
   // Delete a book.
-  webcc::ResponsePtr Delete(const webcc::UrlArgs& args) override;
+  webcc::ResponsePtr Delete(const webcc::UrlArgs& args);
 
 private:
   // Sleep some seconds before send back the response.
@@ -86,9 +110,7 @@ private:
 // -----------------------------------------------------------------------------
 
 // Return all books as a JSON array.
-webcc::ResponsePtr BookListService::Get(const webcc::UrlQuery& query) {
-  boost::ignore_unused(query);
-
+webcc::ResponsePtr BookListView::Get(const webcc::UrlQuery& /*query*/) {
   Sleep(sleep_seconds_);
 
   Json::Value json(Json::arrayValue);
@@ -101,7 +123,7 @@ webcc::ResponsePtr BookListService::Get(const webcc::UrlQuery& query) {
   return webcc::ResponseBuilder{}.OK().Data(JsonToString(json)).Json()();
 }
 
-webcc::ResponsePtr BookListService::Post(webcc::RequestPtr request) {
+webcc::ResponsePtr BookListView::Post(webcc::RequestPtr request) {
   Sleep(sleep_seconds_);
 
   Book book;
@@ -121,8 +143,8 @@ webcc::ResponsePtr BookListService::Post(webcc::RequestPtr request) {
 
 // -----------------------------------------------------------------------------
 
-webcc::ResponsePtr BookDetailService::Get(const webcc::UrlArgs& args,
-                                          const webcc::UrlQuery& query) {
+webcc::ResponsePtr BookDetailView::Get(const webcc::UrlArgs& args,
+                                       const webcc::UrlQuery& query) {
   Sleep(sleep_seconds_);
 
   if (args.size() != 1) {
@@ -142,8 +164,8 @@ webcc::ResponsePtr BookDetailService::Get(const webcc::UrlArgs& args,
   return webcc::ResponseBuilder{}.OK().Data(BookToJsonString(book)).Json()();
 }
 
-webcc::ResponsePtr BookDetailService::Put(webcc::RequestPtr request,
-                                          const webcc::UrlArgs& args) {
+webcc::ResponsePtr BookDetailView::Put(webcc::RequestPtr request,
+                                       const webcc::UrlArgs& args) {
   Sleep(sleep_seconds_);
 
   if (args.size() != 1) {
@@ -163,7 +185,7 @@ webcc::ResponsePtr BookDetailService::Put(webcc::RequestPtr request,
   return webcc::ResponseBuilder{}.OK()();
 }
 
-webcc::ResponsePtr BookDetailService::Delete(const webcc::UrlArgs& args) {
+webcc::ResponsePtr BookDetailView::Delete(const webcc::UrlArgs& args) {
   Sleep(sleep_seconds_);
 
   if (args.size() != 1) {
@@ -209,14 +231,15 @@ int main(int argc, char* argv[]) {
   std::size_t workers = 2;
 
   try {
-    // TODO: doc root
     webcc::Server server(port, workers);
 
-    server.Bind(std::make_shared<BookListService>(sleep_seconds),
-                "/books", false);
+    server.Route("/books",
+                 std::make_shared<BookListView>(sleep_seconds),
+                 { "GET", "POST" });
 
-    server.Bind(std::make_shared<BookDetailService>(sleep_seconds),
-                "/books/(\\d+)", true);
+    server.Route(webcc::R("/books/(\\d+)"),
+                 std::make_shared<BookDetailView>(sleep_seconds),
+                 { "GET", "PUT", "DELETE" });
 
     server.Run();
 
