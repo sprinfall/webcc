@@ -110,47 +110,75 @@ Suppose you want to create a book server and provide the following operations wi
 - Update the information of a book.
 - Delete a book.
 
-The first two operations can be implemented by deriving from `webcc::ListService`:
+The first two operations are implemented by `BookListView` deriving from `webcc::View`:
 
 ```cpp
-class BookListService : public webcc::RestListService {
-protected:
+class BookListView : public webcc::View {
+public:
+webcc::ResponsePtr Handle(webcc::RequestPtr request) override {
+    if (request->method() == "GET") {
+      return Get(request->query());
+    }
+
+    if (request->method() == "POST") {
+      return Post(request);
+    }
+
+    return {};
+  }
+  
+private:
   // Get a list of books based on query parameters.
-  webcc::ResponsePtr Get(const webcc::UrlQuery& query) override;
+  webcc::ResponsePtr Get(const webcc::UrlQuery& query);
 
   // Create a new book.
   // The new book's data is attached as request content in JSON format.
-  webcc::ResponsePtr Post(webcc::RequestPtr request) override;
+  webcc::ResponsePtr Post(webcc::RequestPtr request);
 };
 ```
 
-The others, derive from `webcc::DetailService`:
+Other operations are implemented by `BookDetailView`:
 
 ```cpp
-// The URL is like '/books/{BookID}', and the 'url_matches' parameter
-// contains the matched book ID.
-class BookDetailService : public webcc::DetailService {
+// The URL is like '/books/{BookID}', and the 'args' parameter contains
+// the matched book ID.
+class BookDetailView : public webcc::View {
+public:
+  webcc::ResponsePtr Handle(webcc::RequestPtr request) override {
+    if (request->method() == "GET") {
+      return Get(request->args(), request->query());
+    }
+
+    if (request->method() == "PUT") {
+      return Put(request, request->args());
+    }
+
+    if (request->method() == "DELETE") {
+      return Delete(request->args());
+    }
+
+    return {};
+  }
+  
 protected:
   // Get the detailed information of a book.
   webcc::ResponsePtr Get(const webcc::UrlArgs& args,
-                         const webcc::UrlQuery& query) override;
+                         const webcc::UrlQuery& query);
 
   // Update a book.
   webcc::ResponsePtr Put(webcc::RequestPtr request,
-                         const webcc::UrlArgs& args) override;
+                         const webcc::UrlArgs& args);
 
   // Delete a book.
-  webcc::ResponsePtr Delete(const webcc::UrlArgs& args) override;
+  webcc::ResponsePtr Delete(const webcc::UrlArgs& args);
 };
 ```
 
-As you can see, all you have to do is to override the proper virtual functions which are named after HTTP methods.
-
-The detailed implementation is out of the scope of this document, but here is an example:
+The detailed implementation is out of the scope of this README, but here is an example:
 
 ```cpp
-webcc::ResponsePtr BookDetailService::Get(const webcc::UrlArgs& args,
-                                          const webcc::UrlQuery& query) {
+webcc::ResponsePtr BookDetailView::Get(const webcc::UrlArgs& args,
+                                       const webcc::UrlQuery& query) {
   if (args.size() != 1) {
     // Using kNotFound means the resource specified by the URL cannot be found.
     // kBadRequest could be another choice.
@@ -172,13 +200,15 @@ webcc::ResponsePtr BookDetailService::Get(const webcc::UrlArgs& args,
 }
 ```
 
-Last step, bind the services and run the server:
+Last step, route URLs to the proper views and run the server:
 
 ```cpp
-webcc::RestServer server(8080, 2);
+webcc::Server server(8080, 2);
 
-server.Bind(std::make_shared<BookListService>(), "/books", false);
-server.Bind(std::make_shared<BookDetailService>(), "/books/(\\d+)", true);
+server.Route("/books", std::make_shared<BookListView>(), { "GET", "POST" });
+
+server.Route(webcc::R("/books/(\\d+)"), std::make_shared<BookDetailView>(),
+             { "GET", "PUT", "DELETE" });
 
 server.Run();
 ```
