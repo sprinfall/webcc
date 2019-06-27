@@ -6,6 +6,8 @@ Please turn to our [Wiki](https://github.com/sprinfall/webcc/wiki) (under constr
 
 Wondering how to build Webcc? Check [Build Instructions](https://github.com/sprinfall/webcc/wiki/Build-Instructions).
 
+Git repo: https://github.com/sprinfall/webcc. Please check this one instead of the forked for the latest features.
+
 **Features**
 
 - Cross-platform: Linux, Windows and Mac
