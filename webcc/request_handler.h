@@ -73,9 +73,6 @@ private:
   // TODO
   bool ServeStatic(ConnectionPtr connection);
 
-  void SetContent(RequestPtr request, ResponsePtr response,
-                  std::string&& content);
-
 private:
   struct RouteInfo {
     std::string url;

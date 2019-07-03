@@ -57,7 +57,7 @@ void ListEvents(webcc::ClientSession& session) {
   try {
     auto r = session.Get(kUrlRoot + "/events");
 
-    PRINT_JSON_STRING(r->content());
+    PRINT_JSON_STRING(r->data());
 
   } catch (const webcc::Error& error) {
     std::cout << error << std::endl;
@@ -71,7 +71,7 @@ void ListUserFollowers(webcc::ClientSession& session, const std::string& user) {
   try {
     auto r = session.Get(kUrlRoot + "/users/" + user + "/followers");
 
-    PRINT_JSON_STRING(r->content());
+    PRINT_JSON_STRING(r->data());
 
   } catch (const webcc::Error& error) {
     std::cout << error << std::endl;
@@ -85,12 +85,12 @@ void ListAuthUserFollowers(webcc::ClientSession& session,
                            const std::string& login,
                            const std::string& password) {
   try {
-    auto r = session.Request(webcc::RequestBuilder{}.Get().
-                             Url(kUrlRoot + "/user/followers").
+    auto r = session.Request(webcc::RequestBuilder{}.
+                             Get(kUrlRoot + "/user/followers").
                              AuthBasic(login, password)
                              ());
 
-    PRINT_JSON_STRING(r->content());
+    PRINT_JSON_STRING(r->data());
 
   } catch (const webcc::Error& error) {
     std::cout << error << std::endl;
@@ -107,14 +107,14 @@ void CreateAuthorization(webcc::ClientSession& session,
       "  'scopes': ['public_repo', 'repo', 'repo:status', 'user']\n"
       "}";
 
-    auto r = session.Request(webcc::RequestBuilder{}.Post().
-                             Url(kUrlRoot + "/authorizations").
-                             Data(std::move(data)).
-                             Json(true).
+    auto r = session.Request(webcc::RequestBuilder{}.
+                             Post(kUrlRoot + "/authorizations").
+                             Body(std::move(data)).
+                             Json().Utf8().
                              AuthBasic(login, password)
                              ());
 
-    std::cout << r->content() << std::endl;
+    std::cout << r->data() << std::endl;
 
   } catch (const webcc::Error& error) {
     std::cout << error << std::endl;

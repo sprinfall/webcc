@@ -79,6 +79,8 @@ public:
 
   void Parse(const std::string& str);
 
+  void Reset();
+
   bool Valid() const;
 
   bool multipart() const {
@@ -208,6 +210,10 @@ public:
 
   // API: CLIENT
   void Prepare(Payload* payload);
+
+  // Get the payload size.
+  // Used by the request to calculate content length.
+  std::size_t GetSize();
 
 private:
   // Generate headers from properties.

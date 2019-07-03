@@ -11,18 +11,22 @@ class FileUploadView : public webcc::View {
 public:
   webcc::ResponsePtr Handle(webcc::RequestPtr request) override {
     if (request->method() == "POST") {
-      std::cout << "files: " << request->form_parts().size() << std::endl;
-
-      for (auto& part : request->form_parts()) {
-        std::cout << "name: " << part->name() << std::endl;
-        std::cout << "data: " << std::endl << part->data() << std::endl;
-      }
-
-      // TODO: media_type: webcc::media_types::kTextPlain; charset = "utf-8";
-      return webcc::ResponseBuilder{}.Created().Data("OK")();
+      return Post(request);
     }
 
-    return webcc::ResponseBuilder{}.NotImplemented()();
+    return {};
+  }
+
+private:
+  webcc::ResponsePtr Post(webcc::RequestPtr request) {
+    std::cout << "form parts: " << request->form_parts().size() << std::endl;
+
+    for (auto& part : request->form_parts()) {
+      std::cout << "name: " << part->name() << std::endl;
+      std::cout << "data: " << std::endl << part->data() << std::endl;
+    }
+
+    return webcc::ResponseBuilder{}.Created().Body("OK")();
   }
 };
 

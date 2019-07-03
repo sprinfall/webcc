@@ -2,19 +2,12 @@
 
 #include "boost/algorithm/string.hpp"
 
-#include "webcc/response.h"
 #include "webcc/logger.h"
+#include "webcc/response.h"
 
 namespace webcc {
 
-ResponseParser::ResponseParser(Response* response)
-    : Parser(response), response_(response) {
-}
-
-void ResponseParser::Init(Response* response) {
-  Parser::Init(response);
-  response_ = response;
-}
+// -----------------------------------------------------------------------------
 
 namespace {
 
@@ -42,6 +35,17 @@ void SplitStartLine(const std::string& line, std::vector<std::string>* parts) {
 }
 
 }  // namespace
+
+// -----------------------------------------------------------------------------
+
+ResponseParser::ResponseParser(Response* response)
+    : Parser(response), response_(response) {
+}
+
+void ResponseParser::Init(Response* response) {
+  Parser::Init(response);
+  response_ = response;
+}
 
 bool ResponseParser::ParseStartLine(const std::string& line) {
   std::vector<std::string> parts;

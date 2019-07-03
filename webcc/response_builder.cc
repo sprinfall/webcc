@@ -13,45 +13,36 @@ namespace webcc {
 ResponsePtr ResponseBuilder::operator()() {
   assert(headers_.size() % 2 == 0);
 
-  auto request = std::make_shared<Response>(code_);
+  auto response = std::make_shared<Response>(code_);
 
   for (std::size_t i = 1; i < headers_.size(); i += 2) {
-    request->SetHeader(std::move(headers_[i - 1]), std::move(headers_[i]));
+    response->SetHeader(std::move(headers_[i - 1]), std::move(headers_[i]));
   }
 
-  if (!data_.empty()) {
-    SetContent(request, std::move(data_));
+  if (body_) {
+    response->SetContentType(media_type_, charset_);
 
-    // TODO: charset.
-    if (json_) {
-      request->SetContentType(media_types::kApplicationJson, "");
+#if WEBCC_ENABLE_GZIP
+    if (gzip_) {
+      // Don't try to compress the response if the request doesn't accept gzip.
+      if (request_ && request_->AcceptEncodingGzip()) {
+        if (body_->Compress()) {
+          response->SetHeader(headers::kContentEncoding, "gzip");
+        }
+      }
     }
+#endif  // WEBCC_ENABLE_GZIP
+
+    response->SetBody(body_, true);
   }
 
-  return request;
+  return response;
 }
 
 ResponseBuilder& ResponseBuilder::Date() {
   headers_.push_back(headers::kDate);
   headers_.push_back(utility::GetTimestamp());
   return *this;
-}
-
-void ResponseBuilder::SetContent(ResponsePtr response, std::string&& data) {
-#if WEBCC_ENABLE_GZIP
-  if (gzip_ && data.size() > kGzipThreshold) {
-    std::string compressed;
-    if (gzip::Compress(data, &compressed)) {
-      response->SetContent(std::move(compressed), true);
-      response->SetHeader(headers::kContentEncoding, "gzip");
-      return;
-    }
-
-    LOG_WARN("Cannot compress the content data!");
-  }
-#endif  // WEBCC_ENABLE_GZIP
-
-  response->SetContent(std::move(data), true);
 }
 
 }  // namespace webcc

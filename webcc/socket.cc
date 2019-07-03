@@ -23,19 +23,21 @@ namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-Socket::Socket(boost::asio::io_context& io_context)
-    : socket_(io_context) {
+Socket::Socket(boost::asio::io_context& io_context) : socket_(io_context) {
 }
 
-void Socket::Connect(const std::string& host, const Endpoints& endpoints,
+bool Socket::Connect(const std::string& host, const Endpoints& endpoints,
                      boost::system::error_code* ec) {
   boost::ignore_unused(host);
 
   boost::asio::connect(socket_, endpoints, *ec);
+
+  return !(*ec);
 }
 
-void Socket::Write(const Request& request, boost::system::error_code* ec) {
-  boost::asio::write(socket_, request.payload(), *ec);
+bool Socket::Write(const Payload& payload, boost::system::error_code* ec) {
+  boost::asio::write(socket_, payload, *ec);
+  return !(*ec);
 }
 
 void Socket::AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) {
@@ -102,19 +104,20 @@ SslSocket::SslSocket(boost::asio::io_context& io_context, bool ssl_verify)
 #endif  // defined(_WIN32) || defined(_WIN64)
 }
 
-void SslSocket::Connect(const std::string& host, const Endpoints& endpoints,
+bool SslSocket::Connect(const std::string& host, const Endpoints& endpoints,
                         boost::system::error_code* ec) {
   boost::asio::connect(ssl_socket_.lowest_layer(), endpoints, *ec);
 
   if (*ec) {
-    return;
+    return false;
   }
 
-  Handshake(host, ec);
+  return Handshake(host, ec);
 }
 
-void SslSocket::Write(const Request& request, boost::system::error_code* ec) {
-  boost::asio::write(ssl_socket_, request.payload(), *ec);
+bool SslSocket::Write(const Payload& payload, boost::system::error_code* ec) {
+  boost::asio::write(ssl_socket_, payload, *ec);
+  return !(*ec);
 }
 
 void SslSocket::AsyncReadSome(ReadHandler&& handler,
@@ -126,7 +129,7 @@ void SslSocket::Close(boost::system::error_code* ec) {
   ssl_socket_.lowest_layer().close(*ec);
 }
 
-void SslSocket::Handshake(const std::string& host,
+bool SslSocket::Handshake(const std::string& host,
                           boost::system::error_code* ec) {
   if (ssl_verify_) {
     ssl_socket_.set_verify_mode(ssl::verify_peer);
@@ -141,7 +144,10 @@ void SslSocket::Handshake(const std::string& host,
 
   if (*ec) {
     LOG_ERRO("Handshake error (%s).", ec->message().c_str());
+    return false;
   }
+
+  return true;
 }
 
 #endif  // WEBCC_ENABLE_SSL

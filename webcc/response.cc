@@ -4,15 +4,6 @@
 
 namespace webcc {
 
-void Response::Prepare() {
-  PrepareStatusLine();
-
-  SetHeader(headers::kServer, utility::UserAgent());
-  SetHeader(headers::kDate, utility::GetTimestamp());
-
-  Message::Prepare();
-}
-
 static const std::pair<int, const char*> kTable[] = {
   { Status::kOK, "OK" },
   { Status::kCreated, "Created" },
@@ -35,7 +26,7 @@ static const char* GetReason(int status) {
   return "";
 }
 
-void Response::PrepareStatusLine() {
+void Response::Prepare() {
   if (!start_line_.empty()) {
     return;
   }
@@ -49,6 +40,8 @@ void Response::PrepareStatusLine() {
   } else {
     start_line_ += reason_;
   }
+
+  SetHeader(headers::kServer, utility::UserAgent());
 }
 
 }  // namespace webcc

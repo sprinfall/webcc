@@ -22,9 +22,13 @@ public:
 
   void Init(Message* message);
 
-  bool finished() const { return finished_; }
+  bool finished() const {
+    return finished_;
+  }
 
-  std::size_t content_length() const { return content_length_; }
+  std::size_t content_length() const {
+    return content_length_;
+  }
 
   bool Parse(const char* data, std::size_t length);
 
@@ -59,14 +63,13 @@ protected:
   void AppendContent(const char* data, std::size_t count);
   void AppendContent(const std::string& data);
 
-  // TODO: Rename to IsFixedContentFull.
-  bool IsContentFull() const;
+  bool IsFixedContentFull() const;
 
   // Check header Content-Encoding to see if the content is compressed.
   bool IsContentCompressed() const;
 
 protected:
-  // The result HTTP message.
+  // The message parsed.
   Message* message_;
 
   // Data waiting to be parsed.
@@ -74,6 +77,7 @@ protected:
 
   // Temporary data and helper flags for parsing.
   std::size_t content_length_;
+  ContentType content_type_;
   std::string content_;
   bool start_line_parsed_;
   bool content_length_parsed_;

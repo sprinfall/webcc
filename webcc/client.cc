@@ -89,7 +89,10 @@ void Client::Connect(RequestPtr request) {
 void Client::DoConnect(RequestPtr request, const std::string& default_port) {
   tcp::resolver resolver(io_context_);
 
-  std::string port = request->port(default_port);
+  std::string port = request->port();
+  if (port.empty()) {
+    port = default_port;
+  }
 
   boost::system::error_code ec;
   auto endpoints = resolver.resolve(tcp::v4(), request->host(), port, ec);
@@ -103,10 +106,8 @@ void Client::DoConnect(RequestPtr request, const std::string& default_port) {
   LOG_VERB("Connect to server...");
 
   // Use sync API directly since we don't need timeout control.
-  socket_->Connect(request->host(), endpoints, &ec);
 
-  // Determine whether a connection was successfully established.
-  if (ec) {
+  if (!socket_->Connect(request->host(), endpoints, &ec)) {
     LOG_ERRO("Socket connect error (%s).", ec.message().c_str());
     Close();
     // TODO: Handshake error
@@ -117,17 +118,29 @@ void Client::DoConnect(RequestPtr request, const std::string& default_port) {
 }
 
 void Client::WriteReqeust(RequestPtr request) {
-  LOG_VERB("HTTP request:\n%s", request->Dump(4, "> ").c_str());
+  LOG_VERB("HTTP request:\n%s", request->Dump().c_str());
 
   // NOTE:
   // It doesn't make much sense to set a timeout for socket write.
   // I find that it's almost impossible to simulate a situation in the server
   // side to test this timeout.
 
+  // Use sync API directly since we don't need timeout control.
+
   boost::system::error_code ec;
 
-  // Use sync API directly since we don't need timeout control.
-  socket_->Write(*request, &ec);
+  if (socket_->Write(request->GetPayload(), &ec)) {
+    // Write request body.
+    if (request->body()) {
+      auto body = request->body();
+      body->InitPayload();
+      for (auto p = body->NextPayload(); !p.empty(); p = body->NextPayload()) {
+        if (!socket_->Write(p, &ec)) {
+          break;
+        }
+      }
+    }
+  }
 
   if (ec) {
     LOG_ERRO("Socket write error (%s).", ec.message().c_str());
@@ -147,7 +160,7 @@ void Client::ReadResponse() {
   DoReadResponse();
 
   if (!error_) {
-    LOG_VERB("HTTP response:\n%s", response_->Dump(4, "> ").c_str());
+    LOG_VERB("HTTP response:\n%s", response_->Dump().c_str());
   }
 }
 

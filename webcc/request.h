@@ -10,62 +10,60 @@
 
 namespace webcc {
 
-class Request;
-using RequestPtr = std::shared_ptr<Request>;
-
 class Request : public Message {
 public:
   Request() = default;
 
-  Request(const std::string& method, const std::string& url)
-      : method_(method), url_(url) {
+  explicit Request(const std::string& method) : method_(method) {
   }
 
   ~Request() override = default;
 
-  const std::string& method() const { return method_; }
-  void set_method(const std::string& method) { method_ = method; }
-
-  const Url& url() const { return url_; }
-  void set_url(const std::string& url) { url_.Init(url); }
-
-  const std::string& host() const { return url_.host(); }
-  const std::string& port() const { return url_.port(); }
-
-  UrlQuery query() const { return UrlQuery(url_.query()); }
-
-  // TODO: Remove
-  void AddQuery(const std::string& key, const std::string& value) {
-    url_.AddQuery(key, value);
+  const std::string& method() const {
+    return method_;
   }
 
-  const UrlArgs& args() const { return args_; }
-  void set_args(const UrlArgs& args) { args_ = args; }
-
-  std::string port(const std::string& default_port) const {
-    return port().empty() ? default_port : port();
+  void set_method(const std::string& method) {
+    method_ = method;
   }
 
-  const std::vector<FormPartPtr>& form_parts() const {
-    return form_parts_;
+  const Url& url() const {
+    return url_;
   }
 
-  void set_form_parts(std::vector<FormPartPtr>&& form_parts) {
-    form_parts_ = std::move(form_parts);
+  void set_url(Url&& url) {
+    url_ = std::move(url);
   }
 
-  void AddFormPart(FormPartPtr form_part) {
-    form_parts_.push_back(form_part);
+  const std::string& host() const {
+    return url_.host();
   }
 
-  // Prepare payload.
+  const std::string& port() const {
+    return url_.port();
+  }
+
+  UrlQuery query() const {
+    return UrlQuery(url_.query());
+  }
+
+  const UrlArgs& args() const {
+    return args_;
+  }
+
+  void set_args(const UrlArgs& args) {
+    args_ = args;
+  }
+
+  // Check if the body is a multi-part form data.
+  bool IsForm() const;
+
+  // Get the form parts from the body.
+  // Only applicable to FormBody (i.e., multi-part form data).
+  // Otherwise, exception Error(kDataError) will be thrown.
+  const std::vector<FormPartPtr>& form_parts() const;
+
   void Prepare() override;
-
-private:
-  void CreateStartLine();
-
-  // Add boundary to the payload for multipart form data.
-  void AddBoundary(Payload& payload, bool end = false);
 
 private:
   std::string method_;
@@ -75,11 +73,9 @@ private:
   // The URL regex matched arguments (usually resource ID's).
   // Used by server only.
   UrlArgs args_;
-
-  std::vector<FormPartPtr> form_parts_;
-
-  std::string boundary_;
 };
+
+using RequestPtr = std::shared_ptr<Request>;
 
 }  // namespace webcc
 

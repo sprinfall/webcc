@@ -51,7 +51,11 @@ private:
   void OnRead(boost::system::error_code ec, std::size_t length);
 
   void DoWrite();
-  void OnWrite(boost::system::error_code ec, std::size_t length);
+  void OnWriteHeaders(boost::system::error_code ec, std::size_t length);
+  void DoWriteBody();
+  void OnWriteBody(boost::system::error_code ec, std::size_t length);
+  void OnWriteOK();
+  void OnWriteError(boost::system::error_code ec);
 
   // Shutdown the socket.
   void Shutdown();

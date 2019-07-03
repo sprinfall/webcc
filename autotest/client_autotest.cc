@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "gtest/gtest.h"
 
 #include "boost/algorithm/string.hpp"
@@ -26,11 +28,50 @@ static Json::Value StringToJson(const std::string& str) {
 
 // -----------------------------------------------------------------------------
 
+TEST(ClientTest, Head_RequestFunc) {
+  webcc::ClientSession session;
+
+  try {
+    auto r = session.Request(webcc::RequestBuilder{}.
+                             Head("http://httpbin.org/get").
+                             Query("key1", "value1").
+                             Query("key2", "value2").
+                             Header("Accept", "application/json")
+                             ());
+
+    EXPECT_EQ(webcc::Status::kOK, r->status());
+    EXPECT_EQ("OK", r->reason());
+
+    EXPECT_EQ("", r->data());
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+  }
+}
+
+TEST(ClientTest, Head_Shortcut) {
+  webcc::ClientSession session;
+
+  try {
+    auto r = session.Head("http://httpbin.org/get");
+
+    EXPECT_EQ(webcc::Status::kOK, r->status());
+    EXPECT_EQ("OK", r->reason());
+
+    EXPECT_EQ("", r->data());
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+  }
+}
+
+// -----------------------------------------------------------------------------
+
 static void AssertGet(webcc::ResponsePtr r) {
   EXPECT_EQ(webcc::Status::kOK, r->status());
   EXPECT_EQ("OK", r->reason());
 
-  Json::Value json = StringToJson(r->content());
+  Json::Value json = StringToJson(r->data());
 
   Json::Value args = json["args"];
 
@@ -54,8 +95,8 @@ TEST(ClientTest, Get_RequestFunc) {
   webcc::ClientSession session;
 
   try {
-    auto r = session.Request(webcc::RequestBuilder{}.Get().
-                             Url("http://httpbin.org/get").
+    auto r = session.Request(webcc::RequestBuilder{}.
+                             Get("http://httpbin.org/get").
                              Query("key1", "value1").
                              Query("key2", "value2").
                              Header("Accept", "application/json")
@@ -89,8 +130,8 @@ TEST(ClientTest, Get_SSL) {
 
   try {
     // HTTPS is auto-detected from the URL scheme.
-    auto r = session.Request(webcc::RequestBuilder{}.Get().
-                             Url("https://httpbin.org/get").
+    auto r = session.Request(webcc::RequestBuilder{}.
+                             Get("https://httpbin.org/get").
                              Query("key1", "value1").
                              Query("key2", "value2").
                              Header("Accept", "application/json")
@@ -115,7 +156,7 @@ TEST(ClientTest, Compression_Gzip) {
   try {
     auto r = session.Get("http://httpbin.org/gzip");
 
-    Json::Value json = StringToJson(r->content());
+    Json::Value json = StringToJson(r->data());
 
     EXPECT_EQ(true, json["gzipped"].asBool());
 
@@ -131,7 +172,7 @@ TEST(ClientTest, Compression_Deflate) {
   try {
     auto r = session.Get("http://httpbin.org/deflate");
 
-    Json::Value json = StringToJson(r->content());
+    Json::Value json = StringToJson(r->data());
 
     EXPECT_EQ(true, json["deflated"].asBool());
 
@@ -140,6 +181,27 @@ TEST(ClientTest, Compression_Deflate) {
   }
 }
 
+// Test trying to compress the request.
+// TODO
+TEST(ClientTest, Compression_Request) {
+  webcc::ClientSession session;
+
+  try {
+    const std::string data = "{'name'='Adam', 'age'=20}";
+
+    // This doesn't really compress the body!
+    auto r = session.Request(webcc::RequestBuilder{}.
+                             Post("http://httpbin.org/post").
+                             Body(data).Json().
+                             Gzip()
+                             ());
+
+    //Json::Value json = StringToJson(r->data());
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+  }
+}
 #endif  // WEBCC_ENABLE_GZIP
 
 // -----------------------------------------------------------------------------
@@ -176,15 +238,15 @@ TEST(ClientTest, KeepAlive) {
     EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Close"));
 
     // Close by using request builder.
-    r = session.Request(webcc::RequestBuilder{}.Get().
-                        Url(url).KeepAlive(false)
+    r = session.Request(webcc::RequestBuilder{}.
+                        Get(url).KeepAlive(false)
                         ());
 
     EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Close"));
 
     // Keep-Alive explicitly by using request builder.
-    r = session.Request(webcc::RequestBuilder{}.Get().
-                        Url(url).KeepAlive(true)
+    r = session.Request(webcc::RequestBuilder{}.
+                        Get(url).KeepAlive(true)
                         ());
 
     EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Keep-alive"));
@@ -210,7 +272,7 @@ TEST(ClientTest, GetImageJpeg) {
     //                        {"Accept", "image/jpeg"});
 
     //std::ofstream ofs(path, std::ios::binary);
-    //ofs << r->content();
+    //ofs << r->data();
 
     // TODO: Verify the response is a valid JPEG image.
 
@@ -221,7 +283,72 @@ TEST(ClientTest, GetImageJpeg) {
 
 // -----------------------------------------------------------------------------
 
-// TODO: Post requests
+TEST(ClientTest, Post_RequestFunc) {
+  webcc::ClientSession session;
+
+  try {
+    const std::string data = "{'name'='Adam', 'age'=20}";
+
+    auto r = session.Request(webcc::RequestBuilder{}.
+                             Post("http://httpbin.org/post").
+                             Body(data).Json()
+                             ());
+
+    EXPECT_EQ(webcc::Status::kOK, r->status());
+    EXPECT_EQ("OK", r->reason());
+
+    Json::Value json = StringToJson(r->data());
+
+    EXPECT_EQ(data, json["data"].asString());
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+  }
+}
+
+TEST(ClientTest, Post_Shortcut) {
+  webcc::ClientSession session;
+
+  try {
+    const std::string data = "{'name'='Adam', 'age'=20}";
+
+    auto r = session.Post("http://httpbin.org/post", std::string(data), true);
+
+    EXPECT_EQ(webcc::Status::kOK, r->status());
+    EXPECT_EQ("OK", r->reason());
+
+    Json::Value json = StringToJson(r->data());
+
+    EXPECT_EQ(data, json["data"].asString());
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+  }
+}
+
+#if (WEBCC_ENABLE_GZIP && WEBCC_ENABLE_SSL)
+// NOTE: Most servers don't support compressed requests!
+TEST(ClientTest, Post_Gzip) {
+  webcc::ClientSession session;
+
+  try {
+    // Use Boost.org home page as the POST data.
+    auto r1 = session.Get("https://www.boost.org/");
+    const std::string& data = r1->data();
+
+    auto r2 = session.Request(webcc::RequestBuilder{}.
+                              Post("http://httpbin.org/post").
+                              Body(data).Gzip()
+                              ());
+
+    EXPECT_EQ(webcc::Status::kOK, r2->status());
+    EXPECT_EQ("OK", r2->reason());
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+  }
+}
+#endif  // (WEBCC_ENABLE_GZIP && WEBCC_ENABLE_SSL)
 
 // -----------------------------------------------------------------------------
 

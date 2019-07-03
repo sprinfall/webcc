@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "webcc/request.h"
 #include "webcc/response.h"
 
 namespace webcc {
@@ -11,6 +12,12 @@ namespace webcc {
 class ResponseBuilder {
 public:
   ResponseBuilder() = default;
+
+  // NOTE:
+  // Currently, |request| is necessary only when Gzip is enabled and the client
+  // does want to accept Gzip compressed response.
+  explicit ResponseBuilder(RequestPtr request) : request_(request) {
+  }
 
   ResponseBuilder(const ResponseBuilder&) = delete;
   ResponseBuilder& operator=(const ResponseBuilder&) = delete;
@@ -34,23 +41,35 @@ public:
     return *this;
   }
 
-  ResponseBuilder& Data(const std::string& data) {
-    data_ = data;
+  ResponseBuilder& MediaType(const std::string& media_type) {
+    media_type_ = media_type;
     return *this;
   }
 
-  ResponseBuilder& Data(std::string&& data) {
-    data_ = std::move(data);
+  ResponseBuilder& Charset(const std::string& charset) {
+    charset_ = charset;
     return *this;
   }
 
-  ResponseBuilder& Json(bool json = true) {
-    json_ = json;
+  // Set Media Type to "application/json".
+  ResponseBuilder& Json() {
+    media_type_ = media_types::kApplicationJson;
     return *this;
   }
 
-  ResponseBuilder& Gzip(bool gzip = true) {
-    gzip_ = gzip;
+  // Set Charset to "utf-8".
+  ResponseBuilder& Utf8() {
+    charset_ = charsets::kUtf8;
+    return *this;
+  }
+
+  ResponseBuilder& Body(const std::string& data) {
+    body_.reset(new StringBody{ data });
+    return *this;
+  }
+
+  ResponseBuilder& Body(std::string&& data) {
+    body_.reset(new StringBody{ std::move(data) });
     return *this;
   }
 
@@ -60,24 +79,35 @@ public:
     return *this;
   }
 
-  // Add the Date header to the response.
+  // Add the `Date` header to the response.
   ResponseBuilder& Date();
 
-private:
-  void SetContent(ResponsePtr response, std::string&& data);
+#if WEBCC_ENABLE_GZIP
+  ResponseBuilder& Gzip(bool gzip = true) {
+    gzip_ = gzip;
+    return *this;
+  }
+#endif  // WEBCC_ENABLE_GZIP
 
 private:
+  RequestPtr request_;
+
   // Status code.
   Status code_ = Status::kOK;
 
-  // Data to send in the body of the request.
-  std::string data_;
+  // Response body.
+  BodyPtr body_;
 
-  // Is the data to send a JSON string?
-  bool json_ = false;
+  // Media type of the body (e.g., "application/json").
+  std::string media_type_;
 
-  // Compress the response content.
+  // Character set of the body (e.g., "utf-8").
+  std::string charset_;
+
+#if WEBCC_ENABLE_GZIP
+  // Compress the body data (only for string body).
   bool gzip_ = false;
+#endif  // WEBCC_ENABLE_GZIP
 
   // Additional headers.
   std::vector<std::string> headers_;

@@ -37,6 +37,7 @@ private:
 private:
   Request* request_;
 
+  // Form data parsing step.
   enum Step {
     kStart,
     kBoundaryParsed,
@@ -45,7 +46,11 @@ private:
   };
   Step step_ = kStart;
 
+  // The current form part being parsed.
   FormPartPtr part_;
+
+  // All form parts parsed.
+  std::vector<FormPartPtr> form_parts_;
 };
 
 }  // namespace webcc

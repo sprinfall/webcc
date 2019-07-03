@@ -7,10 +7,6 @@
 
 namespace webcc {
 
-ClientSession::ClientSession() {
-  InitHeaders();
-}
-
 void ClientSession::Auth(const std::string& type,
                          const std::string& credentials) {
   headers_.Set(headers::kAuthorization, type + " " + credentials);
@@ -29,15 +25,15 @@ void ClientSession::AuthToken(const std::string& token) {
 ResponsePtr ClientSession::Request(RequestPtr request) {
   assert(request);
 
-  for (const auto& h : headers_.data()) {
+  for (auto& h : headers_.data()) {
     if (!request->HasHeader(h.first)) {
       request->SetHeader(h.first, h.second);
     }
   }
 
-  if (!content_type_.empty() &&
-      !request->HasHeader(headers::kContentType)) {
-    request->SetContentType(content_type_, charset_);
+  if (!request->body()->IsEmpty() &&
+      !media_type_.empty() && !request->HasHeader(headers::kContentType)) {
+    request->SetContentType(media_type_, charset_);
   }
 
   request->Prepare();
@@ -45,8 +41,7 @@ ResponsePtr ClientSession::Request(RequestPtr request) {
   return Send(request);
 }
 
-static void SetHeaders(const std::vector<std::string>& headers,
-                       RequestBuilder* builder) {
+static void SetHeaders(const Strings& headers, RequestBuilder* builder) {
   assert(headers.size() % 2 == 0);
 
   for (std::size_t i = 1; i < headers.size(); i += 2) {
@@ -55,10 +50,26 @@ static void SetHeaders(const std::vector<std::string>& headers,
 }
 
 ResponsePtr ClientSession::Get(const std::string& url,
-                               const std::vector<std::string>& parameters,
-                               const std::vector<std::string>& headers) {
+                               const Strings& parameters,
+                               const Strings& headers) {
   RequestBuilder builder;
-  builder.Get().Url(url);
+  builder.Get(url);
+
+  assert(parameters.size() % 2 == 0);
+  for (std::size_t i = 1; i < parameters.size(); i += 2) {
+    builder.Query(parameters[i - 1], parameters[i]);
+  }
+
+  SetHeaders(headers, &builder);
+
+  return Request(builder());
+}
+
+ResponsePtr ClientSession::Head(const std::string& url,
+                                const Strings& parameters,
+                                const Strings& headers) {
+  RequestBuilder builder;
+  builder.Head(url);
 
   assert(parameters.size() % 2 == 0);
   for (std::size_t i = 1; i < parameters.size(); i += 2) {
@@ -71,37 +82,41 @@ ResponsePtr ClientSession::Get(const std::string& url,
 }
 
 ResponsePtr ClientSession::Post(const std::string& url, std::string&& data,
-                                bool json,
-                                const std::vector<std::string>& headers) {
+                                bool json, const Strings& headers) {
   RequestBuilder builder;
-  builder.Post().Url(url);
+  builder.Post(url);
 
   SetHeaders(headers, &builder);
 
-  builder.Data(std::move(data));
-  builder.Json(json);
+  builder.Body(std::move(data));
+
+  if (json) {
+    builder.Json();
+  }
 
   return Request(builder());
 }
 
 ResponsePtr ClientSession::Put(const std::string& url, std::string&& data,
-                               bool json,
-                               const std::vector<std::string>& headers) {
+                               bool json, const Strings& headers) {
   RequestBuilder builder;
-  builder.Put().Url(url);
+  builder.Put(url);
 
   SetHeaders(headers, &builder);
 
-  builder.Data(std::move(data));
-  builder.Json(json);
+  builder.Body(std::move(data));
+
+  if (json) {
+    builder.Json();
+  }
 
   return Request(builder());
 }
 
 ResponsePtr ClientSession::Delete(const std::string& url,
-                                  const std::vector<std::string>& headers) {
+                                  const Strings& headers) {
   RequestBuilder builder;
-  builder.Delete().Url(url);
+  builder.Delete(url);
 
   SetHeaders(headers, &builder);
 
@@ -109,15 +124,17 @@ ResponsePtr ClientSession::Delete(const std::string& url,
 }
 
 ResponsePtr ClientSession::Patch(const std::string& url, std::string&& data,
-                                 bool json,
-                                 const std::vector<std::string>& headers) {
+                                 bool json, const Strings& headers) {
   RequestBuilder builder;
-  builder.Patch().Url(url);
+  builder.Patch(url);
 
   SetHeaders(headers, &builder);
 
-  builder.Data(std::move(data));
-  builder.Json(json);
+  builder.Body(std::move(data));
+
+  if (json) {
+    builder.Json();
+  }
 
   return Request(builder());
 }

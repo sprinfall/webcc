@@ -183,41 +183,28 @@ bool RequestHandler::ServeStatic(ConnectionPtr connection) {
 
   Path p = doc_root_ / path;
 
-  std::string content;
-  if (!ReadFile(p, &content)) {
+  std::string data;
+  if (!ReadFile(p, &data)) {
     connection->SendResponse(Status::kNotFound);
     return false;
   }
   
   auto response = std::make_shared<Response>(Status::kOK);
 
-  if (!content.empty()) {
+  if (!data.empty()) {
     std::string extension = p.extension().string();
     response->SetContentType(media_types::FromExtension(extension), "");
-    response->SetContent(std::move(content), true);
+
+    // TODO: Use FileBody instead for streaming.
+    // TODO: gzip
+    auto body = std::make_shared<StringBody>(std::move(data));
+    response->SetBody(body, true);
   }
 
   // Send response back to client.
   connection->SendResponse(response);
 
   return true;
-}
-
-void RequestHandler::SetContent(RequestPtr request, ResponsePtr response,
-                                std::string&& content) {
-#if WEBCC_ENABLE_GZIP
-  // Only support gzip (no deflate) for response compression.
-  if (content.size() > kGzipThreshold && request->AcceptEncodingGzip()) {
-    std::string compressed;
-    if (gzip::Compress(content, &compressed)) {
-      response->SetHeader(headers::kContentEncoding, "gzip");
-      response->SetContent(std::move(compressed), true);
-      return;
-    }
-  }
-#endif  // WEBCC_ENABLE_GZIP
-
-  response->SetContent(std::move(content), true);
 }
 
 }  // namespace webcc

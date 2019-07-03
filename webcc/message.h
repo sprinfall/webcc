@@ -1,48 +1,36 @@
 #ifndef WEBCC_MESSAGE_H_
 #define WEBCC_MESSAGE_H_
 
-#include <cassert>
+#include <memory>
 #include <string>
 #include <utility>  // for move()
 #include <vector>
 
+#include "webcc/body.h"
 #include "webcc/common.h"
 #include "webcc/globals.h"
 
 namespace webcc {
 
-class Message;
-std::ostream& operator<<(std::ostream& os, const Message& message);
-
-// Base class for HTTP request and response messages.
 class Message {
 public:
-  Message() : content_length_(kInvalidLength) {
-  }
+  Message();
 
   virtual ~Message() = default;
 
-  const std::string& start_line() const {
-    return start_line_;
+  // ---------------------------------------------------------------------------
+
+  void SetBody(BodyPtr body, bool set_length);
+
+  BodyPtr body() const {
+    return body_;
   }
 
-  void set_start_line(const std::string& start_line) {
-    start_line_ = start_line;
-  }
+  // Get the data from the string body.
+  // Exception Error(kDataError) will be thrown if the body is FormBody.
+  const std::string& data() const;
 
-  std::size_t content_length() const {
-    return content_length_;
-  }
-
-  void set_content_length(std::size_t content_length) {
-    content_length_ = content_length;
-  }
-
-  const std::string& content() const {
-    return content_;
-  }
-
-  bool IsConnectionKeepAlive() const;
+  // ---------------------------------------------------------------------------
 
   void SetHeader(Header&& header) {
     headers_.Set(std::move(header.first), std::move(header.second));
@@ -61,70 +49,72 @@ public:
     return headers_.Has(key);
   }
 
+  // ---------------------------------------------------------------------------
+
+  const std::string& start_line() const {
+    return start_line_;
+  }
+
+  void set_start_line(const std::string& start_line) {
+    start_line_ = start_line;
+  }
+
+  std::size_t content_length() const {
+    return content_length_;
+  }
+
+  void set_content_length(std::size_t content_length) {
+    content_length_ = content_length;
+  }
+
+  // ---------------------------------------------------------------------------
+
+  // Check `Connection` header to see if it's "Keep-Alive".
+  bool IsConnectionKeepAlive() const;
+
+  // Determine content encoding (gzip, deflate or unknown) from
+  // `Content-Encoding` header.
   ContentEncoding GetContentEncoding() const;
 
-  // Return true if header Accept-Encoding contains "gzip".
+  // Check `Accept-Encoding` header to see if it contains "gzip".
   bool AcceptEncodingGzip() const;
 
-  const ContentType& content_type() const {
-    return content_type_;
-  }
-
-  // TODO: Set header?
-  void SetContentType(const ContentType& content_type) {
-    content_type_ = content_type;
-  }
-
+  // Set `Content-Type` header. E.g.,
+  //   SetContentType("application/json; charset=utf-8")
   void SetContentType(const std::string& content_type) {
     SetHeader(headers::kContentType, content_type);
   }
 
-  // Example: SetContentType("application/json", "utf-8")
+  // Set `Content-Type` header. E.g.,
+  //   SetContentType("application/json", "utf-8")
   void SetContentType(const std::string& media_type,
                       const std::string& charset);
 
-  void SetContent(std::string&& content, bool set_length);
+  // ---------------------------------------------------------------------------
 
-  // Prepare payload.
-  virtual void Prepare();
+  // Make the message complete in order to be sent.
+  virtual void Prepare() = 0;
 
-  const Payload& payload() const {
-    return payload_;
-  }
+  // Get the payload for the socket to write.
+  // This doesn't include the payload(s) of the body!
+  Payload GetPayload() const;
 
-  // Copy the exact payload to the given output stream.
-  void CopyPayload(std::ostream& os) const;
+  // ---------------------------------------------------------------------------
 
-  // Copy the exact payload to the given string.
-  void CopyPayload(std::string* str) const;
+  // Dump to output stream for logging purpose.
+  void Dump(std::ostream& os) const;
 
-  // Dump to output stream.
-  void Dump(std::ostream& os, std::size_t indent = 0,
-            const std::string& prefix = "") const;
-
-  // Dump to string, only used by logger.
-  std::string Dump(std::size_t indent = 0,
-                   const std::string& prefix = "") const;
+  // Dump to string for logging purpose.
+  std::string Dump() const;
 
 protected:
-  void SetContentLength(std::size_t content_length) {
-    content_length_ = content_length;
-    SetHeader(headers::kContentLength, std::to_string(content_length));
-  }
-
-protected:
-  std::string start_line_;
-
-  std::string content_;
-
-  ContentType content_type_;
-
-  std::size_t content_length_;
+  BodyPtr body_;
 
   Headers headers_;
 
-  // NOTE: The payload itself doesn't hold the memory!
-  Payload payload_;
+  std::string start_line_;
+
+  std::size_t content_length_;
 };
 
 }  // namespace webcc

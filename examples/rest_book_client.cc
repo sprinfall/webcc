@@ -62,7 +62,7 @@ public:
         return false;
       }
 
-      Json::Value rsp_json = StringToJson(r->content());
+      Json::Value rsp_json = StringToJson(r->data());
 
       if (!rsp_json.isArray()) {
         return false;  // Should be a JSON array of books.
@@ -92,7 +92,7 @@ public:
         return false;
       }
 
-      Json::Value rsp_json = StringToJson(r->content());
+      Json::Value rsp_json = StringToJson(r->data());
       *id = rsp_json["id"].asString();
 
       return !id->empty();
@@ -120,7 +120,7 @@ public:
         return false;
       }
 
-      return JsonStringToBook(r->content(), book);
+      return JsonStringToBook(r->data(), book);
 
     } catch (const webcc::Error& error) {
       std::cerr << error << std::endl;
@@ -211,11 +211,11 @@ int main(int argc, char* argv[]) {
   // Share the same session.
   webcc::ClientSession session;
 
-  // Session-level settings.
   session.set_timeout(timeout);
-  // TODO
-  //session.set_content_type("application/json");
-  //session.set_charset("utf-8");
+
+  // If the request has body, default to this content type.
+  session.set_media_type("application/json");
+  session.set_charset("utf-8");
 
   BookListClient list_client(session, url);
   BookDetailClient detail_client(session, url);

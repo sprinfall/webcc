@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "webcc/request.h"
+#include "webcc/url.h"
 
 namespace webcc {
 
@@ -18,13 +19,6 @@ public:
   // Build the request.
   RequestPtr operator()();
 
-  RequestBuilder& Get()     { return Method(methods::kGet);     }
-  RequestBuilder& Head()    { return Method(methods::kHead);    }
-  RequestBuilder& Post()    { return Method(methods::kPost);    }
-  RequestBuilder& Put()     { return Method(methods::kPut);     }
-  RequestBuilder& Delete()  { return Method(methods::kDelete);  }
-  RequestBuilder& Patch()   { return Method(methods::kPatch);   }
-
   // NOTE:
   // The naming convention doesn't follow Google C++ Style for
   // consistency and simplicity.
@@ -35,32 +29,73 @@ public:
   }
 
   RequestBuilder& Url(const std::string& url) {
-    url_ = url;
+    url_.Init(url);
     return *this;
   }
 
+  RequestBuilder& Get(const std::string& url) {
+    return Method(methods::kGet).Url(url);
+  }
+
+  RequestBuilder& Head(const std::string& url) {
+    return Method(methods::kHead).Url(url);
+  }
+
+  RequestBuilder& Post(const std::string& url) {
+    return Method(methods::kPost).Url(url);
+  }
+
+  RequestBuilder& Put(const std::string& url) {
+    return Method(methods::kPut).Url(url);
+  }
+
+  RequestBuilder& Delete(const std::string& url) {
+    return Method(methods::kDelete).Url(url);
+  }
+
+  RequestBuilder& Patch(const std::string& url) {
+    return Method(methods::kPatch).Url(url);
+  }
+
+  // Add a query parameter.
   RequestBuilder& Query(const std::string& key, const std::string& value) {
-    parameters_.push_back(key);
-    parameters_.push_back(value);
+    url_.AddQuery(key, value);
     return *this;
   }
 
-  RequestBuilder& Data(const std::string& data) {
-    data_ = data;
+  RequestBuilder& MediaType(const std::string& media_type) {
+    media_type_ = media_type;
     return *this;
   }
 
-  RequestBuilder& Data(std::string&& data) {
-    data_ = std::move(data);
+  RequestBuilder& Charset(const std::string& charset) {
+    charset_ = charset;
     return *this;
   }
 
-  RequestBuilder& Json(bool json = true) {
-    json_ = json;
+  // Set Media Type to "application/json".
+  RequestBuilder& Json() {
+    media_type_ = media_types::kApplicationJson;
     return *this;
   }
 
-  // Upload a file.
+  // Set Charset to "utf-8".
+  RequestBuilder& Utf8() {
+    charset_ = charsets::kUtf8;
+    return *this;
+  }
+
+  RequestBuilder& Body(const std::string& data) {
+    body_.reset(new StringBody{ data });
+    return *this;
+  }
+
+  RequestBuilder& Body(std::string&& data) {
+    body_.reset(new StringBody{ std::move(data) });
+    return *this;
+  }
+
+  // Add a file to upload.
   RequestBuilder& File(const std::string& name, const Path& path,
                        const std::string& media_type = "");
 
@@ -71,11 +106,6 @@ public:
 
   RequestBuilder& Form(const std::string& name, std::string&& data,
                        const std::string& media_type = "");
-
-  RequestBuilder& Gzip(bool gzip = true) {
-    gzip_ = gzip;
-    return *this;
-  }
 
   RequestBuilder& Header(const std::string& key, const std::string& value) {
     headers_.push_back(key);
@@ -91,44 +121,53 @@ public:
   RequestBuilder& Auth(const std::string& type, const std::string& credentials);
 
   RequestBuilder& AuthBasic(const std::string& login,
-                            const std::string& password);
+                             const std::string& password);
 
   RequestBuilder& AuthToken(const std::string& token);
 
-  // Add the Date header to the request.
+  // Add the `Date` header to the request.
   RequestBuilder& Date();
 
-private:
-  void SetContent(RequestPtr request, std::string&& data);
-  
+#if WEBCC_ENABLE_GZIP
+  RequestBuilder& Gzip(bool gzip = true) {
+    gzip_ = gzip;
+    return *this;
+  }
+#endif  // WEBCC_ENABLE_GZIP
+
 private:
   std::string method_;
 
-  std::string url_;
+  // Namespace is added to avoid the conflict with `Url()` method.
+  webcc::Url url_;
 
-  // URL query parameters.
-  std::vector<std::string> parameters_;
+  // Request body.
+  BodyPtr body_;
 
-  // Data to send in the body of the request.
-  std::string data_;
+  // Media type of the body (e.g., "application/json").
+  std::string media_type_;
 
-  // Is the data to send a JSON string?
-  bool json_ = false;
+  // Character set of the body (e.g., "utf-8").
+  std::string charset_;
 
   // Files to upload for a POST request.
   std::vector<FormPartPtr> form_parts_;
 
-  // Compress the content.
-  // NOTE: Most servers don't support compressed requests.
-  // Even the requests module from Python doesn't have a built-in support.
-  // See: https://github.com/kennethreitz/requests/issues/1753
-  bool gzip_ = false;
-
-  // Additional headers.
-  std::vector<std::string> headers_;
+  // Additional headers with the following sequence:
+  //   { key1, value1, key2, value2, ... }
+  Strings headers_;
 
   // Persistent connection.
   bool keep_alive_ = true;
+
+#if WEBCC_ENABLE_GZIP
+  // Compress the body data (only for string body).
+  // NOTE:
+  // Most servers don't support compressed requests.
+  // Even the requests module from Python doesn't have a built-in support.
+  // See: https://github.com/kennethreitz/requests/issues/1753
+  bool gzip_ = false;
+#endif  // WEBCC_ENABLE_GZIP
 };
 
 }  // namespace webcc

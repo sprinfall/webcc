@@ -15,7 +15,9 @@ namespace webcc {
 // session for each thread instead.
 class ClientSession {
 public:
-  ClientSession();
+  ClientSession() {
+    InitHeaders();
+  }
 
   ~ClientSession() = default;
 
@@ -37,8 +39,8 @@ public:
     headers_.Set(key, value);
   }
 
-  void set_content_type(const std::string& content_type) {
-    content_type_ = content_type;
+  void set_media_type(const std::string& media_type) {
+    media_type_ = media_type;
   }
 
   void set_charset(const std::string& charset) {
@@ -59,25 +61,27 @@ public:
   ResponsePtr Request(RequestPtr request);
 
   // Shortcut for GET request.
-  ResponsePtr Get(const std::string& url,
-                  const std::vector<std::string>& parameters = {},
-                  const std::vector<std::string>& headers = {});
+  ResponsePtr Get(const std::string& url, const Strings& parameters = {},
+                  const Strings& headers = {});
+
+  // Shortcut for HEAD request.
+  ResponsePtr Head(const std::string& url, const Strings& parameters = {},
+                   const Strings& headers = {});
 
   // Shortcut for POST request.
   ResponsePtr Post(const std::string& url, std::string&& data, bool json,
-                   const std::vector<std::string>& headers = {});
+                   const Strings& headers = {});
 
   // Shortcut for PUT request.
   ResponsePtr Put(const std::string& url, std::string&& data, bool json,
-                  const std::vector<std::string>& headers = {});
+                  const Strings& headers = {});
 
   // Shortcut for DELETE request.
-  ResponsePtr Delete(const std::string& url,
-                     const std::vector<std::string>& headers = {});
+  ResponsePtr Delete(const std::string& url, const Strings& headers = {});
 
   // Shortcut for PATCH request.
   ResponsePtr Patch(const std::string& url, std::string&& data, bool json,
-                    const std::vector<std::string>& headers = {});
+                    const Strings& headers = {});
 
 private:
   void InitHeaders();
@@ -85,9 +89,11 @@ private:
   ResponsePtr Send(RequestPtr request);
 
 private:
+  // Default media type for `Content-Type` header.
   // E.g., "application/json".
-  std::string content_type_;
+  std::string media_type_;
 
+  // Default charset for `Content-Type` header.
   // E.g., "utf-8".
   std::string charset_;
 
@@ -104,7 +110,7 @@ private:
   // Timeout in seconds for receiving response.
   int timeout_ = 0;
 
-  // Connection pool for keep-alive.
+  // Pool for Keep-Alive client connections.
   ClientPool pool_;
 };
 

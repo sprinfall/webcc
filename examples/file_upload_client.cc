@@ -42,8 +42,8 @@ int main(int argc, char* argv[]) {
   webcc::ClientSession session;
 
   try {
-    auto r = session.Request(webcc::RequestBuilder{}.Post().
-                             Url(url).
+    auto r = session.Request(webcc::RequestBuilder{}.
+                             Post(url).
                              File("file", upload_dir / "remember.txt").
                              Form("json", "{}", "application/json")
                              ());

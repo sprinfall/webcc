@@ -171,6 +171,7 @@ public:
     kSocketWriteError,
     kParseError,
     kFileError,
+    kDataError,
   };
 
 public:

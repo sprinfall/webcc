@@ -28,7 +28,7 @@ bool RequestParser::ParseStartLine(const std::string& line) {
   }
 
   request_->set_method(std::move(strs[0]));
-  request_->set_url(std::move(strs[1]));
+  request_->set_url(Url(strs[1]));
 
   // HTTP version is ignored.
 
@@ -39,7 +39,7 @@ bool RequestParser::ParseContent(const char* data, std::size_t length) {
   if (chunked_) {
     return ParseChunkedContent(data, length);
   } else {
-    if (request_->content_type().multipart()) {
+    if (content_type_.multipart()) {
       return ParseMultipartContent(data, length);
     } else {
       return ParseFixedContent(data, length);
@@ -122,8 +122,8 @@ bool RequestParser::ParseMultipartContent(const char* data,
         return false;
       }
 
-      // Add this part to request.
-      request_->AddFormPart(part_);
+      // Save this part
+      form_parts_.push_back(part_);
 
       // Reset for next part.
       part_.reset();
@@ -142,6 +142,14 @@ bool RequestParser::ParseMultipartContent(const char* data,
 
   if (step_ == Step::kEnded) {
     LOG_INFO("Multipart data has ended.");
+
+    // Create a body and set to the request.
+
+    auto body = std::make_shared<FormBody>(form_parts_,
+                                           content_type_.boundary());
+
+    request_->SetBody(body, false);  // TODO: set_length?
+
     Finish();
   }
 
@@ -229,7 +237,7 @@ bool RequestParser::GetNextBoundaryLine(std::size_t* b_off,
 
 bool RequestParser::IsBoundary(const std::string& str, std::size_t off,
                                std::size_t count, bool* end) const {
-  const std::string& boundary = request_->content_type().boundary();
+  const std::string& boundary = content_type_.boundary();
 
   if (count != boundary.size() + 2 && count != boundary.size() + 4) {
     return false;

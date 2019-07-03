@@ -41,19 +41,19 @@ public:
 
   webcc::ResponsePtr Handle(webcc::RequestPtr request) override {
     if (request->method() == "GET") {
-      return Get(request->query());
+      return Get(request);
     }
 
     if (request->method() == "POST") {
       return Post(request);
     }
 
-    return{};
+    return {};
   }
 
-protected:
+private:
   // Get a list of books based on query parameters.
-  webcc::ResponsePtr Get(const webcc::UrlQuery& query);
+  webcc::ResponsePtr Get(webcc::RequestPtr request);
 
   // Create a new book.
   webcc::ResponsePtr Post(webcc::RequestPtr request);
@@ -75,31 +75,29 @@ public:
 
   webcc::ResponsePtr Handle(webcc::RequestPtr request) override {
     if (request->method() == "GET") {
-      return Get(request->args(), request->query());
+      return Get(request);
     }
 
     if (request->method() == "PUT") {
-      return Put(request, request->args());
+      return Put(request);
     }
 
     if (request->method() == "DELETE") {
-      return Delete(request->args());
+      return Delete(request);
     }
 
     return {};
   }
 
-protected:
+private:
   // Get the detailed information of a book.
-  webcc::ResponsePtr Get(const webcc::UrlArgs& args,
-                         const webcc::UrlQuery& query);
+  webcc::ResponsePtr Get(webcc::RequestPtr request);
 
   // Update a book.
-  webcc::ResponsePtr Put(webcc::RequestPtr request,
-                         const webcc::UrlArgs& args);
+  webcc::ResponsePtr Put(webcc::RequestPtr request);
 
   // Delete a book.
-  webcc::ResponsePtr Delete(const webcc::UrlArgs& args);
+  webcc::ResponsePtr Delete(webcc::RequestPtr request);
 
 private:
   // Sleep some seconds before send back the response.
@@ -110,7 +108,7 @@ private:
 // -----------------------------------------------------------------------------
 
 // Return all books as a JSON array.
-webcc::ResponsePtr BookListView::Get(const webcc::UrlQuery& /*query*/) {
+webcc::ResponsePtr BookListView::Get(webcc::RequestPtr request) {
   Sleep(sleep_seconds_);
 
   Json::Value json(Json::arrayValue);
@@ -119,22 +117,22 @@ webcc::ResponsePtr BookListView::Get(const webcc::UrlQuery& /*query*/) {
     json.append(BookToJson(book));
   }
 
-  // TODO: charset = "utf-8"
-  return webcc::ResponseBuilder{}.OK().Data(JsonToString(json)).Json()();
+  return webcc::ResponseBuilder{}.OK().Body(JsonToString(json)).Json().
+      Utf8()();
 }
 
 webcc::ResponsePtr BookListView::Post(webcc::RequestPtr request) {
   Sleep(sleep_seconds_);
 
   Book book;
-  if (JsonStringToBook(request->content(), &book)) {
+  if (JsonStringToBook(request->data(), &book)) {
     std::string id = g_book_store.AddBook(book);
 
     Json::Value json;
     json["id"] = id;
 
-    // TODO: charset = "utf-8"
-    return webcc::ResponseBuilder{}.Created().Data(JsonToString(json)).Json()();
+    return webcc::ResponseBuilder{}.Created().Body(JsonToString(json)).
+        Json().Utf8()();
   } else {
     // Invalid JSON
     return webcc::ResponseBuilder{}.BadRequest()();
@@ -143,39 +141,37 @@ webcc::ResponsePtr BookListView::Post(webcc::RequestPtr request) {
 
 // -----------------------------------------------------------------------------
 
-webcc::ResponsePtr BookDetailView::Get(const webcc::UrlArgs& args,
-                                       const webcc::UrlQuery& query) {
+webcc::ResponsePtr BookDetailView::Get(webcc::RequestPtr request) {
   Sleep(sleep_seconds_);
 
-  if (args.size() != 1) {
+  if (request->args().size() != 1) {
     // Using kNotFound means the resource specified by the URL cannot be found.
     // kBadRequest could be another choice.
     return webcc::ResponseBuilder{}.NotFound()();
   }
 
-  const std::string& book_id = args[0];
+  const std::string& book_id = request->args()[0];
 
   const Book& book = g_book_store.GetBook(book_id);
   if (book.IsNull()) {
     return webcc::ResponseBuilder{}.NotFound()();
   }
 
-  // TODO: charset = "utf-8"
-  return webcc::ResponseBuilder{}.OK().Data(BookToJsonString(book)).Json()();
+  return webcc::ResponseBuilder{}.OK().Body(BookToJsonString(book)).Json().
+      Utf8()();
 }
 
-webcc::ResponsePtr BookDetailView::Put(webcc::RequestPtr request,
-                                       const webcc::UrlArgs& args) {
+webcc::ResponsePtr BookDetailView::Put(webcc::RequestPtr request) {
   Sleep(sleep_seconds_);
 
-  if (args.size() != 1) {
+  if (request->args().size() != 1) {
     return webcc::ResponseBuilder{}.NotFound()();
   }
 
-  const std::string& book_id = args[0];
+  const std::string& book_id = request->args()[0];
 
   Book book;
-  if (!JsonStringToBook(request->content(), &book)) {
+  if (!JsonStringToBook(request->data(), &book)) {
     return webcc::ResponseBuilder{}.BadRequest()();
   }
 
@@ -185,14 +181,14 @@ webcc::ResponsePtr BookDetailView::Put(webcc::RequestPtr request,
   return webcc::ResponseBuilder{}.OK()();
 }
 
-webcc::ResponsePtr BookDetailView::Delete(const webcc::UrlArgs& args) {
+webcc::ResponsePtr BookDetailView::Delete(webcc::RequestPtr request) {
   Sleep(sleep_seconds_);
 
-  if (args.size() != 1) {
+  if (request->args().size() != 1) {
     return webcc::ResponseBuilder{}.NotFound()();
   }
 
-  const std::string& book_id = args[0];
+  const std::string& book_id = request->args()[0];
 
   if (!g_book_store.DeleteBook(book_id)) {
     return webcc::ResponseBuilder{}.NotFound()();

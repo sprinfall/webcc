@@ -18,9 +18,6 @@
 
 namespace webcc {
 
-class Client;
-using ClientPtr = std::shared_ptr<Client>;
-
 // Synchronous HTTP & HTTPS client.
 // In synchronous mode, a request won't return until the response is received
 // or timeout occurs.
@@ -113,6 +110,8 @@ private:
 
   Error error_;
 };
+
+using ClientPtr = std::shared_ptr<Client>;
 
 }  // namespace webcc
 

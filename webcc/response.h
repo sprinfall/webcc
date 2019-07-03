@@ -8,9 +8,6 @@
 
 namespace webcc {
 
-class Response;
-using ResponsePtr = std::shared_ptr<Response>;
-
 class Response : public Message {
 public:
   explicit Response(Status status = Status::kOK) : status_(status) {
@@ -37,12 +34,11 @@ public:
   void Prepare() override;
 
 private:
-  void PrepareStatusLine();
-
-private:
   int status_;  // Status code
   std::string reason_;  // Reason phrase
 };
+
+using ResponsePtr = std::shared_ptr<Response>;
 
 }  // namespace webcc
 

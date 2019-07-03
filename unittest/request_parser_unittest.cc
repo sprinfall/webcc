@@ -25,7 +25,7 @@ protected:
     EXPECT_EQ("application/json", request_.GetHeader("Accept"));
     EXPECT_EQ("Close", request_.GetHeader("Connection"));
 
-    EXPECT_EQ("", request_.content());
+    EXPECT_EQ("", request_.data());
     EXPECT_EQ(webcc::kInvalidLength, request_.content_length());
   }
 
@@ -110,7 +110,7 @@ protected:
     EXPECT_EQ("application/json; charset=utf-8", request_.GetHeader("Content-Type"));
     EXPECT_EQ(std::to_string(data_.size()), request_.GetHeader("Content-Length"));
 
-    EXPECT_EQ(data_, request_.content());
+    EXPECT_EQ(data_, request_.data());
     EXPECT_EQ(data_.size(), request_.content_length());
   }
 

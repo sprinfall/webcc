@@ -26,10 +26,10 @@ public:
       std::function<void(boost::system::error_code, std::size_t)>;
 
   // TODO: Remove |host|
-  virtual void Connect(const std::string& host, const Endpoints& endpoints,
+  virtual bool Connect(const std::string& host, const Endpoints& endpoints,
                        boost::system::error_code* ec) = 0;
 
-  virtual void Write(const Request& request, boost::system::error_code* ec) = 0;
+  virtual bool Write(const Payload& payload, boost::system::error_code* ec) = 0;
 
   virtual void AsyncReadSome(ReadHandler&& handler,
                              std::vector<char>* buffer) = 0;
@@ -43,10 +43,10 @@ class Socket : public SocketBase {
 public:
   explicit Socket(boost::asio::io_context& io_context);
 
-  void Connect(const std::string& host, const Endpoints& endpoints,
+  bool Connect(const std::string& host, const Endpoints& endpoints,
                boost::system::error_code* ec) override;
 
-  void Write(const Request& request, boost::system::error_code* ec) override;
+  bool Write(const Payload& payload, boost::system::error_code* ec) override;
 
   void AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) override;
 
@@ -65,17 +65,17 @@ public:
   explicit SslSocket(boost::asio::io_context& io_context,
                      bool ssl_verify = true);
 
-  void Connect(const std::string& host, const Endpoints& endpoints,
+  bool Connect(const std::string& host, const Endpoints& endpoints,
                boost::system::error_code* ec) override;
 
-  void Write(const Request& request, boost::system::error_code* ec) override;
+  bool Write(const Payload& payload, boost::system::error_code* ec) override;
 
   void AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) override;
 
   void Close(boost::system::error_code* ec) override;
 
 private:
-  void Handshake(const std::string& host, boost::system::error_code* ec);
+  bool Handshake(const std::string& host, boost::system::error_code* ec);
 
   boost::asio::ssl::context ssl_context_;
 

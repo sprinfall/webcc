@@ -72,6 +72,7 @@ void Parser::Reset() {
   content_.clear();
 
   content_length_ = kInvalidLength;
+  content_type_.Reset();
   start_line_parsed_ = false;
   content_length_parsed_ = false;
   header_ended_ = false;
@@ -161,12 +162,10 @@ bool Parser::ParseHeaderLine(const std::string& line) {
       return false;
     }
   } else if (boost::iequals(header.first, headers::kContentType)) {
-    ContentType content_type(header.second);
-    if (!content_type.Valid()) {
+    content_type_.Parse(header.second);
+    if (!content_type_.Valid()) {
       LOG_ERRO("Invalid content-type header: %s", header.second.c_str());
       return false;
-    } else {
-      message_->SetContentType(content_type);
     }
   } else if (boost::iequals(header.first, headers::kTransferEncoding)) {
     if (header.second == "chunked") {
@@ -209,7 +208,7 @@ bool Parser::ParseFixedContent(const char* data, std::size_t length) {
   // Don't have to firstly put the data to the pending data.
   AppendContent(data, length);
 
-  if (IsContentFull()) {
+  if (IsFixedContentFull()) {
     // All content has been read.
     Finish();
   }
@@ -306,7 +305,8 @@ bool Parser::Finish() {
   message_->set_content_length(content_length_);
 
   if (!IsContentCompressed()) {
-    message_->SetContent(std::move(content_), false);
+    auto body = std::make_shared<StringBody>(std::move(content_));
+    message_->SetBody(body, false);
     return true;
   }
 
@@ -320,7 +320,8 @@ bool Parser::Finish() {
     return false;
   }
 
-  message_->SetContent(std::move(decompressed), false);
+  auto body = std::make_shared<StringBody>(std::move(decompressed));
+  message_->SetBody(body, false);
 
   return true;
 
@@ -328,7 +329,8 @@ bool Parser::Finish() {
 
   LOG_WARN("Compressed HTTP content remains untouched.");
 
-  message_->SetContent(std::move(content_), false);
+  auto body = std::make_shared<StringBody>(std::move(content_));
+  message_->SetBody(body, false);
 
   return true;
 
@@ -343,7 +345,7 @@ void Parser::AppendContent(const std::string& data) {
   content_.append(data);
 }
 
-bool Parser::IsContentFull() const {
+bool Parser::IsFixedContentFull() const {
   return content_length_ != kInvalidLength &&
          content_length_ <= content_.length();
 }

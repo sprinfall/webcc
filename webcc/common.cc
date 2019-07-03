@@ -113,11 +113,14 @@ ContentType::ContentType(const std::string& str) {
 }
 
 void ContentType::Parse(const std::string& str) {
+  Reset();
+  Init(str);
+}
+
+void ContentType::Reset() {
   media_type_.clear();
   additional_.clear();
   multipart_ = false;
-
-  Init(str);
 }
 
 bool ContentType::Valid() const {
@@ -224,14 +227,16 @@ FormPart::FormPart(const std::string& name, std::string&& data,
 }
 
 void FormPart::Prepare(Payload* payload) {
+  using boost::asio::buffer;
+
+  // NOTE:
   // The payload buffers don't own the memory.
   // It depends on some existing variables/objects to keep the memory.
-  // That's why we need |headers_|.
+  // That's why we need save headers to member variable.
+
   if (headers_.empty()) {
     SetHeaders();
   }
-
-  using boost::asio::buffer;
 
   for (const Header& h : headers_.data()) {
     payload->push_back(buffer(h.first));
@@ -247,6 +252,28 @@ void FormPart::Prepare(Payload* payload) {
   }
 
   payload->push_back(buffer(misc_strings::CRLF));
+}
+
+std::size_t FormPart::GetSize() {
+  std::size_t size = 0;
+
+  if (headers_.empty()) {
+    SetHeaders();
+  }
+
+  for (const Header& h : headers_.data()) {
+    size += h.first.size();
+    size += sizeof(misc_strings::HEADER_SEPARATOR);
+    size += h.second.size();
+    size += sizeof(misc_strings::CRLF);
+  }
+  size += sizeof(misc_strings::CRLF);
+
+  size += data_.size();
+
+  size += sizeof(misc_strings::CRLF);
+
+  return size;
 }
 
 void FormPart::SetHeaders() {
