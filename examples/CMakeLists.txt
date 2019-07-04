@@ -39,6 +39,9 @@ if(WEBCC_ENABLE_SSL)
     target_link_libraries(github_client ${EXAMPLE_LIBS} jsoncpp)
 endif()
 
+add_executable(hello_world_server hello_world_server.cc)
+target_link_libraries(hello_world_server ${EXAMPLE_LIBS})
+
 add_executable(rest_book_server rest_book_server.cc ${REST_BOOK_SRCS})
 target_link_libraries(rest_book_server ${EXAMPLE_LIBS} jsoncpp)
 

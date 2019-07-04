@@ -104,6 +104,38 @@ You can then parse `r->data()` to JSON object with your favorite JSON library. M
 
 ## Server API Examples
 
+### Hello, World!
+
+```cpp
+class HelloView : public webcc::View {
+public:
+  webcc::ResponsePtr Handle(webcc::RequestPtr request) override {
+    if (request->method() == "GET") {
+      return webcc::ResponseBuilder{}.OK().Body("Hello, World!")();
+    }
+
+    return {};
+  }
+};
+
+int main() {
+  try {
+    webcc::Server server(8080);
+
+    server.Route("/", std::make_shared<HelloView>());
+
+    server.Run();
+
+  } catch (const std::exception&) {
+    return 1;
+  }
+
+  return 0;
+}
+```
+
+### Book Store
+
 Suppose you want to create a book server and provide the following operations with RESTful API:
 
 - Query books based on some criterias.

@@ -17,7 +17,8 @@ namespace webcc {
 
 class Server {
 public:
-  Server(std::uint16_t port, std::size_t workers, const Path& doc_root = {});
+  explicit Server(std::uint16_t port, std::size_t workers = 1,
+                  const Path& doc_root = {});
 
   virtual ~Server() = default;
 
@@ -26,23 +27,17 @@ public:
 
   // Route a URL to a view.
   // The URL should start with "/". E.g., "/instances".
-  bool Route(const std::string& url, ViewPtr view, const Strings& methods) {
+  bool Route(const std::string& url, ViewPtr view,
+             const Strings& methods = { "GET" }) {
     return request_handler_.Route(url, view, methods);
-  }
-
-  bool Route(const std::string& url, ViewPtr view) {
-    return Route(url, view, { methods::kGet });
   }
 
   // Route a regular expression URL to a view.
   // The URL should start with "/" and be a regular expression.
   // E.g., "/instances/(\\d+)".
-  bool Route(const RegexUrl& regex_url, ViewPtr view, const Strings& methods) {
+  bool Route(const RegexUrl& regex_url, ViewPtr view,
+             const Strings& methods = { "GET" }) {
     return request_handler_.Route(regex_url, view, methods);
-  }
-
-  bool Route(const RegexUrl& regex_url, ViewPtr view) {
-    return request_handler_.Route(regex_url, view, { methods::kGet });
   }
 
   // Run the loop.

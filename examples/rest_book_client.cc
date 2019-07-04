@@ -214,6 +214,7 @@ int main(int argc, char* argv[]) {
   session.set_timeout(timeout);
 
   // If the request has body, default to this content type.
+  // Optional.
   session.set_media_type("application/json");
   session.set_charset("utf-8");
 
