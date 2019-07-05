@@ -10,14 +10,18 @@
 #include <string>
 
 // Log levels.
-#define WEBCC_VERB 0  // Similar to DEBUG in other projects.
+// VERB is similar to DEBUG commonly used by other projects.
+// USER is for the users who want to log their own logs but don't want any
+// VERB or INFO.
+#define WEBCC_VERB 0
 #define WEBCC_INFO 1
-#define WEBCC_WARN 2
-#define WEBCC_ERRO 3
+#define WEBCC_USER 2
+#define WEBCC_WARN 3
+#define WEBCC_ERRO 4
 
 // Default log level.
 #ifndef WEBCC_LOG_LEVEL
-#define WEBCC_LOG_LEVEL WEBCC_WARN
+#define WEBCC_LOG_LEVEL WEBCC_USER
 #endif
 
 #define WEBCC_LOG_FILE_NAME "webcc.log"
@@ -71,6 +75,13 @@ void Log(int level, const char* file, int line, const char* format, ...);
 #define LOG_INFO(format, ...)
 #endif
 
+#if WEBCC_LOG_LEVEL <= WEBCC_USER
+#define LOG_USER(format, ...) \
+    webcc::Log(WEBCC_USER, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
+#else
+#define LOG_INFO(format, ...)
+#endif
+
 #if WEBCC_LOG_LEVEL <= WEBCC_WARN
 #define LOG_WARN(format, ...) \
     webcc::Log(WEBCC_WARN, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
@@ -100,6 +111,13 @@ void Log(int level, const char* file, int line, const char* format, ...);
 #if WEBCC_LOG_LEVEL <= WEBCC_INFO
 #define LOG_INFO(format, args...) \
     webcc::Log(WEBCC_INFO, __FILENAME__, __LINE__, format, ##args);
+#else
+#define LOG_INFO(format, args...)
+#endif
+
+#if WEBCC_LOG_LEVEL <= WEBCC_USER
+#define LOG_USER(format, args...) \
+    webcc::Log(WEBCC_USER, __FILENAME__, __LINE__, format, ##args);
 #else
 #define LOG_INFO(format, args...)
 #endif

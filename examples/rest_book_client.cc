@@ -189,8 +189,8 @@ void PrintBookList(const std::list<Book>& books) {
 void Help(const char* argv0) {
   std::cout << "Usage: " << argv0 << " <url> [timeout]" << std::endl;
   std::cout << "  E.g.," << std::endl;
-  std::cout << "    " << argv0 << "http://localhost:8080" << std::endl;
-  std::cout << "    " << argv0 << "http://localhost:8080 2" << std::endl;
+  std::cout << "    " << argv0 << " http://localhost:8080" << std::endl;
+  std::cout << "    " << argv0 << " http://localhost:8080 2" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
