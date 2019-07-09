@@ -7,6 +7,9 @@
 #include <string>
 #include <vector>
 
+#include "boost/asio/buffer.hpp"  // for const_buffer
+#include "boost/filesystem/path.hpp"
+
 #include "webcc/config.h"
 
 // -----------------------------------------------------------------------------
@@ -50,6 +53,10 @@ using Strings = std::vector<std::string>;
 // Could also be considered as arguments, so named as UrlArgs.
 using UrlArgs = std::vector<std::string>;
 
+using Path = boost::filesystem::path;
+
+using Payload = std::vector<boost::asio::const_buffer>;
+
 // -----------------------------------------------------------------------------
 
 const char* const kCRLF = "\r\n";
@@ -71,6 +78,19 @@ const std::size_t kBufferSize = 1024;
 // https://www.itworld.com/article/2693941/why-it-doesn-t-make-sense-to-
 // gzip-all-content-from-your-web-server.html
 const std::size_t kGzipThreshold = 1400;
+
+// -----------------------------------------------------------------------------
+
+namespace literal_buffers {
+
+// Buffers for composing payload.
+// Literal strings can't be used because they have an extra '\0'.
+
+extern const char HEADER_SEPARATOR[2];
+extern const char CRLF[2];
+extern const char DOUBLE_DASHES[2];
+
+}  // namespace literal_buffers
 
 // -----------------------------------------------------------------------------
 
@@ -160,7 +180,7 @@ enum class ContentEncoding {
 
 // Error (or exception) for the client.
 class Error {
-public:
+ public:
   enum Code {
     kOK = 0,
     kSyntaxError,
@@ -174,27 +194,37 @@ public:
     kDataError,
   };
 
-public:
+ public:
   Error(Code code = kOK, const std::string& message = "")
       : code_(code), message_(message), timeout_(false) {
   }
 
-  Code code() const { return code_; }
+  Code code() const {
+    return code_;
+  }
 
-  const std::string& message() const { return message_; }
+  const std::string& message() const {
+    return message_;
+  }
 
   void Set(Code code, const std::string& message) {
     code_ = code;
     message_ = message;
   }
 
-  bool timeout() const { return timeout_; }
+  bool timeout() const {
+    return timeout_;
+  }
 
-  void set_timeout(bool timeout) { timeout_ = timeout; }
+  void set_timeout(bool timeout) {
+    timeout_ = timeout;
+  }
 
-  operator bool() const { return code_ != kOK; }
+  operator bool() const {
+    return code_ != kOK;
+  }
 
-private:
+ private:
   Code code_;
   std::string message_;
   bool timeout_;

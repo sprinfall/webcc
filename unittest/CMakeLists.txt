@@ -2,6 +2,7 @@
 
 set(UT_SRCS
     base64_unittest.cc
+    body_unittest.cc
     request_parser_unittest.cc
     url_unittest.cc
     utility_unittest.cc

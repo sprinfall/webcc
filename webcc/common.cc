@@ -3,44 +3,11 @@
 #include <codecvt>
 
 #include "boost/algorithm/string.hpp"
-#include "boost/filesystem/fstream.hpp"
 
 #include "webcc/logger.h"
 #include "webcc/utility.h"
 
-namespace bfs = boost::filesystem;
-
 namespace webcc {
-
-// -----------------------------------------------------------------------------
-
-namespace misc_strings {
-
-// Literal strings can't be used because they have an extra '\0'.
-
-const char HEADER_SEPARATOR[] = { ':', ' ' };
-const char CRLF[] = { '\r', '\n' };
-
-}  // misc_strings
-
-// -----------------------------------------------------------------------------
-
-bool ReadFile(const Path& path, std::string* output) {
-  // Flag "ate": seek to the end of stream immediately after open.
-  bfs::ifstream stream{ path, std::ios::binary | std::ios::ate };
-  if (stream.fail()) {
-    return false;
-  }
-
-  auto size = stream.tellg();
-  output->resize(static_cast<std::size_t>(size), '\0');
-  stream.seekg(std::ios::beg);
-  stream.read(&(*output)[0], size);
-  if (stream.fail()) {
-    return false;
-  }
-  return true;
-}
 
 // -----------------------------------------------------------------------------
 
@@ -66,8 +33,7 @@ bool Headers::Has(const std::string& key) const {
   return const_cast<Headers*>(this)->Find(key) != headers_.end();
 }
 
-const std::string& Headers::Get(const std::string& key,
-                                    bool* existed) const {
+const std::string& Headers::Get(const std::string& key, bool* existed) const {
   auto it = const_cast<Headers*>(this)->Find(key);
 
   if (existed != nullptr) {
@@ -204,11 +170,7 @@ bool ContentDisposition::Init(const std::string& str) {
 
 FormPart::FormPart(const std::string& name, const Path& path,
                    const std::string& media_type)
-    : name_(name), media_type_(media_type) {
-  if (!ReadFile(path, &data_)) {
-    throw Error{ Error::kFileError, "Cannot read the file." };
-  }
-
+    : name_(name), path_(path), media_type_(media_type) {
   // Determine file name from file path.
   // TODO: encoding
   file_name_ = path.filename().string(std::codecvt_utf8<wchar_t>());
@@ -229,6 +191,12 @@ FormPart::FormPart(const std::string& name, std::string&& data,
 void FormPart::Prepare(Payload* payload) {
   using boost::asio::buffer;
 
+  if (data_.empty() && !path_.empty()) {
+    if (!utility::ReadFile(path_, &data_)) {
+      throw Error{ Error::kFileError, "Cannot read the file" };
+    }
+  }
+
   // NOTE:
   // The payload buffers don't own the memory.
   // It depends on some existing variables/objects to keep the memory.
@@ -240,18 +208,23 @@ void FormPart::Prepare(Payload* payload) {
 
   for (const Header& h : headers_.data()) {
     payload->push_back(buffer(h.first));
-    payload->push_back(buffer(misc_strings::HEADER_SEPARATOR));
+    payload->push_back(buffer(literal_buffers::HEADER_SEPARATOR));
     payload->push_back(buffer(h.second));
-    payload->push_back(buffer(misc_strings::CRLF));
+    payload->push_back(buffer(literal_buffers::CRLF));
   }
 
-  payload->push_back(buffer(misc_strings::CRLF));
+  payload->push_back(buffer(literal_buffers::CRLF));
 
   if (!data_.empty()) {
     payload->push_back(buffer(data_));
   }
 
-  payload->push_back(buffer(misc_strings::CRLF));
+  payload->push_back(buffer(literal_buffers::CRLF));
+}
+
+void FormPart::Free() {
+  data_.clear();
+  data_.shrink_to_fit();
 }
 
 std::size_t FormPart::GetSize() {
@@ -263,17 +236,44 @@ std::size_t FormPart::GetSize() {
 
   for (const Header& h : headers_.data()) {
     size += h.first.size();
-    size += sizeof(misc_strings::HEADER_SEPARATOR);
+    size += sizeof(literal_buffers::HEADER_SEPARATOR);
     size += h.second.size();
-    size += sizeof(misc_strings::CRLF);
+    size += sizeof(literal_buffers::CRLF);
   }
-  size += sizeof(misc_strings::CRLF);
+  size += sizeof(literal_buffers::CRLF);
 
-  size += data_.size();
+  size += GetDataSize();
 
-  size += sizeof(misc_strings::CRLF);
+  size += sizeof(literal_buffers::CRLF);
 
   return size;
+}
+
+std::size_t FormPart::GetDataSize() {
+  if (!data_.empty()) {
+    return data_.size();
+  }
+
+  auto size = utility::TellSize(path_);
+  if (size == kInvalidLength) {
+    throw Error{ Error::kFileError, "Cannot read the file" };
+  }
+
+  return size;
+}
+
+void FormPart::Dump(std::ostream& os, const std::string& prefix) const {
+  for (auto& h : headers_.data()) {
+    os << prefix << h.first << ": " << h.second << std::endl;
+  }
+
+  os << prefix << std::endl;
+
+  if (!path_.empty()) {
+    os << prefix << "<file: " << path_.string() << ">" << std::endl;
+  } else {
+    utility::DumpByLine(data_, os, prefix);
+  }
 }
 
 void FormPart::SetHeaders() {

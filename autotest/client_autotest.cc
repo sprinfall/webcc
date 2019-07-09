@@ -33,10 +33,7 @@ TEST(ClientTest, Head_RequestFunc) {
 
   try {
     auto r = session.Request(webcc::RequestBuilder{}.
-                             Head("http://httpbin.org/get").
-                             Query("key1", "value1").
-                             Query("key2", "value2").
-                             Header("Accept", "application/json")
+                             Head("http://httpbin.org/get")
                              ());
 
     EXPECT_EQ(webcc::Status::kOK, r->status());
@@ -57,6 +54,31 @@ TEST(ClientTest, Head_Shortcut) {
 
     EXPECT_EQ(webcc::Status::kOK, r->status());
     EXPECT_EQ("OK", r->reason());
+
+    EXPECT_EQ("", r->data());
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+  }
+}
+
+// Force Accept-Encoding to be "identity" so that HttpBin.org will include
+// a Content-Length header in the response.
+// This tests that the response with Content-Length while no body could be
+// correctly parsed.
+TEST(ClientTest, Head_AcceptEncodingIdentity) {
+  webcc::ClientSession session;
+
+  try {
+    auto r = session.Request(webcc::RequestBuilder{}.
+                             Head("http://httpbin.org/get").
+                             Header("Accept-Encoding", "identity")
+                             ());
+
+    EXPECT_EQ(webcc::Status::kOK, r->status());
+    EXPECT_EQ("OK", r->reason());
+
+    EXPECT_TRUE(r->HasHeader(webcc::headers::kContentLength));
 
     EXPECT_EQ("", r->data());
 

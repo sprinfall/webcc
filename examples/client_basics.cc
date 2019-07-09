@@ -8,14 +8,18 @@ int main() {
 
   webcc::ClientSession session;
 
+  webcc::ResponsePtr r;
+
   try {
-    auto r = session.Request(webcc::RequestBuilder{}.
-                             Get("http://httpbin.org/get").
-                             Query("key1", "value1").
-                             Query("key2", "value2").
-                             Date().
-                             Header("Accept", "application/json")
-                             ());
+    r = session.Head("http://httpbin.org/get");
+
+    r = session.Request(webcc::RequestBuilder{}.
+                        Get("http://httpbin.org/get").
+                        Query("key1", "value1").
+                        Query("key2", "value2").
+                        Date().
+                        Header("Accept", "application/json")
+                        ());
 
     r = session.Get("http://httpbin.org/get",
                     { "key1", "value1", "key2", "value2" },

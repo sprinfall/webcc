@@ -73,4 +73,12 @@ bool ResponseParser::ParseStartLine(const std::string& line) {
   return true;
 }
 
+bool ResponseParser::ParseContent(const char* data, std::size_t length) {
+  if (ignroe_body_) {
+    Finish();
+    return true;
+  }
+  return Parser::ParseContent(data, length);
+}
+
 }  // namespace webcc

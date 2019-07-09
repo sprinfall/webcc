@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "webcc/globals.h"
+
 namespace webcc {
 namespace utility {
 
@@ -21,6 +23,18 @@ std::string GetTimestamp();
 // E.g., split "Connection: Keep-Alive".
 bool SplitKV(const std::string& str, char delimiter,
              std::string* key, std::string* value);
+
+// Tell the size in bytes of the given file.
+// Return kInvalidLength (-1) on failure.
+std::size_t TellSize(const Path& path);
+
+// Read entire file into string.
+bool ReadFile(const Path& path, std::string* output);
+
+// Dump the string data line by line to achieve more readability.
+// Also limit the maximum size of the data to be dumped.
+void DumpByLine(const std::string& data, std::ostream& os,
+                const std::string& prefix);
 
 }  // namespace utility
 }  // namespace webcc

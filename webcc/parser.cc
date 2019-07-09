@@ -60,11 +60,12 @@ bool Parser::Parse(const char* data, std::size_t length) {
   if (!header_ended_) {
     LOG_INFO("HTTP headers will continue in next read.");
     return true;
-  } else {
-    LOG_INFO("HTTP headers just ended.");
-    // NOTE: The left data, if any, is still in the pending data.
-    return ParseContent("", 0);
   }
+
+  LOG_INFO("HTTP headers just ended.");
+
+  // The left data, if any, is still in the pending data.
+  return ParseContent("", 0);
 }
 
 void Parser::Reset() {

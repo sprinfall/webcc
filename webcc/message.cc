@@ -9,19 +9,6 @@
 
 namespace webcc {
 
-// -----------------------------------------------------------------------------
-
-namespace misc_strings {
-
-// Literal strings can't be used because they have an extra '\0'.
-
-const char HEADER_SEPARATOR[] = { ':', ' ' };
-const char CRLF[] = { '\r', '\n' };
-
-}  // misc_strings
-
-// -----------------------------------------------------------------------------
-
 Message::Message() : body_(new Body{}), content_length_(kInvalidLength) {
 }
 
@@ -111,16 +98,16 @@ Payload Message::GetPayload() const {
   Payload payload;
 
   payload.push_back(buffer(start_line_));
-  payload.push_back(buffer(misc_strings::CRLF));
+  payload.push_back(buffer(literal_buffers::CRLF));
 
   for (const Header& h : headers_.data()) {
     payload.push_back(buffer(h.first));
-    payload.push_back(buffer(misc_strings::HEADER_SEPARATOR));
+    payload.push_back(buffer(literal_buffers::HEADER_SEPARATOR));
     payload.push_back(buffer(h.second));
-    payload.push_back(buffer(misc_strings::CRLF));
+    payload.push_back(buffer(literal_buffers::CRLF));
   }
 
-  payload.push_back(buffer(misc_strings::CRLF));
+  payload.push_back(buffer(literal_buffers::CRLF));
 
   return payload;
 }

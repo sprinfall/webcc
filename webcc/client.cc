@@ -18,6 +18,17 @@ Client::Client()
 Error Client::Request(RequestPtr request, bool connect) {
   Restart();
 
+  // Response to HEAD could also have Content-Length.
+  // Set this flag to skip the reading and parsing of the body.
+  // The test against HttpBin.org shows that:
+  //   - If request.Accept-Encoding is "gzip, deflate", the response doesn't
+  //     have Content-Length;
+  //   - If request.Accept-Encoding is "identity", the response do have
+  //     Content-Length.
+  if (request->method() == methods::kHead) {
+    response_parser_.set_ignroe_body(true);
+  }
+
   if (connect) {
     // No existing socket connection was specified, create a new one.
     Connect(request);
@@ -131,13 +142,12 @@ void Client::WriteReqeust(RequestPtr request) {
 
   if (socket_->Write(request->GetPayload(), &ec)) {
     // Write request body.
-    if (request->body()) {
-      auto body = request->body();
-      body->InitPayload();
-      for (auto p = body->NextPayload(); !p.empty(); p = body->NextPayload()) {
-        if (!socket_->Write(p, &ec)) {
-          break;
-        }
+    auto body = request->body();
+    body->InitPayload();
+    for (auto p = body->NextPayload(true); !p.empty();
+         p = body->NextPayload(true)) {
+      if (!socket_->Write(p, &ec)) {
+        break;
       }
     }
   }

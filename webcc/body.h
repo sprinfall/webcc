@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <string>
-#include <utility>  // for move()
+#include <utility>
 
 #include "webcc/common.h"
 
@@ -38,11 +38,12 @@ public:
   //   InitPayload();
   //   for (auto p = NextPayload(); !p.empty(); p = NextPayload()) {
   //   }
-  virtual void InitPayload() {}
+  virtual void InitPayload() {
+  }
 
   // Get the next payload.
   // An empty payload returned indicates the end.
-  virtual Payload NextPayload() {
+  virtual Payload NextPayload(bool free_previous = false) {
     return {};
   }
 
@@ -77,7 +78,7 @@ public:
 
   void InitPayload() override;
 
-  Payload NextPayload() override;
+  Payload NextPayload(bool free_previous = false) override;
 
   void Dump(std::ostream& os, const std::string& prefix) const override;
 
@@ -93,8 +94,7 @@ private:
 // Multi-part form body for request.
 class FormBody : public Body {
 public:
-  FormBody(const std::vector<FormPartPtr>& parts,
-           const std::string& boundary);
+  FormBody(const std::vector<FormPartPtr>& parts, const std::string& boundary);
 
   std::size_t GetSize() const override;
 
@@ -104,13 +104,15 @@ public:
 
   void InitPayload() override;
 
-  Payload NextPayload() override;
+  Payload NextPayload(bool free_previous = false) override;
 
   void Dump(std::ostream& os, const std::string& prefix) const override;
 
 private:
   void AddBoundary(Payload* payload);
   void AddBoundaryEnd(Payload* payload);
+
+  void Free(std::size_t index);
 
 private:
   std::vector<FormPartPtr> parts_;

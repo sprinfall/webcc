@@ -5,10 +5,13 @@
 #include <sstream>
 
 #include "boost/algorithm/string.hpp"
+#include "boost/filesystem/fstream.hpp"
 #include "boost/uuid/random_generator.hpp"
 #include "boost/uuid/uuid_io.hpp"
 
 #include "webcc/version.h"
+
+namespace bfs = boost::filesystem;
 
 namespace webcc {
 namespace utility {
@@ -46,6 +49,53 @@ bool SplitKV(const std::string& str, char delimiter,
   boost::trim(*part2);
 
   return true;
+}
+
+std::size_t TellSize(const Path& path) {
+  // Flag "ate": seek to the end of stream immediately after open.
+  bfs::ifstream stream{ path, std::ios::binary | std::ios::ate };
+  if (stream.fail()) {
+    return kInvalidLength;
+  }
+  return static_cast<std::size_t>(stream.tellg());
+}
+
+bool ReadFile(const Path& path, std::string* output) {
+  // Flag "ate": seek to the end of stream immediately after open.
+  bfs::ifstream stream{ path, std::ios::binary | std::ios::ate };
+  if (stream.fail()) {
+    return false;
+  }
+
+  auto size = stream.tellg();
+  output->resize(static_cast<std::size_t>(size), '\0');
+  stream.seekg(std::ios::beg);
+  stream.read(&(*output)[0], size);
+  if (stream.fail()) {
+    return false;
+  }
+  return true;
+}
+
+void DumpByLine(const std::string& data, std::ostream& os,
+                const std::string& prefix) {
+  std::vector<std::string> lines;
+  boost::split(lines, data, boost::is_any_of("\n"));
+
+  std::size_t size = 0;
+
+  for (const std::string& line : lines) {
+    os << prefix;
+
+    if (line.size() + size > kMaxDumpSize) {
+      os.write(line.c_str(), kMaxDumpSize - size);
+      os << "..." << std::endl;
+      break;
+    } else {
+      os << line << std::endl;
+      size += line.size();
+    }
+  }
 }
 
 }  // namespace utility

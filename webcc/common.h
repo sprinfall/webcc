@@ -6,21 +6,9 @@
 #include <utility>
 #include <vector>
 
-#include "boost/asio/buffer.hpp"  // for const_buffer
-#include "boost/filesystem/path.hpp"
-
 #include "webcc/globals.h"
 
 namespace webcc {
-
-// -----------------------------------------------------------------------------
-
-using Path = boost::filesystem::path;
-
-using Payload = std::vector<boost::asio::const_buffer>;
-
-// Read entire file into string.
-bool ReadFile(const Path& path, std::string* output);
 
 // -----------------------------------------------------------------------------
 
@@ -211,9 +199,18 @@ public:
   // API: CLIENT
   void Prepare(Payload* payload);
 
-  // Get the payload size.
+  // Free the memory of the data.
+  void Free();
+
+  // Get the size of the whole payload.
   // Used by the request to calculate content length.
   std::size_t GetSize();
+
+  // Get the size of the data.
+  std::size_t GetDataSize();
+
+  // Dump to output stream for logging purpose.
+  void Dump(std::ostream& os, const std::string& prefix) const;
 
 private:
   // Generate headers from properties.
@@ -225,6 +222,9 @@ private:
   //   <input name="file1" type="file">
   // the name will be "file1".
   std::string name_;
+
+  // The path of the file to post.
+  Path path_;
 
   // The original local file name.
   // E.g., "baby.jpg".

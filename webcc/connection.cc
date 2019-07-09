@@ -1,6 +1,6 @@
 #include "webcc/connection.h"
 
-#include <utility>  // for move()
+#include <utility>
 
 #include "boost/asio/write.hpp"
 

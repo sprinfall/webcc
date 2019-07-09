@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <fstream>
-#include <utility>  // for move()
+#include <utility>
 
 #include "boost/algorithm/string.hpp"
 #include "boost/filesystem/fstream.hpp"
@@ -11,6 +11,7 @@
 #include "webcc/request.h"
 #include "webcc/response.h"
 #include "webcc/url.h"
+#include "webcc/utility.h"
 
 #if WEBCC_ENABLE_GZIP
 #include "webcc/gzip.h"
@@ -20,8 +21,7 @@ namespace bfs = boost::filesystem;
 
 namespace webcc {
 
-RequestHandler::RequestHandler(const Path& doc_root)
-    : doc_root_(doc_root) {
+RequestHandler::RequestHandler(const Path& doc_root) : doc_root_(doc_root) {
 }
 
 bool RequestHandler::Route(const std::string& url, ViewPtr view,
@@ -184,7 +184,7 @@ bool RequestHandler::ServeStatic(ConnectionPtr connection) {
   Path p = doc_root_ / path;
 
   std::string data;
-  if (!ReadFile(p, &data)) {
+  if (!utility::ReadFile(p, &data)) {
     connection->SendResponse(Status::kNotFound);
     return false;
   }
