@@ -1,6 +1,6 @@
 # webcc
 
-C++ client and server library for HTTP and REST based on [Boost.Asio](https://www.boost.org/doc/libs/release/libs/asio/).
+Lightweight C++ HTTP client and server library based on [Boost Asio](https://www.boost.org/doc/libs/release/libs/asio/).
 
 Please turn to our [Wiki](https://github.com/sprinfall/webcc/wiki) (under construction) for more tutorials and guides.
 
@@ -14,7 +14,7 @@ Git repo: https://github.com/sprinfall/webcc. Please check this one instead of t
 - Easy-to-use client API inspired by Python [requests](https://2.python-requests.org//en/master/)
 - SSL/HTTPS support with OpenSSL (optional)
 - GZip compression support with Zlib (optional)
-- Persistent connections (Keep-Alive)
+- Persistent (Keep-Alive) connections
 - Basic & Token authorization
 - Timeout control
 - Source code follows [Google C++ Style](https://google.github.io/styleguide/cppguide.html)
