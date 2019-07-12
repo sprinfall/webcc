@@ -6,18 +6,18 @@
 
 #include "webcc/connection_pool.h"
 #include "webcc/logger.h"
-#include "webcc/request_handler.h"
+#include "webcc/server.h"
 
 using boost::asio::ip::tcp;
 
 namespace webcc {
 
 Connection::Connection(tcp::socket socket, ConnectionPool* pool,
-                       RequestHandler* handler)
+                       Server* server)
     : socket_(std::move(socket)),
       pool_(pool),
       buffer_(kBufferSize),
-      request_handler_(handler) {
+      server_(server) {
 }
 
 void Connection::Start() {
@@ -53,7 +53,14 @@ void Connection::SendResponse(ResponsePtr response) {
 }
 
 void Connection::SendResponse(Status status) {
-  SendResponse(std::make_shared<Response>(status));
+  auto response = std::make_shared<Response>(status);
+
+  // According to the testing based on HTTPie (and Chrome), the `Content-Length`
+  // header is expected for a response with status like 404 even when the body
+  // is empty.
+  response->SetBody(std::make_shared<Body>(), true);
+
+  SendResponse(response);
 }
 
 void Connection::DoRead() {
@@ -65,8 +72,13 @@ void Connection::DoRead() {
 
 void Connection::OnRead(boost::system::error_code ec, std::size_t length) {
   if (ec) {
+    // TODO
     if (ec == boost::asio::error::eof) {
       LOG_WARN("Socket read EOF.");
+    //} else if (ec == boost::asio::error::operation_aborted) {
+    //  LOG_WARN("Socket read aborted.");
+    //} else if (ec == boost::asio::error::connection_aborted) {
+    //  LOG_WARN("Socket connection aborted.");
     } else {
       LOG_ERRO("Socket read error (%s).", ec.message().c_str());
     }
@@ -80,6 +92,7 @@ void Connection::OnRead(boost::system::error_code ec, std::size_t length) {
 
   if (!request_parser_.Parse(buffer_.data(), length)) {
     // Bad request.
+    // TODO: Always close the connection?
     LOG_ERRO("Failed to parse HTTP request.");
     SendResponse(Status::kBadRequest);
     return;
@@ -95,7 +108,7 @@ void Connection::OnRead(boost::system::error_code ec, std::size_t length) {
 
   // Enqueue this connection.
   // Some worker thread will handle it later.
-  request_handler_->Enqueue(shared_from_this());
+  server_->Enqueue(shared_from_this());
 }
 
 void Connection::DoWrite() {
@@ -124,10 +137,10 @@ void Connection::DoWriteBody() {
 
   if (!payload.empty()) {
     boost::asio::async_write(socket_, payload,
-                              std::bind(&Connection::OnWriteBody,
-                                        shared_from_this(),
-                                        std::placeholders::_1,
-                                        std::placeholders::_2));
+                             std::bind(&Connection::OnWriteBody,
+                                       shared_from_this(),
+                                       std::placeholders::_1,
+                                       std::placeholders::_2));
   } else {
     // No more body payload left, we're done.
     OnWriteOK();

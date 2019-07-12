@@ -1,8 +1,9 @@
 #ifndef WEBCC_SERVER_H_
 #define WEBCC_SERVER_H_
 
-#include <regex>
 #include <string>
+#include <thread>
+#include <vector>
 
 #include "boost/asio/io_context.hpp"
 #include "boost/asio/ip/tcp.hpp"
@@ -10,7 +11,8 @@
 
 #include "webcc/connection.h"
 #include "webcc/connection_pool.h"
-#include "webcc/request_handler.h"
+#include "webcc/queue.h"
+#include "webcc/url.h"
 #include "webcc/view.h"
 
 namespace webcc {
@@ -28,20 +30,22 @@ public:
   // Route a URL to a view.
   // The URL should start with "/". E.g., "/instances".
   bool Route(const std::string& url, ViewPtr view,
-             const Strings& methods = { "GET" }) {
-    return request_handler_.Route(url, view, methods);
-  }
+             const Strings& methods = { "GET" });
 
-  // Route a regular expression URL to a view.
+  // Route a URL (as regular expression) to a view.
   // The URL should start with "/" and be a regular expression.
   // E.g., "/instances/(\\d+)".
-  bool Route(const RegexUrl& regex_url, ViewPtr view,
-             const Strings& methods = { "GET" }) {
-    return request_handler_.Route(regex_url, view, methods);
-  }
+  bool Route(const UrlRegex& regex_url, ViewPtr view,
+             const Strings& methods = { "GET" });
 
   // Run the loop.
   void Run();
+
+  // Clear pending connections from the queue and stop worker threads.
+  void Stop();
+
+  // Put the connection into the queue.
+  void Enqueue(ConnectionPtr connection);
 
 private:
   // Register to handle the signals that indicate when the server should exit.
@@ -52,6 +56,30 @@ private:
 
   // Wait for a request to stop the server.
   void DoAwaitStop();
+
+  void WorkerRoutine();
+
+  // Handle a connection (or more precisely, the request inside it).
+  // Get the request from the connection, process it, prepare the response,
+  // then send the response back to the client.
+  // The connection will keep alive if it's a persistent connection. When next
+  // request comes, this connection will be put back to the queue again.
+  virtual void Handle(ConnectionPtr connection);
+
+  // Find the view by HTTP method and URL.
+  ViewPtr FindView(const std::string& method, const std::string& url,
+                   UrlArgs* args);
+
+  // Serve static files from the doc root.
+  bool ServeStatic(ConnectionPtr connection);
+
+private:
+  struct RouteInfo {
+    std::string url;
+    std::regex url_regex;
+    ViewPtr view;
+    Strings methods;
+  };
 
   // The io_context used to perform asynchronous operations.
   boost::asio::io_context io_context_;
@@ -68,8 +96,16 @@ private:
   // The number of worker threads.
   std::size_t workers_;
 
-  // The handler for incoming requests.
-  RequestHandler request_handler_;
+  // Worker threads.
+  std::vector<std::thread> worker_threads_;
+
+  // The directory with the static files to be served.
+  Path doc_root_;
+
+  // The queue with connection waiting for the workers to process.
+  Queue<ConnectionPtr> queue_;
+
+  std::vector<RouteInfo> routes_;
 };
 
 }  // namespace webcc

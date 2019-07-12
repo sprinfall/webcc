@@ -1,11 +1,20 @@
 #include "webcc/server.h"
 
+#include <algorithm>
 #include <csignal>
 #include <utility>
 
-#include "webcc/request_handler.h"
+#include "boost/algorithm/string.hpp"
+#include "boost/filesystem/fstream.hpp"
+
+#include "webcc/body.h"
 #include "webcc/logger.h"
+#include "webcc/request.h"
+#include "webcc/response.h"
+#include "webcc/url.h"
 #include "webcc/utility.h"
+
+namespace bfs = boost::filesystem;
 
 using tcp = boost::asio::ip::tcp;
 
@@ -13,7 +22,7 @@ namespace webcc {
 
 Server::Server(std::uint16_t port, std::size_t workers, const Path& doc_root)
     : acceptor_(io_context_), signals_(io_context_), workers_(workers),
-      request_handler_(doc_root) {
+      doc_root_(doc_root) {
   RegisterSignals();
 
   boost::system::error_code ec;
@@ -51,6 +60,35 @@ Server::Server(std::uint16_t port, std::size_t workers, const Path& doc_root)
   }
 }
 
+bool Server::Route(const std::string& url, ViewPtr view,
+                   const Strings& methods) {
+  assert(view);
+
+  // TODO: More error check
+
+  routes_.push_back({ url, {}, view, methods });
+
+  return true;
+}
+
+bool Server::Route(const UrlRegex& regex_url, ViewPtr view,
+                   const Strings& methods) {
+  assert(view);
+
+  // TODO: More error check
+
+  try {
+
+    routes_.push_back({ "", regex_url(), view, methods });
+
+  } catch (const std::regex_error& e) {
+    LOG_ERRO("Not a valid regular expression: %s", e.what());
+    return false;
+  }
+
+  return true;
+}
+
 void Server::Run() {
   if (!acceptor_.is_open()) {
     LOG_ERRO("Server is NOT going to run.");
@@ -64,13 +102,41 @@ void Server::Run() {
   DoAccept();
 
   // Start worker threads.
-  request_handler_.Start(workers_);
+  assert(workers_ > 0 && worker_threads_.empty());
+
+  for (std::size_t i = 0; i < workers_; ++i) {
+    worker_threads_.emplace_back(std::bind(&Server::WorkerRoutine, this));
+  }
 
   // The io_context::run() call will block until all asynchronous operations
   // have finished. While the server is running, there is always at least one
   // asynchronous operation outstanding: the asynchronous accept call waiting
   // for new incoming connections.
   io_context_.run();
+}
+
+void Server::Stop() {
+  LOG_INFO("Stopping workers...");
+
+  // Clear pending connections.
+  // The connections will be closed later (see Server::DoAwaitStop).
+  LOG_INFO("Clear pending connections...");
+  queue_.Clear();
+
+  // Enqueue a null connection to trigger the first worker to stop.
+  queue_.Push(ConnectionPtr());
+
+  for (auto& thread : worker_threads_) {
+    if (thread.joinable()) {
+      thread.join();
+    }
+  }
+
+  LOG_INFO("All workers have been stopped.");
+}
+
+void Server::Enqueue(ConnectionPtr connection) {
+  queue_.Push(connection);
 }
 
 void Server::RegisterSignals() {
@@ -95,7 +161,7 @@ void Server::DoAccept() {
           LOG_INFO("Accepted a connection.");
 
           auto connection = std::make_shared<Connection>(
-              std::move(socket), &pool_, &request_handler_);
+              std::move(socket), &pool_, this);
 
           pool_.Start(connection);
         }
@@ -115,11 +181,133 @@ void Server::DoAwaitStop() {
         acceptor_.close();
 
         // Stop worker threads.
-        request_handler_.Stop();
+        Stop();
 
         // Close all connections.
         pool_.CloseAll();
       });
+}
+
+void Server::WorkerRoutine() {
+  LOG_INFO("Worker is running.");
+
+  for (;;) {
+    auto connection = queue_.PopOrWait();
+
+    if (!connection) {
+      LOG_INFO("Worker is going to stop.");
+
+      // For stopping next worker.
+      queue_.Push(ConnectionPtr());
+
+      // Stop the worker.
+      break;
+    }
+
+    Handle(connection);
+  }
+}
+
+void Server::Handle(ConnectionPtr connection) {
+  auto request = connection->request();
+
+  const Url& url = request->url();
+  UrlArgs args;
+
+  LOG_INFO("Request URL path: %s", url.path().c_str());
+
+  auto view = FindView(request->method(), url.path(), &args);
+
+  if (!view) {
+    LOG_WARN("No view matches the URL path: %s", url.path().c_str());
+    if (!ServeStatic(connection)) {
+      connection->SendResponse(Status::kNotFound);
+    }
+    return;
+  }
+
+  // Save the (regex matched) URL args to request object.
+  request->set_args(args);
+
+  // Ask the matched view to process the request.
+  ResponsePtr response = view->Handle(request);
+
+  // Send the response back.
+  if (response) {
+    connection->SendResponse(response);
+  } else {
+    connection->SendResponse(Status::kNotImplemented);
+  }
+}
+
+ViewPtr Server::FindView(const std::string& method, const std::string& url,
+                         UrlArgs* args) {
+  assert(args != nullptr);
+
+  for (auto& route : routes_) {
+    if (std::find(route.methods.begin(), route.methods.end(), method) ==
+        route.methods.end()) {
+      continue;
+    }
+
+    if (route.url.empty()) {
+      std::smatch match;
+
+      if (std::regex_match(url, match, route.url_regex)) {
+        // Any sub-matches?
+        // Start from 1 because match[0] is the whole string itself.
+        for (size_t i = 1; i < match.size(); ++i) {
+          args->push_back(match[i].str());
+        }
+
+        return route.view;
+      }
+    } else {
+      if (boost::iequals(route.url, url)) {
+        return route.view;
+      }
+    }
+  }
+
+  return ViewPtr();
+}
+
+bool Server::ServeStatic(ConnectionPtr connection) {
+  if (doc_root_.empty()) {
+    LOG_INFO("The doc root was not specified.");
+    return false;
+  }
+
+  auto request = connection->request();
+  std::string path = request->url().path();
+
+  // If path ends in slash (i.e. is a directory) then add "index.html".
+  if (path[path.size() - 1] == '/') {
+    path += "index.html";  // TODO
+  }
+
+  Path p = doc_root_ / path;
+
+  try {
+    auto body = std::make_shared<FileBody>(p);
+
+    auto response = std::make_shared<Response>(Status::kOK);
+
+    std::string extension = p.extension().string();
+    response->SetContentType(media_types::FromExtension(extension), "");
+
+    // NOTE: Gzip compression is not supported.
+    response->SetBody(body, true);
+
+    // Send response back to client.
+    connection->SendResponse(response);
+
+    return true;
+
+  } catch (const Error& error) {
+    LOG_ERRO("File error: %s.", error.message().c_str());
+    return false;
+  }
 }
 
 }  // namespace webcc

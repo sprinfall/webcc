@@ -12,8 +12,8 @@ TEST(FormBodyTest, Payload) {
   form_body.InitPayload();
 
   auto payload = form_body.NextPayload();
-  EXPECT_EQ(false, payload.empty());
+  EXPECT_TRUE(!payload.empty());
 
   payload = form_body.NextPayload();
-  EXPECT_EQ(true, payload.empty());
+  EXPECT_TRUE(payload.empty());
 }

@@ -168,83 +168,6 @@ bool SplitKeyValue(const std::string& kv, std::string* key,
 
 // -----------------------------------------------------------------------------
 
-UrlQuery::UrlQuery(const std::string& str) {
-  if (!str.empty()) {
-    // Split into key value pairs separated by '&'.
-    for (std::size_t i = 0; i != std::string::npos;) {
-      std::size_t j = str.find_first_of('&', i);
-
-      std::string kv;
-      if (j == std::string::npos) {
-        kv = str.substr(i);
-        i = std::string::npos;
-      } else {
-        kv = str.substr(i, j - i);
-        i = j + 1;
-      }
-
-      std::string key;
-      std::string value;
-      if (SplitKeyValue(kv, &key, &value)) {
-        Add(std::move(key), std::move(value));
-      }
-    }
-  }
-}
-
-void UrlQuery::Add(std::string&& key, std::string&& value) {
-  if (!Has(key)) {
-    parameters_.push_back({ std::move(key), std::move(value) });
-  }
-}
-
-void UrlQuery::Add(const std::string& key, const std::string& value) {
-  if (!Has(key)) {
-    parameters_.push_back({ key, value });
-  }
-}
-
-void UrlQuery::Remove(const std::string& key) {
-  auto it = Find(key);
-  if (it != parameters_.end()) {
-    parameters_.erase(it);
-  }
-}
-
-const std::string& UrlQuery::Get(const std::string& key) const {
-  auto it = Find(key);
-  if (it != parameters_.end()) {
-    return it->second;
-  }
-
-  static const std::string kEmptyValue;
-  return kEmptyValue;
-}
-
-std::string UrlQuery::ToString() const {
-  if (parameters_.empty()) {
-    return "";
-  }
-
-  std::string str = parameters_[0].first + "=" + parameters_[0].second;
-
-  for (std::size_t i = 1; i < parameters_.size(); ++i) {
-    str += "&";
-    str += parameters_[i].first + "=" + parameters_[i].second;
-  }
-
-  str = EncodeQuery(str);
-  return str;
-}
-
-UrlQuery::ConstIterator UrlQuery::Find(const std::string& key) const {
-  return std::find_if(parameters_.begin(),
-                      parameters_.end(),
-                      [&key](const Parameter& p) { return p.first == key; });
-}
-
-// -----------------------------------------------------------------------------
-
 Url::Url(const std::string& str, bool decode) {
   Init(str, decode);
 }
@@ -326,6 +249,82 @@ void Url::Clear() {
   port_.clear();
   path_.clear();
   query_.clear();
+}
+
+// -----------------------------------------------------------------------------
+
+UrlQuery::UrlQuery(const std::string& str) {
+  if (!str.empty()) {
+    // Split into key value pairs separated by '&'.
+    for (std::size_t i = 0; i != std::string::npos;) {
+      std::size_t j = str.find_first_of('&', i);
+
+      std::string kv;
+      if (j == std::string::npos) {
+        kv = str.substr(i);
+        i = std::string::npos;
+      } else {
+        kv = str.substr(i, j - i);
+        i = j + 1;
+      }
+
+      std::string key;
+      std::string value;
+      if (SplitKeyValue(kv, &key, &value)) {
+        Add(std::move(key), std::move(value));
+      }
+    }
+  }
+}
+
+void UrlQuery::Add(std::string&& key, std::string&& value) {
+  if (!Has(key)) {
+    parameters_.push_back({ std::move(key), std::move(value) });
+  }
+}
+
+void UrlQuery::Add(const std::string& key, const std::string& value) {
+  if (!Has(key)) {
+    parameters_.push_back({ key, value });
+  }
+}
+
+void UrlQuery::Remove(const std::string& key) {
+  auto it = Find(key);
+  if (it != parameters_.end()) {
+    parameters_.erase(it);
+  }
+}
+
+const std::string& UrlQuery::Get(const std::string& key) const {
+  auto it = Find(key);
+  if (it != parameters_.end()) {
+    return it->second;
+  }
+
+  static const std::string kEmptyValue;
+  return kEmptyValue;
+}
+
+std::string UrlQuery::ToString() const {
+  if (parameters_.empty()) {
+    return "";
+  }
+
+  std::string str = parameters_[0].first + "=" + parameters_[0].second;
+
+  for (std::size_t i = 1; i < parameters_.size(); ++i) {
+    str += "&";
+    str += parameters_[i].first + "=" + parameters_[i].second;
+  }
+
+  str = EncodeQuery(str);
+  return str;
+}
+
+UrlQuery::ConstIterator UrlQuery::Find(const std::string& key) const {
+  return std::find_if(parameters_.begin(), parameters_.end(),
+                      [&key](const Parameter& p) { return p.first == key; });
 }
 
 }  // namespace webcc

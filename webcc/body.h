@@ -5,6 +5,8 @@
 #include <string>
 #include <utility>
 
+#include "boost/filesystem/fstream.hpp"
+
 #include "webcc/common.h"
 
 namespace webcc {
@@ -120,6 +122,34 @@ private:
 
   // Index for iterating the payload.
   std::size_t index_ = 0;
+};
+
+// -----------------------------------------------------------------------------
+
+// File body for server to serve a file without loading the whole of it into
+// the memory.
+class FileBody : public Body {
+public:
+  explicit FileBody(const Path& path, std::size_t chunk_size = 1024);
+
+  std::size_t GetSize() const override {
+    return size_;
+  }
+
+  void InitPayload() override;
+
+  Payload NextPayload(bool free_previous = false) override;
+
+  void Dump(std::ostream& os, const std::string& prefix) const override;
+
+private:
+  Path path_;
+  std::size_t chunk_size_;
+
+  std::size_t size_;  // File size in bytes
+
+  boost::filesystem::ifstream stream_;
+  std::string chunk_;
 };
 
 }  // namespace webcc

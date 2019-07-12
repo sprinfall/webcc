@@ -10,6 +10,8 @@
 #include "webcc/gzip.h"
 #endif
 
+namespace bfs = boost::filesystem;
+
 namespace webcc {
 
 // -----------------------------------------------------------------------------
@@ -40,7 +42,7 @@ Payload StringBody::NextPayload(bool free_previous) {
 
   if (index_ == 0) {
     index_ = 1;
-    return Payload{ boost::asio::buffer(data_) };
+    return { boost::asio::buffer(data_) };
   }
   return {};
 }
@@ -131,6 +133,46 @@ void FormBody::Free(std::size_t index) {
   if (index < parts_.size()) {
     parts_[index]->Free();
   }
+}
+
+// -----------------------------------------------------------------------------
+
+FileBody::FileBody(const Path& path, std::size_t chunk_size)
+    : path_(path), chunk_size_(chunk_size) {
+  size_ = utility::TellSize(path_);
+  if (size_ == kInvalidLength) {
+    throw Error{ Error::kFileError, "Cannot read the file" };
+  }
+}
+
+void FileBody::InitPayload() {
+  assert(chunk_size_ > 0);
+  chunk_.resize(chunk_size_);
+
+  if (stream_.is_open()) {
+    stream_.close();
+  }
+
+  stream_.open(path_, std::ios::binary);
+
+  if (stream_.fail()) {
+    throw Error{ Error::kFileError, "Cannot read the file" };
+  }
+}
+
+Payload FileBody::NextPayload(bool free_previous) {
+  boost::ignore_unused(free_previous);
+
+  if (stream_.read(&chunk_[0], chunk_.size()).gcount() > 0) {
+    return {
+      boost::asio::buffer(chunk_.data(), (std::size_t)stream_.gcount())
+    };
+  }
+  return {};
+}
+
+void FileBody::Dump(std::ostream& os, const std::string& prefix) const {
+  os << prefix << "<file: " << path_.string() << ">" << std::endl;
 }
 
 }  // namespace webcc

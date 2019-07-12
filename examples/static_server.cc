@@ -11,7 +11,7 @@
 void Help(const char* argv0) {
   std::cout << "Usage: " << argv0 << " <port> <doc_root>" << std::endl;
   std::cout << "  E.g.," << std::endl;
-  std::cout << "    " << argv0 << " 8080 D:/www" << std::endl;
+  std::cout << "    " << argv0 << " 8080 D:\\www" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
