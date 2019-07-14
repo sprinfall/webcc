@@ -135,26 +135,29 @@ private:
 
 // -----------------------------------------------------------------------------
 
+class FormPart;
+using FormPartPtr = std::shared_ptr<FormPart>;
+
 // A part of the multipart form data.
 class FormPart {
 public:
   FormPart() = default;
 
-  // Construct a file part.
-  // The file name will be extracted from path.
-  // The media type, if not provided, will be inferred from file extension.
-  FormPart(const std::string& name, const Path& path,
-           const std::string& media_type = "");
+  FormPart(const FormPart&) = delete;
+  FormPart& operator=(const FormPart&) = delete;
 
   // Construct a non-file part.
   // The data will be moved, no file name is needed.
   // The media type is optional. If the data is a JSON string, you can specify
   // media type as "application/json".
-  FormPart(const std::string& name, std::string&& data,
-           const std::string& media_type = "");
+  static FormPartPtr New(const std::string& name, std::string&& data,
+                         const std::string& media_type = "");
 
-  FormPart(const FormPart&) = delete;
-  FormPart& operator=(const FormPart&) = delete;
+  // Construct a file part.
+  // The file name will be extracted from path.
+  // The media type, if not provided, will be inferred from file extension.
+  static FormPartPtr NewFile(const std::string& name, const Path& path,
+                             const std::string& media_type = "");
 
   // API: SERVER
   const std::string& name() const {
@@ -242,8 +245,6 @@ private:
 
   std::string data_;
 };
-
-using FormPartPtr = std::shared_ptr<FormPart>;
 
 }  // namespace webcc
 

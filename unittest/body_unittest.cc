@@ -4,7 +4,7 @@
 
 TEST(FormBodyTest, Payload) {
   std::vector<webcc::FormPartPtr> parts{
-    std::make_shared<webcc::FormPart>("json", "{}", "application/json")
+    webcc::FormPart::New("json", "{}", "application/json")
   };
 
   webcc::FormBody form_body{ parts, "123456" };

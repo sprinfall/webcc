@@ -55,8 +55,7 @@ RequestBuilder& RequestBuilder::File(const std::string& name,
                                      const Path& path,
                                      const std::string& media_type) {
   assert(!name.empty());
-  auto part = std::make_shared<FormPart>(name, path, media_type);
-  form_parts_.push_back(part);
+  form_parts_.push_back(FormPart::NewFile(name, path, media_type));
   return *this;
 }
 
@@ -64,8 +63,7 @@ RequestBuilder& RequestBuilder::Form(const std::string& name,
                                      std::string&& data,
                                      const std::string& media_type) {
   assert(!name.empty());
-  auto part = std::make_shared<FormPart>(name, std::move(data), media_type);
-  form_parts_.push_back(part);
+  form_parts_.push_back(FormPart::New(name, std::move(data), media_type));
   return *this;
 }
 

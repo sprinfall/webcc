@@ -168,24 +168,37 @@ bool ContentDisposition::Init(const std::string& str) {
 
 // -----------------------------------------------------------------------------
 
-FormPart::FormPart(const std::string& name, const Path& path,
-                   const std::string& media_type)
-    : name_(name), path_(path), media_type_(media_type) {
-  // Determine file name from file path.
-  // TODO: encoding
-  file_name_ = path.filename().string(std::codecvt_utf8<wchar_t>());
+FormPartPtr FormPart::New(const std::string& name, std::string&& data,
+                          const std::string& media_type) {
+  auto form_part = std::make_shared<FormPart>();
 
-  // Determine media type from file extension.
-  if (media_type_.empty()) {
-    std::string extension = path.extension().string();
-    // TODO: Default to "application/text"?
-    media_type_ = media_types::FromExtension(extension);
-  }
+  form_part->name_ = name;
+  form_part->data_ = std::move(data);
+  form_part->media_type_ = media_type;
+
+  return form_part;
 }
 
-FormPart::FormPart(const std::string& name, std::string&& data,
-                   const std::string& media_type)
-    : name_(name), data_(std::move(data)), media_type_(media_type) {
+FormPartPtr FormPart::NewFile(const std::string& name, const Path& path,
+                              const std::string& media_type) {
+  auto form_part = std::make_shared<FormPart>();
+
+  form_part->name_ = name;
+  form_part->path_ = path;
+  form_part->media_type_ = media_type;
+
+  // Determine file name from file path.
+  // TODO: encoding
+  form_part->file_name_ = path.filename().string(std::codecvt_utf8<wchar_t>());
+
+  // Determine media type from file extension.
+  // TODO: Default to "application/text"?
+  if (form_part->media_type_.empty()) {
+    auto ext = path.extension().string();
+    form_part->media_type_ = media_types::FromExtension(ext);
+  }
+
+  return form_part;
 }
 
 void FormPart::Prepare(Payload* payload) {
