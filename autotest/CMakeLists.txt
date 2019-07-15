@@ -7,7 +7,14 @@ set(AT_SRCS
 set(AT_TARGET_NAME webcc_autotest)
 
 # Common libraries to link.
-set(AT_LIBS webcc jsoncpp gtest ${Boost_LIBRARIES} "${CMAKE_THREAD_LIBS_INIT}")
+set(AT_LIBS
+    webcc
+    jsoncpp
+    gtest
+    Boost::filesystem
+    Boost::system
+    Boost::date_time
+    "${CMAKE_THREAD_LIBS_INIT}")
 
 if(WEBCC_ENABLE_SSL)
     set(AT_LIBS ${AT_LIBS} ${OPENSSL_LIBRARIES})

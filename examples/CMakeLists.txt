@@ -1,7 +1,12 @@
 # Examples
 
 # Common libraries to link for examples.
-set(EXAMPLE_LIBS webcc ${Boost_LIBRARIES} "${CMAKE_THREAD_LIBS_INIT}")
+set(EXAMPLE_LIBS
+    webcc
+    Boost::filesystem
+    Boost::system
+    Boost::date_time
+    "${CMAKE_THREAD_LIBS_INIT}")
 
 if(WEBCC_ENABLE_SSL)
     set(EXAMPLE_LIBS ${EXAMPLE_LIBS} ${OPENSSL_LIBRARIES})
