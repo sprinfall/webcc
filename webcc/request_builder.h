@@ -121,7 +121,7 @@ public:
   RequestBuilder& Auth(const std::string& type, const std::string& credentials);
 
   RequestBuilder& AuthBasic(const std::string& login,
-                             const std::string& password);
+                            const std::string& password);
 
   RequestBuilder& AuthToken(const std::string& token);
 

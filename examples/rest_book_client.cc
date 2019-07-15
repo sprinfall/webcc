@@ -273,5 +273,8 @@ int main(int argc, char* argv[]) {
     PrintBookList(books);
   }
 
+  std::cout << "Press any key to exit: ";
+  std::getchar();
+
   return 0;
 }

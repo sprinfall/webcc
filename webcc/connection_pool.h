@@ -20,7 +20,7 @@ public:
   // Close a connection.
   void Close(ConnectionPtr c);
 
-  // Close all connections.
+  // Close all pending connections.
   void CloseAll();
 
 private:

@@ -26,15 +26,14 @@ public:
       std::function<void(boost::system::error_code, std::size_t)>;
 
   // TODO: Remove |host|
-  virtual bool Connect(const std::string& host, const Endpoints& endpoints,
-                       boost::system::error_code* ec) = 0;
+  virtual bool Connect(const std::string& host, const Endpoints& endpoints) = 0;
 
   virtual bool Write(const Payload& payload, boost::system::error_code* ec) = 0;
 
   virtual void AsyncReadSome(ReadHandler&& handler,
                              std::vector<char>* buffer) = 0;
 
-  virtual void Close(boost::system::error_code* ec) = 0;
+  virtual bool Close() = 0;
 };
 
 // -----------------------------------------------------------------------------
@@ -43,14 +42,13 @@ class Socket : public SocketBase {
 public:
   explicit Socket(boost::asio::io_context& io_context);
 
-  bool Connect(const std::string& host, const Endpoints& endpoints,
-               boost::system::error_code* ec) override;
+  bool Connect(const std::string& host, const Endpoints& endpoints) override;
 
   bool Write(const Payload& payload, boost::system::error_code* ec) override;
 
   void AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) override;
 
-  void Close(boost::system::error_code* ec) override;
+  bool Close() override;
 
 private:
   boost::asio::ip::tcp::socket socket_;
@@ -65,17 +63,16 @@ public:
   explicit SslSocket(boost::asio::io_context& io_context,
                      bool ssl_verify = true);
 
-  bool Connect(const std::string& host, const Endpoints& endpoints,
-               boost::system::error_code* ec) override;
+  bool Connect(const std::string& host, const Endpoints& endpoints) override;
 
   bool Write(const Payload& payload, boost::system::error_code* ec) override;
 
   void AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) override;
 
-  void Close(boost::system::error_code* ec) override;
+  bool Close() override;
 
 private:
-  bool Handshake(const std::string& host, boost::system::error_code* ec);
+  bool Handshake(const std::string& host);
 
   boost::asio::ssl::context ssl_context_;
 

@@ -20,9 +20,8 @@ using tcp = boost::asio::ip::tcp;
 
 namespace webcc {
 
-Server::Server(std::uint16_t port, std::size_t workers, const Path& doc_root)
-    : acceptor_(io_context_), signals_(io_context_), workers_(workers),
-      doc_root_(doc_root) {
+Server::Server(std::uint16_t port, const Path& doc_root)
+    : acceptor_(io_context_), signals_(io_context_), doc_root_(doc_root) {
   RegisterSignals();
 
   boost::system::error_code ec;
@@ -89,7 +88,10 @@ bool Server::Route(const UrlRegex& regex_url, ViewPtr view,
   return true;
 }
 
-void Server::Run() {
+void Server::Start(std::size_t workers) {
+  assert(workers > 0);
+  assert(worker_threads_.empty());
+
   if (!acceptor_.is_open()) {
     LOG_ERRO("Server is NOT going to run.");
     return;
@@ -101,13 +103,12 @@ void Server::Run() {
 
   DoAccept();
 
-  // Start worker threads.
-  assert(workers_ > 0 && worker_threads_.empty());
-
-  for (std::size_t i = 0; i < workers_; ++i) {
+  // Create worker threads.
+  for (std::size_t i = 0; i < workers; ++i) {
     worker_threads_.emplace_back(std::bind(&Server::WorkerRoutine, this));
   }
 
+  // Run the loop.
   // The io_context::run() call will block until all asynchronous operations
   // have finished. While the server is running, there is always at least one
   // asynchronous operation outstanding: the asynchronous accept call waiting
@@ -116,23 +117,14 @@ void Server::Run() {
 }
 
 void Server::Stop() {
-  LOG_INFO("Stopping workers...");
+  // Stop listener.
+  acceptor_.close();
 
-  // Clear pending connections.
-  // The connections will be closed later (see Server::DoAwaitStop).
-  LOG_INFO("Clear pending connections...");
-  queue_.Clear();
+  // Stop worker threads.
+  StopWorkers();
 
-  // Enqueue a null connection to trigger the first worker to stop.
-  queue_.Push(ConnectionPtr());
-
-  for (auto& thread : worker_threads_) {
-    if (thread.joinable()) {
-      thread.join();
-    }
-  }
-
-  LOG_INFO("All workers have been stopped.");
+  // Close all pending connections.
+  pool_.CloseAll();
 }
 
 void Server::Enqueue(ConnectionPtr connection) {
@@ -178,13 +170,7 @@ void Server::DoAwaitStop() {
         // call will exit.
         LOG_INFO("On signal %d, stopping the server...", signo);
 
-        acceptor_.close();
-
-        // Stop worker threads.
         Stop();
-
-        // Close all connections.
-        pool_.CloseAll();
       });
 }
 
@@ -206,6 +192,26 @@ void Server::WorkerRoutine() {
 
     Handle(connection);
   }
+}
+
+void Server::StopWorkers() {
+  LOG_INFO("Stopping workers...");
+
+  // Clear pending connections.
+  // The connections will be closed later (see Server::DoAwaitStop).
+  LOG_INFO("Clear pending connections...");
+  queue_.Clear();
+
+  // Enqueue a null connection to trigger the first worker to stop.
+  queue_.Push(ConnectionPtr());
+
+  for (auto& t : worker_threads_) {
+    if (t.joinable()) {
+      t.join();
+    }
+  }
+
+  LOG_INFO("All workers have been stopped.");
 }
 
 void Server::Handle(ConnectionPtr connection) {

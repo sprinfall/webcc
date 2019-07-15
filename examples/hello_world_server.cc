@@ -1,3 +1,4 @@
+#include "webcc/logger.h"
 #include "webcc/response_builder.h"
 #include "webcc/server.h"
 
@@ -13,12 +14,14 @@ public:
 };
 
 int main() {
+  WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
+
   try {
     webcc::Server server(8080);
 
     server.Route("/", std::make_shared<HelloView>());
 
-    server.Run();
+    server.Start();
 
   } catch (const std::exception&) {
     return 1;

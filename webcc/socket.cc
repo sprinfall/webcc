@@ -26,13 +26,18 @@ namespace webcc {
 Socket::Socket(boost::asio::io_context& io_context) : socket_(io_context) {
 }
 
-bool Socket::Connect(const std::string& host, const Endpoints& endpoints,
-                     boost::system::error_code* ec) {
+bool Socket::Connect(const std::string& host, const Endpoints& endpoints) {
   boost::ignore_unused(host);
 
-  boost::asio::connect(socket_, endpoints, *ec);
+  boost::system::error_code ec;
+  boost::asio::connect(socket_, endpoints, ec);
 
-  return !(*ec);
+  if (ec) {
+    LOG_ERRO("Socket connect error (%s).", ec.message().c_str());
+    return false;
+  }
+
+  return true;
 }
 
 bool Socket::Write(const Payload& payload, boost::system::error_code* ec) {
@@ -44,8 +49,25 @@ void Socket::AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) {
   socket_.async_read_some(boost::asio::buffer(*buffer), std::move(handler));
 }
 
-void Socket::Close(boost::system::error_code* ec) {
-  socket_.close(*ec);
+bool Socket::Close() {
+  boost::system::error_code ec;
+
+  socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+
+  if (ec) {
+    LOG_WARN("Socket shutdown error (%s).", ec.message().c_str());
+    ec.clear();
+    // Don't return, try to close the socket anywhere.
+  }
+
+  socket_.close(ec);
+
+  if (ec) {
+    LOG_WARN("Socket close error (%s).", ec.message().c_str());
+    return false;
+  }
+
+  return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -104,15 +126,16 @@ SslSocket::SslSocket(boost::asio::io_context& io_context, bool ssl_verify)
 #endif  // defined(_WIN32) || defined(_WIN64)
 }
 
-bool SslSocket::Connect(const std::string& host, const Endpoints& endpoints,
-                        boost::system::error_code* ec) {
-  boost::asio::connect(ssl_socket_.lowest_layer(), endpoints, *ec);
+bool SslSocket::Connect(const std::string& host, const Endpoints& endpoints) {
+  boost::system::error_code ec;
+  boost::asio::connect(ssl_socket_.lowest_layer(), endpoints, ec);
 
-  if (*ec) {
+  if (ec) {
+    LOG_ERRO("Socket connect error (%s).", ec.message().c_str());
     return false;
   }
 
-  return Handshake(host, ec);
+  return Handshake(host);
 }
 
 bool SslSocket::Write(const Payload& payload, boost::system::error_code* ec) {
@@ -125,12 +148,13 @@ void SslSocket::AsyncReadSome(ReadHandler&& handler,
   ssl_socket_.async_read_some(boost::asio::buffer(*buffer), std::move(handler));
 }
 
-void SslSocket::Close(boost::system::error_code* ec) {
-  ssl_socket_.lowest_layer().close(*ec);
+bool SslSocket::Close() {
+  boost::system::error_code ec;
+  ssl_socket_.lowest_layer().close(ec);
+  return !ec;
 }
 
-bool SslSocket::Handshake(const std::string& host,
-                          boost::system::error_code* ec) {
+bool SslSocket::Handshake(const std::string& host) {
   if (ssl_verify_) {
     ssl_socket_.set_verify_mode(ssl::verify_peer);
   } else {
@@ -140,10 +164,11 @@ bool SslSocket::Handshake(const std::string& host,
   ssl_socket_.set_verify_callback(ssl::rfc2818_verification(host));
 
   // Use sync API directly since we don't need timeout control.
-  ssl_socket_.handshake(ssl::stream_base::client, *ec);
+  boost::system::error_code ec;
+  ssl_socket_.handshake(ssl::stream_base::client, ec);
 
-  if (*ec) {
-    LOG_ERRO("Handshake error (%s).", ec->message().c_str());
+  if (ec) {
+    LOG_ERRO("Handshake error (%s).", ec.message().c_str());
     return false;
   }
 

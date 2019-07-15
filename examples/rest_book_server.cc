@@ -227,7 +227,7 @@ int main(int argc, char* argv[]) {
   std::size_t workers = 2;
 
   try {
-    webcc::Server server(port, workers);
+    webcc::Server server(port);
 
     server.Route("/books",
                  std::make_shared<BookListView>(sleep_seconds),
@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
                  std::make_shared<BookDetailView>(sleep_seconds),
                  { "GET", "PUT", "DELETE" });
 
-    server.Run();
+    server.Start(workers);
 
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;

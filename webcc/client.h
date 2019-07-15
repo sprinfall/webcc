@@ -65,7 +65,7 @@ private:
 
   void DoConnect(RequestPtr request, const std::string& default_port);
 
-  void WriteReqeust(RequestPtr request);
+  void WriteRequest(RequestPtr request);
 
   void ReadResponse();
 

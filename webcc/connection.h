@@ -38,10 +38,14 @@ public:
   void Close();
 
   // Send a response to the client.
-  void SendResponse(ResponsePtr response);
+  // `Connection` header will be set to "Close" if |no_keep_alive| is true no
+  // matter whether the client asked for Keep-Alive or not.
+  void SendResponse(ResponsePtr response, bool no_keep_alive = false);
 
   // Send a response with the given status and an empty body to the client.
-  void SendResponse(Status status);
+  // `Connection` header will be set to "Close" if |no_keep_alive| is true no
+  // matter whether the client asked for Keep-Alive or not.
+  void SendResponse(Status status, bool no_keep_alive = false);
 
 private:
   void DoRead();
@@ -53,9 +57,6 @@ private:
   void OnWriteBody(boost::system::error_code ec, std::size_t length);
   void OnWriteOK();
   void OnWriteError(boost::system::error_code ec);
-
-  // Shutdown the socket.
-  void Shutdown();
 
   // The socket for the connection.
   boost::asio::ip::tcp::socket socket_;

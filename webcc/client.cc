@@ -21,12 +21,15 @@ Error Client::Request(RequestPtr request, bool connect) {
   // Response to HEAD could also have Content-Length.
   // Set this flag to skip the reading and parsing of the body.
   // The test against HttpBin.org shows that:
-  //   - If request.Accept-Encoding is "gzip, deflate", the response doesn't
+  //   - If request.Accept-Encoding is "gzip, deflate", the response won't
   //     have Content-Length;
-  //   - If request.Accept-Encoding is "identity", the response do have
+  //   - If request.Accept-Encoding is "identity", the response will have
   //     Content-Length.
   if (request->method() == methods::kHead) {
     response_parser_.set_ignroe_body(true);
+  } else {
+    // Reset in case the connection is persistent.
+    response_parser_.set_ignroe_body(false);
   }
 
   if (connect) {
@@ -38,7 +41,7 @@ Error Client::Request(RequestPtr request, bool connect) {
     }
   }
 
-  WriteReqeust(request);
+  WriteRequest(request);
 
   if (error_) {
     return error_;
@@ -58,12 +61,7 @@ void Client::Close() {
 
   LOG_INFO("Close socket...");
 
-  boost::system::error_code ec;
-  socket_->Close(&ec);
-
-  if (ec) {
-    LOG_ERRO("Socket close error (%s).", ec.message().c_str());
-  }
+  socket_->Close();
 }
 
 void Client::Restart() {
@@ -112,23 +110,23 @@ void Client::DoConnect(RequestPtr request, const std::string& default_port) {
     LOG_ERRO("Host resolve error (%s): %s, %s.", ec.message().c_str(),
              request->host().c_str(), port.c_str());
     error_.Set(Error::kResolveError, "Host resolve error");
+    return;
   }
 
   LOG_VERB("Connect to server...");
 
   // Use sync API directly since we don't need timeout control.
 
-  if (!socket_->Connect(request->host(), endpoints, &ec)) {
-    LOG_ERRO("Socket connect error (%s).", ec.message().c_str());
-    Close();
-    // TODO: Handshake error
+  if (!socket_->Connect(request->host(), endpoints)) {
     error_.Set(Error::kConnectError, "Endpoint connect error");
+    Close();
+    return;
   }
 
   LOG_VERB("Socket connected.");
 }
 
-void Client::WriteReqeust(RequestPtr request) {
+void Client::WriteRequest(RequestPtr request) {
   LOG_VERB("HTTP request:\n%s", request->Dump().c_str());
 
   // NOTE:

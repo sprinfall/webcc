@@ -15,6 +15,7 @@ namespace webcc {
 
 class Body {
 public:
+  Body() = default;
   virtual ~Body() = default;
 
   // Get the size in bytes of the body.

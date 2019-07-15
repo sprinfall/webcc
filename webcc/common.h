@@ -28,9 +28,9 @@ public:
     return headers_;
   }
 
-  void Set(const std::string& key, const std::string& value);
+  bool Set(const std::string& key, const std::string& value);
 
-  void Set(std::string&& key, std::string&& value);
+  bool Set(std::string&& key, std::string&& value);
 
   bool Has(const std::string& key) const;
 

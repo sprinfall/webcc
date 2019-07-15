@@ -48,14 +48,12 @@ int main(int argc, char* argv[]) {
 
   std::uint16_t port = static_cast<std::uint16_t>(std::atoi(argv[1]));
 
-  std::size_t workers = 2;
-
   try {
-    webcc::Server server(port, workers);
+    webcc::Server server(port);
 
     server.Route("/upload", std::make_shared<FileUploadView>(), { "POST" });
 
-    server.Run();
+    server.Start();
 
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;

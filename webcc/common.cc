@@ -11,22 +11,34 @@ namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-void Headers::Set(const std::string& key, const std::string& value) {
+bool Headers::Set(const std::string& key, const std::string& value) {
+  if (value.empty()) {
+    return false;
+  }
+
   auto it = Find(key);
   if (it != headers_.end()) {
     it->second = value;
   } else {
     headers_.push_back({ key, value });
   }
+
+  return true;
 }
 
-void Headers::Set(std::string&& key, std::string&& value) {
+bool Headers::Set(std::string&& key, std::string&& value) {
+  if (value.empty()) {
+    return false;
+  }
+
   auto it = Find(key);
   if (it != headers_.end()) {
     it->second = std::move(value);
   } else {
     headers_.push_back({ std::move(key), std::move(value) });
   }
+
+  return true;
 }
 
 bool Headers::Has(const std::string& key) const {

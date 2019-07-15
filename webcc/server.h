@@ -19,8 +19,7 @@ namespace webcc {
 
 class Server {
 public:
-  explicit Server(std::uint16_t port, std::size_t workers = 1,
-                  const Path& doc_root = {});
+  explicit Server(std::uint16_t port, const Path& doc_root = {});
 
   virtual ~Server() = default;
 
@@ -38,10 +37,10 @@ public:
   bool Route(const UrlRegex& regex_url, ViewPtr view,
              const Strings& methods = { "GET" });
 
-  // Run the loop.
-  void Run();
+  // Start the server with a given number of worker threads.
+  void Start(std::size_t workers = 1);
 
-  // Clear pending connections from the queue and stop worker threads.
+  // Stop the server.
   void Stop();
 
   // Put the connection into the queue.
@@ -57,7 +56,11 @@ private:
   // Wait for a request to stop the server.
   void DoAwaitStop();
 
+  // Worker thread routine.
   void WorkerRoutine();
+
+  // Clear pending connections from the queue and stop worker threads.
+  void StopWorkers();
 
   // Handle a connection (or more precisely, the request inside it).
   // Get the request from the connection, process it, prepare the response,
@@ -93,9 +96,6 @@ private:
   // The signals for processing termination notifications.
   boost::asio::signal_set signals_;
 
-  // The number of worker threads.
-  std::size_t workers_;
-
   // Worker threads.
   std::vector<std::thread> worker_threads_;
 
@@ -105,6 +105,7 @@ private:
   // The queue with connection waiting for the workers to process.
   Queue<ConnectionPtr> queue_;
 
+  // Route table.
   std::vector<RouteInfo> routes_;
 };
 

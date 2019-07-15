@@ -1,3 +1,4 @@
+#include <cassert>
 #include <iostream>
 
 #include "webcc/client_session.h"
@@ -11,8 +12,6 @@ int main() {
   webcc::ResponsePtr r;
 
   try {
-    r = session.Head("http://httpbin.org/get");
-
     r = session.Request(webcc::RequestBuilder{}.
                         Get("http://httpbin.org/get").
                         Query("key1", "value1").
@@ -21,9 +20,15 @@ int main() {
                         Header("Accept", "application/json")
                         ());
 
+    assert(r->status() == webcc::Status::kOK);
+    assert(!r->data().empty());
+
     r = session.Get("http://httpbin.org/get",
                     { "key1", "value1", "key2", "value2" },
                     { "Accept", "application/json" });
+
+    assert(r->status() == webcc::Status::kOK);
+    assert(!r->data().empty());
 
     r = session.Request(webcc::RequestBuilder{}.
                         Post("http://httpbin.org/post").
@@ -31,9 +36,15 @@ int main() {
                         Json().Utf8()
                         ());
 
+    assert(r->status() == webcc::Status::kOK);
+    assert(!r->data().empty());
+
 #if WEBCC_ENABLE_SSL
 
     r = session.Get("https://httpbin.org/get");
+
+    assert(r->status() == webcc::Status::kOK);
+    assert(!r->data().empty());
 
 #endif  // WEBCC_ENABLE_SSL
 

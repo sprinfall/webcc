@@ -26,9 +26,9 @@ int main(int argc, char* argv[]) {
   std::string doc_root = argv[2];
 
   try {
-    webcc::Server server(port, 1, doc_root);
+    webcc::Server server(port, doc_root);
 
-    server.Run();
+    server.Start();
 
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;

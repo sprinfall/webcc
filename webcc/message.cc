@@ -85,10 +85,12 @@ void Message::SetContentType(const std::string& media_type,
                              const std::string& charset) {
   using headers::kContentType;
 
-  if (charset.empty()) {
-    SetHeader(kContentType, media_type);
-  } else {
-    SetHeader(kContentType, media_type + "; charset=" + charset);
+  if (!media_type.empty()) {
+    if (charset.empty()) {
+      SetHeader(kContentType, media_type);
+    } else {
+      SetHeader(kContentType, media_type + "; charset=" + charset);
+    }
   }
 }
 

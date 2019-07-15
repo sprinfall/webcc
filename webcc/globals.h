@@ -186,7 +186,6 @@ class Error {
     kSyntaxError,
     kResolveError,
     kConnectError,
-    kHandshakeError,
     kSocketReadError,
     kSocketWriteError,
     kParseError,

@@ -238,14 +238,17 @@ int main(int argc, char* argv[]) {
   // ...
 
   try {
-    webcc::Server server(8080, 2);
+    webcc::Server server(8080);
 
-    server.Route("/books", std::make_shared<BookListView>(), { "GET", "POST" });
+    server.Route("/books",
+                 std::make_shared<BookListView>(),
+                 { "GET", "POST" });
 
-    server.Route(webcc::R("/books/(\\d+)"), std::make_shared<BookDetailView>(),
+    server.Route(webcc::R("/books/(\\d+)"),
+                 std::make_shared<BookDetailView>(),
                  { "GET", "PUT", "DELETE" });
 
-    server.Run();
+    server.Start();
 
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;

@@ -17,11 +17,13 @@ void ConnectionPool::Close(ConnectionPtr c) {
 }
 
 void ConnectionPool::CloseAll() {
-  LOG_VERB("Closing all (%u) connections...", connections_.size());
-  for (auto& c : connections_) {
-    c->Close();
+  if (!connections_.empty()) {
+    LOG_VERB("Closing all (%u) connections...", connections_.size());
+    for (auto& c : connections_) {
+      c->Close();
+    }
+    connections_.clear();
   }
-  connections_.clear();
 }
 
 }  // namespace webcc
