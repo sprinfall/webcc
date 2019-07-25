@@ -124,7 +124,7 @@ int main() {
 
     server.Route("/", std::make_shared<HelloView>());
 
-    server.Run();
+    server.Start();
 
   } catch (const std::exception&) {
     return 1;
