@@ -174,32 +174,49 @@ void Client::ReadResponse() {
 
 void Client::DoReadResponse() {
   boost::system::error_code ec = boost::asio::error::would_block;
+  std::size_t length = 0;
 
-  auto handler = [this, &ec](boost::system::error_code inner_ec,
-                             std::size_t length) {
+  // The read handler.
+  auto handler = [&ec, &length](boost::system::error_code inner_ec,
+                                std::size_t inner_length) {
     ec = inner_ec;
+    length = inner_length;
+  };
 
-    LOG_VERB("Socket async read handler.");
+  // Read the first piece of data asynchronously so that the timer could also
+  // be async-waited.
+  socket_->AsyncReadSome(std::move(handler), &buffer_);
 
-    // Stop the deadline timer once the read has started (or failed).
-    CancelTimer();
+  // Block until the asynchronous operation has completed.
+  do {
+    io_context_.run_one();
+  } while (ec == boost::asio::error::would_block);
 
-    // TODO: Is it necessary to check `length == 0`?
+  // Now we have read the first piece of data.
+  // The left data will be read synchronously to void stack overflow because of
+  // too many recursive calls.
+
+  // Stop the timer.
+  CancelTimer();
+
+  do {
     if (ec || length == 0) {
+      // For the first async-read, the error normally is caused by timeout.
+      // See OnTimer().
       Close();
       error_.Set(Error::kSocketReadError, "Socket read error");
       LOG_ERRO("Socket read error (%s).", ec.message().c_str());
-      return;
+      break;
     }
 
     LOG_INFO("Read data, length: %u.", length);
 
-    // Parse the response piece just read.
+    // Parse the piece of data just read.
     if (!response_parser_.Parse(buffer_.data(), length)) {
       Close();
       error_.Set(Error::kParseError, "HTTP parse error");
-      LOG_ERRO("Failed to parse HTTP response.");
-      return;
+      LOG_ERRO("Failed to parse the HTTP response.");
+      break;
     }
 
     if (response_parser_.finished()) {
@@ -213,23 +230,15 @@ void Client::DoReadResponse() {
         Close();
       }
 
-      LOG_INFO("Finished to read and parse HTTP response.");
-
       // Stop reading.
-      return;
+      LOG_INFO("Finished to read the HTTP response.");
+      break;
     }
 
-    if (!closed_) {
-      DoReadResponse();
-    }
-  };
+    // Read next piece of data synchronously.
+    socket_->ReadSome(&buffer_, &length, &ec);
 
-  socket_->AsyncReadSome(std::move(handler), &buffer_);
-
-  // Block until the asynchronous operation has completed.
-  do {
-    io_context_.run_one();
-  } while (ec == boost::asio::error::would_block);
+  } while (true);
 }
 
 void Client::DoWaitTimer() {

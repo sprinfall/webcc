@@ -45,6 +45,12 @@ bool Socket::Write(const Payload& payload, boost::system::error_code* ec) {
   return !(*ec);
 }
 
+bool Socket::ReadSome(std::vector<char>* buffer, std::size_t* size,
+                      boost::system::error_code* ec) {
+  *size = socket_.read_some(boost::asio::buffer(*buffer), *ec);
+  return (*size != 0 && !(*ec));
+}
+
 void Socket::AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) {
   socket_.async_read_some(boost::asio::buffer(*buffer), std::move(handler));
 }
@@ -141,6 +147,12 @@ bool SslSocket::Connect(const std::string& host, const Endpoints& endpoints) {
 bool SslSocket::Write(const Payload& payload, boost::system::error_code* ec) {
   boost::asio::write(ssl_socket_, payload, *ec);
   return !(*ec);
+}
+
+bool SslSocket::ReadSome(std::vector<char>* buffer, std::size_t* size,
+                         boost::system::error_code* ec) {
+  *size = ssl_socket_.read_some(boost::asio::buffer(*buffer), *ec);
+  return (*size != 0 && !(*ec));
 }
 
 void SslSocket::AsyncReadSome(ReadHandler&& handler,

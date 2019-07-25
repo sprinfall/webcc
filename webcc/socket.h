@@ -30,6 +30,9 @@ public:
 
   virtual bool Write(const Payload& payload, boost::system::error_code* ec) = 0;
 
+  virtual bool ReadSome(std::vector<char>* buffer, std::size_t* size,
+                        boost::system::error_code* ec) = 0;
+
   virtual void AsyncReadSome(ReadHandler&& handler,
                              std::vector<char>* buffer) = 0;
 
@@ -45,6 +48,9 @@ public:
   bool Connect(const std::string& host, const Endpoints& endpoints) override;
 
   bool Write(const Payload& payload, boost::system::error_code* ec) override;
+
+  bool ReadSome(std::vector<char>* buffer, std::size_t* size,
+                boost::system::error_code* ec) override;
 
   void AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) override;
 
@@ -66,6 +72,9 @@ public:
   bool Connect(const std::string& host, const Endpoints& endpoints) override;
 
   bool Write(const Payload& payload, boost::system::error_code* ec) override;
+
+  bool ReadSome(std::vector<char>* buffer, std::size_t* size,
+                boost::system::error_code* ec) override;
 
   void AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) override;
 
