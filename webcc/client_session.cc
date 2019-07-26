@@ -7,6 +7,12 @@
 
 namespace webcc {
 
+ClientSession::ClientSession(int timeout, bool ssl_verify,
+                             std::size_t buffer_size)
+    : timeout_(timeout), ssl_verify_(ssl_verify), buffer_size_(buffer_size) {
+  InitHeaders();
+}
+
 void ClientSession::Auth(const std::string& type,
                          const std::string& credentials) {
   headers_.Set(headers::kAuthorization, type + " " + credentials);

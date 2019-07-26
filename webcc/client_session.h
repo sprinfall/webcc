@@ -15,11 +15,16 @@ namespace webcc {
 // session for each thread instead.
 class ClientSession {
 public:
-  ClientSession() {
-    InitHeaders();
-  }
+  explicit ClientSession(int timeout = 0, bool ssl_verify = true,
+                         std::size_t buffer_size = 0);
 
   ~ClientSession() = default;
+
+  void set_timeout(int timeout) {
+    if (timeout > 0) {
+      timeout_ = timeout;
+    }
+  }
 
   void set_ssl_verify(bool ssl_verify) {
     ssl_verify_ = ssl_verify;
@@ -27,12 +32,6 @@ public:
 
   void set_buffer_size(std::size_t buffer_size) {
     buffer_size_ = buffer_size;
-  }
-
-  void set_timeout(int timeout) {
-    if (timeout > 0) {
-      timeout_ = timeout;
-    }
   }
 
   void SetHeader(const std::string& key, const std::string& value) {
@@ -100,15 +99,15 @@ private:
   // Additional headers for each request.
   Headers headers_;
 
+  // Timeout in seconds for receiving response.
+  int timeout_;
+
   // Verify the certificate of the peer or not.
-  bool ssl_verify_ = true;
+  bool ssl_verify_;
 
   // The size of the buffer for reading response.
   // 0 means default value will be used.
-  std::size_t buffer_size_ = 0;
-
-  // Timeout in seconds for receiving response.
-  int timeout_ = 0;
+  std::size_t buffer_size_;
 
   // Pool for Keep-Alive client connections.
   ClientPool pool_;

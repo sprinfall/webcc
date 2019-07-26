@@ -87,7 +87,7 @@ void Connection::DoRead() {
 void Connection::OnRead(boost::system::error_code ec, std::size_t length) {
   if (ec) {
     if (ec == boost::asio::error::eof) {
-      LOG_WARN("Socket read EOF (%s).", ec.message().c_str());
+      LOG_INFO("Socket read EOF (%s).", ec.message().c_str());
     } else if (ec == boost::asio::error::operation_aborted) {
       // The socket of this connection has been closed.
       // This happens, e.g., when the server was stopped by a signal (Ctrl-C).
