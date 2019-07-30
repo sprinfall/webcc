@@ -8,19 +8,23 @@
 #include "boost/asio/ip/tcp.hpp"
 
 #include "webcc/globals.h"
+#include "webcc/queue.h"
 #include "webcc/request.h"
 #include "webcc/request_parser.h"
 #include "webcc/response.h"
 
 namespace webcc {
 
+class Connection;
 class ConnectionPool;
 class Server;
+
+using ConnectionPtr = std::shared_ptr<Connection>;
 
 class Connection : public std::enable_shared_from_this<Connection> {
 public:
   Connection(boost::asio::ip::tcp::socket socket, ConnectionPool* pool,
-             Server* server);
+             Queue<ConnectionPtr>* queue);
 
   ~Connection() = default;
 
@@ -61,14 +65,14 @@ private:
   // The socket for the connection.
   boost::asio::ip::tcp::socket socket_;
 
-  // The pool for this connection.
+  // The connection pool.
   ConnectionPool* pool_;
+
+  // The connection queue.
+  Queue<ConnectionPtr>* queue_;
 
   // The buffer for incoming data.
   std::vector<char> buffer_;
-
-  // The server.
-  Server* server_;
 
   // The incoming request.
   RequestPtr request_;
@@ -79,8 +83,6 @@ private:
   // The response to be sent back to the client.
   ResponsePtr response_;
 };
-
-using ConnectionPtr = std::shared_ptr<Connection>;
 
 }  // namespace webcc
 

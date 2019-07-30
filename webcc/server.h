@@ -21,7 +21,7 @@ class Server {
 public:
   explicit Server(std::uint16_t port, const Path& doc_root = {});
 
-  virtual ~Server() = default;
+  ~Server() = default;
 
   Server(const Server&) = delete;
   Server& operator=(const Server&) = delete;
@@ -37,24 +37,43 @@ public:
   bool Route(const UrlRegex& regex_url, ViewPtr view,
              const Strings& methods = { "GET" });
 
-  // Start the server with a given number of worker threads.
-  void Start(std::size_t workers = 1);
+  // Start and run the server.
+  // This method is blocking so will not return until Stop() is called (from
+  // another thread) or a signal like SIGINT is caught.
+  // When the request of a connection has been read, the connection is put into
+  // a queue waiting for some worker thread to process. Normally, the more
+  // |workers| you have, the more concurrency you gain (the concurrency also
+  // depends on the number of CPU cores). The worker thread pops connections
+  // from the queue one by one, prepares the response by the user provided View,
+  // then sends it back to the client.
+  // Meanwhile, the (event) loop, i.e., io_context, is also running in a number
+  // (|loops|) of threads. Normally, one thread for the loop is good enough, but
+  // it could be more than that.
+  void Run(std::size_t workers = 1, std::size_t loops = 1);
 
   // Stop the server.
+  // This should be called from another thread since the Run() is blocking.
   void Stop();
 
-  // Put the connection into the queue.
-  void Enqueue(ConnectionPtr connection);
+  // Is the server running?
+  bool IsRunning() const;
 
 private:
-  // Register to handle the signals that indicate when the server should exit.
-  void RegisterSignals();
+  // Register signals which indicate when the server should exit.
+  void AddSignals();
 
-  // Initiate an asynchronous accept operation.
-  void DoAccept();
+  // Wait for a signal to stop the server.
+  void AsyncWaitSignals();
 
-  // Wait for a request to stop the server.
-  void DoAwaitStop();
+  // Listen on the given port.
+  bool Listen(std::uint16_t port);
+
+  // Accept connections asynchronously.
+  void AsyncAccept();
+
+  // Stop acceptor and worker threads, close all pending connections, and
+  // finally stop the event loop.
+  void DoStop();
 
   // Worker thread routine.
   void WorkerRoutine();
@@ -84,6 +103,18 @@ private:
     Strings methods;
   };
 
+  // Port number.
+  std::uint16_t port_;
+
+  // The directory with the static files to be served.
+  Path doc_root_;
+
+  // Is the server running?
+  bool running_;
+
+  // The mutex for guarding the state of the server.
+  std::mutex state_mutex_;
+
   // The io_context used to perform asynchronous operations.
   boost::asio::io_context io_context_;
 
@@ -98,9 +129,6 @@ private:
 
   // Worker threads.
   std::vector<std::thread> worker_threads_;
-
-  // The directory with the static files to be served.
-  Path doc_root_;
 
   // The queue with connection waiting for the workers to process.
   Queue<ConnectionPtr> queue_;

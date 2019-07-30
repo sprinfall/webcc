@@ -224,8 +224,6 @@ int main(int argc, char* argv[]) {
     sleep_seconds = std::atoi(argv[2]);
   }
 
-  std::size_t workers = 2;
-
   try {
     webcc::Server server(port);
 
@@ -237,7 +235,7 @@ int main(int argc, char* argv[]) {
                  std::make_shared<BookDetailView>(sleep_seconds),
                  { "GET", "PUT", "DELETE" });
 
-    server.Start(workers);
+    server.Run(2);
 
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;

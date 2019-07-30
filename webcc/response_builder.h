@@ -30,11 +30,34 @@ public:
   // consistency and simplicity.
 
   // Some shortcuts for different status codes:
-  ResponseBuilder& OK() { return Code(Status::kOK); }
-  ResponseBuilder& Created() { return Code(Status::kCreated); }
-  ResponseBuilder& BadRequest() { return Code(Status::kBadRequest); }
-  ResponseBuilder& NotFound() { return Code(Status::kNotFound); }
-  ResponseBuilder& NotImplemented() { return Code(Status::kNotImplemented); }
+
+  ResponseBuilder& OK() {
+    return Code(Status::kOK);
+  }
+
+  ResponseBuilder& Created() {
+    return Code(Status::kCreated);
+  }
+
+  ResponseBuilder& BadRequest() {
+    return Code(Status::kBadRequest);
+  }
+
+  ResponseBuilder& NotFound() {
+    return Code(Status::kNotFound);
+  }
+
+  ResponseBuilder& InternalServerError() {
+    return Code(Status::kInternalServerError);
+  }
+
+  ResponseBuilder& NotImplemented() {
+    return Code(Status::kNotImplemented);
+  }
+
+  ResponseBuilder& ServiceUnavailable() {
+    return Code(Status::kServiceUnavailable);
+  }
 
   ResponseBuilder& Code(Status code) {
     code_ = code;

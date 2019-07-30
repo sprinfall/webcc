@@ -19,152 +19,154 @@
 
 // -----------------------------------------------------------------------------
 
-class BookClientBase {
+class BookClient {
 public:
-  BookClientBase(webcc::ClientSession& session, const std::string& url)
-      : session_(session), url_(url) {
-  }
+  explicit BookClient(const std::string& url, int timeout = 0);
 
-  virtual ~BookClientBase() = default;
+  ~BookClient() = default;
 
-protected:
-  // Check HTTP response status.
-  bool CheckStatus(webcc::ResponsePtr response, int expected_status) {
-    int status = response->status();
-    if (status != expected_status) {
-      LOG_ERRO("HTTP status error (actual: %d, expected: %d).",
-               status, expected_status);
-      return false;
-    }
-    return true;
-  }
+  bool ListBooks(std::list<Book>* books);
 
-protected:
-  std::string url_;
+  bool CreateBook(const std::string& title, double price, std::string* id);
 
-  webcc::ClientSession& session_;
-};
-
-// -----------------------------------------------------------------------------
-
-class BookListClient : public BookClientBase {
-public:
-  BookListClient(webcc::ClientSession& session, const std::string& url)
-      : BookClientBase(session, url) {
-  }
-
-  bool ListBooks(std::list<Book>* books) {
-    try {
-      auto r = session_.Get(url_ + "/books");
-      
-      if (!CheckStatus(r, webcc::Status::kOK)) {
-        // Response HTTP status error.
-        return false;
-      }
-
-      Json::Value rsp_json = StringToJson(r->data());
-
-      if (!rsp_json.isArray()) {
-        return false;  // Should be a JSON array of books.
-      }
-
-      for (Json::ArrayIndex i = 0; i < rsp_json.size(); ++i) {
-        books->push_back(JsonToBook(rsp_json[i]));
-      }
-
-      return true;
-
-    } catch (const webcc::Error& error) {
-      std::cerr << error << std::endl;
-      return false;
-    }
-  }
-
-  bool CreateBook(const std::string& title, double price, std::string* id) {
-    Json::Value req_json;
-    req_json["title"] = title;
-    req_json["price"] = price;
-
-    try {
-      auto r = session_.Post(url_ + "/books", JsonToString(req_json), true);
-
-      if (!CheckStatus(r, webcc::Status::kCreated)) {
-        return false;
-      }
-
-      Json::Value rsp_json = StringToJson(r->data());
-      *id = rsp_json["id"].asString();
-
-      return !id->empty();
-
-    } catch (const webcc::Error& error) {
-      std::cerr << error << std::endl;
-      return false;
-    }
-  }
-};
-
-// -----------------------------------------------------------------------------
-
-class BookDetailClient : public BookClientBase {
-public:
-  BookDetailClient(webcc::ClientSession& session, const std::string& url)
-      : BookClientBase(session, url) {
-  }
-
-  bool GetBook(const std::string& id, Book* book) {
-    try {
-      auto r = session_.Get(url_ + "/books/" + id);
-
-      if (!CheckStatus(r, webcc::Status::kOK)) {
-        return false;
-      }
-
-      return JsonStringToBook(r->data(), book);
-
-    } catch (const webcc::Error& error) {
-      std::cerr << error << std::endl;
-      return false;
-    }
-  }
+  bool GetBook(const std::string& id, Book* book);
 
   bool UpdateBook(const std::string& id, const std::string& title,
-                  double price) {
-    Json::Value json;
-    json["title"] = title;
-    json["price"] = price;
+                  double price);
 
-    try {
-      auto r = session_.Put(url_ + "/books/" + id, JsonToString(json), true);
+  bool DeleteBook(const std::string& id);
 
-      if (!CheckStatus(r, webcc::Status::kOK)) {
-        return false;
-      }
+private:
+  // Check HTTP response status.
+  bool CheckStatus(webcc::ResponsePtr response, int expected_status);
 
-      return true;
-
-    } catch (const webcc::Error& error) {
-      std::cerr << error << std::endl;
-      return false;
-    }
-  }
-
-  bool DeleteBook(const std::string& id) {
-    try {
-      auto r = session_.Delete(url_ + "/books/" + id);
-
-      if (!CheckStatus(r, webcc::Status::kOK)) {
-        return false;
-      }
-
-      return true;
-
-    } catch (const webcc::Error& error) {
-      std::cerr << error << std::endl;
-      return false;
-    }
-  }
+private:
+  std::string url_;
+  webcc::ClientSession session_;
 };
+
+// -----------------------------------------------------------------------------
+
+BookClient::BookClient(const std::string& url, int timeout)
+    : url_(url), session_(timeout) {
+  // If the request has body, default to this content type.
+  // Optional.
+  session_.set_media_type("application/json");
+  session_.set_charset("utf-8");
+}
+
+bool BookClient::ListBooks(std::list<Book>* books) {
+  try {
+    auto r = session_.Get(url_ + "/books");
+
+    if (!CheckStatus(r, webcc::Status::kOK)) {
+      // Response HTTP status error.
+      return false;
+    }
+
+    Json::Value rsp_json = StringToJson(r->data());
+
+    if (!rsp_json.isArray()) {
+      return false;  // Should be a JSON array of books.
+    }
+
+    for (Json::ArrayIndex i = 0; i < rsp_json.size(); ++i) {
+      books->push_back(JsonToBook(rsp_json[i]));
+    }
+
+    return true;
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+    return false;
+  }
+}
+
+bool BookClient::CreateBook(const std::string& title, double price,
+                            std::string* id) {
+  Json::Value req_json;
+  req_json["title"] = title;
+  req_json["price"] = price;
+
+  try {
+    auto r = session_.Post(url_ + "/books", JsonToString(req_json), true);
+
+    if (!CheckStatus(r, webcc::Status::kCreated)) {
+      return false;
+    }
+
+    Json::Value rsp_json = StringToJson(r->data());
+    *id = rsp_json["id"].asString();
+
+    return !id->empty();
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+    return false;
+  }
+}
+
+bool BookClient::GetBook(const std::string& id, Book* book) {
+  try {
+    auto r = session_.Get(url_ + "/books/" + id);
+
+    if (!CheckStatus(r, webcc::Status::kOK)) {
+      return false;
+    }
+
+    return JsonStringToBook(r->data(), book);
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+    return false;
+  }
+}
+
+bool BookClient::UpdateBook(const std::string& id, const std::string& title,
+                            double price) {
+  Json::Value json;
+  json["title"] = title;
+  json["price"] = price;
+
+  try {
+    auto r = session_.Put(url_ + "/books/" + id, JsonToString(json), true);
+
+    if (!CheckStatus(r, webcc::Status::kOK)) {
+      return false;
+    }
+
+    return true;
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+    return false;
+  }
+}
+
+bool BookClient::DeleteBook(const std::string& id) {
+  try {
+    auto r = session_.Delete(url_ + "/books/" + id);
+
+    if (!CheckStatus(r, webcc::Status::kOK)) {
+      return false;
+    }
+
+    return true;
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+    return false;
+  }
+}
+
+bool BookClient::CheckStatus(webcc::ResponsePtr response, int expected_status) {
+  if (response->status() != expected_status) {
+    LOG_ERRO("HTTP status error (actual: %d, expected: %d).",
+             response->status(), expected_status);
+    return false;
+  }
+  return true;
+}
 
 // -----------------------------------------------------------------------------
 
@@ -208,30 +210,19 @@ int main(int argc, char* argv[]) {
 
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE_FILE_OVERWRITE);
 
-  // Share the same session.
-  webcc::ClientSession session;
-
-  session.set_timeout(timeout);
-
-  // If the request has body, default to this content type.
-  // Optional.
-  session.set_media_type("application/json");
-  session.set_charset("utf-8");
-
-  BookListClient list_client(session, url);
-  BookDetailClient detail_client(session, url);
+  BookClient client(url, timeout);
 
   PrintSeparator();
 
   std::list<Book> books;
-  if (list_client.ListBooks(&books)) {
+  if (client.ListBooks(&books)) {
     PrintBookList(books);
   }
 
   PrintSeparator();
 
   std::string id;
-  if (list_client.CreateBook("1984", 12.3, &id)) {
+  if (client.CreateBook("1984", 12.3, &id)) {
     std::cout << "Book ID: " << id << std::endl;
   } else {
     id = "1";
@@ -241,35 +232,35 @@ int main(int argc, char* argv[]) {
   PrintSeparator();
 
   books.clear();
-  if (list_client.ListBooks(&books)) {
+  if (client.ListBooks(&books)) {
     PrintBookList(books);
   }
 
   PrintSeparator();
 
   Book book;
-  if (detail_client.GetBook(id, &book)) {
+  if (client.GetBook(id, &book)) {
     PrintBook(book);
   }
 
   PrintSeparator();
 
-  detail_client.UpdateBook(id, "1Q84", 32.1);
+  client.UpdateBook(id, "1Q84", 32.1);
 
   PrintSeparator();
 
-  if (detail_client.GetBook(id, &book)) {
+  if (client.GetBook(id, &book)) {
     PrintBook(book);
   }
 
   PrintSeparator();
 
-  detail_client.DeleteBook(id);
+  client.DeleteBook(id);
 
   PrintSeparator();
 
   books.clear();
-  if (list_client.ListBooks(&books)) {
+  if (client.ListBooks(&books)) {
     PrintBookList(books);
   }
 

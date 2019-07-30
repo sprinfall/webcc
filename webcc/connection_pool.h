@@ -1,6 +1,7 @@
 #ifndef WEBCC_CONNECTION_POOL_H_
 #define WEBCC_CONNECTION_POOL_H_
 
+#include <mutex>
 #include <set>
 
 #include "webcc/connection.h"
@@ -14,17 +15,24 @@ public:
   ConnectionPool(const ConnectionPool&) = delete;
   ConnectionPool& operator=(const ConnectionPool&) = delete;
 
-  // Add a connection to the pool and start it.
+  // Add the connection and start to read the request from it.
+  // Called when a new connection has just been accepted.
   void Start(ConnectionPtr c);
 
-  // Close a connection.
+  // Close the connection.
+  // Called when the response of the connection has been sent back.
   void Close(ConnectionPtr c);
 
   // Close all pending connections.
-  void CloseAll();
+  // Called when the server is about to stop.
+  void Clear();
 
 private:
   std::set<ConnectionPtr> connections_;
+
+  // Mutex is necessary if the loop is running in multiple threads.
+  // See Server::Run().
+  std::mutex mutex_;
 };
 
 }  // namespace webcc

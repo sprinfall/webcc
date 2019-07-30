@@ -178,10 +178,11 @@ enum class ContentEncoding {
 
 // -----------------------------------------------------------------------------
 
-// Error (or exception) for the client.
-class Error {
- public:
+// Error or exception (for client only).
+class Error : public std::exception {
+public:
   enum Code {
+    kUnknownError = -1,
     kOK = 0,
     kSyntaxError,
     kResolveError,
@@ -193,9 +194,14 @@ class Error {
     kDataError,
   };
 
- public:
+public:
   Error(Code code = kOK, const std::string& message = "")
       : code_(code), message_(message), timeout_(false) {
+  }
+
+  // Note that `noexcept` is required by GCC.
+  const char* what() const WEBCC_NOEXCEPT override{
+    return message_.c_str();
   }
 
   Code code() const {
@@ -223,7 +229,7 @@ class Error {
     return code_ != kOK;
   }
 
- private:
+private:
   Code code_;
   std::string message_;
   bool timeout_;

@@ -61,3 +61,6 @@ target_link_libraries(file_upload_server ${EXAMPLE_LIBS})
 
 add_executable(static_server static_server.cc)
 target_link_libraries(static_server ${EXAMPLE_LIBS})
+
+add_executable(server_states server_states.cc)
+target_link_libraries(server_states ${EXAMPLE_LIBS})

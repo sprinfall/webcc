@@ -6,18 +6,15 @@
 
 #include "webcc/connection_pool.h"
 #include "webcc/logger.h"
-#include "webcc/server.h"
 
 using boost::asio::ip::tcp;
 
 namespace webcc {
 
 Connection::Connection(tcp::socket socket, ConnectionPool* pool,
-                       Server* server)
-    : socket_(std::move(socket)),
-      pool_(pool),
-      buffer_(kBufferSize),
-      server_(server) {
+                       Queue<ConnectionPtr>* queue)
+    : socket_(std::move(socket)), pool_(pool), queue_(queue),
+      buffer_(kBufferSize) {
 }
 
 void Connection::Start() {
@@ -122,9 +119,9 @@ void Connection::OnRead(boost::system::error_code ec, std::size_t length) {
 
   LOG_VERB("HTTP request:\n%s", request_->Dump().c_str());
 
-  // Enqueue this connection.
-  // Some worker thread will handle it later.
-  server_->Enqueue(shared_from_this());
+  // Enqueue this connection once the request has been read.
+  // Some worker thread will handle the request later.
+  queue_->Push(shared_from_this());
 }
 
 void Connection::DoWrite() {

@@ -21,42 +21,9 @@ using tcp = boost::asio::ip::tcp;
 namespace webcc {
 
 Server::Server(std::uint16_t port, const Path& doc_root)
-    : acceptor_(io_context_), signals_(io_context_), doc_root_(doc_root) {
-  RegisterSignals();
-
-  boost::system::error_code ec;
-  tcp::endpoint endpoint(tcp::v4(), port);
-
-  // Open the acceptor.
-  acceptor_.open(endpoint.protocol(), ec);
-  if (ec) {
-    LOG_ERRO("Acceptor open error (%s).", ec.message().c_str());
-    return;
-  }
-
-  // Set option SO_REUSEADDR on.
-  // When SO_REUSEADDR is set, multiple servers can listen on the same port.
-  // This is necessary for restarting the server on the same port.
-  // More details:
-  // - https://stackoverflow.com/a/3233022
-  // - http://www.andy-pearce.com/blog/posts/2013/Feb/so_reuseaddr-on-windows/
-  acceptor_.set_option(tcp::acceptor::reuse_address(true));
-
-  // Bind to the server address.
-  acceptor_.bind(endpoint, ec);
-  if (ec) {
-    LOG_ERRO("Acceptor bind error (%s).", ec.message().c_str());
-    return;
-  }
-
-  // Start listening for connections.
-  // After listen, the client is able to connect to the server even the server
-  // has not started to accept the connection yet.
-  acceptor_.listen(boost::asio::socket_base::max_listen_connections, ec);
-  if (ec) {
-    LOG_ERRO("Acceptor listen error (%s).", ec.message().c_str());
-    return;
-  }
+    : port_(port), doc_root_(doc_root), running_(false),
+      acceptor_(io_context_), signals_(io_context_) {
+  AddSignals();
 }
 
 bool Server::Route(const std::string& url, ViewPtr view,
@@ -88,50 +55,73 @@ bool Server::Route(const UrlRegex& regex_url, ViewPtr view,
   return true;
 }
 
-void Server::Start(std::size_t workers) {
+void Server::Run(std::size_t workers, std::size_t loops) {
   assert(workers > 0);
-  assert(worker_threads_.empty());
 
-  if (!acceptor_.is_open()) {
-    LOG_ERRO("Server is NOT going to run.");
-    return;
+  {
+    std::lock_guard<std::mutex> lock(state_mutex_);
+
+    assert(worker_threads_.empty());
+
+    if (IsRunning()) {
+      LOG_WARN("Server is already running.");
+      return;
+    }
+
+    running_ = true;
+    io_context_.restart();
+
+    if (!Listen(port_)) {
+      LOG_ERRO("Server is NOT going to run.");
+      return;
+    }
+
+    LOG_INFO("Server is going to run...");
+
+    AsyncWaitSignals();
+
+    AsyncAccept();
+
+    // Create worker threads.
+    for (std::size_t i = 0; i < workers; ++i) {
+      worker_threads_.emplace_back(std::bind(&Server::WorkerRoutine, this));
+    }
   }
 
-  LOG_INFO("Server is going to run...");
-
-  DoAwaitStop();
-
-  DoAccept();
-
-  // Create worker threads.
-  for (std::size_t i = 0; i < workers; ++i) {
-    worker_threads_.emplace_back(std::bind(&Server::WorkerRoutine, this));
-  }
-
-  // Run the loop.
+  // Start the event loop.
   // The io_context::run() call will block until all asynchronous operations
   // have finished. While the server is running, there is always at least one
   // asynchronous operation outstanding: the asynchronous accept call waiting
   // for new incoming connections.
-  io_context_.run();
+
+  LOG_INFO("Loop is running in %u thread(s).", loops);
+
+  if (loops == 1) {
+    // Just run the loop in the current thread.
+    io_context_.run();
+  } else {
+    std::vector<std::thread> loop_threads;
+    for (std::size_t i = 0; i < loops; ++i) {
+      loop_threads.emplace_back(&boost::asio::io_context::run, &io_context_);
+    }
+    // Join the threads for blocking.
+    for (std::size_t i = 0; i < loops; ++i) {
+      loop_threads[i].join();
+    }
+  }
 }
 
 void Server::Stop() {
-  // Stop listener.
-  acceptor_.close();
+  std::lock_guard<std::mutex> lock(state_mutex_);
 
-  // Stop worker threads.
-  StopWorkers();
-
-  // Close all pending connections.
-  pool_.CloseAll();
+  DoStop();
 }
 
-void Server::Enqueue(ConnectionPtr connection) {
-  queue_.Push(connection);
+bool Server::IsRunning() const {
+  return running_ && !io_context_.stopped();
 }
 
-void Server::RegisterSignals() {
+void Server::AddSignals() {
   signals_.add(SIGINT);  // Ctrl+C
   signals_.add(SIGTERM);
 
@@ -140,7 +130,58 @@ void Server::RegisterSignals() {
 #endif
 }
 
-void Server::DoAccept() {
+void Server::AsyncWaitSignals() {
+  signals_.async_wait(
+      [this](boost::system::error_code, int signo) {
+        // The server is stopped by canceling all outstanding asynchronous
+        // operations. Once all operations have finished the io_context::run()
+        // call will exit.
+        LOG_INFO("On signal %d, stopping the server...", signo);
+
+        DoStop();
+      });
+}
+
+bool Server::Listen(std::uint16_t port) {
+  boost::system::error_code ec;
+
+  tcp::endpoint endpoint(tcp::v4(), port);
+
+  // Open the acceptor.
+  acceptor_.open(endpoint.protocol(), ec);
+  if (ec) {
+    LOG_ERRO("Acceptor open error (%s).", ec.message().c_str());
+    return false;
+  }
+
+  // Set option SO_REUSEADDR on.
+  // When SO_REUSEADDR is set, multiple servers can listen on the same port.
+  // This is necessary for restarting the server on the same port.
+  // More details:
+  // - https://stackoverflow.com/a/3233022
+  // - http://www.andy-pearce.com/blog/posts/2013/Feb/so_reuseaddr-on-windows/
+  acceptor_.set_option(tcp::acceptor::reuse_address(true));
+
+  // Bind to the server address.
+  acceptor_.bind(endpoint, ec);
+  if (ec) {
+    LOG_ERRO("Acceptor bind error (%s).", ec.message().c_str());
+    return false;
+  }
+
+  // Start listening for connections.
+  // After listen, the client is able to connect to the server even the server
+  // has not started to accept the connection yet.
+  acceptor_.listen(boost::asio::socket_base::max_listen_connections, ec);
+  if (ec) {
+    LOG_ERRO("Acceptor listen error (%s).", ec.message().c_str());
+    return false;
+  }
+
+  return true;
+}
+
+void Server::AsyncAccept() {
   acceptor_.async_accept(
       [this](boost::system::error_code ec, tcp::socket socket) {
         // Check whether the server was stopped by a signal before this
@@ -153,25 +194,33 @@ void Server::DoAccept() {
           LOG_INFO("Accepted a connection.");
 
           auto connection = std::make_shared<Connection>(
-              std::move(socket), &pool_, this);
+              std::move(socket), &pool_, &queue_);
 
           pool_.Start(connection);
         }
 
-        DoAccept();
+        AsyncAccept();
       });
 }
 
-void Server::DoAwaitStop() {
-  signals_.async_wait(
-      [this](boost::system::error_code, int signo) {
-        // The server is stopped by canceling all outstanding asynchronous
-        // operations. Once all operations have finished the io_context::run()
-        // call will exit.
-        LOG_INFO("On signal %d, stopping the server...", signo);
+void Server::DoStop() {
+  // Stop accepting new connections.
+  acceptor_.close();
 
-        Stop();
-      });
+  // Stop worker threads.
+  // This might take some time if the threads are still processing.
+  StopWorkers();
+
+  // Close all pending connections.
+  pool_.Clear();
+
+  // Finally, stop the event processing loop.
+  // This function does not block, but instead simply signals the io_context to
+  // stop. All invocations of its run() or run_one() member functions should
+  // return as soon as possible.
+  io_context_.stop();
+
+  running_ = false;
 }
 
 void Server::WorkerRoutine() {
@@ -186,7 +235,7 @@ void Server::WorkerRoutine() {
       // For stopping next worker.
       queue_.Push(ConnectionPtr());
 
-      // Stop the worker.
+      // Stop this worker.
       break;
     }
 
@@ -198,18 +247,26 @@ void Server::StopWorkers() {
   LOG_INFO("Stopping workers...");
 
   // Clear pending connections.
-  // The connections will be closed later (see Server::DoAwaitStop).
+  // The connections will be closed later.
   LOG_INFO("Clear pending connections...");
   queue_.Clear();
 
   // Enqueue a null connection to trigger the first worker to stop.
   queue_.Push(ConnectionPtr());
 
+  // Wait for worker threads to finish.
   for (auto& t : worker_threads_) {
     if (t.joinable()) {
       t.join();
     }
   }
+
+  // Cleanup worker threads.
+  worker_threads_.clear();
+
+  // Clear the queue because it has a remaining null connection pushed by the
+  // last worker thread.
+  queue_.Clear();
 
   LOG_INFO("All workers have been stopped.");
 }

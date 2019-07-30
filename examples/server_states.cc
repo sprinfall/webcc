@@ -21,9 +21,28 @@ int main() {
 
     server.Route("/", std::make_shared<HelloView>());
 
-    server.Run();
+    // Run the server in a separate thread.
+    std::thread t([&server]() { server.Run(); });
+
+    // Let the server run for several seconds.
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+
+    // Stop the server.
+    server.Stop();
+
+    // Wait for the server to finish.
+    t.join();
+
+    // Run the server again.
+    std::thread t2([&server]() { server.Run(); });
+
+    // Wait for the server to finish.
+    t2.join();
 
   } catch (const std::exception&) {
+    // NOTE:
+    // Catch std::exception instead of webcc::Error.
+    // webcc::Error is for client only. 
     return 1;
   }
 

@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
 
     server.Route("/upload", std::make_shared<FileUploadView>(), { "POST" });
 
-    server.Start();
+    server.Run();
 
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;
