@@ -82,11 +82,24 @@ bool Socket::Close() {
 
 #if (defined(_WIN32) || defined(_WIN64))
 
-// See: https://stackoverflow.com/a/40046425/6825348
+// Let OpenSSL on Windows use the system certificate store
+//   1. Load your certificate (in PCCERT_CONTEXT structure) from Windows Cert
+//      store using Crypto APIs.
+//   2. Get encrypted content of it in binary format as it is.
+//      [PCCERT_CONTEXT->pbCertEncoded].
+//   3. Parse this binary buffer into X509 certificate Object using OpenSSL's
+//      d2i_X509() method.
+//   4. Get handle to OpenSSL's trust store using SSL_CTX_get_cert_store()
+//      method.
+//   5. Load above parsed X509 certificate into this trust store using
+//      X509_STORE_add_cert() method.
+//   6. You are done!
+// NOTES: Enum Windows store with "ROOT" (not "CA").
+// See: https://stackoverflow.com/a/11763389/6825348
+
 static bool UseSystemCertificateStore(SSL_CTX* ssl_ctx) {
   // NOTE: Cannot use nullptr to replace NULL.
   HCERTSTORE cert_store = ::CertOpenSystemStoreW(NULL, L"ROOT");
-
   if (cert_store == nullptr) {
     LOG_ERRO("Cannot open Windows system certificate store.");
     return false;
@@ -96,7 +109,7 @@ static bool UseSystemCertificateStore(SSL_CTX* ssl_ctx) {
   PCCERT_CONTEXT cert_context = nullptr;
 
   while (cert_context = CertEnumCertificatesInStore(cert_store, cert_context)) {
-    auto in = (const unsigned char **)&cert_context->pbCertEncoded;
+    auto in = (const unsigned char**)&cert_context->pbCertEncoded;
     X509* x509 = d2i_X509(nullptr, in, cert_context->cbCertEncoded);
 
     if (x509 != nullptr) {
@@ -110,7 +123,6 @@ static bool UseSystemCertificateStore(SSL_CTX* ssl_ctx) {
 
   CertFreeCertificateContext(cert_context);
   CertCloseStore(cert_store, 0);
-
   return true;
 }
 
