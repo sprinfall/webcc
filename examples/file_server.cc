@@ -6,17 +6,17 @@
 #include "webcc/logger.h"
 #include "webcc/server.h"
 
-// -----------------------------------------------------------------------------
-
-void Help(const char* argv0) {
-  std::cout << "Usage: " << argv0 << " <port> <doc_root>" << std::endl;
-  std::cout << "  E.g.," << std::endl;
-  std::cout << "    " << argv0 << " 8080 D:\\www" << std::endl;
+void Help() {
+  std::cout << "Usage:" << std::endl;
+  std::cout << "    file_server <port> <doc_root> [chunk_size]" << std::endl;
+  std::cout << "E.g.," << std::endl;
+  std::cout << "    file_server 8080 D:/www" << std::endl;
+  std::cout << "    file_server 8080 D:/www 10000" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
   if (argc < 3) {
-    Help(argv[0]);
+    Help();
     return 1;
   }
 
@@ -27,6 +27,10 @@ int main(int argc, char* argv[]) {
 
   try {
     webcc::Server server(port, doc_root);
+
+    if (argc == 4) {
+      server.set_file_chunk_size(std::atoi(argv[3]));
+    }
 
     server.Run();
 

@@ -27,6 +27,7 @@ public:
   Server& operator=(const Server&) = delete;
 
   void set_file_chunk_size(std::size_t file_chunk_size) {
+    assert(file_chunk_size > 0);
     file_chunk_size_ = file_chunk_size;
   }
 
