@@ -22,9 +22,9 @@ RequestPtr RequestBuilder::operator()() {
   }
 
   // If no Keep-Alive, explicitly set `Connection` to "Close".
-  //if (!keep_alive_) {
+  if (!keep_alive_) {
     request->SetHeader(headers::kConnection, "Close");
-  //}
+  }
 
   if (body_) {
     request->SetContentType(media_type_, charset_);
