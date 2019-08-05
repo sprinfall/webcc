@@ -131,7 +131,7 @@ private:
 // the memory.
 class FileBody : public Body {
 public:
-  explicit FileBody(const Path& path, std::size_t chunk_size = 1024);
+  FileBody(const Path& path, std::size_t chunk_size);
 
   std::size_t GetSize() const override {
     return size_;

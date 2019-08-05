@@ -26,6 +26,10 @@ public:
   Server(const Server&) = delete;
   Server& operator=(const Server&) = delete;
 
+  void set_file_chunk_size(std::size_t file_chunk_size) {
+    file_chunk_size_ = file_chunk_size;
+  }
+
   // Route a URL to a view.
   // The URL should start with "/". E.g., "/instances".
   bool Route(const std::string& url, ViewPtr view,
@@ -108,6 +112,10 @@ private:
 
   // The directory with the static files to be served.
   Path doc_root_;
+
+  // The size of the chunk loaded into memory each time when serving a
+  // static file.
+  std::size_t file_chunk_size_;
 
   // Is the server running?
   bool running_;

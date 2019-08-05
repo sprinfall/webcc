@@ -80,7 +80,7 @@ bool Decompress(const std::string& input, std::string* output) {
   stream.zalloc = Z_NULL;
   stream.zfree = Z_NULL;
 
-  // About the windowBits paramter:
+  // About the windowBits parameter:
   //   (https://stackoverflow.com/a/1838702)
   //   (http://www.zlib.net/manual.html)
   // windowBits can also be greater than 15 for optional gzip decoding. Add 32

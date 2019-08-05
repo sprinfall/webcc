@@ -21,7 +21,7 @@ using tcp = boost::asio::ip::tcp;
 namespace webcc {
 
 Server::Server(std::uint16_t port, const Path& doc_root)
-    : port_(port), doc_root_(doc_root), running_(false),
+    : port_(port), doc_root_(doc_root), file_chunk_size_(1024), running_(false),
       acceptor_(io_context_), signals_(io_context_) {
   AddSignals();
 }
@@ -352,7 +352,7 @@ bool Server::ServeStatic(ConnectionPtr connection) {
   Path p = doc_root_ / path;
 
   try {
-    auto body = std::make_shared<FileBody>(p);
+    auto body = std::make_shared<FileBody>(p, file_chunk_size_);
 
     auto response = std::make_shared<Response>(Status::kOK);
 
