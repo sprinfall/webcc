@@ -5,19 +5,20 @@
 #include "webcc/client_session.h"
 #include "webcc/logger.h"
 
-void Help(const char* argv0) {
-  std::cout << "Usage: " << argv0 << " <upload_dir> [url]" << std::endl;
+void Help() {
+  std::cout << "Usage:" << std::endl;
+  std::cout << "    file_upload_client <upload_dir> [url]" << std::endl;
   std::cout << "Default Url: http://httpbin.org/post" << std::endl;
-  std::cout << "  E.g.," << std::endl;
-  std::cout << "    " << argv0 << "E:/github/webcc/data/upload" << std::endl;
-  std::cout << "    " << argv0
-            << "E:/github/webcc/data/upload http://httpbin.org/post"
+  std::cout << "E.g.," << std::endl;
+  std::cout << "    file_upload_client E:/github/webcc/data/upload"
             << std::endl;
+  std::cout << "    file_upload_client E:/github/webcc/data/upload"
+            << " http://httpbin.org/post" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {
-    Help(argv[0]);
+    Help();
     return 1;
   }
 
