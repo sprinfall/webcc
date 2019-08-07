@@ -22,6 +22,8 @@
 
 #include "boost/filesystem.hpp"
 
+namespace bfs = boost::filesystem;
+
 namespace webcc {
 
 // -----------------------------------------------------------------------------
@@ -34,21 +36,24 @@ static const char* kLevelNames[] = {
 
 // -----------------------------------------------------------------------------
 
+static FILE* FOpen(const bfs::path& path, bool overwrite) {
+#if (defined(_WIN32) || defined(_WIN64))
+  return _wfopen(path.wstring().c_str(), overwrite ? L"w+" : L"a+");
+#else
+  return fopen(path.string().c_str(), overwrite ? "w+" : "a+");
+#endif  // defined(_WIN32) || defined(_WIN64)
+}
+
 struct Logger {
   Logger() : file(nullptr), modes(0) {
   }
 
-  void Init(const std::string& path, int _modes) {
+  void Init(const bfs::path& path, int _modes) {
     modes = _modes;
 
     // Create log file only if necessary.
     if ((modes & LOG_FILE) != 0 && !path.empty()) {
-      if ((modes & LOG_OVERWRITE) != 0) {
-        file = fopen(path.c_str(), "w+");
-      } else {
-        // Append to existing file.
-        file = fopen(path.c_str(), "a+");
-      }
+      file = FOpen(path, (modes & LOG_OVERWRITE) != 0);
     }
   }
 
@@ -153,33 +158,30 @@ static std::string GetThreadID() {
   return thread_id;
 }
 
-static bfs::path InitLogPath(const std::string& dir) {
+static bfs::path InitLogPath(const bfs::path& dir) {
   if (dir.empty()) {
     return bfs::current_path() / WEBCC_LOG_FILE_NAME;
   }
 
-  bfs::path path = bfs::path(dir);
-  if (!bfs::exists(path) || !bfs::is_directory(path)) {
+  if (!bfs::exists(dir) || !bfs::is_directory(dir)) {
     boost::system::error_code ec;
-    if (!bfs::create_directories(path, ec) || ec) {
+    if (!bfs::create_directories(dir, ec) || ec) {
       return bfs::path();
     }
   }
 
-  path /= WEBCC_LOG_FILE_NAME;
-  return path;
+  return (dir / WEBCC_LOG_FILE_NAME);
 }
 
-void LogInit(const std::string& dir, int modes) {
-  if ((modes & LOG_FILE) != 0) {
-    bfs::path path = InitLogPath(dir);
-    g_logger.Init(path.string(), modes);
-  } else {
-    g_logger.Init("", modes);
-  }
-
-  // Suppose LogInit() is called from the main thread.
+void LogInit(const bfs::path& dir, int modes) {
+  // Suppose this is called from the main thread.
   g_main_thread_id = DoGetThreadID();
+
+  if ((modes & LOG_FILE) != 0) {
+    g_logger.Init(InitLogPath(dir), modes);
+  } else {
+    g_logger.Init({}, modes);
+  }
 }
 
 static std::string GetTimestamp() {
