@@ -284,7 +284,6 @@ TEST(ClientTest, KeepAlive) {
 TEST(ClientTest, GetImageJpeg) {
   webcc::ClientSession session;
 
-  std::string url = "http://httpbin.org/get";
   try {
 
     auto r = session.Get("http://httpbin.org/image/jpeg");

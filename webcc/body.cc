@@ -17,7 +17,12 @@ namespace webcc {
 // -----------------------------------------------------------------------------
 
 #if WEBCC_ENABLE_GZIP
+
 bool StringBody::Compress() {
+  if (compressed_) {
+    return true;  // Already compressed.
+  }
+
   if (data_.size() <= kGzipThreshold) {
     return false;
   }
@@ -25,12 +30,30 @@ bool StringBody::Compress() {
   std::string compressed;
   if (gzip::Compress(data_, &compressed)) {
     data_ = std::move(compressed);
+    compressed_ = true;
     return true;
   }
 
   LOG_WARN("Failed to compress the body data!");
   return false;
 }
+
+bool StringBody::Decompress() {
+  if (!compressed_) {
+    return true;  // Already decompressed.
+  }
+
+  std::string decompressed;
+  if (gzip::Decompress(data_, &decompressed)) {
+    data_ = std::move(decompressed);
+    compressed_ = false;
+    return true;
+  }
+
+  LOG_WARN("Failed to decompress the body data!");
+  return false;
+}
+
 #endif  // WEBCC_ENABLE_GZIP
 
 void StringBody::InitPayload() {

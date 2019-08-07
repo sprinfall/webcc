@@ -28,12 +28,19 @@ public:
   }
 
 #if WEBCC_ENABLE_GZIP
-  // Compress with Gzip.
-  // If the body size <= the threshold (1400 bytes), no compression will be done
-  // and just return false.
+
+  // Compress the data with Gzip.
+  // If data size <= threshold (1400 bytes), no compression will be taken
+  // and false will be simply returned.
   virtual bool Compress() {
     return false;
   }
+
+  // Decompress the data.
+  virtual bool Decompress() {
+    return false;
+  }
+
 #endif  // WEBCC_ENABLE_GZIP
 
   // Initialize the payload for iteration.
@@ -61,10 +68,12 @@ using BodyPtr = std::shared_ptr<Body>;
 
 class StringBody : public Body {
 public:
-  explicit StringBody(const std::string& data) : data_(data) {
+  explicit StringBody(const std::string& data, bool compressed)
+      : data_(data), compressed_(compressed) {
   }
 
-  explicit StringBody(std::string&& data) : data_(std::move(data)) {
+  explicit StringBody(std::string&& data, bool compressed)
+      : data_(std::move(data)), compressed_(compressed) {
   }
 
   std::size_t GetSize() const override {
@@ -76,8 +85,12 @@ public:
   }
 
 #if WEBCC_ENABLE_GZIP
+
   bool Compress() override;
-#endif
+
+  bool Decompress() override;
+
+#endif  // WEBCC_ENABLE_GZIP
 
   void InitPayload() override;
 
@@ -87,6 +100,9 @@ public:
 
 private:
   std::string data_;
+
+  // Is the data compressed?
+  bool compressed_;
 
   // Index for (not really) iterating the payload.
   std::size_t index_ = 0;

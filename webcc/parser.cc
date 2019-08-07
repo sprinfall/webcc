@@ -305,37 +305,21 @@ bool Parser::Finish() {
   // Could be kInvalidLength when chunked.
   message_->set_content_length(content_length_);
 
-  if (!IsContentCompressed()) {
-    auto body = std::make_shared<StringBody>(std::move(content_));
-    message_->SetBody(body, false);
-    return true;
-  }
+  bool compressed = IsContentCompressed();
+  auto body = std::make_shared<StringBody>(std::move(content_), compressed);
 
 #if WEBCC_ENABLE_GZIP
-
   LOG_INFO("Decompress the HTTP content...");
-
-  std::string decompressed;
-  if (!gzip::Decompress(content_, &decompressed)) {
+  if (!body->Decompress()) {
     LOG_ERRO("Cannot decompress the HTTP content!");
     return false;
   }
-
-  auto body = std::make_shared<StringBody>(std::move(decompressed));
-  message_->SetBody(body, false);
-
-  return true;
-
 #else
-
   LOG_WARN("Compressed HTTP content remains untouched.");
-
-  auto body = std::make_shared<StringBody>(std::move(content_));
-  message_->SetBody(body, false);
-
-  return true;
-
 #endif  // WEBCC_ENABLE_GZIP
+
+  message_->SetBody(body, false);
+  return true;
 }
 
 void Parser::AppendContent(const char* data, std::size_t count) {

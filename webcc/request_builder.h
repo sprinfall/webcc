@@ -86,12 +86,12 @@ public:
   }
 
   RequestBuilder& Body(const std::string& data) {
-    body_.reset(new StringBody{ data });
+    body_.reset(new StringBody{ data, false });
     return *this;
   }
 
   RequestBuilder& Body(std::string&& data) {
-    body_.reset(new StringBody{ std::move(data) });
+    body_.reset(new StringBody{ std::move(data), false });
     return *this;
   }
 
