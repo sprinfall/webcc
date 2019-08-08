@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "boost/filesystem/fstream.hpp"
+
 #include "webcc/common.h"
 #include "webcc/globals.h"
 
@@ -10,24 +12,64 @@ namespace webcc {
 
 class Message;
 
+// -----------------------------------------------------------------------------
+
+class ParseHandler {
+public:
+  // If |stream| is true, the data will be streamed to a temp file, and the
+  // body of the message will be FileBody instead of StringBody.
+  ParseHandler(Message* message, bool stream = false);
+
+  ~ParseHandler();
+
+  std::size_t content_length() const {
+    return content_length_;
+  }
+
+  void OnStartLine(const std::string& start_line);
+
+  void OnContentLength(std::size_t content_length);
+
+  void OnHeader(Header&& header);
+
+  void AddContent(const char* data, std::size_t count);
+
+  void AddContent(const std::string& data);
+
+  bool IsFixedContentFull() const;
+
+  bool Finish();
+
+private:
+  bool IsCompressed() const;
+
+private:
+  Message* message_;
+
+  std::size_t content_length_;
+  std::string content_;
+
+  bool stream_;
+  std::size_t streamed_size_;
+  boost::filesystem::ofstream ofstream_;
+  Path temp_path_;
+};
+
+// -----------------------------------------------------------------------------
+
 // HTTP request and response parser.
 class Parser {
 public:
-  explicit Parser(Message* message);
-
+  Parser();
   virtual ~Parser() = default;
 
   Parser(const Parser&) = delete;
   Parser& operator=(const Parser&) = delete;
 
-  void Init(Message* message);
+  void Init(Message* message, bool stream = false);
 
   bool finished() const {
     return finished_;
-  }
-
-  std::size_t content_length() const {
-    return content_length_;
   }
 
   bool Parse(const char* data, std::size_t length);
@@ -60,25 +102,14 @@ protected:
   // Return false if the compressed content cannot be decompressed.
   bool Finish();
 
-  void AppendContent(const char* data, std::size_t count);
-  void AppendContent(const std::string& data);
-
-  bool IsFixedContentFull() const;
-
-  // Check header Content-Encoding to see if the content is compressed.
-  bool IsContentCompressed() const;
-
 protected:
-  // The message parsed.
-  Message* message_;
+  std::unique_ptr<ParseHandler> handler_;
 
   // Data waiting to be parsed.
   std::string pending_data_;
 
   // Temporary data and helper flags for parsing.
-  std::size_t content_length_;
   ContentType content_type_;
-  std::string content_;
   bool start_line_parsed_;
   bool content_length_parsed_;
   bool header_ended_;

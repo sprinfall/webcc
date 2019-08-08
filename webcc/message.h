@@ -26,9 +26,13 @@ public:
     return body_;
   }
 
-  // Get the data from the string body.
-  // Exception Error(kDataError) will be thrown if the body is FormBody.
+  // Get the data from the (string) body.
+  // Empty string will be returned if the body is not a StringBody.
   const std::string& data() const;
+
+  // Get the body as a FileBody.
+  // Exception Error::kDataError will be thrown if the body is not a FileBody.
+  std::shared_ptr<FileBody> file_body() const;
 
   // ---------------------------------------------------------------------------
 

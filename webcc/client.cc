@@ -15,8 +15,20 @@ Client::Client()
       timer_canceled_(false) {
 }
 
-Error Client::Request(RequestPtr request, bool connect) {
-  Restart();
+Error Client::Request(RequestPtr request, bool connect, bool stream) {
+  io_context_.restart();
+
+  response_.reset(new Response{});
+  response_parser_.Init(response_.get(), stream);
+
+  closed_ = false;
+  timer_canceled_ = false;
+  error_ = Error{};
+
+  if (buffer_.size() != buffer_size_) {
+    LOG_VERB("Resize buffer: %u -> %u.", buffer_.size(), buffer_size_);
+    buffer_.resize(buffer_size_);
+  }
 
   // Response to HEAD could also have Content-Length.
   // Set this flag to skip the reading and parsing of the body.
@@ -62,22 +74,6 @@ void Client::Close() {
   LOG_INFO("Close socket...");
 
   socket_->Close();
-}
-
-void Client::Restart() {
-  io_context_.restart();
-
-  response_.reset(new Response{});
-  response_parser_.Init(response_.get());
-
-  closed_ = false;
-  timer_canceled_ = false;
-  error_ = Error{};
-
-  if (buffer_.size() != buffer_size_) {
-    LOG_VERB("Resize buffer: %u -> %u.", buffer_.size(), buffer_size_);
-    buffer_.resize(buffer_size_);
-  }
 }
 
 void Client::Connect(RequestPtr request) {

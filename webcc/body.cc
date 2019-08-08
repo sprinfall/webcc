@@ -2,6 +2,7 @@
 
 #include "boost/algorithm/string.hpp"
 #include "boost/core/ignore_unused.hpp"
+#include "boost/filesystem/operations.hpp"
 
 #include "webcc/logger.h"
 #include "webcc/utility.h"
@@ -161,24 +162,40 @@ void FormBody::Free(std::size_t index) {
 // -----------------------------------------------------------------------------
 
 FileBody::FileBody(const Path& path, std::size_t chunk_size)
-    : path_(path), chunk_size_(chunk_size) {
+    : path_(path), chunk_size_(chunk_size), auto_delete_(false), size_(0) {
   size_ = utility::TellSize(path_);
   if (size_ == kInvalidLength) {
     throw Error{ Error::kFileError, "Cannot read the file" };
   }
 }
 
+FileBody::FileBody(const Path& path, bool auto_delete)
+    : path_(path), chunk_size_(0), auto_delete_(auto_delete), size_(0) {
+  // Don't need to tell file size.
+}
+
+FileBody::~FileBody() {
+  if (auto_delete_ && !path_.empty()) {
+    boost::system::error_code ec;
+    bfs::remove(path_, ec);
+    if (ec) {
+      LOG_ERRO("Failed to remove file (%s).", ec.message().c_str());
+    }
+  }
+}
+
 void FileBody::InitPayload() {
   assert(chunk_size_ > 0);
+
   chunk_.resize(chunk_size_);
 
-  if (stream_.is_open()) {
-    stream_.close();
+  if (ifstream_.is_open()) {
+    ifstream_.close();
   }
 
-  stream_.open(path_, std::ios::binary);
+  ifstream_.open(path_, std::ios::binary);
 
-  if (stream_.fail()) {
+  if (ifstream_.fail()) {
     throw Error{ Error::kFileError, "Cannot read the file" };
   }
 }
@@ -186,9 +203,9 @@ void FileBody::InitPayload() {
 Payload FileBody::NextPayload(bool free_previous) {
   boost::ignore_unused(free_previous);
 
-  if (stream_.read(&chunk_[0], chunk_.size()).gcount() > 0) {
+  if (ifstream_.read(&chunk_[0], chunk_.size()).gcount() > 0) {
     return {
-      boost::asio::buffer(chunk_.data(), (std::size_t)stream_.gcount())
+      boost::asio::buffer(chunk_.data(), (std::size_t)ifstream_.gcount())
     };
   }
   return {};
@@ -196,6 +213,29 @@ Payload FileBody::NextPayload(bool free_previous) {
 
 void FileBody::Dump(std::ostream& os, const std::string& prefix) const {
   os << prefix << "<file: " << path_.string() << ">" << std::endl;
+}
+
+bool FileBody::Move(const Path& new_path) {
+  if (path_ == new_path) {
+    return false;
+  }
+
+  if (ifstream_.is_open()) {
+    ifstream_.close();
+  }
+
+  boost::system::error_code ec;
+  bfs::rename(path_, new_path, ec);
+
+  if (ec) {
+    LOG_ERRO("Failed to rename file (%s).", ec.message().c_str());
+    return false;
+  }
+
+  // Reset original file path.
+  path_.clear();
+
+  return true;
 }
 
 }  // namespace webcc

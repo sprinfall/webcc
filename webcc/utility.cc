@@ -51,6 +51,15 @@ bool SplitKV(const std::string& str, char delimiter,
   return true;
 }
 
+bool ToSize(const std::string& str, int base, std::size_t* size) {
+  try {
+    *size = static_cast<std::size_t>(std::stoul(str, 0, base));
+  } catch (const std::exception&) {
+    return false;
+  }
+  return true;
+}
+
 std::size_t TellSize(const Path& path) {
   // Flag "ate": seek to the end of stream immediately after open.
   bfs::ifstream stream{ path, std::ios::binary | std::ios::ate };

@@ -49,7 +49,7 @@ public:
   }
 
   // Connect to server, send request, wait until response is received.
-  Error Request(RequestPtr request, bool connect = true);
+  Error Request(RequestPtr request, bool connect = true, bool stream = false);
 
   // Close the socket.
   void Close();
@@ -59,8 +59,6 @@ public:
   bool closed() const { return closed_; }
 
 private:
-  void Restart();
-
   void Connect(RequestPtr request);
 
   void DoConnect(RequestPtr request, const std::string& default_port);

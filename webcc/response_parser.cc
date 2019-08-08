@@ -38,12 +38,11 @@ void SplitStartLine(const std::string& line, std::vector<std::string>* parts) {
 
 // -----------------------------------------------------------------------------
 
-ResponseParser::ResponseParser(Response* response)
-    : Parser(response), response_(response) {
+ResponseParser::ResponseParser() : response_(nullptr) {
 }
 
-void ResponseParser::Init(Response* response) {
-  Parser::Init(response);
+void ResponseParser::Init(Response* response, bool stream) {
+  Parser::Init(response, stream);
   response_ = response;
 }
 

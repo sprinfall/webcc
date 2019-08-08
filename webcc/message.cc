@@ -31,14 +31,19 @@ void Message::SetBody(BodyPtr body, bool set_length) {
 
 const std::string& Message::data() const {
   static const std::string kEmptyData;
-
   auto string_body = std::dynamic_pointer_cast<StringBody>(body_);
-
-  if (string_body) {
-    return string_body->data();
+  if (!string_body) {
+    return kEmptyData;
   }
+  return string_body->data();
+}
 
-  return kEmptyData;
+std::shared_ptr<FileBody> Message::file_body() const {
+  auto file_body = std::dynamic_pointer_cast<FileBody>(body_);
+  if (!file_body) {
+    throw Error{ Error::kDataError, "Not a file body" };
+  }
+  return file_body;
 }
 
 bool Message::IsConnectionKeepAlive() const {

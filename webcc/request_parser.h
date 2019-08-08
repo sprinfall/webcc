@@ -11,7 +11,7 @@ class Request;
 
 class RequestParser : public Parser {
 public:
-  explicit RequestParser(Request* request = nullptr);
+  RequestParser();
 
   ~RequestParser() override = default;
 

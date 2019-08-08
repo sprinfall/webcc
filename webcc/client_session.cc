@@ -28,7 +28,7 @@ void ClientSession::AuthToken(const std::string& token) {
   return Auth("Token", token);
 }
 
-ResponsePtr ClientSession::Request(RequestPtr request) {
+ResponsePtr ClientSession::Request(RequestPtr request, bool stream) {
   assert(request);
 
   for (auto& h : headers_.data()) {
@@ -44,7 +44,7 @@ ResponsePtr ClientSession::Request(RequestPtr request) {
 
   request->Prepare();
 
-  return Send(request);
+  return Send(request, stream);
 }
 
 static void SetHeaders(const Strings& headers, RequestBuilder* builder) {
@@ -183,7 +183,7 @@ void ClientSession::InitHeaders() {
   headers_.Set(kConnection, "Keep-Alive");
 }
 
-ResponsePtr ClientSession::Send(RequestPtr request) {
+ResponsePtr ClientSession::Send(RequestPtr request, bool stream) {
   const ClientPool::Key key{ request->url() };
 
   // Reuse a pooled connection.
@@ -202,13 +202,13 @@ ResponsePtr ClientSession::Send(RequestPtr request) {
   client->set_buffer_size(buffer_size_);
   client->set_timeout(timeout_);
 
-  Error error = client->Request(request, !reuse);
+  Error error = client->Request(request, !reuse, stream);
 
   if (error) {
     if (reuse && error.code() == Error::kSocketWriteError) {
       LOG_WARN("Cannot send request with the reused connection. "
                "The server must have closed it, reconnect and try again.");
-      error = client->Request(request, true);
+      error = client->Request(request, true, stream);
     }
   }
 

@@ -24,6 +24,9 @@ std::string GetTimestamp();
 bool SplitKV(const std::string& str, char delimiter,
              std::string* key, std::string* value);
 
+// Convert string to size_t.
+bool ToSize(const std::string& str, int base, std::size_t* size);
+
 // Tell the size in bytes of the given file.
 // Return kInvalidLength (-1) on failure.
 std::size_t TellSize(const Path& path);

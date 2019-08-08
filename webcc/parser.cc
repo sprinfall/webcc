@@ -1,6 +1,7 @@
 #include "webcc/parser.h"
 
 #include "boost/algorithm/string.hpp"
+#include "boost/filesystem/operations.hpp"
 
 #include "webcc/logger.h"
 #include "webcc/message.h"
@@ -10,29 +11,135 @@
 #include "webcc/gzip.h"
 #endif
 
+namespace bfs = boost::filesystem;
+
 namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-namespace {
+ParseHandler::ParseHandler(Message* message, bool stream)
+    : message_(message), content_length_(kInvalidLength), stream_(stream),
+      streamed_size_(0) {
+  if (stream_) {
+    try {
+      temp_path_ = bfs::temp_directory_path() / bfs::unique_path();
+    } catch (const bfs::filesystem_error&) {
+      throw Error{ Error::kFileError, "Cannot generate temp file path" };
+    }
 
-bool StringToSizeT(const std::string& str, int base, std::size_t* output) {
-  try {
-    *output = static_cast<std::size_t>(std::stoul(str, 0, base));
-  } catch (const std::exception&) {
+    ofstream_.open(temp_path_, std::ios::binary);
+
+    if (ofstream_.fail()) {
+      throw Error{ Error::kFileError, "Cannot open the temp file" };
+    }
+  }
+}
+
+ParseHandler::~ParseHandler() {
+}
+
+void ParseHandler::OnStartLine(const std::string& start_line) {
+  message_->set_start_line(start_line);
+}
+
+void ParseHandler::OnContentLength(std::size_t content_length) {
+  content_length_ = content_length;
+
+  if (!stream_) {
+    // Reserve memory to avoid frequent reallocation when append.
+    // TODO: Don't know if it's really necessary.
+    try {
+      content_.reserve(content_length_);
+    } catch (const std::exception& e) {
+      LOG_ERRO("Failed to reserve content memory: %s.", e.what());
+    }
+  }
+}
+
+void ParseHandler::OnHeader(Header&& header) {
+  message_->SetHeader(std::move(header));
+}
+
+void ParseHandler::AddContent(const char* data, std::size_t count) {
+  if (stream_) {
+    ofstream_.write(data, count);
+    streamed_size_ += count;
+  } else {
+    content_.append(data, count);
+  }
+}
+
+void ParseHandler::AddContent(const std::string& data) {
+  if (stream_) {
+    ofstream_ << data;
+    streamed_size_ += data.size();
+  } else {
+    content_.append(data);
+  }
+}
+
+bool ParseHandler::IsFixedContentFull() const {
+  if (content_length_ == kInvalidLength) {
+    // Shouldn't be here.
+    // See Parser::ParseFixedContent().
     return false;
   }
+
+  if (stream_) {
+    return streamed_size_ >= content_length_;
+  } else {
+    return content_.length() >= content_length_;
+  }
+}
+
+bool ParseHandler::Finish() {
+  // Could be `kInvalidLength` (chunked).
+  // Could be `0` (empty body and `Content-Length : 0`).
+  message_->set_content_length(content_length_);
+
+  if (!stream_ && content_.empty()) {
+    // The call to message_->SetBody() is not necessary since message is
+    // always initialized with an empty body.
+    return true;
+  }
+
+  BodyPtr body;
+
+  if (stream_) {
+    ofstream_.close();
+
+    // Create a file body based on the streamed temp file.
+    body = std::make_shared<FileBody>(temp_path_, true);
+
+    // TODO: Compress
+
+  } else {
+    body = std::make_shared<StringBody>(std::move(content_), IsCompressed());
+
+#if WEBCC_ENABLE_GZIP
+    LOG_INFO("Decompress the HTTP content...");
+    if (!body->Decompress()) {
+      LOG_ERRO("Cannot decompress the HTTP content!");
+      return false;
+    }
+#else
+    LOG_WARN("Compressed HTTP content remains untouched.");
+#endif  // WEBCC_ENABLE_GZIP
+  }
+
+  message_->SetBody(body, false);
+
   return true;
 }
 
-}  // namespace
+bool ParseHandler::IsCompressed() const {
+  return message_->GetContentEncoding() != ContentEncoding::kUnknown;
+}
 
 // -----------------------------------------------------------------------------
 
-Parser::Parser(Message* message)
-    : message_(message),
-      content_length_(kInvalidLength),
-      start_line_parsed_(false),
+Parser::Parser()
+    : start_line_parsed_(false),
       content_length_parsed_(false),
       header_ended_(false),
       chunked_(false),
@@ -40,9 +147,9 @@ Parser::Parser(Message* message)
       finished_(false) {
 }
 
-void Parser::Init(Message* message) {
+void Parser::Init(Message* message, bool stream) {
   Reset();
-  message_ = message;
+  handler_.reset(new ParseHandler{ message, stream });
 }
 
 bool Parser::Parse(const char* data, std::size_t length) {
@@ -70,9 +177,7 @@ bool Parser::Parse(const char* data, std::size_t length) {
 
 void Parser::Reset() {
   pending_data_.clear();
-  content_.clear();
 
-  content_length_ = kInvalidLength;
   content_type_.Reset();
   start_line_parsed_ = false;
   content_length_parsed_ = false;
@@ -101,7 +206,8 @@ bool Parser::ParseHeaders() {
 
     if (!start_line_parsed_) {
       start_line_parsed_ = true;
-      message_->set_start_line(line);
+      handler_->OnStartLine(line);
+
       if (!ParseStartLine(line)) {
         return false;
       }
@@ -148,20 +254,15 @@ bool Parser::ParseHeaderLine(const std::string& line) {
   if (boost::iequals(header.first, headers::kContentLength)) {
     content_length_parsed_ = true;
 
-    if (!StringToSizeT(header.second, 10, &content_length_)) {
+    std::size_t content_length = kInvalidLength;
+    if (!utility::ToSize(header.second, 10, &content_length)) {
       LOG_ERRO("Invalid content length: %s.", header.second.c_str());
       return false;
     }
 
-    LOG_INFO("Content length: %u.", content_length_);
+    LOG_INFO("Content length: %u.", content_length);
+    handler_->OnContentLength(content_length);
 
-    // Reserve memory to avoid frequent reallocation when append.
-    try {
-      content_.reserve(content_length_);
-    } catch (const std::exception& e) {
-      LOG_ERRO("Failed to reserve content memory: %s.", e.what());
-      return false;
-    }
   } else if (boost::iequals(header.first, headers::kContentType)) {
     content_type_.Parse(header.second);
     if (!content_type_.Valid()) {
@@ -175,8 +276,7 @@ bool Parser::ParseHeaderLine(const std::string& line) {
     }
   }
 
-  message_->SetHeader(std::move(header));
-
+  handler_->OnHeader(std::move(header));
   return true;
 }
 
@@ -195,21 +295,21 @@ bool Parser::ParseFixedContent(const char* data, std::size_t length) {
     return true;
   }
 
-  if (content_length_ == kInvalidLength) {
+  if (handler_->content_length() == kInvalidLength) {
     // Invalid content length (syntax error).
     return false;
   }
 
   if (!pending_data_.empty()) {
     // This is the data left after the headers are parsed.
-    AppendContent(pending_data_);
+    handler_->AddContent(pending_data_);
     pending_data_.clear();
   }
 
   // Don't have to firstly put the data to the pending data.
-  AppendContent(data, length);
+  handler_->AddContent(data, length);
 
-  if (IsFixedContentFull()) {
+  if (handler_->IsFixedContentFull()) {
     // All content has been read.
     Finish();
   }
@@ -236,7 +336,7 @@ bool Parser::ParseChunkedContent(const char* data, std::size_t length) {
     }
 
     if (chunk_size_ + 2 <= pending_data_.size()) {  // +2 for CRLF
-      AppendContent(pending_data_.c_str(), chunk_size_);
+      handler_->AddContent(pending_data_.c_str(), chunk_size_);
 
       pending_data_.erase(0, chunk_size_ + 2);
 
@@ -247,7 +347,7 @@ bool Parser::ParseChunkedContent(const char* data, std::size_t length) {
       continue;
 
     } else if (chunk_size_ > pending_data_.size()) {
-      AppendContent(pending_data_);
+      handler_->AddContent(pending_data_);
 
       chunk_size_ -= pending_data_.size();
 
@@ -287,7 +387,7 @@ bool Parser::ParseChunkSize() {
     hex_str = line;
   }
 
-  if (!StringToSizeT(hex_str, 16, &chunk_size_)) {
+  if (!utility::ToSize(hex_str, 16, &chunk_size_)) {
     LOG_ERRO("Invalid chunk-size: %s.", hex_str.c_str());
     return false;
   }
@@ -297,46 +397,7 @@ bool Parser::ParseChunkSize() {
 
 bool Parser::Finish() {
   finished_ = true;
-
-  if (content_.empty()) {
-    return true;
-  }
-
-  // Could be kInvalidLength when chunked.
-  message_->set_content_length(content_length_);
-
-  bool compressed = IsContentCompressed();
-  auto body = std::make_shared<StringBody>(std::move(content_), compressed);
-
-#if WEBCC_ENABLE_GZIP
-  LOG_INFO("Decompress the HTTP content...");
-  if (!body->Decompress()) {
-    LOG_ERRO("Cannot decompress the HTTP content!");
-    return false;
-  }
-#else
-  LOG_WARN("Compressed HTTP content remains untouched.");
-#endif  // WEBCC_ENABLE_GZIP
-
-  message_->SetBody(body, false);
-  return true;
-}
-
-void Parser::AppendContent(const char* data, std::size_t count) {
-  content_.append(data, count);
-}
-
-void Parser::AppendContent(const std::string& data) {
-  content_.append(data);
-}
-
-bool Parser::IsFixedContentFull() const {
-  return content_length_ != kInvalidLength &&
-         content_length_ <= content_.length();
-}
-
-bool Parser::IsContentCompressed() const {
-  return message_->GetContentEncoding() != ContentEncoding::kUnknown;
+  return handler_->Finish();
 }
 
 }  // namespace webcc

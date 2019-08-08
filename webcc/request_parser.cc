@@ -10,8 +10,7 @@
 
 namespace webcc {
 
-RequestParser::RequestParser(Request* request)
-    : Parser(request), request_(request) {
+RequestParser::RequestParser() : request_(nullptr) {
 }
 
 void RequestParser::Init(Request* request) {
@@ -51,7 +50,7 @@ bool RequestParser::ParseMultipartContent(const char* data,
                                           std::size_t length) {
   pending_data_.append(data, length);
 
-  if (!content_length_parsed_ || content_length_ == kInvalidLength) {
+  if (!content_length_parsed_ || handler_->content_length() == kInvalidLength) {
     // Invalid content length (syntax error).
     return false;
   }

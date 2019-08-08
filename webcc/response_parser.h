@@ -11,11 +11,11 @@ class Response;
 
 class ResponseParser : public Parser {
 public:
-  explicit ResponseParser(Response* response = nullptr);
+  ResponseParser();
 
   ~ResponseParser() override = default;
 
-  void Init(Response* response);
+  void Init(Response* response, bool stream = false);
 
   void set_ignroe_body(bool ignroe_body) {
     ignroe_body_ = ignroe_body;

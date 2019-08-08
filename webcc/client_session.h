@@ -57,7 +57,11 @@ public:
 
   // Send a request.
   // Please use RequestBuilder to build the request.
-  ResponsePtr Request(RequestPtr request);
+  // If |stream| is true, the response data will be written into a temp file,
+  // the response body will be FileBody, and you can easily move the temp file
+  // to another path with FileBody::Move(). So |stream| is useful for
+  // downloading files (JPEG, etc.) or saving memory for huge data responses.
+  ResponsePtr Request(RequestPtr request, bool stream = false);
 
   // Shortcut for GET request.
   ResponsePtr Get(const std::string& url, const Strings& parameters = {},
@@ -85,7 +89,7 @@ public:
 private:
   void InitHeaders();
 
-  ResponsePtr Send(RequestPtr request);
+  ResponsePtr Send(RequestPtr request, bool stream);
 
 private:
   // Default media type for `Content-Type` header.

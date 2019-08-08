@@ -8,7 +8,8 @@
 // HTTP GET request parser test fixture.
 class GetRequestParserTest : public testing::Test {
 protected:
-  GetRequestParserTest() : parser_(&request_) {
+  GetRequestParserTest() {
+    parser_.Init(&request_);
   }
 
   void SetUp() override {
@@ -81,7 +82,8 @@ TEST_F(GetRequestParserTest, ParseLineWise) {
 // HTTP POST request parser test fixture.
 class PostRequestParserTest : public testing::Test {
 protected:
-  PostRequestParserTest() : parser_(&request_) {
+  PostRequestParserTest() {
+    parser_.Init(&request_);
   }
 
   void SetUp() override {
@@ -146,7 +148,8 @@ TEST_F(PostRequestParserTest, ParseByteWise) {
 
 class MultipartRequestParserTest : public testing::Test {
 protected:
-  MultipartRequestParserTest() : parser_(&request_) {
+  MultipartRequestParserTest() {
+    parser_.Init(&request_);
   }
 
   void SetUp() override {
