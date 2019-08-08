@@ -15,6 +15,9 @@ Git repo: https://github.com/sprinfall/webcc. Please check this one instead of t
 - SSL/HTTPS support with OpenSSL (optional)
 - GZip compression support with Zlib (optional)
 - Persistent (Keep-Alive) connections
+- Data streaming
+    - for uploading and downloading large files on client
+    - for serving and receiving large files on server
 - Basic & Token authorization
 - Timeout control
 - Source code follows [Google C++ Style](https://google.github.io/styleguide/cppguide.html)
