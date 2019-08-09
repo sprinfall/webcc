@@ -160,7 +160,7 @@ auto r = session.Request(webcc::RequestBuilder{}.
                          true);  // !!!
 
 // Move the streamed file to your destination.
-file_body->Move("./wolf.jpeg");
+r->file_body()->Move("./wolf.jpeg");
 ```
 
 Please check the [examples](https://github.com/sprinfall/webcc/tree/master/examples/) for more information. 
