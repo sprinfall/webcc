@@ -16,14 +16,18 @@ Client::Client()
 }
 
 Error Client::Request(RequestPtr request, bool connect, bool stream) {
-  io_context_.restart();
-
-  response_.reset(new Response{});
-  response_parser_.Init(response_.get(), stream);
-
   closed_ = false;
   timer_canceled_ = false;
   error_ = Error{};
+
+  response_.reset(new Response{});
+
+  if (!response_parser_.Init(response_.get(), stream)) {
+    // Failed to generate the temp file for streaming.
+    // I don't know when this would happen. Keep the error handling here just
+    // for preciseness.
+    return Error{ Error::kFileError, "Streaming temp file error" };
+  }
 
   if (buffer_.size() != buffer_size_) {
     LOG_VERB("Resize buffer: %u -> %u.", buffer_.size(), buffer_size_);
@@ -43,6 +47,8 @@ Error Client::Request(RequestPtr request, bool connect, bool stream) {
     // Reset in case the connection is persistent.
     response_parser_.set_ignroe_body(false);
   }
+
+  io_context_.restart();
 
   if (connect) {
     // No existing socket connection was specified, create a new one.

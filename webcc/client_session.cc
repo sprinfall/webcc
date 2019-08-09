@@ -232,7 +232,11 @@ ResponsePtr ClientSession::Send(RequestPtr request, bool stream) {
     }
   }
 
-  return client->response();
+  auto response = client->response();
+  // The client object might be cached in the pool.
+  // Reset to make sure it won't keep a reference to the response object.
+  client->Reset();
+  return response;
 }
 
 }  // namespace webcc

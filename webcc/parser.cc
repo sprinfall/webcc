@@ -17,65 +17,48 @@ namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-ParseHandler::ParseHandler(Message* message, bool stream)
-    : message_(message), content_length_(kInvalidLength), stream_(stream),
-      streamed_size_(0) {
-  if (stream_) {
-    try {
-      temp_path_ = bfs::temp_directory_path() / bfs::unique_path();
-    } catch (const bfs::filesystem_error&) {
-      throw Error{ Error::kFileError, "Cannot generate temp file path" };
-    }
-
-    ofstream_.open(temp_path_, std::ios::binary);
-
-    if (ofstream_.fail()) {
-      throw Error{ Error::kFileError, "Cannot open the temp file" };
-    }
-  }
+ParseHandlerBase::ParseHandlerBase(Message* message)
+    : message_(message), content_length_(kInvalidLength) {
 }
 
-ParseHandler::~ParseHandler() {
-}
-
-void ParseHandler::OnStartLine(const std::string& start_line) {
+void ParseHandlerBase::OnStartLine(const std::string& start_line) {
   message_->set_start_line(start_line);
 }
 
-void ParseHandler::OnContentLength(std::size_t content_length) {
+void ParseHandlerBase::OnContentLength(std::size_t content_length) {
   content_length_ = content_length;
-
-  if (!stream_) {
-    // Reserve memory to avoid frequent reallocation when append.
-    // TODO: Don't know if it's really necessary.
-    try {
-      content_.reserve(content_length_);
-    } catch (const std::exception& e) {
-      LOG_ERRO("Failed to reserve content memory: %s.", e.what());
-    }
-  }
 }
 
-void ParseHandler::OnHeader(Header&& header) {
+void ParseHandlerBase::OnHeader(Header&& header) {
   message_->SetHeader(std::move(header));
 }
 
-void ParseHandler::AddContent(const char* data, std::size_t count) {
-  if (stream_) {
-    ofstream_.write(data, count);
-    streamed_size_ += count;
-  } else {
-    content_.append(data, count);
+bool ParseHandlerBase::IsCompressed() const {
+  return message_->GetContentEncoding() != ContentEncoding::kUnknown;
+}
+
+// -----------------------------------------------------------------------------
+
+ParseHandler::ParseHandler(Message* message) : ParseHandlerBase(message) {
+}
+
+void ParseHandler::OnContentLength(std::size_t content_length) {
+  ParseHandlerBase::OnContentLength(content_length);
+
+  // Reserve memory to avoid frequent reallocation when append.
+  try {
+    content_.reserve(content_length_);
+  } catch (const std::exception& e) {
+    LOG_ERRO("Failed to reserve content memory: %s.", e.what());
   }
 }
 
+void ParseHandler::AddContent(const char* data, std::size_t count) {
+  content_.append(data, count);
+}
+
 void ParseHandler::AddContent(const std::string& data) {
-  if (stream_) {
-    ofstream_ << data;
-    streamed_size_ += data.size();
-  } else {
-    content_.append(data);
-  }
+  content_.append(data);
 }
 
 bool ParseHandler::IsFixedContentFull() const {
@@ -85,11 +68,7 @@ bool ParseHandler::IsFixedContentFull() const {
     return false;
   }
 
-  if (stream_) {
-    return streamed_size_ >= content_length_;
-  } else {
-    return content_.length() >= content_length_;
-  }
+  return content_.length() >= content_length_;
 }
 
 bool ParseHandler::Finish() {
@@ -97,43 +76,88 @@ bool ParseHandler::Finish() {
   // Could be `0` (empty body and `Content-Length : 0`).
   message_->set_content_length(content_length_);
 
-  if (!stream_ && content_.empty()) {
+  if (content_.empty()) {
     // The call to message_->SetBody() is not necessary since message is
     // always initialized with an empty body.
     return true;
   }
 
-  BodyPtr body;
-
-  if (stream_) {
-    ofstream_.close();
-
-    // Create a file body based on the streamed temp file.
-    body = std::make_shared<FileBody>(temp_path_, true);
-
-    // TODO: Compress
-
-  } else {
-    body = std::make_shared<StringBody>(std::move(content_), IsCompressed());
+  auto body = std::make_shared<StringBody>(std::move(content_), IsCompressed());
 
 #if WEBCC_ENABLE_GZIP
-    LOG_INFO("Decompress the HTTP content...");
-    if (!body->Decompress()) {
-      LOG_ERRO("Cannot decompress the HTTP content!");
-      return false;
-    }
-#else
-    LOG_WARN("Compressed HTTP content remains untouched.");
-#endif  // WEBCC_ENABLE_GZIP
+  LOG_INFO("Decompress the HTTP content...");
+  if (!body->Decompress()) {
+    LOG_ERRO("Cannot decompress the HTTP content!");
+    return false;
   }
+#else
+  LOG_WARN("Compressed HTTP content remains untouched.");
+#endif  // WEBCC_ENABLE_GZIP
 
   message_->SetBody(body, false);
+  return true;
+}
+
+// -----------------------------------------------------------------------------
+
+StreamedParseHandler::StreamedParseHandler(Message* message)
+    : ParseHandlerBase(message) {
+}
+
+bool StreamedParseHandler::Init() {
+  try {
+    temp_path_ = bfs::temp_directory_path() / bfs::unique_path();
+    LOG_VERB("Generate a temp path for streaming: %s",
+             temp_path_.string().c_str());
+  } catch (const bfs::filesystem_error&) {
+    LOG_ERRO("Failed to generate temp path: %s", temp_path_.string().c_str());
+    return false;
+  }
+
+  ofstream_.open(temp_path_, std::ios::binary);
+
+  if (ofstream_.fail()) {
+    LOG_ERRO("Failed to open the temp file: %s", temp_path_.string().c_str());
+    return false;
+  }
 
   return true;
 }
 
-bool ParseHandler::IsCompressed() const {
-  return message_->GetContentEncoding() != ContentEncoding::kUnknown;
+void StreamedParseHandler::AddContent(const char* data, std::size_t count) {
+  ofstream_.write(data, count);
+  streamed_size_ += count;
+}
+
+void StreamedParseHandler::AddContent(const std::string& data) {
+  ofstream_ << data;
+  streamed_size_ += data.size();
+}
+
+bool StreamedParseHandler::IsFixedContentFull() const {
+  if (content_length_ == kInvalidLength) {
+    // Shouldn't be here.
+    // See Parser::ParseFixedContent().
+    return false;
+  }
+
+  return streamed_size_ >= content_length_;
+}
+
+bool StreamedParseHandler::Finish() {
+  // Could be `kInvalidLength` (chunked).
+  // Could be `0` (empty body and `Content-Length : 0`).
+  message_->set_content_length(content_length_);
+
+  ofstream_.close();
+
+  // Create a file body based on the streamed temp file.
+  auto body = std::make_shared<FileBody>(temp_path_, true);
+
+  // TODO: Compress
+
+  message_->SetBody(body, false);
+  return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -147,9 +171,21 @@ Parser::Parser()
       finished_(false) {
 }
 
-void Parser::Init(Message* message, bool stream) {
+bool Parser::Init(Message* message, bool stream) {
   Reset();
-  handler_.reset(new ParseHandler{ message, stream });
+
+  if (stream) {
+    handler_.reset(new StreamedParseHandler{ message });
+  } else {
+    handler_.reset(new ParseHandler{ message });
+  }
+
+  if (!handler_->Init()) {
+    // Failed to generate temp file for streaming.
+    return false;
+  }
+
+  return true;
 }
 
 bool Parser::Parse(const char* data, std::size_t length) {

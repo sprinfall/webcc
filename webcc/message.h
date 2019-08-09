@@ -27,11 +27,11 @@ public:
   }
 
   // Get the data from the (string) body.
-  // Empty string will be returned if the body is not a StringBody.
+  // Return empty string if the body is not a StringBody.
   const std::string& data() const;
 
   // Get the body as a FileBody.
-  // Exception Error::kDataError will be thrown if the body is not a FileBody.
+  // Return null if the body is not a FileBody.
   std::shared_ptr<FileBody> file_body() const;
 
   // ---------------------------------------------------------------------------

@@ -14,13 +14,13 @@ class Message;
 
 // -----------------------------------------------------------------------------
 
-class ParseHandler {
+class ParseHandlerBase {
 public:
-  // If |stream| is true, the data will be streamed to a temp file, and the
-  // body of the message will be FileBody instead of StringBody.
-  ParseHandler(Message* message, bool stream = false);
+  ParseHandlerBase(Message* message);
 
-  ~ParseHandler();
+  virtual ~ParseHandlerBase() = default;
+
+  virtual bool Init() = 0;
 
   std::size_t content_length() const {
     return content_length_;
@@ -28,29 +28,67 @@ public:
 
   void OnStartLine(const std::string& start_line);
 
-  void OnContentLength(std::size_t content_length);
-
   void OnHeader(Header&& header);
 
-  void AddContent(const char* data, std::size_t count);
+  virtual void OnContentLength(std::size_t content_length);
 
-  void AddContent(const std::string& data);
+  virtual void AddContent(const char* data, std::size_t count) = 0;
 
-  bool IsFixedContentFull() const;
+  virtual void AddContent(const std::string& data) = 0;
 
-  bool Finish();
+  virtual bool IsFixedContentFull() const = 0;
 
-private:
+  virtual bool Finish() = 0;
+
+protected:
   bool IsCompressed() const;
 
-private:
+protected:
   Message* message_;
-
   std::size_t content_length_;
-  std::string content_;
+};
 
-  bool stream_;
-  std::size_t streamed_size_;
+class ParseHandler : public ParseHandlerBase {
+public:
+  explicit ParseHandler(Message* message);
+
+  ~ParseHandler() override = default;
+
+  bool Init() override {
+    return true;
+  }
+
+  void OnContentLength(std::size_t content_length) override;
+
+  void AddContent(const char* data, std::size_t count) override;
+  void AddContent(const std::string& data) override;
+
+  bool IsFixedContentFull() const override;
+  bool Finish() override;
+
+private:
+  std::string content_;
+};
+
+// If |stream| is true, the data will be streamed to a temp file, and the
+// body of the message will be FileBody instead of StringBody.
+class StreamedParseHandler : public ParseHandlerBase {
+public:
+  explicit StreamedParseHandler(Message* message);
+
+  ~StreamedParseHandler() override = default;
+
+  // Generate a temp file.
+  bool Init() override;
+
+  void AddContent(const char* data, std::size_t count) override;
+  void AddContent(const std::string& data) override;
+
+  bool IsFixedContentFull() const override;
+  bool Finish() override;
+
+private:
+  std::size_t streamed_size_ = 0;
   boost::filesystem::ofstream ofstream_;
   Path temp_path_;
 };
@@ -66,7 +104,7 @@ public:
   Parser(const Parser&) = delete;
   Parser& operator=(const Parser&) = delete;
 
-  void Init(Message* message, bool stream = false);
+  bool Init(Message* message, bool stream = false);
 
   bool finished() const {
     return finished_;
@@ -103,7 +141,7 @@ protected:
   bool Finish();
 
 protected:
-  std::unique_ptr<ParseHandler> handler_;
+  std::unique_ptr<ParseHandlerBase> handler_;
 
   // Data waiting to be parsed.
   std::string pending_data_;

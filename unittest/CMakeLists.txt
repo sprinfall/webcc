@@ -1,12 +1,7 @@
 # Unit test
 
-set(UT_SRCS
-    base64_unittest.cc
-    body_unittest.cc
-    request_parser_unittest.cc
-    url_unittest.cc
-    utility_unittest.cc
-    )
+file(GLOB UT_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.cc)
 
 set(UT_TARGET_NAME webcc_unittest)
 

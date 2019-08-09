@@ -39,11 +39,7 @@ const std::string& Message::data() const {
 }
 
 std::shared_ptr<FileBody> Message::file_body() const {
-  auto file_body = std::dynamic_pointer_cast<FileBody>(body_);
-  if (!file_body) {
-    throw Error{ Error::kDataError, "Not a file body" };
-  }
-  return file_body;
+  return std::dynamic_pointer_cast<FileBody>(body_);
 }
 
 bool Message::IsConnectionKeepAlive() const {

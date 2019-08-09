@@ -15,7 +15,7 @@ public:
 
   ~RequestParser() override = default;
 
-  void Init(Request* request);
+  bool Init(Request* request, bool stream = false);
 
 private:
   bool ParseStartLine(const std::string& line) override;

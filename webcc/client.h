@@ -54,9 +54,21 @@ public:
   // Close the socket.
   void Close();
 
-  ResponsePtr response() const { return response_; }
+  ResponsePtr response() const {
+    return response_;
+  }
 
-  bool closed() const { return closed_; }
+  // Reset response object.
+  // Used to make sure the response object will released even the client object
+  // itself will be cached for keep-alive purpose.
+  void Reset() {
+    response_.reset();
+    response_parser_.Init(nullptr, false);
+  }
+
+  bool closed() const {
+    return closed_;
+  }
 
 private:
   void Connect(RequestPtr request);

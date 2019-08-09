@@ -41,9 +41,13 @@ void SplitStartLine(const std::string& line, std::vector<std::string>* parts) {
 ResponseParser::ResponseParser() : response_(nullptr) {
 }
 
-void ResponseParser::Init(Response* response, bool stream) {
-  Parser::Init(response, stream);
+bool ResponseParser::Init(Response* response, bool stream) {
+  if (!Parser::Init(response, stream)) {
+    return false;
+  }
+
   response_ = response;
+  return true;
 }
 
 bool ResponseParser::ParseStartLine(const std::string& line) {

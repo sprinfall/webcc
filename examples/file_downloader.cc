@@ -21,8 +21,8 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  std::string url = argv[1];
-  std::string path = argv[2];
+  const char* url = argv[1];
+  const char* path = argv[2];
 
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
@@ -32,9 +32,9 @@ int main(int argc, char* argv[]) {
     auto r = session.Request(webcc::RequestBuilder{}.Get(url)(),
                              true);  // Stream the response data to file.
 
-    auto file_body = r->file_body();
-
-    file_body->Move(path);
+    if (auto file_body = r->file_body()) {
+      file_body->Move(path);
+    }
 
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;

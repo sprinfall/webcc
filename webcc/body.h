@@ -169,6 +169,10 @@ public:
 
   void Dump(std::ostream& os, const std::string& prefix) const override;
 
+  const Path& path() const {
+    return path_;
+  }
+
   // Move (or rename) the file.
   // Used to move the streamed file of the received message to a new place.
   // Applicable to both client and server.

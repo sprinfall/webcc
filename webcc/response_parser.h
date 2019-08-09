@@ -15,7 +15,7 @@ public:
 
   ~ResponseParser() override = default;
 
-  void Init(Response* response, bool stream = false);
+  bool Init(Response* response, bool stream = false);
 
   void set_ignroe_body(bool ignroe_body) {
     ignroe_body_ = ignroe_body;

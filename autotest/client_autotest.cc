@@ -3,6 +3,8 @@
 #include "gtest/gtest.h"
 
 #include "boost/algorithm/string.hpp"
+#include "boost/filesystem/operations.hpp"
+
 #include "json/json.h"
 
 #include "webcc/client_session.h"
@@ -280,22 +282,85 @@ TEST(ClientTest, KeepAlive) {
 
 // -----------------------------------------------------------------------------
 
-// Get a JPEG image.
-TEST(ClientTest, GetImageJpeg) {
+// Get a JPEG image (without streaming).
+TEST(ClientTest, GetImageJpeg_NoStream) {
   webcc::ClientSession session;
 
   try {
 
     auto r = session.Get("http://httpbin.org/image/jpeg");
-
-    // Or
-    //   auto r = session.Get("http://httpbin.org/image", {},
-    //                        {"Accept", "image/jpeg"});
-
-    //std::ofstream ofs(path, std::ios::binary);
+ 
+    // TODO: Verify the response is a valid JPEG image.
+    //std::ofstream ofs(<path>, std::ios::binary);
     //ofs << r->data();
 
-    // TODO: Verify the response is a valid JPEG image.
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+  }
+}
+
+// -----------------------------------------------------------------------------
+
+// Streaming
+
+TEST(ClientTest, Stream_GetImageJpeg) {
+  webcc::ClientSession session;
+
+  try {
+    auto r = session.Request(webcc::RequestBuilder{}.
+                             Get("http://httpbin.org/image/jpeg")(),
+                             true);
+
+    auto file_body = r->file_body();
+
+    EXPECT_TRUE(!!file_body);
+
+    EXPECT_TRUE(!file_body->path().empty());
+
+    // Backup the path of the temp file.
+    const webcc::Path ori_path = file_body->path();
+
+    const webcc::Path new_path("./wolf.jpeg");
+
+    bool moved = file_body->Move(new_path);
+    EXPECT_TRUE(moved);
+    EXPECT_TRUE(boost::filesystem::exists(new_path));
+    // The file in the original path should not exist any more.
+    EXPECT_TRUE(!boost::filesystem::exists(ori_path));
+
+    // After move, the original path should be reset.
+    EXPECT_TRUE(file_body->path().empty());
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+  }
+}
+
+// Test whether the streamed file will be deleted or not at the end if it's
+// not moved to another path by the user.
+TEST(ClientTest, Stream_GetImageJpeg_NoMove) {
+  webcc::ClientSession session;
+
+  try {
+    webcc::Path ori_path;
+
+    {
+      auto r = session.Request(webcc::RequestBuilder{}.
+                               Get("http://httpbin.org/image/jpeg")(),
+                               true);
+
+      auto file_body = r->file_body();
+
+      EXPECT_TRUE(!!file_body);
+
+      EXPECT_TRUE(!file_body->path().empty());
+
+      // Backup the path of the temp file.
+      ori_path = file_body->path();
+    }
+
+    // The temp file should be deleted.
+    EXPECT_TRUE(!boost::filesystem::exists(ori_path));
 
   } catch (const webcc::Error& error) {
     std::cerr << error << std::endl;

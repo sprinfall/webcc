@@ -13,9 +13,13 @@ namespace webcc {
 RequestParser::RequestParser() : request_(nullptr) {
 }
 
-void RequestParser::Init(Request* request) {
-  Parser::Init(request);
+bool RequestParser::Init(Request* request, bool stream) {
+  if (!Parser::Init(request, stream)) {
+    return false;
+  }
+
   request_ = request;
+  return true;
 }
 
 bool RequestParser::ParseStartLine(const std::string& line) {
