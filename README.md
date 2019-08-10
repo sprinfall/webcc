@@ -311,7 +311,7 @@ int main(int argc, char* argv[]) {
                  std::make_shared<BookDetailView>(),
                  { "GET", "PUT", "DELETE" });
 
-    server.Start();
+    server.Run();
 
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;
