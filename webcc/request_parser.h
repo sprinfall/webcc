@@ -15,9 +15,11 @@ public:
 
   ~RequestParser() override = default;
 
-  bool Init(Request* request, bool stream = false);
+  void Init(Request* request);
 
 private:
+  void CreateBodyHandler() override;
+
   bool ParseStartLine(const std::string& line) override;
 
   // Override to handle multipart form data which is request only.

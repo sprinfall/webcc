@@ -11,17 +11,18 @@ class Response;
 
 class ResponseParser : public Parser {
 public:
-  ResponseParser();
-
+  ResponseParser() = default;
   ~ResponseParser() override = default;
 
-  bool Init(Response* response, bool stream = false);
+  void Init(Response* response, bool stream = false);
 
   void set_ignroe_body(bool ignroe_body) {
     ignroe_body_ = ignroe_body;
   }
 
 private:
+  void CreateBodyHandler() override;
+
   // Parse HTTP start line; E.g., "HTTP/1.1 200 OK".
   bool ParseStartLine(const std::string& line) override;
 
@@ -30,7 +31,10 @@ private:
 
 private:
   // The result response message.
-  Response* response_;
+  Response* response_ = nullptr;
+
+  // Data streaming or not.
+  bool stream_ = false;
 
   // The response for HEAD request could also have `Content-Length` header,
   // set this flag to ignore it.

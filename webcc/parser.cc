@@ -17,65 +17,29 @@ namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-ParseHandlerBase::ParseHandlerBase(Message* message)
-    : message_(message), content_length_(kInvalidLength) {
-}
-
-void ParseHandlerBase::OnStartLine(const std::string& start_line) {
-  message_->set_start_line(start_line);
-}
-
-void ParseHandlerBase::OnContentLength(std::size_t content_length) {
-  content_length_ = content_length;
-}
-
-void ParseHandlerBase::OnHeader(Header&& header) {
-  message_->SetHeader(std::move(header));
-}
-
-bool ParseHandlerBase::IsCompressed() const {
+bool BodyHandler::IsCompressed() const {
   return message_->GetContentEncoding() != ContentEncoding::kUnknown;
 }
 
 // -----------------------------------------------------------------------------
 
-ParseHandler::ParseHandler(Message* message) : ParseHandlerBase(message) {
-}
+// TODO
+//  // Reserve memory to avoid frequent reallocation when append.
+//  try {
+//    content_.reserve(content_length_);
+//  } catch (const std::exception& e) {
+//    LOG_ERRO("Failed to reserve content memory: %s.", e.what());
+//  }
 
-void ParseHandler::OnContentLength(std::size_t content_length) {
-  ParseHandlerBase::OnContentLength(content_length);
-
-  // Reserve memory to avoid frequent reallocation when append.
-  try {
-    content_.reserve(content_length_);
-  } catch (const std::exception& e) {
-    LOG_ERRO("Failed to reserve content memory: %s.", e.what());
-  }
-}
-
-void ParseHandler::AddContent(const char* data, std::size_t count) {
+void StringBodyHandler::AddContent(const char* data, std::size_t count) {
   content_.append(data, count);
 }
 
-void ParseHandler::AddContent(const std::string& data) {
+void StringBodyHandler::AddContent(const std::string& data) {
   content_.append(data);
 }
 
-bool ParseHandler::IsFixedContentFull() const {
-  if (content_length_ == kInvalidLength) {
-    // Shouldn't be here.
-    // See Parser::ParseFixedContent().
-    return false;
-  }
-
-  return content_.length() >= content_length_;
-}
-
-bool ParseHandler::Finish() {
-  // Could be `kInvalidLength` (chunked).
-  // Could be `0` (empty body and `Content-Length : 0`).
-  message_->set_content_length(content_length_);
-
+bool StringBodyHandler::Finish() {
   if (content_.empty()) {
     // The call to message_->SetBody() is not necessary since message is
     // always initialized with an empty body.
@@ -95,60 +59,41 @@ bool ParseHandler::Finish() {
 #endif  // WEBCC_ENABLE_GZIP
 
   message_->SetBody(body, false);
+
   return true;
 }
 
 // -----------------------------------------------------------------------------
 
-StreamedParseHandler::StreamedParseHandler(Message* message)
-    : ParseHandlerBase(message) {
-}
-
-bool StreamedParseHandler::Init() {
+FileBodyHandler::FileBodyHandler(Message* message) : BodyHandler(message) {
   try {
     temp_path_ = bfs::temp_directory_path() / bfs::unique_path();
     LOG_VERB("Generate a temp path for streaming: %s",
              temp_path_.string().c_str());
   } catch (const bfs::filesystem_error&) {
     LOG_ERRO("Failed to generate temp path: %s", temp_path_.string().c_str());
-    return false;
+    throw Error{ Error::kFileError };
   }
 
   ofstream_.open(temp_path_, std::ios::binary);
 
   if (ofstream_.fail()) {
     LOG_ERRO("Failed to open the temp file: %s", temp_path_.string().c_str());
-    return false;
+    throw Error{ Error::kFileError };
   }
-
-  return true;
 }
 
-void StreamedParseHandler::AddContent(const char* data, std::size_t count) {
+void FileBodyHandler::AddContent(const char* data, std::size_t count) {
   ofstream_.write(data, count);
   streamed_size_ += count;
 }
 
-void StreamedParseHandler::AddContent(const std::string& data) {
+void FileBodyHandler::AddContent(const std::string& data) {
   ofstream_ << data;
   streamed_size_ += data.size();
 }
 
-bool StreamedParseHandler::IsFixedContentFull() const {
-  if (content_length_ == kInvalidLength) {
-    // Shouldn't be here.
-    // See Parser::ParseFixedContent().
-    return false;
-  }
-
-  return streamed_size_ >= content_length_;
-}
-
-bool StreamedParseHandler::Finish() {
-  // Could be `kInvalidLength` (chunked).
-  // Could be `0` (empty body and `Content-Length : 0`).
-  message_->set_content_length(content_length_);
-
+bool FileBodyHandler::Finish() {
   ofstream_.close();
 
   // Create a file body based on the streamed temp file.
@@ -157,35 +102,19 @@ bool StreamedParseHandler::Finish() {
   // TODO: Compress
 
   message_->SetBody(body, false);
+
   return true;
 }
 
 // -----------------------------------------------------------------------------
 
-Parser::Parser()
-    : start_line_parsed_(false),
-      content_length_parsed_(false),
-      header_ended_(false),
-      chunked_(false),
-      chunk_size_(kInvalidLength),
-      finished_(false) {
+Parser::Parser() {
+  Reset();
 }
 
-bool Parser::Init(Message* message, bool stream) {
+void Parser::Init(Message* message) {
   Reset();
-
-  if (stream) {
-    handler_.reset(new StreamedParseHandler{ message });
-  } else {
-    handler_.reset(new ParseHandler{ message });
-  }
-
-  if (!handler_->Init()) {
-    // Failed to generate temp file for streaming.
-    return false;
-  }
-
-  return true;
+  message_ = message;
 }
 
 bool Parser::Parse(const char* data, std::size_t length) {
@@ -207,13 +136,26 @@ bool Parser::Parse(const char* data, std::size_t length) {
 
   LOG_INFO("HTTP headers just ended.");
 
+  CreateBodyHandler();
+
+  if (!body_handler_) {
+    // The only reason to reach here is that it was failed to generate the temp
+    // file for streaming. Normally, it shouldn't happen.
+    // TODO: Keep a member |error_| for the user to query.
+    return false;
+  }
+
   // The left data, if any, is still in the pending data.
   return ParseContent("", 0);
 }
 
 void Parser::Reset() {
+  message_ = nullptr;
+  body_handler_.reset();
+
   pending_data_.clear();
 
+  content_length_ = kInvalidLength;
   content_type_.Reset();
   start_line_parsed_ = false;
   content_length_parsed_ = false;
@@ -242,7 +184,7 @@ bool Parser::ParseHeaders() {
 
     if (!start_line_parsed_) {
       start_line_parsed_ = true;
-      handler_->OnStartLine(line);
+      message_->set_start_line(line);
 
       if (!ParseStartLine(line)) {
         return false;
@@ -297,7 +239,7 @@ bool Parser::ParseHeaderLine(const std::string& line) {
     }
 
     LOG_INFO("Content length: %u.", content_length);
-    handler_->OnContentLength(content_length);
+    content_length_ = content_length;
 
   } else if (boost::iequals(header.first, headers::kContentType)) {
     content_type_.Parse(header.second);
@@ -312,7 +254,8 @@ bool Parser::ParseHeaderLine(const std::string& line) {
     }
   }
 
-  handler_->OnHeader(std::move(header));
+  message_->SetHeader(std::move(header));
+
   return true;
 }
 
@@ -331,21 +274,21 @@ bool Parser::ParseFixedContent(const char* data, std::size_t length) {
     return true;
   }
 
-  if (handler_->content_length() == kInvalidLength) {
+  if (content_length_ == kInvalidLength) {
     // Invalid content length (syntax error).
     return false;
   }
 
   if (!pending_data_.empty()) {
     // This is the data left after the headers are parsed.
-    handler_->AddContent(pending_data_);
+    body_handler_->AddContent(pending_data_);
     pending_data_.clear();
   }
 
   // Don't have to firstly put the data to the pending data.
-  handler_->AddContent(data, length);
+  body_handler_->AddContent(data, length);
 
-  if (handler_->IsFixedContentFull()) {
+  if (IsFixedContentFull()) {
     // All content has been read.
     Finish();
   }
@@ -372,7 +315,7 @@ bool Parser::ParseChunkedContent(const char* data, std::size_t length) {
     }
 
     if (chunk_size_ + 2 <= pending_data_.size()) {  // +2 for CRLF
-      handler_->AddContent(pending_data_.c_str(), chunk_size_);
+      body_handler_->AddContent(pending_data_.c_str(), chunk_size_);
 
       pending_data_.erase(0, chunk_size_ + 2);
 
@@ -383,7 +326,7 @@ bool Parser::ParseChunkedContent(const char* data, std::size_t length) {
       continue;
 
     } else if (chunk_size_ > pending_data_.size()) {
-      handler_->AddContent(pending_data_);
+      body_handler_->AddContent(pending_data_);
 
       chunk_size_ -= pending_data_.size();
 
@@ -431,9 +374,19 @@ bool Parser::ParseChunkSize() {
   return true;
 }
 
+bool Parser::IsFixedContentFull() const {
+  assert(content_length_ != kInvalidLength);
+  return body_handler_->GetContentLength() >= content_length_;
+}
+
 bool Parser::Finish() {
   finished_ = true;
-  return handler_->Finish();
+
+  // Could be `kInvalidLength` (chunked).
+  // Could be `0` (empty body and `Content-Length : 0`).
+  message_->set_content_length(content_length_);
+
+  return body_handler_->Finish();
 }
 
 }  // namespace webcc

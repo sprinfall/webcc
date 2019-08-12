@@ -21,13 +21,7 @@ Error Client::Request(RequestPtr request, bool connect, bool stream) {
   error_ = Error{};
 
   response_.reset(new Response{});
-
-  if (!response_parser_.Init(response_.get(), stream)) {
-    // Failed to generate the temp file for streaming.
-    // I don't know when this would happen. Keep the error handling here just
-    // for preciseness.
-    return Error{ Error::kFileError, "Streaming temp file error" };
-  }
+  response_parser_.Init(response_.get(), stream);
 
   if (buffer_.size() != buffer_size_) {
     LOG_VERB("Resize buffer: %u -> %u.", buffer_.size(), buffer_size_);

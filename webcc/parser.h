@@ -14,29 +14,18 @@ class Message;
 
 // -----------------------------------------------------------------------------
 
-class ParseHandlerBase {
+class BodyHandler {
 public:
-  ParseHandlerBase(Message* message);
-
-  virtual ~ParseHandlerBase() = default;
-
-  virtual bool Init() = 0;
-
-  std::size_t content_length() const {
-    return content_length_;
+  explicit BodyHandler(Message* message) : message_(message) {
   }
 
-  void OnStartLine(const std::string& start_line);
-
-  void OnHeader(Header&& header);
-
-  virtual void OnContentLength(std::size_t content_length);
+  virtual ~BodyHandler() = default;
 
   virtual void AddContent(const char* data, std::size_t count) = 0;
 
   virtual void AddContent(const std::string& data) = 0;
 
-  virtual bool IsFixedContentFull() const = 0;
+  virtual std::size_t GetContentLength() const = 0;
 
   virtual bool Finish() = 0;
 
@@ -45,46 +34,46 @@ protected:
 
 protected:
   Message* message_;
-  std::size_t content_length_;
 };
 
-class ParseHandler : public ParseHandlerBase {
+// -----------------------------------------------------------------------------
+
+class StringBodyHandler : public BodyHandler {
 public:
-  explicit ParseHandler(Message* message);
-
-  ~ParseHandler() override = default;
-
-  bool Init() override {
-    return true;
+  explicit StringBodyHandler(Message* message) : BodyHandler(message) {
   }
 
-  void OnContentLength(std::size_t content_length) override;
+  ~StringBodyHandler() override = default;
 
   void AddContent(const char* data, std::size_t count) override;
   void AddContent(const std::string& data) override;
 
-  bool IsFixedContentFull() const override;
+  std::size_t GetContentLength() const override {
+    return content_.size();
+  }
+
   bool Finish() override;
 
 private:
   std::string content_;
 };
 
-// If |stream| is true, the data will be streamed to a temp file, and the
-// body of the message will be FileBody instead of StringBody.
-class StreamedParseHandler : public ParseHandlerBase {
+// -----------------------------------------------------------------------------
+
+class FileBodyHandler : public BodyHandler {
 public:
-  explicit StreamedParseHandler(Message* message);
+  // NOTE: Might throw Error::kFileError.
+  explicit FileBodyHandler(Message* message);
 
-  ~StreamedParseHandler() override = default;
-
-  // Generate a temp file.
-  bool Init() override;
+  ~FileBodyHandler() override = default;
 
   void AddContent(const char* data, std::size_t count) override;
   void AddContent(const std::string& data) override;
 
-  bool IsFixedContentFull() const override;
+  std::size_t GetContentLength() const override {
+    return streamed_size_;
+  }
+
   bool Finish() override;
 
 private:
@@ -104,7 +93,7 @@ public:
   Parser(const Parser&) = delete;
   Parser& operator=(const Parser&) = delete;
 
-  bool Init(Message* message, bool stream = false);
+  void Init(Message* message);
 
   bool finished() const {
     return finished_;
@@ -113,12 +102,13 @@ public:
   bool Parse(const char* data, std::size_t length);
 
 protected:
-  // Reset for next parse.
   void Reset();
 
   // Parse headers from pending data.
   // Return false only on syntax errors.
   bool ParseHeaders();
+
+  virtual void CreateBodyHandler() = 0;
 
   // Get next line (using delimiter CRLF) from the pending data.
   // The line will not contain a trailing CRLF.
@@ -137,16 +127,20 @@ protected:
   bool ParseChunkedContent(const char* data, std::size_t length);
   bool ParseChunkSize();
 
+  bool IsFixedContentFull() const;
+
   // Return false if the compressed content cannot be decompressed.
   bool Finish();
 
 protected:
-  std::unique_ptr<ParseHandlerBase> handler_;
+  Message* message_;
+  std::unique_ptr<BodyHandler> body_handler_;
 
   // Data waiting to be parsed.
   std::string pending_data_;
 
   // Temporary data and helper flags for parsing.
+  std::size_t content_length_;
   ContentType content_type_;
   bool start_line_parsed_;
   bool content_length_parsed_;

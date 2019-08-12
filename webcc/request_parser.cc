@@ -13,13 +13,14 @@ namespace webcc {
 RequestParser::RequestParser() : request_(nullptr) {
 }
 
-bool RequestParser::Init(Request* request, bool stream) {
-  if (!Parser::Init(request, stream)) {
-    return false;
-  }
-
+void RequestParser::Init(Request* request) {
+  Parser::Init(request);
   request_ = request;
-  return true;
+}
+
+// TODO
+void RequestParser::CreateBodyHandler() {
+  body_handler_.reset(new StringBodyHandler{ message_ });
 }
 
 bool RequestParser::ParseStartLine(const std::string& line) {
@@ -54,7 +55,7 @@ bool RequestParser::ParseMultipartContent(const char* data,
                                           std::size_t length) {
   pending_data_.append(data, length);
 
-  if (!content_length_parsed_ || handler_->content_length() == kInvalidLength) {
+  if (!content_length_parsed_ || content_length_ == kInvalidLength) {
     // Invalid content length (syntax error).
     return false;
   }

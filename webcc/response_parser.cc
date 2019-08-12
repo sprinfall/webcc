@@ -38,16 +38,23 @@ void SplitStartLine(const std::string& line, std::vector<std::string>* parts) {
 
 // -----------------------------------------------------------------------------
 
-ResponseParser::ResponseParser() : response_(nullptr) {
-}
-
-bool ResponseParser::Init(Response* response, bool stream) {
-  if (!Parser::Init(response, stream)) {
-    return false;
-  }
+void ResponseParser::Init(Response* response, bool stream) {
+  Parser::Init(response);
 
   response_ = response;
-  return true;
+  stream_ = stream;
+}
+
+void ResponseParser::CreateBodyHandler() {
+  if (stream_) {
+    try {
+      body_handler_.reset(new FileBodyHandler{ message_ });
+    } catch (const Error&) {
+      body_handler_.reset();
+    }
+  } else {
+    body_handler_.reset(new StringBodyHandler{ message_ });
+  }
 }
 
 bool ResponseParser::ParseStartLine(const std::string& line) {
