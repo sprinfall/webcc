@@ -145,8 +145,8 @@ webcc::ResponsePtr BookDetailView::Get(webcc::RequestPtr request) {
   Sleep(sleep_seconds_);
 
   if (request->args().size() != 1) {
-    // Using kNotFound means the resource specified by the URL cannot be found.
-    // kBadRequest could be another choice.
+    // NotFound means the resource specified by the URL cannot be found.
+    // BadRequest could be another choice.
     return webcc::ResponseBuilder{}.NotFound()();
   }
 
@@ -157,8 +157,8 @@ webcc::ResponsePtr BookDetailView::Get(webcc::RequestPtr request) {
     return webcc::ResponseBuilder{}.NotFound()();
   }
 
-  return webcc::ResponseBuilder{}.OK().Body(BookToJsonString(book)).Json().
-      Utf8()();
+  return webcc::ResponseBuilder{}.OK().Body(BookToJsonString(book)).
+      Json().Utf8()();
 }
 
 webcc::ResponsePtr BookDetailView::Put(webcc::RequestPtr request) {
@@ -199,19 +199,17 @@ webcc::ResponsePtr BookDetailView::Delete(webcc::RequestPtr request) {
 
 // -----------------------------------------------------------------------------
 
-void Help(const char* argv0) {
-  std::cout << "Usage: " << argv0 << " <port> [seconds]" << std::endl;
-  std::cout << "If |seconds| is provided, the server will sleep these seconds "
-               "before sending back each response."
-            << std::endl;
-  std::cout << "  E.g.," << std::endl;
-  std::cout << "    " << argv0 << " 8080" << std::endl;
-  std::cout << "    " << argv0 << " 8080 3" << std::endl;
-}
-
 int main(int argc, char* argv[]) {
   if (argc < 2) {
-    Help(argv[0]);
+    std::cout << "usage: rest_book_server <port> [seconds]" << std::endl;
+    std::cout << std::endl;
+    std::cout << "If |seconds| is provided, the server will sleep, for testing "
+              << "timeout, before " << std::endl
+              << "send back each response." << std::endl;
+    std::cout << std::endl;
+    std::cout << "examples:" << std::endl;
+    std::cout << "  $ rest_book_server 8080" << std::endl;
+    std::cout << "  $ rest_book_server 8080 3" << std::endl;
     return 1;
   }
 

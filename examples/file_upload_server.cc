@@ -32,15 +32,9 @@ private:
 
 // -----------------------------------------------------------------------------
 
-void Help(const char* argv0) {
-  std::cout << "Usage: " << argv0 << " <port>" << std::endl;
-  std::cout << "  E.g.," << std::endl;
-  std::cout << "    " << argv0 << " 8080" << std::endl;
-}
-
 int main(int argc, char* argv[]) {
   if (argc < 2) {
-    Help(argv[0]);
+    std::cout << "usage: file_upload_server <port>" << std::endl;
     return 1;
   }
 

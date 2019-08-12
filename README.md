@@ -187,7 +187,7 @@ int main() {
 
     server.Route("/", std::make_shared<HelloView>());
 
-    server.Start();
+    server.Run();
 
   } catch (const std::exception&) {
     return 1;
@@ -274,8 +274,8 @@ The detailed implementation is out of the scope of this README, but here is an e
 ```cpp
 webcc::ResponsePtr BookDetailView::Get(webcc::RequestPtr request) {
   if (request->args().size() != 1) {
-    // Using kNotFound means the resource specified by the URL cannot be found.
-    // kBadRequest could be another choice.
+    // NotFound means the resource specified by the URL cannot be found.
+    // BadRequest could be another choice.
     return webcc::ResponseBuilder{}.NotFound()();
   }
 
@@ -290,7 +290,8 @@ webcc::ResponsePtr BookDetailView::Get(webcc::RequestPtr request) {
   }
 
   // Convert the book to JSON string and set as response data.
-  return webcc::ResponseBuilder{}.OK().Data(<JsonStringOfTheBook>).Json().Utf8();
+  return webcc::ResponseBuilder{}.OK().Data(<JsonStringOfTheBook>).
+      Json().Utf8()();
 }
 ```
 

@@ -51,20 +51,29 @@ RequestPtr RequestBuilder::operator()() {
   return request;
 }
 
-RequestBuilder& RequestBuilder::File(const std::string& name,
-                                     const Path& path,
-                                     const std::string& media_type) {
-  assert(!name.empty());
-  form_parts_.push_back(FormPart::NewFile(name, path, media_type));
+RequestBuilder& RequestBuilder::File(const Path& path, bool infer_media_type,
+                                     std::size_t chunk_size) {
+  body_.reset(new FileBody{ path, chunk_size });
+
+  if (infer_media_type) {
+    media_type_ = media_types::FromExtension(path.extension().string());
+  }
+
   return *this;
 }
 
-RequestBuilder& RequestBuilder::Form(const std::string& name,
-                                     std::string&& data,
-                                     const std::string& media_type) {
+RequestBuilder& RequestBuilder::FormFile(const std::string& name,
+                                         const Path& path,
+                                         const std::string& media_type) {
   assert(!name.empty());
-  form_parts_.push_back(FormPart::New(name, std::move(data), media_type));
-  return *this;
+  return Form(FormPart::NewFile(name, path, media_type));
+}
+
+RequestBuilder& RequestBuilder::FormData(const std::string& name,
+                                         std::string&& data,
+                                         const std::string& media_type) {
+  assert(!name.empty());
+  return Form(FormPart::New(name, std::move(data), media_type));
 }
 
 RequestBuilder& RequestBuilder::Auth(const std::string& type,

@@ -188,17 +188,13 @@ void PrintBookList(const std::list<Book>& books) {
 
 // -----------------------------------------------------------------------------
 
-void Help() {
-  std::cout << "Usage:" << std::endl;
-  std::cout << "    rest_book_client <url> [timeout]" << std::endl;
-  std::cout << "E.g.," << std::endl;
-  std::cout << "    rest_book_client http://localhost:8080" << std::endl;
-  std::cout << "    rest_book_client http://localhost:8080 2" << std::endl;
-}
-
 int main(int argc, char* argv[]) {
   if (argc < 2) {
-    Help();
+    std::cout << "usage: rest_book_client <url> [timeout]" << std::endl;
+    std::cout << std::endl;
+    std::cout << "examples:" << std::endl;
+    std::cout << "  $ rest_book_client http://localhost:8080" << std::endl;
+    std::cout << "  $ rest_book_client http://localhost:8080 2" << std::endl;
     return 1;
   }
 

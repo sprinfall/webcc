@@ -95,17 +95,23 @@ public:
     return *this;
   }
 
-  // Add a file to upload.
-  RequestBuilder& File(const std::string& name, const Path& path,
-                       const std::string& media_type = "");
+  // Use the file content as body.
+  RequestBuilder& File(const Path& path, bool infer_media_type = true,
+                       std::size_t chunk_size = 1024);
 
+  // Add a form part.
   RequestBuilder& Form(FormPartPtr part) {
     form_parts_.push_back(part);
     return *this;
   }
 
-  RequestBuilder& Form(const std::string& name, std::string&& data,
-                       const std::string& media_type = "");
+  // Add a form part of file.
+  RequestBuilder& FormFile(const std::string& name, const Path& path,
+                           const std::string& media_type = "");
+
+  // Add a form part of string data.
+  RequestBuilder& FormData(const std::string& name, std::string&& data,
+                           const std::string& media_type = "");
 
   RequestBuilder& Header(const std::string& key, const std::string& value) {
     headers_.push_back(key);

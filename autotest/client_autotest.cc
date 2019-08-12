@@ -3,12 +3,15 @@
 #include "gtest/gtest.h"
 
 #include "boost/algorithm/string.hpp"
+#include "boost/filesystem/fstream.hpp"
 #include "boost/filesystem/operations.hpp"
 
 #include "json/json.h"
 
 #include "webcc/client_session.h"
 #include "webcc/logger.h"
+
+namespace bfs = boost::filesystem;
 
 // -----------------------------------------------------------------------------
 
@@ -30,7 +33,7 @@ static Json::Value StringToJson(const std::string& str) {
 
 // -----------------------------------------------------------------------------
 
-TEST(ClientTest, Head_RequestFunc) {
+TEST(ClientTest, Head) {
   webcc::ClientSession session;
 
   try {
@@ -115,7 +118,7 @@ static void AssertGet(webcc::ResponsePtr r) {
 #endif  // WEBCC_ENABLE_GZIP
 }
 
-TEST(ClientTest, Get_RequestFunc) {
+TEST(ClientTest, Get) {
   webcc::ClientSession session;
 
   try {
@@ -169,127 +172,15 @@ TEST(ClientTest, Get_SSL) {
 }
 #endif  // WEBCC_ENABLE_SSL
 
-// -----------------------------------------------------------------------------
-
-#if WEBCC_ENABLE_GZIP
-
-// Test Gzip compressed response.
-TEST(ClientTest, Compression_Gzip) {
+// Get a JPEG image (without streaming).
+TEST(ClientTest, Get_Jpeg_NoStream) {
   webcc::ClientSession session;
 
   try {
-    auto r = session.Get("http://httpbin.org/gzip");
-
-    Json::Value json = StringToJson(r->data());
-
-    EXPECT_EQ(true, json["gzipped"].asBool());
-
-  } catch (const webcc::Error& error) {
-    std::cerr << error << std::endl;
-  }
-}
-
-// Test Deflate compressed response.
-TEST(ClientTest, Compression_Deflate) {
-  webcc::ClientSession session;
-
-  try {
-    auto r = session.Get("http://httpbin.org/deflate");
-
-    Json::Value json = StringToJson(r->data());
-
-    EXPECT_EQ(true, json["deflated"].asBool());
-
-  } catch (const webcc::Error& error) {
-    std::cerr << error << std::endl;
-  }
-}
-
-// Test trying to compress the request.
-// TODO
-TEST(ClientTest, Compression_Request) {
-  webcc::ClientSession session;
-
-  try {
-    const std::string data = "{'name'='Adam', 'age'=20}";
-
-    // This doesn't really compress the body!
     auto r = session.Request(webcc::RequestBuilder{}.
-                             Post("http://httpbin.org/post").
-                             Body(data).Json().
-                             Gzip()
+                             Get("http://httpbin.org/image/jpeg")
                              ());
 
-    //Json::Value json = StringToJson(r->data());
-
-  } catch (const webcc::Error& error) {
-    std::cerr << error << std::endl;
-  }
-}
-#endif  // WEBCC_ENABLE_GZIP
-
-// -----------------------------------------------------------------------------
-
-// Test persistent (keep-alive) connections.
-//
-// NOTE:
-// Boost.org doesn't support persistent connection and always includes
-// "Connection: Close" header in the response.
-// Both Google and GitHub support persistent connection but they don't like
-// to include "Connection: Keep-Alive" header in the responses.
-// URLs:
-//   "http://httpbin.org/get";
-//   "https://www.boost.org/LICENSE_1_0.txt";
-//   "https://www.google.com";
-//   "https://api.github.com/events";
-//
-TEST(ClientTest, KeepAlive) {
-  webcc::ClientSession session;
-
-  std::string url = "http://httpbin.org/get";
-  try {
-
-    // Keep-Alive by default.
-    auto r = session.Get(url);
-
-    using boost::iequals;
-
-    EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Keep-alive"));
-
-    // Close by setting Connection header.
-    r = session.Get(url, {}, { "Connection", "Close" });
-
-    EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Close"));
-
-    // Close by using request builder.
-    r = session.Request(webcc::RequestBuilder{}.
-                        Get(url).KeepAlive(false)
-                        ());
-
-    EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Close"));
-
-    // Keep-Alive explicitly by using request builder.
-    r = session.Request(webcc::RequestBuilder{}.
-                        Get(url).KeepAlive(true)
-                        ());
-
-    EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Keep-alive"));
-
-  } catch (const webcc::Error& error) {
-    std::cerr << error << std::endl;
-  }
-}
-
-// -----------------------------------------------------------------------------
-
-// Get a JPEG image (without streaming).
-TEST(ClientTest, GetImageJpeg_NoStream) {
-  webcc::ClientSession session;
-
-  try {
-
-    auto r = session.Get("http://httpbin.org/image/jpeg");
- 
     // TODO: Verify the response is a valid JPEG image.
     //std::ofstream ofs(<path>, std::ios::binary);
     //ofs << r->data();
@@ -299,16 +190,13 @@ TEST(ClientTest, GetImageJpeg_NoStream) {
   }
 }
 
-// -----------------------------------------------------------------------------
-
-// Streaming
-
-TEST(ClientTest, Stream_GetImageJpeg) {
+TEST(ClientTest, Get_Jpeg_Stream) {
   webcc::ClientSession session;
 
   try {
     auto r = session.Request(webcc::RequestBuilder{}.
-                             Get("http://httpbin.org/image/jpeg")(),
+                             Get("http://httpbin.org/image/jpeg")
+                             (),
                              true);
 
     auto file_body = r->file_body();
@@ -338,7 +226,7 @@ TEST(ClientTest, Stream_GetImageJpeg) {
 
 // Test whether the streamed file will be deleted or not at the end if it's
 // not moved to another path by the user.
-TEST(ClientTest, Stream_GetImageJpeg_NoMove) {
+TEST(ClientTest, Get_Jpeg_Stream_NoMove) {
   webcc::ClientSession session;
 
   try {
@@ -346,7 +234,8 @@ TEST(ClientTest, Stream_GetImageJpeg_NoMove) {
 
     {
       auto r = session.Request(webcc::RequestBuilder{}.
-                               Get("http://httpbin.org/image/jpeg")(),
+                               Get("http://httpbin.org/image/jpeg")
+                               (),
                                true);
 
       auto file_body = r->file_body();
@@ -369,7 +258,49 @@ TEST(ClientTest, Stream_GetImageJpeg_NoMove) {
 
 // -----------------------------------------------------------------------------
 
-TEST(ClientTest, Post_RequestFunc) {
+#if WEBCC_ENABLE_GZIP
+// Test Gzip compressed response.
+TEST(ClientTest, Get_Gzip) {
+  webcc::ClientSession session;
+
+  try {
+    auto r = session.Request(webcc::RequestBuilder{}.
+                             Get("http://httpbin.org/gzip")
+                             ());
+
+    Json::Value json = StringToJson(r->data());
+
+    EXPECT_EQ(true, json["gzipped"].asBool());
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+  }
+}
+#endif  // WEBCC_ENABLE_GZIP
+
+#if WEBCC_ENABLE_GZIP
+// Test Deflate compressed response.
+TEST(ClientTest, Get_Deflate) {
+  webcc::ClientSession session;
+
+  try {
+    auto r = session.Request(webcc::RequestBuilder{}.
+                             Get("http://httpbin.org/deflate")
+                             ());
+
+    Json::Value json = StringToJson(r->data());
+
+    EXPECT_EQ(true, json["deflated"].asBool());
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+  }
+}
+#endif  // WEBCC_ENABLE_GZIP
+
+// -----------------------------------------------------------------------------
+
+TEST(ClientTest, Post) {
   webcc::ClientSession session;
 
   try {
@@ -412,6 +343,80 @@ TEST(ClientTest, Post_Shortcut) {
   }
 }
 
+static bfs::path GenerateTempFile(const std::string& data) {
+  try {
+    bfs::path path = bfs::temp_directory_path() / bfs::unique_path();
+
+    bfs::ofstream ofs;
+    ofs.open(path, std::ios::binary);
+    if (ofs.fail()) {
+      return bfs::path{};
+    }
+
+    ofs << data;
+
+    return path;
+
+  } catch (const bfs::filesystem_error&) {
+    return bfs::path{};
+  }
+}
+
+TEST(ClientTest, Post_FileBody) {
+  webcc::ClientSession session;
+
+  const std::string data = "{'name'='Adam', 'age'=20}";
+
+  auto path = GenerateTempFile(data);
+  if (path.empty()) {
+    return;
+  }
+
+  try {
+    auto r = session.Request(webcc::RequestBuilder{}.
+                             Post("http://httpbin.org/post").
+                             File(path)  // Use the file as body
+                             ());
+
+    EXPECT_EQ(webcc::Status::kOK, r->status());
+    EXPECT_EQ("OK", r->reason());
+
+    Json::Value json = StringToJson(r->data());
+
+    EXPECT_EQ(data, json["data"].asString());
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+  }
+
+  // Remove the temp file.
+  boost::system::error_code ec;
+  bfs::remove(path, ec);
+}
+
+#if WEBCC_ENABLE_GZIP
+TEST(ClientTest, Post_Gzip_SmallData) {
+  webcc::ClientSession session;
+
+  try {
+    // This data is too small to be compressed.
+    const std::string data = "{'name'='Adam', 'age'=20}";
+
+    // This doesn't really compress the body!
+    auto r = session.Request(webcc::RequestBuilder{}.
+                             Post("http://httpbin.org/post").
+                             Body(data).Json().
+                             Gzip()
+                             ());
+
+    //Json::Value json = StringToJson(r->data());
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+  }
+}
+#endif  // WEBCC_ENABLE_GZIP
+
 #if (WEBCC_ENABLE_GZIP && WEBCC_ENABLE_SSL)
 // NOTE: Most servers don't support compressed requests!
 TEST(ClientTest, Post_Gzip) {
@@ -435,6 +440,63 @@ TEST(ClientTest, Post_Gzip) {
   }
 }
 #endif  // (WEBCC_ENABLE_GZIP && WEBCC_ENABLE_SSL)
+
+// -----------------------------------------------------------------------------
+
+// Test persistent (keep-alive) connections.
+//
+// NOTE:
+// Boost.org doesn't support persistent connection and always includes
+// "Connection: Close" header in the response.
+// Both Google and GitHub support persistent connection but they don't like
+// to include "Connection: Keep-Alive" header in the responses.
+// URLs:
+//   "http://httpbin.org/get";
+//   "https://www.boost.org/LICENSE_1_0.txt";
+//   "https://www.google.com";
+//   "https://api.github.com/events";
+//
+TEST(ClientTest, KeepAlive) {
+  webcc::ClientSession session;
+
+  const std::string url = "http://httpbin.org/get";
+
+  try {
+    // Keep-Alive by default.
+    auto r = session.Request(webcc::RequestBuilder{}.Get(url)());
+
+    using boost::iequals;
+
+    EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Keep-alive"));
+
+    // Close by setting Connection header directly.
+    r = session.Request(webcc::RequestBuilder{}.
+                        Get(url).
+                        Header("Connection", "Close")
+                        ());
+
+    EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Close"));
+
+    // Close by using request builder.
+    r = session.Request(webcc::RequestBuilder{}.
+                        Get(url).
+                        KeepAlive(false)
+                        ());
+
+    EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Close"));
+
+    // Keep-Alive explicitly by using request builder.
+    r = session.Request(webcc::RequestBuilder{}.
+                        Get(url).
+                        KeepAlive(true)
+                        ());
+
+    EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Keep-alive"));
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+  }
+}
 
 // -----------------------------------------------------------------------------
 
