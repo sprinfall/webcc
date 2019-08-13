@@ -5,6 +5,7 @@
 
 // -----------------------------------------------------------------------------
 
+#if 0
 // HTTP GET request parser test fixture.
 class GetRequestParserTest : public testing::Test {
 protected:
@@ -231,3 +232,4 @@ TEST_F(MultipartRequestParserTest, ParseByteWise) {
 
   CheckResult();
 }
+#endif  // 0

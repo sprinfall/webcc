@@ -24,7 +24,7 @@ using ConnectionPtr = std::shared_ptr<Connection>;
 class Connection : public std::enable_shared_from_this<Connection> {
 public:
   Connection(boost::asio::ip::tcp::socket socket, ConnectionPool* pool,
-             Queue<ConnectionPtr>* queue);
+             Queue<ConnectionPtr>* queue, ViewMatcher&& view_matcher);
 
   ~Connection() = default;
 
@@ -70,6 +70,10 @@ private:
 
   // The connection queue.
   Queue<ConnectionPtr>* queue_;
+
+  // A function for matching view once the headers of a request has been
+  // received.
+  ViewMatcher view_matcher_;
 
   // The buffer for incoming data.
   std::vector<char> buffer_;

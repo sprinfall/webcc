@@ -6,6 +6,7 @@
 
 #include "boost/algorithm/string.hpp"
 #include "boost/filesystem/fstream.hpp"
+#include "boost/filesystem/operations.hpp"
 
 #include "webcc/body.h"
 #include "webcc/logger.h"
@@ -193,8 +194,11 @@ void Server::AsyncAccept() {
         if (!ec) {
           LOG_INFO("Accepted a connection.");
 
+          using namespace std::placeholders;
+          auto view_matcher = std::bind(&Server::MatchView, this, _1, _2, _3);
+
           auto connection = std::make_shared<Connection>(
-              std::move(socket), &pool_, &queue_);
+              std::move(socket), &pool_, &queue_, std::move(view_matcher));
 
           pool_.Start(connection);
         }
@@ -275,17 +279,28 @@ void Server::Handle(ConnectionPtr connection) {
   auto request = connection->request();
 
   const Url& url = request->url();
-  UrlArgs args;
-
   LOG_INFO("Request URL path: %s", url.path().c_str());
 
+  UrlArgs args;
   auto view = FindView(request->method(), url.path(), &args);
 
   if (!view) {
-    LOG_WARN("No view matches the URL path: %s", url.path().c_str());
-    if (!ServeStatic(connection)) {
-      connection->SendResponse(Status::kNotFound);
+    LOG_WARN("No view matches the request: %s %s", request->method().c_str(),
+             url.path().c_str());
+
+    if (request->method() == methods::kGet) {
+      // Try to serve static files for GET request.
+      auto response = ServeStatic(request);
+      if (!response) {
+        // Static file not found.
+        connection->SendResponse(Status::kNotFound);
+      } else {
+        connection->SendResponse(response);
+      }
+    } else {
+      connection->SendResponse(Status::kBadRequest);
     }
+
     return;
   }
 
@@ -299,7 +314,7 @@ void Server::Handle(ConnectionPtr connection) {
   if (response) {
     connection->SendResponse(response);
   } else {
-    connection->SendResponse(Status::kNotImplemented);
+    connection->SendResponse(Status::kBadRequest);
   }
 }
 
@@ -335,41 +350,70 @@ ViewPtr Server::FindView(const std::string& method, const std::string& url,
   return ViewPtr();
 }
 
-bool Server::ServeStatic(ConnectionPtr connection) {
+bool Server::MatchView(const std::string& method, const std::string& url,
+                       bool* stream) {
+  assert(stream != nullptr);
+  *stream = false;
+
+  for (auto& route : routes_) {
+    if (std::find(route.methods.begin(), route.methods.end(), method) ==
+        route.methods.end()) {
+      continue;
+    }
+
+    if (route.url.empty()) {
+      std::smatch match;
+
+      if (std::regex_match(url, match, route.url_regex)) {
+        *stream = route.view->Stream(method);
+        return true;
+      }
+    } else {
+      if (boost::iequals(route.url, url)) {
+        *stream = route.view->Stream(method);
+        return true;
+      }
+    }
+  }
+
+  // Try to match a static file.
+  if (method == methods::kGet && !doc_root_.empty()) {
+    Path path = doc_root_ / url;
+    if (!bfs::is_directory(path) && bfs::exists(path)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+ResponsePtr Server::ServeStatic(RequestPtr request) {
+  assert(request->method() == methods::kGet);
+
   if (doc_root_.empty()) {
     LOG_INFO("The doc root was not specified.");
-    return false;
+    return {};
   }
 
-  auto request = connection->request();
-  std::string path = request->url().path();
-
-  // If path ends in slash (i.e. is a directory) then add "index.html".
-  if (path[path.size() - 1] == '/') {
-    path += "index.html";  // TODO
-  }
-
-  Path p = doc_root_ / path;
+  Path path = doc_root_ / request->url().path();
 
   try {
-    auto body = std::make_shared<FileBody>(p, file_chunk_size_);
+    // NOTE: FileBody might throw Error::kFileError.
+    auto body = std::make_shared<FileBody>(path, file_chunk_size_);
 
     auto response = std::make_shared<Response>(Status::kOK);
 
-    std::string extension = p.extension().string();
+    std::string extension = path.extension().string();
     response->SetContentType(media_types::FromExtension(extension), "");
 
     // NOTE: Gzip compression is not supported.
     response->SetBody(body, true);
 
-    // Send response back to client.
-    connection->SendResponse(response);
-
-    return true;
+    return response;
 
   } catch (const Error& error) {
     LOG_ERRO("File error: %s.", error.message().c_str());
-    return false;
+    return {};
   }
 }
 

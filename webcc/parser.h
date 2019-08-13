@@ -63,9 +63,13 @@ private:
 class FileBodyHandler : public BodyHandler {
 public:
   // NOTE: Might throw Error::kFileError.
-  explicit FileBodyHandler(Message* message);
+  explicit FileBodyHandler(Message* message) : BodyHandler(message) {
+  }
 
   ~FileBodyHandler() override = default;
+
+  // Open a temp file for data streaming.
+  bool OpenFile();
 
   void AddContent(const char* data, std::size_t count) override;
   void AddContent(const std::string& data) override;
@@ -108,7 +112,11 @@ protected:
   // Return false only on syntax errors.
   bool ParseHeaders();
 
-  virtual void CreateBodyHandler() = 0;
+  // Called when headers just parsed.
+  // Return false if something is wrong.
+  virtual bool OnHeadersEnd() = 0;
+
+  void CreateBodyHandler();
 
   // Get next line (using delimiter CRLF) from the pending data.
   // The line will not contain a trailing CRLF.
@@ -134,7 +142,11 @@ protected:
 
 protected:
   Message* message_;
+
   std::unique_ptr<BodyHandler> body_handler_;
+
+  // Data streaming or not.
+  bool stream_;
 
   // Data waiting to be parsed.
   std::string pending_data_;

@@ -13,14 +13,25 @@ namespace webcc {
 RequestParser::RequestParser() : request_(nullptr) {
 }
 
-void RequestParser::Init(Request* request) {
+void RequestParser::Init(Request* request, ViewMatcher view_matcher) {
+  assert(view_matcher);
+
   Parser::Init(request);
+
   request_ = request;
+  view_matcher_ = view_matcher;
 }
 
-// TODO
-void RequestParser::CreateBodyHandler() {
-  body_handler_.reset(new StringBodyHandler{ message_ });
+bool RequestParser::OnHeadersEnd() {
+  bool matched = view_matcher_(request_->method(), request_->url().path(),
+                               &stream_);
+
+  if (!matched) {
+    LOG_WARN("No view matches the request: %s %s", request_->method().c_str(),
+             request_->url().path().c_str());
+  }
+
+  return matched;
 }
 
 bool RequestParser::ParseStartLine(const std::string& line) {

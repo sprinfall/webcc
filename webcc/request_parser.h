@@ -1,11 +1,15 @@
 #ifndef WEBCC_REQUEST_PARSER_H_
 #define WEBCC_REQUEST_PARSER_H_
 
+#include <functional>
 #include <string>
 
 #include "webcc/parser.h"
 
 namespace webcc {
+
+using ViewMatcher =
+    std::function<bool(const std::string&, const std::string&, bool*)>;
 
 class Request;
 
@@ -15,10 +19,14 @@ public:
 
   ~RequestParser() override = default;
 
-  void Init(Request* request);
+  void Init(Request* request, ViewMatcher view_matcher);
 
 private:
-  void CreateBodyHandler() override;
+  // Override to match the URL against views and check if the matched view
+  // asks for data streaming.
+  bool OnHeadersEnd() override;
+
+  bool Stream() const;
 
   bool ParseStartLine(const std::string& line) override;
 
@@ -38,6 +46,10 @@ private:
 
 private:
   Request* request_;
+
+  // A function for matching view once the headers of a request has been
+  // received. The parsing will stop and fail if no view can be matched.
+  ViewMatcher view_matcher_;
 
   // Form data parsing step.
   enum Step {

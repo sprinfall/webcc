@@ -93,12 +93,18 @@ private:
   // request comes, this connection will be put back to the queue again.
   virtual void Handle(ConnectionPtr connection);
 
-  // Find the view by HTTP method and URL.
+  // Find the view by HTTP method and URL (path).
   ViewPtr FindView(const std::string& method, const std::string& url,
                    UrlArgs* args);
 
+  // Match the view by HTTP method and URL (path).
+  // Return if a view or static file is matched or not.
+  // If the view asks for data streaming, |stream| will be set to true.
+  bool MatchView(const std::string& method, const std::string& url,
+                 bool* stream);
+
   // Serve static files from the doc root.
-  bool ServeStatic(ConnectionPtr connection);
+  ResponsePtr ServeStatic(RequestPtr request);
 
 private:
   struct RouteInfo {

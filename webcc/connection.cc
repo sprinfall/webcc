@@ -12,14 +12,14 @@ using boost::asio::ip::tcp;
 namespace webcc {
 
 Connection::Connection(tcp::socket socket, ConnectionPool* pool,
-                       Queue<ConnectionPtr>* queue)
+                       Queue<ConnectionPtr>* queue, ViewMatcher&& view_matcher)
     : socket_(std::move(socket)), pool_(pool), queue_(queue),
-      buffer_(kBufferSize) {
+      view_matcher_(std::move(view_matcher)), buffer_(kBufferSize) {
 }
 
 void Connection::Start() {
   request_.reset(new Request{});
-  request_parser_.Init(request_.get());
+  request_parser_.Init(request_.get(), view_matcher_);
   DoRead();
 }
 

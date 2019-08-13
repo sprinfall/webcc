@@ -45,18 +45,6 @@ void ResponseParser::Init(Response* response, bool stream) {
   stream_ = stream;
 }
 
-void ResponseParser::CreateBodyHandler() {
-  if (stream_) {
-    try {
-      body_handler_.reset(new FileBodyHandler{ message_ });
-    } catch (const Error&) {
-      body_handler_.reset();
-    }
-  } else {
-    body_handler_.reset(new StringBodyHandler{ message_ });
-  }
-}
-
 bool ResponseParser::ParseStartLine(const std::string& line) {
   std::vector<std::string> parts;
   SplitStartLine(line, &parts);

@@ -21,7 +21,9 @@ public:
   }
 
 private:
-  void CreateBodyHandler() override;
+  bool OnHeadersEnd() override {
+    return true;
+  }
 
   // Parse HTTP start line; E.g., "HTTP/1.1 200 OK".
   bool ParseStartLine(const std::string& line) override;
@@ -32,9 +34,6 @@ private:
 private:
   // The result response message.
   Response* response_ = nullptr;
-
-  // Data streaming or not.
-  bool stream_ = false;
 
   // The response for HEAD request could also have `Content-Length` header,
   // set this flag to ignore it.

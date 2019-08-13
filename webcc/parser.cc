@@ -65,22 +65,24 @@ bool StringBodyHandler::Finish() {
 
 // -----------------------------------------------------------------------------
 
-FileBodyHandler::FileBodyHandler(Message* message) : BodyHandler(message) {
+bool FileBodyHandler::OpenFile() {
   try {
     temp_path_ = bfs::temp_directory_path() / bfs::unique_path();
     LOG_VERB("Generate a temp path for streaming: %s",
              temp_path_.string().c_str());
   } catch (const bfs::filesystem_error&) {
     LOG_ERRO("Failed to generate temp path: %s", temp_path_.string().c_str());
-    throw Error{ Error::kFileError };
+    return false;
   }
 
   ofstream_.open(temp_path_, std::ios::binary);
 
   if (ofstream_.fail()) {
     LOG_ERRO("Failed to open the temp file: %s", temp_path_.string().c_str());
-    throw Error{ Error::kFileError };
+    return false;
   }
+
+  return true;
 }
 
 void FileBodyHandler::AddContent(const char* data, std::size_t count) {
@@ -136,12 +138,17 @@ bool Parser::Parse(const char* data, std::size_t length) {
 
   LOG_INFO("HTTP headers just ended.");
 
+  if (!OnHeadersEnd()) {
+    // Only request parser can reach here when no view matches the request.
+    // Data streaming or not is also determined for request parser.
+    return false;
+  }
+
   CreateBodyHandler();
 
   if (!body_handler_) {
     // The only reason to reach here is that it was failed to generate the temp
     // file for streaming. Normally, it shouldn't happen.
-    // TODO: Keep a member |error_| for the user to query.
     return false;
   }
 
@@ -152,6 +159,7 @@ bool Parser::Parse(const char* data, std::size_t length) {
 void Parser::Reset() {
   message_ = nullptr;
   body_handler_.reset();
+  stream_ = false;
 
   pending_data_.clear();
 
@@ -200,6 +208,20 @@ bool Parser::ParseHeaders() {
   pending_data_.erase(0, off);
 
   return true;
+}
+
+void Parser::CreateBodyHandler() {
+  if (stream_) {
+    auto file_body_handler = new FileBodyHandler{ message_ };
+    if (!file_body_handler->OpenFile()) {
+      body_handler_.reset();
+      delete file_body_handler;
+    } else {
+      body_handler_.reset(file_body_handler);
+    }
+  } else {
+    body_handler_.reset(new StringBodyHandler{ message_ });
+  }
 }
 
 bool Parser::GetNextLine(std::size_t off, std::string* line, bool erase) {
