@@ -1,5 +1,7 @@
 # webcc
 
+[同学们，【中文版】在这里！](README_zh_CN.md)
+
 Lightweight C++ HTTP client and server library based on [Boost Asio](https://www.boost.org/doc/libs/release/libs/asio/).
 
 Please turn to our [Wiki](https://github.com/sprinfall/webcc/wiki) (under construction) for more tutorials and guides.
