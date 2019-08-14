@@ -2,7 +2,7 @@
 #   http://flask.pocoo.org/docs/1.0/patterns/fileuploads/#uploading-files
 # Run:
 # (Windows)
-# $ set FLASK_APP=file_upload_server.py
+# $ set FLASK_APP=form_server_flask.py
 # $ flask 
 
 import os

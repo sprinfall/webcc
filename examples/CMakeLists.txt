@@ -53,12 +53,6 @@ target_link_libraries(rest_book_server ${EXAMPLE_LIBS} jsoncpp)
 add_executable(rest_book_client rest_book_client.cc ${REST_BOOK_SRCS})
 target_link_libraries(rest_book_client ${EXAMPLE_LIBS} jsoncpp)
 
-add_executable(file_upload_client file_upload_client.cc)
-target_link_libraries(file_upload_client ${EXAMPLE_LIBS})
-
-add_executable(file_upload_server file_upload_server.cc)
-target_link_libraries(file_upload_server ${EXAMPLE_LIBS})
-
 add_executable(file_server file_server.cc)
 target_link_libraries(file_server ${EXAMPLE_LIBS})
 
@@ -67,3 +61,9 @@ target_link_libraries(file_downloader ${EXAMPLE_LIBS})
 
 add_executable(server_states server_states.cc)
 target_link_libraries(server_states ${EXAMPLE_LIBS})
+
+add_executable(form_client form_client.cc)
+target_link_libraries(form_client ${EXAMPLE_LIBS})
+
+add_executable(form_server form_server.cc)
+target_link_libraries(form_server ${EXAMPLE_LIBS})

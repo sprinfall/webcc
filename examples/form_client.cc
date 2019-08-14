@@ -1,3 +1,5 @@
+// A client posting multipart form data.
+
 #include <iostream>
 
 #include "boost/filesystem.hpp"
@@ -7,14 +9,13 @@
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {
-    std::cout << "usage: file_upload_client <upload_dir> [url]" << std::endl;
+    std::cout << "usage: form_client <upload_dir> [url]" << std::endl;
     std::cout << std::endl;
     std::cout << "default url: http://httpbin.org/post" << std::endl;
     std::cout << std::endl;
     std::cout << "examples:" << std::endl;
-    std::cout << "  $ file_upload_client E:/github/webcc/data/upload"
-              << std::endl;
-    std::cout << "  $ file_upload_client E:/github/webcc/data/upload "
+    std::cout << "  $ form_client E:/github/webcc/data/upload" << std::endl;
+    std::cout << "  $ form_client E:/github/webcc/data/upload "
               << "http://httpbin.org/post" << std::endl;
     return 1;
   }
