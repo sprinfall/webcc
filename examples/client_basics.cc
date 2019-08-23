@@ -14,18 +14,10 @@ int main() {
   try {
     r = session.Request(webcc::RequestBuilder{}.
                         Get("http://httpbin.org/get").
-                        Query("key1", "value1").
-                        Query("key2", "value2").
-                        Date().
-                        Header("Accept", "application/json")
+                        Query("name", "Adam Gu", /*encode*/true).
+                        Header("Accept", "application/json").
+                        Date()
                         ());
-
-    assert(r->status() == webcc::Status::kOK);
-    assert(!r->data().empty());
-
-    r = session.Get("http://httpbin.org/get",
-                    { "key1", "value1", "key2", "value2" },
-                    { "Accept", "application/json" });
 
     assert(r->status() == webcc::Status::kOK);
     assert(!r->data().empty());
@@ -41,7 +33,9 @@ int main() {
 
 #if WEBCC_ENABLE_SSL
 
-    r = session.Get("https://httpbin.org/get");
+    r = session.Request(webcc::RequestBuilder{}.
+                        Get("https://httpbin.org/get")
+                        ());
 
     assert(r->status() == webcc::Status::kOK);
     assert(!r->data().empty());
@@ -50,9 +44,6 @@ int main() {
 
   } catch (const webcc::Error& error) {
     std::cerr << error << std::endl;
-    return 1;
-  } catch (const std::exception& e) {
-    std::cerr << e.what() << std::endl;
     return 1;
   }
 

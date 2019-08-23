@@ -21,8 +21,8 @@ std::string GetTimestamp();
 
 // Split a key-value string.
 // E.g., split "Connection: Keep-Alive".
-bool SplitKV(const std::string& str, char delimiter,
-             std::string* key, std::string* value);
+bool SplitKV(const std::string& str, char delimiter, std::string* key,
+             std::string* value, bool trim = true);
 
 // Convert string to size_t.
 bool ToSize(const std::string& str, int base, std::size_t* size);

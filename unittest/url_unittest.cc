@@ -3,7 +3,7 @@
 #include "webcc/url.h"
 
 TEST(UrlTest, Basic) {
-  webcc::Url url("http://example.com/path", false);
+  webcc::Url url("http://example.com/path");
 
   EXPECT_EQ("http", url.scheme());
   EXPECT_EQ("example.com", url.host());
@@ -13,7 +13,7 @@ TEST(UrlTest, Basic) {
 }
 
 TEST(UrlTest, NoPath) {
-  webcc::Url url("http://example.com", false);
+  webcc::Url url("http://example.com");
 
   EXPECT_EQ("http", url.scheme());
   EXPECT_EQ("example.com", url.host());
@@ -23,7 +23,7 @@ TEST(UrlTest, NoPath) {
 }
 
 TEST(UrlTest, NoPath2) {
-  webcc::Url url("http://example.com/", false);
+  webcc::Url url("http://example.com/");
 
   EXPECT_EQ("http", url.scheme());
   EXPECT_EQ("example.com", url.host());
@@ -33,7 +33,7 @@ TEST(UrlTest, NoPath2) {
 }
 
 TEST(UrlTest, NoPath3) {
-  webcc::Url url("http://example.com?key=value", false);
+  webcc::Url url("http://example.com?key=value");
 
   EXPECT_EQ("http", url.scheme());
   EXPECT_EQ("example.com", url.host());
@@ -43,7 +43,7 @@ TEST(UrlTest, NoPath3) {
 }
 
 TEST(UrlTest, NoPath4) {
-  webcc::Url url("http://example.com/?key=value", false);
+  webcc::Url url("http://example.com/?key=value");
 
   EXPECT_EQ("http", url.scheme());
   EXPECT_EQ("example.com", url.host());
@@ -53,7 +53,7 @@ TEST(UrlTest, NoPath4) {
 }
 
 TEST(UrlTest, NoScheme) {
-  webcc::Url url("/path/to", false);
+  webcc::Url url("/path/to");
 
   EXPECT_EQ("", url.scheme());
   EXPECT_EQ("", url.host());
@@ -63,7 +63,7 @@ TEST(UrlTest, NoScheme) {
 }
 
 TEST(UrlTest, NoScheme2) {
-  webcc::Url url("/path/to?key=value", false);
+  webcc::Url url("/path/to?key=value");
 
   EXPECT_EQ("", url.scheme());
   EXPECT_EQ("", url.host());
@@ -73,7 +73,7 @@ TEST(UrlTest, NoScheme2) {
 }
 
 TEST(UrlTest, Full) {
-  webcc::Url url("https://localhost:3000/path/to?key=value", false);
+  webcc::Url url("https://localhost:3000/path/to?key=value");
 
   EXPECT_EQ("https", url.scheme());
   EXPECT_EQ("localhost", url.host());

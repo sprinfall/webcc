@@ -31,10 +31,7 @@ void Request::Prepare() {
     target += url_.query();
   }
 
-  start_line_ = method_;
-  start_line_ += " ";
-  start_line_ += target;
-  start_line_ += " HTTP/1.1";
+  start_line_ = method_ + " " + target + " HTTP/1.1";
 
   if (url_.port().empty()) {
     SetHeader(headers::kHost, url_.host());

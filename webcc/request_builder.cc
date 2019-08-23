@@ -51,7 +51,25 @@ RequestPtr RequestBuilder::operator()() {
   return request;
 }
 
-RequestBuilder& RequestBuilder::File(const Path& path, bool infer_media_type,
+RequestBuilder& RequestBuilder::Url(const std::string& url, bool encode) {
+  url_ = webcc::Url{ url, encode };
+  return *this;
+}
+
+RequestBuilder& RequestBuilder::Path(const std::string& path, bool encode) {
+  url_.AppendPath(path, encode);
+  return *this;
+}
+
+RequestBuilder& RequestBuilder::Query(const std::string& key,
+                                      const std::string& value,
+                                      bool encode) {
+  url_.AppendQuery(key, value, encode);
+  return *this;
+}
+
+RequestBuilder& RequestBuilder::File(const webcc::Path& path,
+                                     bool infer_media_type,
                                      std::size_t chunk_size) {
   body_.reset(new FileBody{ path, chunk_size });
 
@@ -63,7 +81,7 @@ RequestBuilder& RequestBuilder::File(const Path& path, bool infer_media_type,
 }
 
 RequestBuilder& RequestBuilder::FormFile(const std::string& name,
-                                         const Path& path,
+                                         const webcc::Path& path,
                                          const std::string& media_type) {
   assert(!name.empty());
   return Form(FormPart::NewFile(name, path, media_type));

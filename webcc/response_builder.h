@@ -22,12 +22,8 @@ public:
   ResponseBuilder(const ResponseBuilder&) = delete;
   ResponseBuilder& operator=(const ResponseBuilder&) = delete;
 
-  // Build the response.
+  // Build
   ResponsePtr operator()();
-
-  // NOTE:
-  // The naming convention doesn't follow Google C++ Style for
-  // consistency and simplicity.
 
   // Some shortcuts for different status codes:
 

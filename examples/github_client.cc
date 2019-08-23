@@ -55,7 +55,9 @@ void PrettyPrintJsonString(const std::string& str) {
 // List public events.
 void ListEvents(webcc::ClientSession& session) {
   try {
-    auto r = session.Get(kUrlRoot + "/events");
+    auto r = session.Request(webcc::RequestBuilder{}.
+                             Get(kUrlRoot).Path("events")
+                             ());
 
     PRINT_JSON_STRING(r->data());
 
@@ -66,10 +68,13 @@ void ListEvents(webcc::ClientSession& session) {
 
 // List the followers of the given user.
 // Example:
-//   ListUserFollowers(session, "<login>")
+//   ListUserFollowers(session, "<user>")
 void ListUserFollowers(webcc::ClientSession& session, const std::string& user) {
   try {
-    auto r = session.Get(kUrlRoot + "/users/" + user + "/followers");
+    auto r = session.Request(webcc::RequestBuilder{}.
+                             Get(kUrlRoot).Path("users").Path(user).
+                             Path("followers")
+                             ());
 
     PRINT_JSON_STRING(r->data());
 
@@ -86,7 +91,7 @@ void ListAuthUserFollowers(webcc::ClientSession& session,
                            const std::string& password) {
   try {
     auto r = session.Request(webcc::RequestBuilder{}.
-                             Get(kUrlRoot + "/user/followers").
+                             Get(kUrlRoot).Path("user/followers").
                              AuthBasic(login, password)
                              ());
 
@@ -108,7 +113,7 @@ void CreateAuthorization(webcc::ClientSession& session,
       "}";
 
     auto r = session.Request(webcc::RequestBuilder{}.
-                             Post(kUrlRoot + "/authorizations").
+                             Post(kUrlRoot).Path("authorizations").
                              Body(std::move(data)).
                              Json().Utf8().
                              AuthBasic(login, password)
@@ -129,6 +134,9 @@ int main() {
   webcc::ClientSession session;
 
   ListEvents(session);
+
+  //ListUserFollowers(session, "sprinfall");
+  //ListAuthUserFollowers(session, "sprinfall@gmail.com", "<password>");
 
   return 0;
 }

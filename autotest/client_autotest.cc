@@ -51,22 +51,6 @@ TEST(ClientTest, Head) {
   }
 }
 
-TEST(ClientTest, Head_Shortcut) {
-  webcc::ClientSession session;
-
-  try {
-    auto r = session.Head("http://httpbin.org/get");
-
-    EXPECT_EQ(webcc::Status::kOK, r->status());
-    EXPECT_EQ("OK", r->reason());
-
-    EXPECT_EQ("", r->data());
-
-  } catch (const webcc::Error& error) {
-    std::cerr << error << std::endl;
-  }
-}
-
 // Force Accept-Encoding to be "identity" so that HttpBin.org will include
 // a Content-Length header in the response.
 // This tests that the response with Content-Length while no body could be
@@ -136,15 +120,25 @@ TEST(ClientTest, Get) {
   }
 }
 
-TEST(ClientTest, Get_Shortcut) {
+// Test the space in the query string could be encoded.
+TEST(ClientTest, Get_QueryEncode) {
   webcc::ClientSession session;
 
   try {
-    auto r = session.Get("http://httpbin.org/get",
-                         { "key1", "value1", "key2", "value2" },
-                         { "Accept", "application/json" });
+    auto r = session.Request(webcc::RequestBuilder{}.
+                             Get("http://httpbin.org/get").
+                             Query("name", "Chunting Gu", true)
+                             ());
 
-    AssertGet(r);
+    EXPECT_EQ(webcc::Status::kOK, r->status());
+    EXPECT_EQ("OK", r->reason());
+
+    Json::Value json = StringToJson(r->data());
+
+    Json::Value args = json["args"];
+
+    EXPECT_EQ(1, args.size());
+    EXPECT_EQ("Chunting Gu", args["name"].asString());
 
   } catch (const webcc::Error& error) {
     std::cerr << error << std::endl;
@@ -323,26 +317,6 @@ TEST(ClientTest, Post) {
   }
 }
 
-TEST(ClientTest, Post_Shortcut) {
-  webcc::ClientSession session;
-
-  try {
-    const std::string data = "{'name'='Adam', 'age'=20}";
-
-    auto r = session.Post("http://httpbin.org/post", std::string(data), true);
-
-    EXPECT_EQ(webcc::Status::kOK, r->status());
-    EXPECT_EQ("OK", r->reason());
-
-    Json::Value json = StringToJson(r->data());
-
-    EXPECT_EQ(data, json["data"].asString());
-
-  } catch (const webcc::Error& error) {
-    std::cerr << error << std::endl;
-  }
-}
-
 static bfs::path GenerateTempFile(const std::string& data) {
   try {
     bfs::path path = bfs::temp_directory_path() / bfs::unique_path();
@@ -424,7 +398,10 @@ TEST(ClientTest, Post_Gzip) {
 
   try {
     // Use Boost.org home page as the POST data.
-    auto r1 = session.Get("https://www.boost.org/");
+    auto r1 = session.Request(webcc::RequestBuilder{}.
+                              Get("https://www.boost.org/")
+                              ());
+
     const std::string& data = r1->data();
 
     auto r2 = session.Request(webcc::RequestBuilder{}.

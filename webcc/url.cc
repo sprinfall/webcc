@@ -1,15 +1,16 @@
 #include "webcc/url.h"
 
 #include <algorithm>
+#include <cctype>
 #include <functional>
-#include <sstream>
 
-#include "boost/algorithm/string.hpp"
+#include "boost/algorithm/string/trim.hpp"
+
+#include "webcc/utility.h"
 
 namespace webcc {
 
 // -----------------------------------------------------------------------------
-// Helper functions to decode URL string.
 
 namespace {
 
@@ -63,58 +64,59 @@ bool Decode(const std::string& encoded, std::string* raw) {
   return true;
 }
 
-// Encodes all characters not in given set determined by given function.
-std::string EncodeImpl(const std::string& raw,
+// Unsafe decode.
+// Return the original string on failure.
+std::string DecodeUnsafe(const std::string& encoded) {
+  std::string raw;
+  if (Decode(encoded, &raw)) {
+    return raw;
+  }
+  return encoded;
+}
+
+// Encode all characters which should be encoded.
+std::string EncodeImpl(const std::string& raw,  // UTF8
                        std::function<bool(int)> should_encode) {
-  const char* const hex = "0123456789ABCDEF";
+  const char kHex[] = "0123456789ABCDEF";
+
   std::string encoded;
 
-  for (auto iter = raw.begin(); iter != raw.end(); ++iter) {
+  for (auto i = raw.begin(); i != raw.end(); ++i) {
     // For UTF8 encoded string, char ASCII can be greater than 127.
-    int ch = static_cast<unsigned char>(*iter);
+    int c = static_cast<int>(*i);
 
-    // |ch| should be the same under both UTF8 and UTF16.
-    if (should_encode(ch)) {
+    if (should_encode(c)) {
       encoded.push_back('%');
-      encoded.push_back(hex[(ch >> 4) & 0xF]);
-      encoded.push_back(hex[ch & 0xF]);
+      encoded.push_back(kHex[(c >> 4) & 0xF]);
+      encoded.push_back(kHex[c & 0xF]);
     } else {
-      // ASCII doesn't need to be encoded, it should be the same under both
-      // UTF8 and UTF16.
-      encoded.push_back(static_cast<char>(ch));
+      encoded.push_back(static_cast<char>(c));
     }
   }
 
   return encoded;
 }
 
-// Our own implementation of alpha numeric instead of std::isalnum to avoid
-// taking global lock for performance reasons.
-inline bool IsAlphaNumeric(char c) {
-  return (c >= '0' && c <= '9') ||
-         (c >= 'A' && c <= 'Z') ||
-         (c >= 'a' && c <= 'z');
+// Characters that are allowed in a URI but do not have a reserved purpose are
+// are called unreserved. These include uppercase and lowercase letters, decimal
+// digits, hyphen, period, underscore, and tilde.
+inline bool IsUnreserved(int c) {
+  return std::isalnum(c) || c == '-' || c == '.' || c == '_' || c == '~';
 }
 
-// Unreserved characters are those that are allowed in a URL/URI but do not have
-// a reserved purpose. They include:
-//   - A-Z
-//   - a-z
-//   - 0-9
-//   - '-' (hyphen)
-//   - '.' (period)
-//   - '_' (underscore)
-//   - '~' (tilde)
-inline bool IsUnreserved(int c) {
-  return IsAlphaNumeric((char)c) ||
-         c == '-' || c == '.' || c == '_' || c == '~';
+// General delimiters serve as the delimiters between different uri components.
+// General delimiters include:
+// - All of these :/?#[]@
+inline bool IsGenDelim(int c) {
+  return c == ':' || c == '/' || c == '?' || c == '#' || c == '[' || c == ']' ||
+         c == '@';
 }
 
 // Sub-delimiters are those characters that may have a defined meaning within
 // component of a URL/URI for a particular scheme. They do not serve as
 // delimiters in any case between URL/URI segments. Sub-delimiters include:
 // - All of these !$&'()*+,;=
-inline bool SubDelimiter(int c) {
+bool IsSubDelim(int c) {
   switch (c) {
     case '!':
     case '$':
@@ -133,8 +135,20 @@ inline bool SubDelimiter(int c) {
   }
 }
 
+// Reserved characters includes the general delimiters and sub delimiters. Some
+// characters are neither reserved nor unreserved, and must be percent-encoded.
+inline bool IsReserved(int c) {
+  return IsGenDelim(c) || IsSubDelim(c);
+}
+
+// Legal characters in the path portion include:
+// - Any unreserved character
+// - The percent character ('%'), and thus any percent-encoded octet
+// - The sub-delimiters
+// - ':' (colon)
+// - '@' (at sign)
 inline bool IsPathChar(int c) {
-  return IsUnreserved(c) || SubDelimiter(c) ||
+  return IsUnreserved(c) || IsSubDelim(c) ||
          c == '%' || c == '/' || c == ':' || c == '@';
 }
 
@@ -145,57 +159,75 @@ inline bool IsQueryChar(int c) {
   return IsPathChar(c) || c == '?';
 }
 
-// Encode the URL query string.
-inline std::string EncodeQuery(const std::string& query) {
-  return EncodeImpl(query, [](int c) {
-    return !IsQueryChar(c) || c == '%' || c == '+';
-  });
-}
-
-bool SplitKeyValue(const std::string& kv, std::string* key,
-                   std::string* value) {
-  std::size_t i = kv.find_first_of('=');
-  if (i == std::string::npos || i == 0) {
-    return false;
-  }
-
-  *key = kv.substr(0, i);
-  *value = kv.substr(i + 1);
-  return true;
-}
-
 }  // namespace
 
 // -----------------------------------------------------------------------------
 
-Url::Url(const std::string& str, bool decode) {
-  Init(str, decode);
+std::string Url::EncodeHost(const std::string& utf8_str) {
+  return EncodeImpl(utf8_str, [](int c) -> bool { return c > 127; });
 }
 
-void Url::Init(const std::string& str, bool decode, bool clear) {
-  if (clear) {
-    Clear();
-  }
+std::string Url::EncodePath(const std::string& utf8_str) {
+  return EncodeImpl(utf8_str, [](int c) -> bool {
+    return !IsPathChar(c) || c == '%' || c == '+';
+  });
+}
 
-  if (!decode || str.find('%') == std::string::npos) {
+std::string Url::EncodeQuery(const std::string& utf8_str) {
+  return EncodeImpl(utf8_str, [](int c) -> bool {
+    return !IsQueryChar(c) || c == '%' || c == '+';
+  });
+}
+
+std::string Url::EncodeFull(const std::string& utf8_str) {
+  return EncodeImpl(utf8_str, [](int c) -> bool {
+    return !IsUnreserved(c) && !IsReserved(c);
+  });
+}
+
+// -----------------------------------------------------------------------------
+
+Url::Url(const std::string& str, bool encode) {
+  if (encode) {
+    Parse(Url::EncodeFull(str));
+  } else {
     Parse(str);
+  }
+}
+
+void Url::AppendPath(const std::string& piece, bool encode) {
+  if (piece.empty() || piece == "/") {
     return;
   }
 
-  std::string decoded;
-  if (Decode(str, &decoded)) {
-    Parse(decoded);
+  if (path_.empty() || path_ == "/") {
+    path_.clear();
+    if (piece.front() != '/') {
+      path_.push_back('/');
+    }
+  } else if (path_.back() == '/' && piece.front() == '/') {
+    path_.pop_back();
+  } else if (path_.back() != '/' && piece.front() != '/') {
+    path_.push_back('/');
+  }
+
+  if (encode) {
+    path_.append(Url::EncodePath(piece));
   } else {
-    // TODO: Exception?
-    Parse(str);
+    path_.append(piece);
   }
 }
 
-void Url::AddQuery(const std::string& key, const std::string& value) {
+void Url::AppendQuery(const std::string& key, const std::string& value,
+                      bool encode) {
   if (!query_.empty()) {
     query_ += "&";
   }
-  query_ += key + "=" + value;
+  if (encode) {
+    query_ += Url::EncodeQuery(key) + "=" + Url::EncodeQuery(value);
+  } else {
+    query_ += key + "=" + value;
+  }
 }
 
 void Url::Parse(const std::string& str) {
@@ -253,34 +285,43 @@ void Url::Clear() {
 
 // -----------------------------------------------------------------------------
 
-UrlQuery::UrlQuery(const std::string& str) {
-  if (!str.empty()) {
+UrlQuery::UrlQuery(const std::string& encoded_str) {
+  if (!encoded_str.empty()) {
     // Split into key value pairs separated by '&'.
     for (std::size_t i = 0; i != std::string::npos;) {
-      std::size_t j = str.find_first_of('&', i);
+      std::size_t j = encoded_str.find_first_of('&', i);
 
       std::string kv;
       if (j == std::string::npos) {
-        kv = str.substr(i);
+        kv = encoded_str.substr(i);
         i = std::string::npos;
       } else {
-        kv = str.substr(i, j - i);
+        kv = encoded_str.substr(i, j - i);
         i = j + 1;
       }
 
       std::string key;
       std::string value;
-      if (SplitKeyValue(kv, &key, &value)) {
-        Add(std::move(key), std::move(value));
+      if (utility::SplitKV(kv, '=', &key, &value, false)) {
+        parameters_.push_back({ DecodeUnsafe(key), DecodeUnsafe(value) });
       }
     }
   }
 }
 
-void UrlQuery::Add(std::string&& key, std::string&& value) {
-  if (!Has(key)) {
-    parameters_.push_back({ std::move(key), std::move(value) });
+const std::string& UrlQuery::Get(const std::string& key) const {
+  auto it = Find(key);
+  if (it != parameters_.end()) {
+    return it->second;
   }
+
+  static const std::string kEmptyValue;
+  return kEmptyValue;
+}
+
+const UrlQuery::Parameter& UrlQuery::Get(std::size_t index) const {
+  assert(index < Size());
+  return parameters_[index];
 }
 
 void UrlQuery::Add(const std::string& key, const std::string& value) {
@@ -296,30 +337,21 @@ void UrlQuery::Remove(const std::string& key) {
   }
 }
 
-const std::string& UrlQuery::Get(const std::string& key) const {
-  auto it = Find(key);
-  if (it != parameters_.end()) {
-    return it->second;
-  }
-
-  static const std::string kEmptyValue;
-  return kEmptyValue;
-}
-
 std::string UrlQuery::ToString() const {
   if (parameters_.empty()) {
     return "";
   }
 
-  std::string str = parameters_[0].first + "=" + parameters_[0].second;
+  std::string str;
 
-  for (std::size_t i = 1; i < parameters_.size(); ++i) {
-    str += "&";
+  for (std::size_t i = 0; i < parameters_.size(); ++i) {
+    if (i != 0) {
+      str += "&";
+    }
     str += parameters_[i].first + "=" + parameters_[i].second;
   }
 
-  str = EncodeQuery(str);
-  return str;
+  return Url::EncodeQuery(str);
 }
 
 UrlQuery::ConstIterator UrlQuery::Find(const std::string& key) const {

@@ -12,12 +12,20 @@ namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-// A simplified implementation of URL (or URI).
+// A simple implementation of URL (or URI).
+// TODO: Encoding of path
 class Url {
+public:
+  // Encode URL different components.
+  static std::string EncodeHost(const std::string& utf8_str);
+  static std::string EncodePath(const std::string& utf8_str);
+  static std::string EncodeQuery(const std::string& utf8_str);
+  static std::string EncodeFull(const std::string& utf8_str);
+
 public:
   Url() = default;
 
-  explicit Url(const std::string& str, bool decode = true);
+  explicit Url(const std::string& str, bool encode = false);
 
 #if WEBCC_DEFAULT_MOVE_COPY_ASSIGN
 
@@ -47,8 +55,6 @@ public:
 
 #endif  // WEBCC_DEFAULT_MOVE_COPY_ASSIGN
 
-  void Init(const std::string& str, bool decode = true, bool clear = true);
-
   const std::string& scheme() const {
     return scheme_;
   }
@@ -69,15 +75,19 @@ public:
     return query_;
   }
 
-  // Add a query parameter.
-  void AddQuery(const std::string& key, const std::string& value);
+  // Append a piece of path.
+  void AppendPath(const std::string& piece, bool encode = false);
+
+  // Append a query parameter.
+  void AppendQuery(const std::string& key, const std::string& value,
+                   bool encode = false);
 
 private:
   void Parse(const std::string& str);
 
   void Clear();
 
-  // TODO: Support auth & fragment.
+private:
   std::string scheme_;
   std::string host_;
   std::string port_;
@@ -87,35 +97,38 @@ private:
 
 // -----------------------------------------------------------------------------
 
-// URL query parameters.
+// For accessing URL query parameters.
 class UrlQuery {
 public:
   using Parameter = std::pair<std::string, std::string>;
 
-  UrlQuery() = default;
+  // The query string should be key-value pairs separated by '&'.
+  explicit UrlQuery(const std::string& encoded_str);
 
-  // The query string should be key value pairs separated by '&'.
-  explicit UrlQuery(const std::string& str);
+  bool Empty() const {
+    return parameters_.empty();
+  }
 
-  void Add(const std::string& key, const std::string& value);
-
-  void Add(std::string&& key, std::string&& value);
-
-  void Remove(const std::string& key);
-
-  // Get a value by key.
-  // Return empty string if the key doesn't exist.
-  const std::string& Get(const std::string& key) const;
+  std::size_t Size() const {
+    return parameters_.size();
+  }
 
   bool Has(const std::string& key) const {
     return Find(key) != parameters_.end();
   }
 
-  bool IsEmpty() const {
-    return parameters_.empty();
-  }
+  // Get a value by key.
+  // Return empty string if the key doesn't exist.
+  const std::string& Get(const std::string& key) const;
 
-  // Return key-value pairs concatenated by '&'.
+  // Get a key-value pair by index.
+  const Parameter& Get(std::size_t index) const;
+
+  void Add(const std::string& key, const std::string& value);
+
+  void Remove(const std::string& key);
+
+  // Return encoded query string joined with '&'.
   // E.g., "item=12731&color=blue&size=large".
   std::string ToString() const;
 

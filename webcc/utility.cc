@@ -35,18 +35,20 @@ std::string GetTimestamp() {
   return ss.str();
 }
 
-bool SplitKV(const std::string& str, char delimiter,
-             std::string* part1, std::string* part2) {
+bool SplitKV(const std::string& str, char delimiter, std::string* key,
+             std::string* value, bool trim) {
   std::size_t pos = str.find(delimiter);
   if (pos == std::string::npos) {
     return false;
   }
 
-  *part1 = str.substr(0, pos);
-  *part2 = str.substr(pos + 1);
+  *key = str.substr(0, pos);
+  *value = str.substr(pos + 1);
 
-  boost::trim(*part1);
-  boost::trim(*part2);
+  if (trim) {
+    boost::trim(*key);
+    boost::trim(*value);
+  }
 
   return true;
 }

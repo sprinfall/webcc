@@ -7,6 +7,24 @@
 #include "webcc/request.h"
 #include "webcc/url.h"
 
+// -----------------------------------------------------------------------------
+// Handy macros for creating a RequestBuilder.
+
+#define WEBCC_GET(url) webcc::RequestBuilder{}.Get(url, false)
+#define WEBCC_GET_ENC(url) webcc::RequestBuilder{}.Get(url, true)
+#define WEBCC_HEAD(url) webcc::RequestBuilder{}.Head(url, false)
+#define WEBCC_HEAD_ENC(url) webcc::RequestBuilder{}.Head(url, true)
+#define WEBCC_POST(url) webcc::RequestBuilder{}.Post(url, false)
+#define WEBCC_POST_ENC(url) webcc::RequestBuilder{}.Post(url, true)
+#define WEBCC_PUT(url) webcc::RequestBuilder{}.Put(url, false)
+#define WEBCC_PUT_ENC(url) webcc::RequestBuilder{}.Put(url, true)
+#define WEBCC_DELETE(url) webcc::RequestBuilder{}.Delete(url, false)
+#define WEBCC_DELETE_ENC(url) webcc::RequestBuilder{}.Delete(url, true)
+#define WEBCC_PATCH(url) webcc::RequestBuilder{}.Patch(url, false)
+#define WEBCC_PATCH_ENC(url) webcc::RequestBuilder{}.Patch(url, true)
+
+// -----------------------------------------------------------------------------
+
 namespace webcc {
 
 class RequestBuilder {
@@ -16,52 +34,46 @@ public:
   RequestBuilder(const RequestBuilder&) = delete;
   RequestBuilder& operator=(const RequestBuilder&) = delete;
 
-  // Build the request.
+  // Build
   RequestPtr operator()();
-
-  // NOTE:
-  // The naming convention doesn't follow Google C++ Style for
-  // consistency and simplicity.
 
   RequestBuilder& Method(const std::string& method) {
     method_ = method;
     return *this;
   }
 
-  RequestBuilder& Url(const std::string& url) {
-    url_.Init(url);
-    return *this;
+  RequestBuilder& Get(const std::string& url, bool encode = false) {
+    return Method(methods::kGet).Url(url, encode);
   }
 
-  RequestBuilder& Get(const std::string& url) {
-    return Method(methods::kGet).Url(url);
+  RequestBuilder& Head(const std::string& url, bool encode = false) {
+    return Method(methods::kHead).Url(url, encode);
   }
 
-  RequestBuilder& Head(const std::string& url) {
-    return Method(methods::kHead).Url(url);
+  RequestBuilder& Post(const std::string& url, bool encode = false) {
+    return Method(methods::kPost).Url(url, encode);
   }
 
-  RequestBuilder& Post(const std::string& url) {
-    return Method(methods::kPost).Url(url);
+  RequestBuilder& Put(const std::string& url, bool encode = false) {
+    return Method(methods::kPut).Url(url, encode);
   }
 
-  RequestBuilder& Put(const std::string& url) {
-    return Method(methods::kPut).Url(url);
+  RequestBuilder& Delete(const std::string& url, bool encode = false) {
+    return Method(methods::kDelete).Url(url, encode);
   }
 
-  RequestBuilder& Delete(const std::string& url) {
-    return Method(methods::kDelete).Url(url);
+  RequestBuilder& Patch(const std::string& url, bool encode = false) {
+    return Method(methods::kPatch).Url(url, encode);
   }
 
-  RequestBuilder& Patch(const std::string& url) {
-    return Method(methods::kPatch).Url(url);
-  }
+  RequestBuilder& Url(const std::string& url, bool encode = false);
 
-  // Add a query parameter.
-  RequestBuilder& Query(const std::string& key, const std::string& value) {
-    url_.AddQuery(key, value);
-    return *this;
-  }
+  // Append a piece to the path.
+  RequestBuilder& Path(const std::string& path, bool encode = false);
+
+  // Append a parameter to the query.
+  RequestBuilder& Query(const std::string& key, const std::string& value,
+                        bool encode = false);
 
   RequestBuilder& MediaType(const std::string& media_type) {
     media_type_ = media_type;
@@ -97,7 +109,7 @@ public:
 
   // Use the file content as body.
   // NOTE: Error::kFileError might be thrown.
-  RequestBuilder& File(const Path& path, bool infer_media_type = true,
+  RequestBuilder& File(const webcc::Path& path, bool infer_media_type = true,
                        std::size_t chunk_size = 1024);
 
   // Add a form part.
@@ -107,7 +119,7 @@ public:
   }
 
   // Add a form part of file.
-  RequestBuilder& FormFile(const std::string& name, const Path& path,
+  RequestBuilder& FormFile(const std::string& name, const webcc::Path& path,
                            const std::string& media_type = "");
 
   // Add a form part of string data.

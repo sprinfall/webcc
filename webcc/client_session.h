@@ -59,32 +59,9 @@ public:
   // Please use RequestBuilder to build the request.
   // If |stream| is true, the response data will be written into a temp file,
   // the response body will be FileBody, and you can easily move the temp file
-  // to another path with FileBody::Move(). So |stream| is useful for
+  // to another path with FileBody::Move(). So, |stream| is really useful for
   // downloading files (JPEG, etc.) or saving memory for huge data responses.
   ResponsePtr Request(RequestPtr request, bool stream = false);
-
-  // Shortcut for GET request.
-  ResponsePtr Get(const std::string& url, const Strings& parameters = {},
-                  const Strings& headers = {});
-
-  // Shortcut for HEAD request.
-  ResponsePtr Head(const std::string& url, const Strings& parameters = {},
-                   const Strings& headers = {});
-
-  // Shortcut for POST request.
-  ResponsePtr Post(const std::string& url, std::string&& data, bool json,
-                   const Strings& headers = {});
-
-  // Shortcut for PUT request.
-  ResponsePtr Put(const std::string& url, std::string&& data, bool json,
-                  const Strings& headers = {});
-
-  // Shortcut for DELETE request.
-  ResponsePtr Delete(const std::string& url, const Strings& headers = {});
-
-  // Shortcut for PATCH request.
-  ResponsePtr Patch(const std::string& url, std::string&& data, bool json,
-                    const Strings& headers = {});
 
 private:
   void InitHeaders();
