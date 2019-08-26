@@ -26,8 +26,7 @@ int main(int argc, char* argv[]) {
   webcc::ClientSession session;
 
   try {
-    auto r = session.Request(webcc::RequestBuilder{}.Get(url)(),
-                             true);  // Stream the response data to file.
+    auto r = session.Send(webcc::RequestBuilder{}.Get(url)(), true);
 
     if (auto file_body = r->file_body()) {
       file_body->Move(path);

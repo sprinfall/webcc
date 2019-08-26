@@ -41,7 +41,9 @@ int main() {
 
   try {
     // 发起一个 HTTP GET 请求
-    auto r = session.Get("http://httpbin.org/get");
+    auto r = session.Send(webcc::RequestBuilder{}.
+                          Get("http://httpbin.org/get")
+                          ());
 
     // 输出响应数据
     std::cout << r->data() << std::endl;
@@ -55,47 +57,30 @@ int main() {
 }
 ```
 
-因为 `Get()` 不过是 `Request()` 的一种快捷方式，直接调用 `Request()` 会更复杂一些：
+如你所见，这里通过一个辅助类 `RequestBuilder`，串联起各种参数，最后再生成一个请求对象。注意不要漏了最后的 `()` 操作符。
+
+通过 `Query()` 可以方便地指定 URL 查询参数：
 
 ```cpp
-auto r = session.Request(webcc::RequestBuilder{}.Get("http://httpbin.org/get")());
-```
-
-这里多了个辅助类 `RequestBuilder`，用来串联起各种参数，最后再生成一个请求对象。注意不要漏了 `()` 操作符。
-
-不管是 `Get` 还是 `Request()`，都接受 URL 查询参数：
-
-```cpp
-// 查询参数由 std::vector 一起指定，键值成对出现
-session.Get("http://httpbin.org/get", { "key1", "value1", "key2", "value2" });
-
-// 查询参数由 Query() 挨个指定
-session.Request(webcc::RequestBuilder{}.
-                Get("http://httpbin.org/get").
-                Query("key1", "value1").
-                Query("key2", "value2")
-                ());
+session.Send(webcc::RequestBuilder{}.
+             Get("http://httpbin.org/get").
+             Query("key1", "value1").Query("key2", "value2")
+             ());
 ```
 
 要添加额外的头部也很简单：
 
 ```cpp
-session.Get("http://httpbin.org/get",
-            {"key1", "value1", "key2", "value2"},
-            {"Accept", "application/json"});  // 也是 std::vector
-                
-session.Request(webcc::RequestBuilder{}.
-                Get("http://httpbin.org/get").
-                Query("key1", "value1").
-                Query("key2", "value2").
-                Header("Accept", "application/json")
-                ());
+session.Send(webcc::RequestBuilder{}.
+             Get("http://httpbin.org/get").
+             Header("Accept", "application/json")
+             ());
 ```
 
 访问 HTTPS 和访问 HTTP 没有差别，对用户是透明的：
 
 ```cpp
-session.Get("https://httpbin.org/get");
+session.Send(webcc::RequestBuilder{}.Get("https://httpbin.org/get")());
 ```
 
 *注意：对 HTTPS/SSL 的支持，需要启用编译选项 `WEBCC_ENABLE_SSL`，也会依赖 OpenSSL。*
@@ -103,40 +88,42 @@ session.Get("https://httpbin.org/get");
 列出 GitHub 公开事件 (public events) 也不是什么难题：
 
 ```cpp
-auto r = session.Get("https://api.github.com/events");
+auto r = session.Send(webcc::RequestBuilder{}.
+                      Get("https://api.github.com/events")
+                      ());
 ```
 
 然后，你可以把 `r->data()` 解析成 JSON 对象，随便用个什么 JSON 程序库。
 
 我在示例程序里用的是 [jsoncpp](https://github.com/open-source-parsers/jsoncpp)，但是 Webcc 本身并不理解 JSON，用什么 JSON 程序库，完全是你自己的选择。
 
-快捷函数（`Get()`，`Post()`，等）用起来方便，但是参数有限，限制比较多。`RequestBuilder` 更灵活更强大，它提供了很多函数供你定制请求的样子。
+`RequestBuilder` 本质上是为了解决 C++ 没有“键值参数”的问题，它提供了很多函数供你定制请求的样子。
 
-为了列出一个授权的 (authorized) GitHub 用户的“粉丝” (followers)，要么使用  **Basic 认证**：
+为了列出一个授权的 (authorized) GitHub 用户的“粉丝” (followers)，要么使用 **Basic 认证**：
 
 ```cpp
-session.Request(webcc::RequestBuilder{}.
-                Get("https://api.github.com/user/followers").
-                AuthBasic(login, password)  // 应该替换成具体的账号、密码
-                ());
+session.Send(webcc::RequestBuilder{}.
+             Get("https://api.github.com/user/followers").
+             AuthBasic(login, password)  // 应该替换成具体的账号、密码
+             ());
 ```
 
 要么使用 **Token 认证**：
 
 ```cpp
-session.Request(webcc::RequestBuilder{}.
-                Get("https://api.github.com/user/followers").
-                AuthToken(token)  // 应该替换成具体合法的 token
-                ());
+session.Send(webcc::RequestBuilder{}.
+             Get("https://api.github.com/user/followers").
+             AuthToken(token)  // 应该替换成具体合法的 token
+             ());
 ```
 
-尽管**持久连接** (Keep-Alive) 这个功能不错，你也可以手动关掉它：
+尽管 **持久连接** (Keep-Alive) 这个功能不错，你也可以手动关掉它：
 
 ```cpp
-auto r = session.Request(webcc::RequestBuilder{}.
-                         Get("http://httpbin.org/get").
-                         KeepAlive(false)  // 不要 Keep-Alive
-                         ());
+auto r = session.Send(webcc::RequestBuilder{}.
+                      Get("http://httpbin.org/get").
+                      KeepAlive(false)  // 不要 Keep-Alive
+                      ());
 ```
 
 其他 HTTP 请求的 API 跟 GET 并无太多差别。
@@ -144,19 +131,18 @@ auto r = session.Request(webcc::RequestBuilder{}.
 POST 请求需要一个“体” (body)，就 REST API 来说通常是一个 JSON 字符串。让我们 POST 一个 UTF-8 编码的 JSON 字符串：
 
 ```cpp
-session.Request(webcc::RequestBuilder{}.
-                Post("http://httpbin.org/post").
-                Body("{'name'='Adam', 'age'=20}").
-                Json().Utf8()
-                ());
+session.Send(webcc::RequestBuilder{}.
+             Post("http://httpbin.org/post").
+             Body("{'name'='Adam', 'age'=20}").Json().Utf8()
+             ());
 ```
 
 Webcc 可以把大型的响应数据串流到临时文件，串流在下载文件时特别有用。
 
 ```cpp
-auto r = session.Request(webcc::RequestBuilder{}.
-                         Get("http://httpbin.org/image/jpeg")(),
-                         true);  // stream = true
+auto r = session.Send(webcc::RequestBuilder{}.
+                      Get("http://httpbin.org/image/jpeg")
+                      (), true);  // stream = true
 
 // 把串流的文件移到目标位置
 r->file_body()->Move("./wolf.jpeg");
@@ -165,13 +151,13 @@ r->file_body()->Move("./wolf.jpeg");
 不光下载，上传也可以串流：
 
 ```cpp
-auto r = session.Request(webcc::RequestBuilder{}.
-                         Post("http://httpbin.org/post").
-                         File(path)  // 应该替换成具体的文件路径
-                         ());
+auto r = session.Send(webcc::RequestBuilder{}.
+                      Post("http://httpbin.org/post").
+                      File(path)  // 应该替换成具体的文件路径
+                      ());
 ```
 
-这个文件在 POST 时，不会一次加载到内存，读一块数据发一块数据，直到发送完。
+这个文件在 POST 时，不会一次加载到内存，而是读一块数据发一块数据，直到发送完。
 
 注意，`Content-Length` 头部还是会设置为文件的真实大小，不同于 `Transfer-Encoding: chunked` 的分块数据形式。
 

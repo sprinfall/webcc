@@ -41,11 +41,10 @@ int main(int argc, char* argv[]) {
   webcc::ClientSession session;
 
   try {
-    auto r = session.Request(webcc::RequestBuilder{}.
-                             Post(url).
-                             FormFile("file", upload_dir / "remember.txt").
-                             FormData("json", "{}", "application/json")
-                             ());
+    auto r = session.Send(webcc::RequestBuilder{}.Post(url).
+                          FormFile("file", upload_dir / "remember.txt").
+                          FormData("json", "{}", "application/json")
+                          ());
 
     std::cout << r->status() << std::endl;
 

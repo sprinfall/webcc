@@ -4,7 +4,7 @@
 
 Lightweight C++ HTTP client and server library based on [Boost Asio](https://www.boost.org/doc/libs/release/libs/asio/).
 
-Please turn to our [Wiki](https://github.com/sprinfall/webcc/wiki) (under construction) for more tutorials and guides.
+Please turn to our [Wiki](https://github.com/sprinfall/webcc/wiki) for more tutorials and guides.
 
 Wondering how to build Webcc? Check [Build Instructions](https://github.com/sprinfall/webcc/wiki/Build-Instructions).
 
@@ -12,7 +12,7 @@ Git repo: https://github.com/sprinfall/webcc. Please check this one instead of t
 
 **Features**
 
-- Cross-platform: Linux, Windows and Mac
+- Cross-platform: Windows, Linux and MacOS
 - Easy-to-use client API inspired by Python [requests](https://2.python-requests.org//en/master/)
 - SSL/HTTPS support with OpenSSL (optional)
 - GZip compression support with Zlib (optional)
@@ -25,7 +25,6 @@ Git repo: https://github.com/sprinfall/webcc. Please check this one instead of t
 - Source code follows [Google C++ Style](https://google.github.io/styleguide/cppguide.html)
 - Automation tests and unit tests included
 - No memory leak detected by [VLD](https://kinddragon.github.io/vld/)
-- etc.
 
 ## Client API
 
@@ -48,7 +47,9 @@ int main() {
   // Catch exceptions for error handling.
   try {
     // Send a HTTP GET request.
-    auto r = session.Get("http://httpbin.org/get");
+    auto r = session.Send(webcc::RequestBuilder{}.
+                          Get("http://httpbin.org/get")
+                          ());
 
     // Print the response data.
     std::cout << r->data() << std::endl;
@@ -61,46 +62,30 @@ int main() {
 }
 ```
 
-The `Get()` method is nothing but a shortcut of `Request()`. Using `Request()` directly is more complicated:
-
-```cpp
-auto r = session.Request(webcc::RequestBuilder{}.Get("http://httpbin.org/get")());
-```
-
 As you can see, a helper class named `RequestBuilder` is used to chain the parameters and finally build a request object. Please pay attention to the `()` operator.
 
-Both the shortcut and `Request()` accept URL query parameters:
+URL query parameters can be easily added through `Query()` method:
 
 ```cpp
-// Query parameters are passed using a std::vector. 
-session.Get("http://httpbin.org/get", { "key1", "value1", "key2", "value2" });
-
-session.Request(webcc::RequestBuilder{}.
-                Get("http://httpbin.org/get").
-                Query("key1", "value1").
-                Query("key2", "value2")
-                ());
+session.Send(webcc::RequestBuilder{}.
+             Get("http://httpbin.org/get").
+             Query("key1", "value1").Query("key2", "value2")
+             ());
 ```
 
 Adding additional headers is also easy:
 
 ```cpp
-session.Get("http://httpbin.org/get",
-            {"key1", "value1", "key2", "value2"},
-            {"Accept", "application/json"});  // Also a std::vector
-                
-session.Request(webcc::RequestBuilder{}.
-                Get("http://httpbin.org/get").
-                Query("key1", "value1").
-                Query("key2", "value2").
-                Header("Accept", "application/json")
-                ());
+session.Send(webcc::RequestBuilder{}.
+             Get("http://httpbin.org/get").
+             Header("Accept", "application/json")
+             ());
 ```
 
 Accessing HTTPS has no difference from HTTP:
 
 ```cpp
-session.Get("https://httpbin.org/get");
+session.Send(webcc::RequestBuilder{}.Get("https://httpbin.org/get")());
 ```
 
 *NOTE: The HTTPS/SSL support requires the build option `WEBCC_ENABLE_SSL` to be enabled.*
@@ -108,38 +93,40 @@ session.Get("https://httpbin.org/get");
 Listing GitHub public events is not a big deal:
 
 ```cpp
-auto r = session.Get("https://api.github.com/events");
+auto r = session.Send(webcc::RequestBuilder{}.
+                      Get("https://api.github.com/events")
+                      ());
 ```
 
 You can then parse `r->data()` to JSON object with your favorite JSON library. My choice for the examples is [jsoncpp](https://github.com/open-source-parsers/jsoncpp). But Webcc itself doesn't understand JSON nor require one. It's up to you to choose the most appropriate JSON library.
 
-The shortcuts (`Get()`, `Post()`, etc.) are easier to use but `RequestBuilder` is more powerful. It provides a lot of functions for you to customize the request. Let's see more examples.
+`RequestBuilder` provides a lot of functions for you to customize the request. Let's see more examples.
 
 In order to list the followers of an authorized GitHub user, you need either **Basic Authorization**:
 
 ```cpp
-session.Request(webcc::RequestBuilder{}.
-                Get("https://api.github.com/user/followers").
-                AuthBasic(login, password)  // Should be replaced by real login and password
-                ());
+session.Send(webcc::RequestBuilder{}.
+             Get("https://api.github.com/user/followers").
+             AuthBasic(login, password)  //  Should be replaced by valid login and passwords
+             ());
 ```
 
 Or **Token Authorization**:
 
 ```cpp
-session.Request(webcc::RequestBuilder{}.
-                Get("https://api.github.com/user/followers").
-                AuthToken(token)  // Should be replaced by a valid token
-                ());
+session.Send(webcc::RequestBuilder{}.
+             Get("https://api.github.com/user/followers").
+             AuthToken(token)  // Should be replaced by a valid token
+             ());
 ```
 
 Though **Keep-Alive** (i.e., persistent connection) is a good feature and enabled by default, you can turn it off:
 
 ```cpp
-auto r = session.Request(webcc::RequestBuilder{}.
-                         Get("http://httpbin.org/get").
-                         KeepAlive(false)  // No Keep-Alive
-                         ());
+auto r = session.Send(webcc::RequestBuilder{}.
+                      Get("http://httpbin.org/get").
+                      KeepAlive(false)  // No Keep-Alive
+                      ());
 ```
 
 The API for other HTTP requests is no different from GET.
@@ -147,23 +134,35 @@ The API for other HTTP requests is no different from GET.
 POST request needs a body which is normally a JSON string for REST API. Let's post a small UTF-8 encoded JSON string:
 
 ```cpp
-session.Request(webcc::RequestBuilder{}.
-                Post("http://httpbin.org/post").
-                Body("{'name'='Adam', 'age'=20}").
-                Json().Utf8()
-                ());
+session.Send(webcc::RequestBuilder{}.
+             Post("http://httpbin.org/post").
+             Body("{'name'='Adam', 'age'=20}").Json().Utf8()
+             ());
 ```
 
 Webcc has the ability to stream large response data to a file. This is especially useful when downloading files.
 
 ```cpp
-auto r = session.Request(webcc::RequestBuilder{}.
-                         Get("http://httpbin.org/image/jpeg")(),
-                         true);  // !!!
+auto r = session.Send(webcc::RequestBuilder{}.
+                      Get("http://httpbin.org/image/jpeg")
+                      (), true);  // stream = true
 
 // Move the streamed file to your destination.
 r->file_body()->Move("./wolf.jpeg");
 ```
+
+Streaming is also available for uploading:
+
+```cpp
+auto r = session.Send(webcc::RequestBuilder{}.
+                      Post("http://httpbin.org/post").
+                      File(path)  // Should be replaced by a valid file path
+                      ());
+```
+
+The file will not be loaded into the memory all at once, instead, it will be read and sent piece by piece.
+
+Please note that `Content-Length` header will still be set to the true size of the file, this is different from the handling of chunked data (`Transfer-Encoding: chunked`).
 
 Please check the [examples](https://github.com/sprinfall/webcc/tree/master/examples/) for more information. 
 

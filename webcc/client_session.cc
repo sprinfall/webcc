@@ -28,7 +28,7 @@ void ClientSession::AuthToken(const std::string& token) {
   return Auth("Token", token);
 }
 
-ResponsePtr ClientSession::Request(RequestPtr request, bool stream) {
+ResponsePtr ClientSession::Send(RequestPtr request, bool stream) {
   assert(request);
 
   for (auto& h : headers_.data()) {
@@ -44,7 +44,7 @@ ResponsePtr ClientSession::Request(RequestPtr request, bool stream) {
 
   request->Prepare();
 
-  return Send(request, stream);
+  return DoSend(request, stream);
 }
 
 void ClientSession::InitHeaders() {
@@ -85,7 +85,7 @@ void ClientSession::InitHeaders() {
   headers_.Set(kConnection, "Keep-Alive");
 }
 
-ResponsePtr ClientSession::Send(RequestPtr request, bool stream) {
+ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream) {
   const ClientPool::Key key{ request->url() };
 
   // Reuse a pooled connection.

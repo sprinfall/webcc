@@ -61,12 +61,12 @@ public:
   // the response body will be FileBody, and you can easily move the temp file
   // to another path with FileBody::Move(). So, |stream| is really useful for
   // downloading files (JPEG, etc.) or saving memory for huge data responses.
-  ResponsePtr Request(RequestPtr request, bool stream = false);
+  ResponsePtr Send(RequestPtr request, bool stream = false);
 
 private:
   void InitHeaders();
 
-  ResponsePtr Send(RequestPtr request, bool stream);
+  ResponsePtr DoSend(RequestPtr request, bool stream);
 
 private:
   // Default media type for `Content-Type` header.

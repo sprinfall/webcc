@@ -37,9 +37,9 @@ TEST(ClientTest, Head) {
   webcc::ClientSession session;
 
   try {
-    auto r = session.Request(webcc::RequestBuilder{}.
-                             Head("http://httpbin.org/get")
-                             ());
+    auto r = session.Send(webcc::RequestBuilder{}.
+                          Head("http://httpbin.org/get")
+                          ());
 
     EXPECT_EQ(webcc::Status::kOK, r->status());
     EXPECT_EQ("OK", r->reason());
@@ -59,10 +59,10 @@ TEST(ClientTest, Head_AcceptEncodingIdentity) {
   webcc::ClientSession session;
 
   try {
-    auto r = session.Request(webcc::RequestBuilder{}.
-                             Head("http://httpbin.org/get").
-                             Header("Accept-Encoding", "identity")
-                             ());
+    auto r = session.Send(webcc::RequestBuilder{}.
+                          Head("http://httpbin.org/get").
+                          Header("Accept-Encoding", "identity")
+                          ());
 
     EXPECT_EQ(webcc::Status::kOK, r->status());
     EXPECT_EQ("OK", r->reason());
@@ -106,12 +106,11 @@ TEST(ClientTest, Get) {
   webcc::ClientSession session;
 
   try {
-    auto r = session.Request(webcc::RequestBuilder{}.
-                             Get("http://httpbin.org/get").
-                             Query("key1", "value1").
-                             Query("key2", "value2").
-                             Header("Accept", "application/json")
-                             ());
+    auto r = session.Send(webcc::RequestBuilder{}.
+                          Get("http://httpbin.org/get").
+                          Query("key1", "value1").Query("key2", "value2").
+                          Header("Accept", "application/json")
+                          ());
 
     AssertGet(r);
 
@@ -125,10 +124,9 @@ TEST(ClientTest, Get_QueryEncode) {
   webcc::ClientSession session;
 
   try {
-    auto r = session.Request(webcc::RequestBuilder{}.
-                             Get("http://httpbin.org/get").
-                             Query("name", "Chunting Gu", true)
-                             ());
+    auto r = session.Send(webcc::RequestBuilder{}.Get("http://httpbin.org/get").
+                          Query("name", "Chunting Gu", true)
+                          ());
 
     EXPECT_EQ(webcc::Status::kOK, r->status());
     EXPECT_EQ("OK", r->reason());
@@ -151,12 +149,11 @@ TEST(ClientTest, Get_SSL) {
 
   try {
     // HTTPS is auto-detected from the URL scheme.
-    auto r = session.Request(webcc::RequestBuilder{}.
-                             Get("https://httpbin.org/get").
-                             Query("key1", "value1").
-                             Query("key2", "value2").
-                             Header("Accept", "application/json")
-                             ());
+    auto r = session.Send(webcc::RequestBuilder{}.
+                          Get("https://httpbin.org/get").
+                          Query("key1", "value1").Query("key2", "value2").
+                          Header("Accept", "application/json")
+                          ());
 
     AssertGet(r);
 
@@ -171,9 +168,9 @@ TEST(ClientTest, Get_Jpeg_NoStream) {
   webcc::ClientSession session;
 
   try {
-    auto r = session.Request(webcc::RequestBuilder{}.
-                             Get("http://httpbin.org/image/jpeg")
-                             ());
+    auto r = session.Send(webcc::RequestBuilder{}.
+                          Get("http://httpbin.org/image/jpeg")
+                          ());
 
     // TODO: Verify the response is a valid JPEG image.
     //std::ofstream ofs(<path>, std::ios::binary);
@@ -188,10 +185,9 @@ TEST(ClientTest, Get_Jpeg_Stream) {
   webcc::ClientSession session;
 
   try {
-    auto r = session.Request(webcc::RequestBuilder{}.
-                             Get("http://httpbin.org/image/jpeg")
-                             (),
-                             true);
+    auto r = session.Send(webcc::RequestBuilder{}.
+                          Get("http://httpbin.org/image/jpeg")
+                          (), true);
 
     auto file_body = r->file_body();
 
@@ -227,10 +223,9 @@ TEST(ClientTest, Get_Jpeg_Stream_NoMove) {
     webcc::Path ori_path;
 
     {
-      auto r = session.Request(webcc::RequestBuilder{}.
-                               Get("http://httpbin.org/image/jpeg")
-                               (),
-                               true);
+      auto r = session.Send(webcc::RequestBuilder{}.
+                            Get("http://httpbin.org/image/jpeg")
+                            (), true);
 
       auto file_body = r->file_body();
 
@@ -258,9 +253,9 @@ TEST(ClientTest, Get_Gzip) {
   webcc::ClientSession session;
 
   try {
-    auto r = session.Request(webcc::RequestBuilder{}.
-                             Get("http://httpbin.org/gzip")
-                             ());
+    auto r = session.Send(webcc::RequestBuilder{}.
+                          Get("http://httpbin.org/gzip")
+                          ());
 
     Json::Value json = StringToJson(r->data());
 
@@ -278,9 +273,9 @@ TEST(ClientTest, Get_Deflate) {
   webcc::ClientSession session;
 
   try {
-    auto r = session.Request(webcc::RequestBuilder{}.
-                             Get("http://httpbin.org/deflate")
-                             ());
+    auto r = session.Send(webcc::RequestBuilder{}.
+                          Get("http://httpbin.org/deflate")
+                          ());
 
     Json::Value json = StringToJson(r->data());
 
@@ -300,10 +295,9 @@ TEST(ClientTest, Post) {
   try {
     const std::string data = "{'name'='Adam', 'age'=20}";
 
-    auto r = session.Request(webcc::RequestBuilder{}.
-                             Post("http://httpbin.org/post").
-                             Body(data).Json()
-                             ());
+    auto r = session.Send(webcc::RequestBuilder{}.
+                          Post("http://httpbin.org/post").Body(data).Json()
+                          ());
 
     EXPECT_EQ(webcc::Status::kOK, r->status());
     EXPECT_EQ("OK", r->reason());
@@ -347,10 +341,9 @@ TEST(ClientTest, Post_FileBody) {
   }
 
   try {
-    auto r = session.Request(webcc::RequestBuilder{}.
-                             Post("http://httpbin.org/post").
-                             File(path)  // Use the file as body
-                             ());
+    auto r = session.Send(webcc::RequestBuilder{}.
+                          Post("http://httpbin.org/post").File(path)
+                          ());
 
     EXPECT_EQ(webcc::Status::kOK, r->status());
     EXPECT_EQ("OK", r->reason());
@@ -377,11 +370,10 @@ TEST(ClientTest, Post_Gzip_SmallData) {
     const std::string data = "{'name'='Adam', 'age'=20}";
 
     // This doesn't really compress the body!
-    auto r = session.Request(webcc::RequestBuilder{}.
-                             Post("http://httpbin.org/post").
-                             Body(data).Json().
-                             Gzip()
-                             ());
+    auto r = session.Send(webcc::RequestBuilder{}.
+                          Post("http://httpbin.org/post").Body(data).Json().
+                          Gzip()
+                          ());
 
     //Json::Value json = StringToJson(r->data());
 
@@ -398,16 +390,15 @@ TEST(ClientTest, Post_Gzip) {
 
   try {
     // Use Boost.org home page as the POST data.
-    auto r1 = session.Request(webcc::RequestBuilder{}.
-                              Get("https://www.boost.org/")
-                              ());
+    auto r1 = session.Send(webcc::RequestBuilder{}.
+                           Get("https://www.boost.org/")
+                           ());
 
     const std::string& data = r1->data();
 
-    auto r2 = session.Request(webcc::RequestBuilder{}.
-                              Post("http://httpbin.org/post").
-                              Body(data).Gzip()
-                              ());
+    auto r2 = session.Send(webcc::RequestBuilder{}.
+                           Post("http://httpbin.org/post").Body(data).Gzip()
+                           ());
 
     EXPECT_EQ(webcc::Status::kOK, r2->status());
     EXPECT_EQ("OK", r2->reason());
@@ -440,33 +431,26 @@ TEST(ClientTest, KeepAlive) {
 
   try {
     // Keep-Alive by default.
-    auto r = session.Request(webcc::RequestBuilder{}.Get(url)());
+    auto r = session.Send(webcc::RequestBuilder{}.Get(url)());
 
     using boost::iequals;
 
     EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Keep-alive"));
 
     // Close by setting Connection header directly.
-    r = session.Request(webcc::RequestBuilder{}.
-                        Get(url).
-                        Header("Connection", "Close")
-                        ());
+    r = session.Send(webcc::RequestBuilder{}.Get(url).
+                     Header("Connection", "Close")
+                     ());
 
     EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Close"));
 
     // Close by using request builder.
-    r = session.Request(webcc::RequestBuilder{}.
-                        Get(url).
-                        KeepAlive(false)
-                        ());
+    r = session.Send(webcc::RequestBuilder{}.Get(url).KeepAlive(false)());
 
     EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Close"));
 
     // Keep-Alive explicitly by using request builder.
-    r = session.Request(webcc::RequestBuilder{}.
-                        Get(url).
-                        KeepAlive(true)
-                        ());
+    r = session.Send(webcc::RequestBuilder{}.Get(url).KeepAlive(true)());
 
     EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Keep-alive"));
 
