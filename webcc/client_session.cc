@@ -103,7 +103,7 @@ ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream) {
   client->set_ssl_verify(ssl_verify_);
   client->set_buffer_size(buffer_size_);
   client->set_timeout(timeout_);
-
+ 
   Error error = client->Request(request, !reuse, stream);
 
   if (error) {

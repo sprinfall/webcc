@@ -250,10 +250,13 @@ void Server::WorkerRoutine() {
 void Server::StopWorkers() {
   LOG_INFO("Stopping workers...");
 
-  // Clear pending connections.
-  // The connections will be closed later.
-  LOG_INFO("Clear pending connections...");
-  queue_.Clear();
+  // Clear/drop pending connections.
+  // The connections will be closed later (see DoStop).
+  // Alternatively, we can wait for the pending connections to be handled.
+  if (queue_.Size() != 0) {
+    LOG_INFO("Clear pending connections...");
+    queue_.Clear();
+  }
 
   // Enqueue a null connection to trigger the first worker to stop.
   queue_.Push(ConnectionPtr());

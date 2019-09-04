@@ -31,7 +31,6 @@ int main(int argc, char* argv[]) {
     if (auto file_body = r->file_body()) {
       file_body->Move(path);
     }
-
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;
   }

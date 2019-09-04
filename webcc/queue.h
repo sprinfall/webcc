@@ -54,9 +54,14 @@ public:
     not_empty_cv_.notify_one();
   }
 
+  std::size_t Size() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return message_list_.size();
+  }
+
 private:
   std::list<T> message_list_;
-  std::mutex mutex_;
+  mutable std::mutex mutex_;
   std::condition_variable not_empty_cv_;
 };
 
