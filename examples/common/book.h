@@ -4,6 +4,8 @@
 #include <list>
 #include <string>
 
+#include "boost/filesystem/path.hpp"
+
 // In-memory test data.
 // There should be some database in a real product.
 
@@ -11,6 +13,7 @@ struct Book {
   std::string id;
   std::string title;
   double price;
+  boost::filesystem::path photo;
 
   bool IsNull() const { return id.empty(); }
 };
@@ -21,7 +24,9 @@ extern const Book kNullBook;
 
 class BookStore {
 public:
-  const std::list<Book>& books() const { return books_; }
+  const std::list<Book>& books() const {
+    return books_;
+  }
 
   const Book& GetBook(const std::string& id) const;
 

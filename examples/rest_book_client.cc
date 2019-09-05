@@ -1,6 +1,9 @@
 #include <iostream>
 #include <list>
 
+#include "boost/algorithm/string/predicate.hpp"
+#include "boost/filesystem/operations.hpp"
+
 #include "json/json.h"
 
 #include "webcc/client_session.h"
@@ -17,6 +20,8 @@
 #endif
 #endif
 
+namespace bfs = boost::filesystem;
+
 // -----------------------------------------------------------------------------
 
 class BookClient {
@@ -27,7 +32,8 @@ public:
 
   bool ListBooks(std::list<Book>* books);
 
-  bool CreateBook(const std::string& title, double price, std::string* id);
+  bool CreateBook(const std::string& title, double price,
+                  const bfs::path& photo, std::string* id);
 
   bool GetBook(const std::string& id, Book* book);
 
@@ -37,6 +43,8 @@ public:
   bool DeleteBook(const std::string& id);
 
 private:
+  bool CheckPhoto(const bfs::path& photo);
+
   // Check HTTP response status.
   bool CheckStatus(webcc::ResponsePtr response, int expected_status);
 
@@ -83,15 +91,14 @@ bool BookClient::ListBooks(std::list<Book>* books) {
 }
 
 bool BookClient::CreateBook(const std::string& title, double price,
-                            std::string* id) {
+                            const bfs::path& photo, std::string* id) {
   Json::Value req_json;
   req_json["title"] = title;
   req_json["price"] = price;
 
   try {
     auto r = session_.Send(WEBCC_POST(url_).Path("books").
-                           Body(JsonToString(req_json))
-                           ());
+                           Body(JsonToString(req_json))());
 
     if (!CheckStatus(r, webcc::Status::kCreated)) {
       return false;
@@ -100,7 +107,20 @@ bool BookClient::CreateBook(const std::string& title, double price,
     Json::Value rsp_json = StringToJson(r->data());
     *id = rsp_json["id"].asString();
 
-    return !id->empty();
+    if (id->empty()) {
+      return false;
+    }
+
+    if (CheckPhoto(photo)) {
+      r = session_.Send(WEBCC_PUT(url_).Path("books").Path(*id).Path("photo").
+                        File(photo)());
+
+      if (!CheckStatus(r, webcc::Status::kOK)) {
+        return false;
+      }
+    }
+
+    return true;
 
   } catch (const webcc::Error& error) {
     std::cerr << error << std::endl;
@@ -132,8 +152,7 @@ bool BookClient::UpdateBook(const std::string& id, const std::string& title,
 
   try {
     auto r = session_.Send(WEBCC_PUT(url_).Path("books").Path(id).
-                           Body(JsonToString(json))
-                           ());
+                           Body(JsonToString(json))());
 
     if (!CheckStatus(r, webcc::Status::kOK)) {
       return false;
@@ -161,6 +180,23 @@ bool BookClient::DeleteBook(const std::string& id) {
     std::cerr << error << std::endl;
     return false;
   }
+}
+
+bool BookClient::CheckPhoto(const bfs::path& photo) {
+  if (photo.empty()) {
+    return false;
+  }
+
+  if (!bfs::is_regular_file(photo) || !bfs::exists(photo)) {
+    return false;
+  }
+
+  auto ext = photo.extension().string();
+  if (!boost::iequals(ext, ".jpg") && !boost::iequals(ext, ".jpeg")) {
+    return false;
+  }
+
+  return true;
 }
 
 bool BookClient::CheckStatus(webcc::ResponsePtr response, int expected_status) {
@@ -194,40 +230,38 @@ void PrintBookList(const std::list<Book>& books) {
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {
-    std::cout << "usage: rest_book_client <url> [timeout]" << std::endl;
-    std::cout << std::endl;
+    std::cout << "usage: rest_book_client <url>" << std::endl;
     std::cout << "examples:" << std::endl;
     std::cout << "  $ rest_book_client http://localhost:8080" << std::endl;
-    std::cout << "  $ rest_book_client http://localhost:8080 2" << std::endl;
     return 1;
   }
 
   std::string url = argv[1];
 
-  int timeout = 0;
-  if (argc > 2) {
-    timeout = std::atoi(argv[2]);
-  }
-
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE_FILE_OVERWRITE);
 
-  BookClient client(url, timeout);
+  BookClient client(url);
 
   PrintSeparator();
+
+  // List all books.
 
   std::list<Book> books;
   if (client.ListBooks(&books)) {
     PrintBookList(books);
+  } else {
+    return 1;
   }
 
   PrintSeparator();
 
+  // Create a new book.
+
   std::string id;
-  if (client.CreateBook("1984", 12.3, &id)) {
+  if (client.CreateBook("1984", 12.3, "", &id)) {
     std::cout << "Book ID: " << id << std::endl;
   } else {
-    id = "1";
-    std::cout << "Book ID: " << id << " (faked)"<< std::endl;
+    return 1;
   }
 
   PrintSeparator();
@@ -235,6 +269,8 @@ int main(int argc, char* argv[]) {
   books.clear();
   if (client.ListBooks(&books)) {
     PrintBookList(books);
+  } else {
+    return 1;
   }
 
   PrintSeparator();
@@ -242,21 +278,29 @@ int main(int argc, char* argv[]) {
   Book book;
   if (client.GetBook(id, &book)) {
     PrintBook(book);
+  } else {
+    return 1;
   }
 
   PrintSeparator();
 
-  client.UpdateBook(id, "1Q84", 32.1);
+  if (!client.UpdateBook(id, "1Q84", 32.1)) {
+    return 1;
+  }
 
   PrintSeparator();
 
   if (client.GetBook(id, &book)) {
     PrintBook(book);
+  } else {
+    return 1;
   }
 
   PrintSeparator();
 
-  client.DeleteBook(id);
+  if (!client.DeleteBook(id)) {
+    return 1;
+  }
 
   PrintSeparator();
 

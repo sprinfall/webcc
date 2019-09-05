@@ -1,8 +1,7 @@
 #include <iostream>
-#include <list>
 #include <string>
-#include <thread>
-#include <vector>
+
+#include "boost/filesystem/operations.hpp"
 
 #include "json/json.h"
 
@@ -21,24 +20,18 @@
 #endif
 #endif
 
+namespace bfs = boost::filesystem;
+
 // -----------------------------------------------------------------------------
 
 static BookStore g_book_store;
 
-static void Sleep(int seconds) {
-  if (seconds > 0) {
-    LOG_INFO("Sleep %d seconds...", seconds);
-    std::this_thread::sleep_for(std::chrono::seconds(seconds));
-  }
-}
-
 // -----------------------------------------------------------------------------
+// BookListView
 
+// URL: /books
 class BookListView : public webcc::View {
 public:
-  explicit BookListView(int sleep_seconds) : sleep_seconds_(sleep_seconds) {
-  }
-
   webcc::ResponsePtr Handle(webcc::RequestPtr request) override {
     if (request->method() == "GET") {
       return Get(request);
@@ -53,24 +46,116 @@ public:
 
 private:
   // Get a list of books based on query parameters.
-  webcc::ResponsePtr Get(webcc::RequestPtr request);
+  webcc::ResponsePtr Get(webcc::RequestPtr request) {
+    Json::Value json(Json::arrayValue);
+
+    for (const Book& book : g_book_store.books()) {
+      json.append(BookToJson(book));
+    }
+
+    // Return all books as a JSON array.
+
+    return webcc::ResponseBuilder{}.OK().Body(JsonToString(json)).Json().Utf8()();
+  }
 
   // Create a new book.
-  webcc::ResponsePtr Post(webcc::RequestPtr request);
+  webcc::ResponsePtr Post(webcc::RequestPtr request) {
+    Book book;
+    if (JsonStringToBook(request->data(), &book)) {
+      std::string id = g_book_store.AddBook(book);
 
-private:
-  // Sleep some seconds before send back the response.
-  // For testing timeout control in client side.
-  int sleep_seconds_;
+      Json::Value json;
+      json["id"] = id;
+
+      return webcc::ResponseBuilder{}.Created().Body(JsonToString(json)).Json().Utf8()();
+    } else {
+      // Invalid JSON
+      return webcc::ResponseBuilder{}.BadRequest()();
+    }
+  }
 };
 
 // -----------------------------------------------------------------------------
+// BookDetailView
 
-// The URL is like '/books/{BookID}', and the 'args' parameter
-// contains the matched book ID.
+// URL: /books/{id}
 class BookDetailView : public webcc::View {
 public:
-  explicit BookDetailView(int sleep_seconds) : sleep_seconds_(sleep_seconds) {
+  webcc::ResponsePtr Handle(webcc::RequestPtr request) override {
+    if (request->method() == "GET") {
+      return Get(request);
+    }
+    if (request->method() == "PUT") {
+      return Put(request);
+    }
+    if (request->method() == "DELETE") {
+      return Delete(request);
+    }
+    return {};
+  }
+
+private:
+  // Get the detailed information of a book.
+  webcc::ResponsePtr Get(webcc::RequestPtr request) {
+    if (request->args().size() != 1) {
+      // NotFound means the resource specified by the URL cannot be found.
+      // BadRequest could be another choice.
+      return webcc::ResponseBuilder{}.NotFound()();
+    }
+
+    const std::string& id = request->args()[0];
+
+    const Book& book = g_book_store.GetBook(id);
+    if (book.IsNull()) {
+      return webcc::ResponseBuilder{}.NotFound()();
+    }
+
+    return webcc::ResponseBuilder{}.OK().Body(BookToJsonString(book)).Json().Utf8()();
+  }
+
+  // Update a book.
+  webcc::ResponsePtr Put(webcc::RequestPtr request) {
+    if (request->args().size() != 1) {
+      return webcc::ResponseBuilder{}.NotFound()();
+    }
+
+    const std::string& id = request->args()[0];
+
+    Book book;
+    if (!JsonStringToBook(request->data(), &book)) {
+      return webcc::ResponseBuilder{}.BadRequest()();
+    }
+
+    book.id = id;
+    g_book_store.UpdateBook(book);
+
+    return webcc::ResponseBuilder{}.OK()();
+  }
+
+  // Delete a book.
+  webcc::ResponsePtr Delete(webcc::RequestPtr request) {
+    if (request->args().size() != 1) {
+      return webcc::ResponseBuilder{}.NotFound()();
+    }
+
+    const std::string& id = request->args()[0];
+
+    if (!g_book_store.DeleteBook(id)) {
+      return webcc::ResponseBuilder{}.NotFound()();
+    }
+
+    return webcc::ResponseBuilder{}.OK()();
+  }
+};
+
+// -----------------------------------------------------------------------------
+// BookPhotoView
+
+// URL: /books/{id}/photo
+class BookPhotoView : public webcc::View {
+public:
+  explicit BookPhotoView(bfs::path upload_dir)
+      : upload_dir_(std::move(upload_dir)) {
   }
 
   webcc::ResponsePtr Handle(webcc::RequestPtr request) override {
@@ -89,127 +174,79 @@ public:
     return {};
   }
 
-private:
-  // Get the detailed information of a book.
-  webcc::ResponsePtr Get(webcc::RequestPtr request);
-
-  // Update a book.
-  webcc::ResponsePtr Put(webcc::RequestPtr request);
-
-  // Delete a book.
-  webcc::ResponsePtr Delete(webcc::RequestPtr request);
+  // Stream the request data, an image, of PUT into a temp file.
+  bool Stream(const std::string& method) override {
+    return method == "PUT";
+  }
 
 private:
-  // Sleep some seconds before send back the response.
-  // For testing timeout control in client side.
-  int sleep_seconds_;
+  // Get the photo of the book.
+  // TODO: Check content type to see if it's JPEG.
+  webcc::ResponsePtr Get(webcc::RequestPtr request) {
+    if (request->args().size() != 1) {
+      return webcc::ResponseBuilder{}.NotFound()();
+    }
+
+    const std::string& id = request->args()[0];
+    const Book& book = g_book_store.GetBook(id);
+    if (book.IsNull()) {
+      return webcc::ResponseBuilder{}.NotFound()();
+    }
+
+    bfs::path photo_path = GetPhotoPath(id);
+    if (!bfs::exists(photo_path)) {
+      return webcc::ResponseBuilder{}.NotFound()();
+    }
+
+    // File() might throw Error::kFileError.
+    // TODO: Avoid exception handling.
+    try {
+      return webcc::ResponseBuilder{}.OK().File(photo_path)();
+    } catch (const webcc::Error&) {
+      return webcc::ResponseBuilder{}.NotFound()();
+    }
+  }
+
+  // Set the photo of the book.
+  // TODO: Check content type to see if it's JPEG.
+  webcc::ResponsePtr Put(webcc::RequestPtr request) {
+    if (request->args().size() != 1) {
+      return webcc::ResponseBuilder{}.NotFound()();
+    }
+
+    const std::string& id = request->args()[0];
+
+    const Book& book = g_book_store.GetBook(id);
+    if (book.IsNull()) {
+      return webcc::ResponseBuilder{}.NotFound()();
+    }
+
+    request->file_body()->Move(GetPhotoPath(id));
+
+    return webcc::ResponseBuilder{}.OK()();
+  }
+
+  // Delete the photo of the book.
+  webcc::ResponsePtr Delete(webcc::RequestPtr request) {
+    return {};
+  }
+
+private:
+  bfs::path GetPhotoPath(const std::string& book_id) const {
+    return upload_dir_ / "book_photo" / (book_id + ".jpg");
+  }
+
+private:
+  bfs::path upload_dir_;
 };
 
 // -----------------------------------------------------------------------------
 
-// Return all books as a JSON array.
-webcc::ResponsePtr BookListView::Get(webcc::RequestPtr request) {
-  Sleep(sleep_seconds_);
-
-  Json::Value json(Json::arrayValue);
-
-  for (const Book& book : g_book_store.books()) {
-    json.append(BookToJson(book));
-  }
-
-  return webcc::ResponseBuilder{}.OK().Body(JsonToString(json)).Json().
-      Utf8()();
-}
-
-webcc::ResponsePtr BookListView::Post(webcc::RequestPtr request) {
-  Sleep(sleep_seconds_);
-
-  Book book;
-  if (JsonStringToBook(request->data(), &book)) {
-    std::string id = g_book_store.AddBook(book);
-
-    Json::Value json;
-    json["id"] = id;
-
-    return webcc::ResponseBuilder{}.Created().Body(JsonToString(json)).
-        Json().Utf8()();
-  } else {
-    // Invalid JSON
-    return webcc::ResponseBuilder{}.BadRequest()();
-  }
-}
-
-// -----------------------------------------------------------------------------
-
-webcc::ResponsePtr BookDetailView::Get(webcc::RequestPtr request) {
-  Sleep(sleep_seconds_);
-
-  if (request->args().size() != 1) {
-    // NotFound means the resource specified by the URL cannot be found.
-    // BadRequest could be another choice.
-    return webcc::ResponseBuilder{}.NotFound()();
-  }
-
-  const std::string& book_id = request->args()[0];
-
-  const Book& book = g_book_store.GetBook(book_id);
-  if (book.IsNull()) {
-    return webcc::ResponseBuilder{}.NotFound()();
-  }
-
-  return webcc::ResponseBuilder{}.OK().Body(BookToJsonString(book)).
-      Json().Utf8()();
-}
-
-webcc::ResponsePtr BookDetailView::Put(webcc::RequestPtr request) {
-  Sleep(sleep_seconds_);
-
-  if (request->args().size() != 1) {
-    return webcc::ResponseBuilder{}.NotFound()();
-  }
-
-  const std::string& book_id = request->args()[0];
-
-  Book book;
-  if (!JsonStringToBook(request->data(), &book)) {
-    return webcc::ResponseBuilder{}.BadRequest()();
-  }
-
-  book.id = book_id;
-  g_book_store.UpdateBook(book);
-
-  return webcc::ResponseBuilder{}.OK()();
-}
-
-webcc::ResponsePtr BookDetailView::Delete(webcc::RequestPtr request) {
-  Sleep(sleep_seconds_);
-
-  if (request->args().size() != 1) {
-    return webcc::ResponseBuilder{}.NotFound()();
-  }
-
-  const std::string& book_id = request->args()[0];
-
-  if (!g_book_store.DeleteBook(book_id)) {
-    return webcc::ResponseBuilder{}.NotFound()();
-  }
-
-  return webcc::ResponseBuilder{}.OK()();
-}
-
-// -----------------------------------------------------------------------------
-
 int main(int argc, char* argv[]) {
-  if (argc < 2) {
-    std::cout << "usage: rest_book_server <port> [seconds]" << std::endl;
-    std::cout << std::endl;
-    std::cout << "If |seconds| is provided, the server will sleep, for testing "
-              << "timeout, before " << std::endl
-              << "send back each response." << std::endl;
-    std::cout << std::endl;
+  if (argc < 3) {
+    std::cout << "usage: rest_book_server <port> <upload_dir>" << std::endl;
     std::cout << "examples:" << std::endl;
-    std::cout << "  $ rest_book_server 8080" << std::endl;
-    std::cout << "  $ rest_book_server 8080 3" << std::endl;
+    std::cout << "  $ rest_book_server 8080 D:/upload" << std::endl;
     return 1;
   }
 
@@ -217,20 +254,25 @@ int main(int argc, char* argv[]) {
 
   std::uint16_t port = static_cast<std::uint16_t>(std::atoi(argv[1]));
 
-  int sleep_seconds = 0;
-  if (argc >= 3) {
-    sleep_seconds = std::atoi(argv[2]);
+  bfs::path upload_dir = argv[2];
+  if (!bfs::is_directory(upload_dir) || !bfs::exists(upload_dir)) {
+    std::cerr << "Invalid upload dir!" << std::endl;
+    return 1;
   }
 
   try {
-    webcc::Server server(port);
+    webcc::Server server(port);  // No doc root
 
     server.Route("/books",
-                 std::make_shared<BookListView>(sleep_seconds),
+                 std::make_shared<BookListView>(),
                  { "GET", "POST" });
 
     server.Route(webcc::R("/books/(\\d+)"),
-                 std::make_shared<BookDetailView>(sleep_seconds),
+                 std::make_shared<BookDetailView>(),
+                 { "GET", "PUT", "DELETE" });
+
+    server.Route(webcc::R("/books/(\\d+)/photo"),
+                 std::make_shared<BookPhotoView>(upload_dir),
                  { "GET", "PUT", "DELETE" });
 
     server.Run(2);

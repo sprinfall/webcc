@@ -43,6 +43,18 @@ ResponsePtr ResponseBuilder::operator()() {
   return response;
 }
 
+ResponseBuilder& ResponseBuilder::File(const webcc::Path& path,
+                                       bool infer_media_type,
+                                       std::size_t chunk_size) {
+  body_.reset(new FileBody{ path, chunk_size });
+
+  if (infer_media_type) {
+    media_type_ = media_types::FromExtension(path.extension().string());
+  }
+
+  return *this;
+}
+
 ResponseBuilder& ResponseBuilder::Date() {
   headers_.push_back(headers::kDate);
   headers_.push_back(utility::GetTimestamp());
