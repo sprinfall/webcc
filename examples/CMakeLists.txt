@@ -29,13 +29,6 @@ if(UNIX)
     set(EXAMPLE_LIBS ${EXAMPLE_LIBS} ${CMAKE_DL_LIBS})
 endif()
 
-set(REST_BOOK_SRCS
-    common/book.cc
-    common/book.h
-    common/book_json.cc
-    common/book_json.h
-    )
-
 add_executable(client_basics client_basics.cc)
 target_link_libraries(client_basics ${EXAMPLE_LIBS})
 
@@ -47,14 +40,8 @@ endif()
 add_executable(hello_world_server hello_world_server.cc)
 target_link_libraries(hello_world_server ${EXAMPLE_LIBS})
 
-add_executable(rest_book_server rest_book_server.cc ${REST_BOOK_SRCS})
-target_link_libraries(rest_book_server ${EXAMPLE_LIBS} jsoncpp)
-
-add_executable(rest_book_client rest_book_client.cc ${REST_BOOK_SRCS})
-target_link_libraries(rest_book_client ${EXAMPLE_LIBS} jsoncpp)
-
-add_executable(file_server file_server.cc)
-target_link_libraries(file_server ${EXAMPLE_LIBS})
+add_executable(static_file_server static_file_server.cc)
+target_link_libraries(static_file_server ${EXAMPLE_LIBS})
 
 add_executable(file_downloader file_downloader.cc)
 target_link_libraries(file_downloader ${EXAMPLE_LIBS})
@@ -67,3 +54,6 @@ target_link_libraries(form_client ${EXAMPLE_LIBS})
 
 add_executable(form_server form_server.cc)
 target_link_libraries(form_server ${EXAMPLE_LIBS})
+
+add_subdirectory(book_server)
+add_subdirectory(book_client)
