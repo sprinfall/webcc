@@ -198,7 +198,7 @@ int main() {
 }
 ```
 
-### Book Store
+### Book Server
 
 Suppose you want to create a book server and provide the following operations with RESTful API:
 
@@ -217,11 +217,9 @@ public:
     if (request->method() == "GET") {
       return Get(request);
     }
-
     if (request->method() == "POST") {
       return Post(request);
     }
-
     return {};
   }
   
@@ -238,23 +236,18 @@ private:
 Other operations are implemented by `BookDetailView`:
 
 ```cpp
-// The URL is like '/books/{BookID}', and the 'args' parameter contains
-// the matched book ID.
 class BookDetailView : public webcc::View {
 public:
   webcc::ResponsePtr Handle(webcc::RequestPtr request) override {
     if (request->method() == "GET") {
       return Get(request);
     }
-
     if (request->method() == "PUT") {
       return Put(request);
     }
-
     if (request->method() == "DELETE") {
       return Delete(request);
     }
-
     return {};
   }
   
@@ -323,4 +316,4 @@ int main(int argc, char* argv[]) {
   return 0;
 ```
 
-Please see [examples/rest_book_server.cc](https://github.com/sprinfall/webcc/tree/master/examples/rest_book_server.cc) for more details.
+Please see [examples/book_server](https://github.com/sprinfall/webcc/tree/master/examples/book_server) for more details.

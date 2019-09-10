@@ -204,7 +204,7 @@ int main() {
 
 下面看一个更复杂的例子。
 
-### 在线书店
+### Book Server
 
 假定你想创建一个关于书的服务，提供下面这些 REST API：
 
@@ -227,11 +227,9 @@ public:
     if (request->method() == "GET") {
       return Get(request);
     }
-
     if (request->method() == "POST") {
       return Post(request);
     }
-
     return {};
   }
   
@@ -253,15 +251,12 @@ public:
     if (request->method() == "GET") {
       return Get(request);
     }
-
     if (request->method() == "PUT") {
       return Put(request);
     }
-
     if (request->method() == "DELETE") {
       return Delete(request);
     }
-
     return {};
   }
   
@@ -335,4 +330,4 @@ int main(int argc, char* argv[]) {
 }
 ```
 
-完整实现请见 [examples/rest_book_server.cc](https://github.com/sprinfall/webcc/tree/master/examples/rest_book_server.cc)。
+完整实现请见 [examples/book_server](https://github.com/sprinfall/webcc/tree/master/examples/book_server)。
