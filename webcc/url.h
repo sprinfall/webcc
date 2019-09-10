@@ -102,6 +102,8 @@ class UrlQuery {
 public:
   using Parameter = std::pair<std::string, std::string>;
 
+  UrlQuery() = default;
+
   // The query string should be key-value pairs separated by '&'.
   explicit UrlQuery(const std::string& encoded_str);
 
