@@ -12,12 +12,12 @@
 #include "webcc/connection.h"
 #include "webcc/connection_pool.h"
 #include "webcc/queue.h"
+#include "webcc/router.h"
 #include "webcc/url.h"
-#include "webcc/view.h"
 
 namespace webcc {
 
-class Server {
+class Server : public Router {
 public:
   explicit Server(std::uint16_t port, const Path& doc_root = {});
 
@@ -30,17 +30,6 @@ public:
     assert(file_chunk_size > 0);
     file_chunk_size_ = file_chunk_size;
   }
-
-  // Route a URL to a view.
-  // The URL should start with "/". E.g., "/instances".
-  bool Route(const std::string& url, ViewPtr view,
-             const Strings& methods = { "GET" });
-
-  // Route a URL (as regular expression) to a view.
-  // The URL should start with "/" and be a regular expression.
-  // E.g., "/instances/(\\d+)".
-  bool Route(const UrlRegex& regex_url, ViewPtr view,
-             const Strings& methods = { "GET" });
 
   // Start and run the server.
   // This method is blocking so will not return until Stop() is called (from
@@ -92,28 +81,17 @@ private:
   // The connection will keep alive if it's a persistent connection. When next
   // request comes, this connection will be put back to the queue again.
   virtual void Handle(ConnectionPtr connection);
-
-  // Find the view by HTTP method and URL (path).
-  ViewPtr FindView(const std::string& method, const std::string& url,
-                   UrlArgs* args);
-
+ 
   // Match the view by HTTP method and URL (path).
   // Return if a view or static file is matched or not.
   // If the view asks for data streaming, |stream| will be set to true.
-  bool MatchView(const std::string& method, const std::string& url,
-                 bool* stream);
+  bool MatchViewOrStatic(const std::string& method, const std::string& url,
+                         bool* stream);
 
   // Serve static files from the doc root.
   ResponsePtr ServeStatic(RequestPtr request);
 
 private:
-  struct RouteInfo {
-    std::string url;
-    std::regex url_regex;
-    ViewPtr view;
-    Strings methods;
-  };
-
   // Port number.
   std::uint16_t port_;
 
@@ -147,9 +125,6 @@ private:
 
   // The queue with connection waiting for the workers to process.
   Queue<ConnectionPtr> queue_;
-
-  // Route table.
-  std::vector<RouteInfo> routes_;
 };
 
 }  // namespace webcc

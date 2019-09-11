@@ -1,10 +1,8 @@
 #include "webcc/server.h"
 
-#include <algorithm>
 #include <csignal>
 #include <utility>
 
-#include "boost/algorithm/string.hpp"
 #include "boost/filesystem/fstream.hpp"
 #include "boost/filesystem/operations.hpp"
 
@@ -12,7 +10,6 @@
 #include "webcc/logger.h"
 #include "webcc/request.h"
 #include "webcc/response.h"
-#include "webcc/url.h"
 #include "webcc/utility.h"
 
 namespace bfs = boost::filesystem;
@@ -25,35 +22,6 @@ Server::Server(std::uint16_t port, const Path& doc_root)
     : port_(port), doc_root_(doc_root), file_chunk_size_(1024), running_(false),
       acceptor_(io_context_), signals_(io_context_) {
   AddSignals();
-}
-
-bool Server::Route(const std::string& url, ViewPtr view,
-                   const Strings& methods) {
-  assert(view);
-
-  // TODO: More error check
-
-  routes_.push_back({ url, {}, view, methods });
-
-  return true;
-}
-
-bool Server::Route(const UrlRegex& regex_url, ViewPtr view,
-                   const Strings& methods) {
-  assert(view);
-
-  // TODO: More error check
-
-  try {
-
-    routes_.push_back({ "", regex_url(), view, methods });
-
-  } catch (const std::regex_error& e) {
-    LOG_ERRO("Not a valid regular expression: %s", e.what());
-    return false;
-  }
-
-  return true;
 }
 
 void Server::Run(std::size_t workers, std::size_t loops) {
@@ -195,7 +163,8 @@ void Server::AsyncAccept() {
           LOG_INFO("Accepted a connection.");
 
           using namespace std::placeholders;
-          auto view_matcher = std::bind(&Server::MatchView, this, _1, _2, _3);
+          auto view_matcher = std::bind(&Server::MatchViewOrStatic, this, _1,
+                                        _2, _3);
 
           auto connection = std::make_shared<Connection>(
               std::move(socket), &pool_, &queue_, std::move(view_matcher));
@@ -321,62 +290,10 @@ void Server::Handle(ConnectionPtr connection) {
   }
 }
 
-ViewPtr Server::FindView(const std::string& method, const std::string& url,
-                         UrlArgs* args) {
-  assert(args != nullptr);
-
-  for (auto& route : routes_) {
-    if (std::find(route.methods.begin(), route.methods.end(), method) ==
-        route.methods.end()) {
-      continue;
-    }
-
-    if (route.url.empty()) {
-      std::smatch match;
-
-      if (std::regex_match(url, match, route.url_regex)) {
-        // Any sub-matches?
-        // Start from 1 because match[0] is the whole string itself.
-        for (size_t i = 1; i < match.size(); ++i) {
-          args->push_back(match[i].str());
-        }
-
-        return route.view;
-      }
-    } else {
-      if (boost::iequals(route.url, url)) {
-        return route.view;
-      }
-    }
-  }
-
-  return ViewPtr();
-}
-
-bool Server::MatchView(const std::string& method, const std::string& url,
-                       bool* stream) {
-  assert(stream != nullptr);
-  *stream = false;
-
-  for (auto& route : routes_) {
-    if (std::find(route.methods.begin(), route.methods.end(), method) ==
-        route.methods.end()) {
-      continue;
-    }
-
-    if (route.url.empty()) {
-      std::smatch match;
-
-      if (std::regex_match(url, match, route.url_regex)) {
-        *stream = route.view->Stream(method);
-        return true;
-      }
-    } else {
-      if (boost::iequals(route.url, url)) {
-        *stream = route.view->Stream(method);
-        return true;
-      }
-    }
+bool Server::MatchViewOrStatic(const std::string& method,
+                               const std::string& url, bool* stream) {
+  if (Router::MatchView(method, url, stream)) {
+    return true;
   }
 
   // Try to match a static file.
