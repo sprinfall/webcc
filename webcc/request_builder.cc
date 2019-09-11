@@ -51,23 +51,6 @@ RequestPtr RequestBuilder::operator()() {
   return request;
 }
 
-RequestBuilder& RequestBuilder::Url(const std::string& url, bool encode) {
-  url_ = webcc::Url{ url, encode };
-  return *this;
-}
-
-RequestBuilder& RequestBuilder::Path(const std::string& path, bool encode) {
-  url_.AppendPath(path, encode);
-  return *this;
-}
-
-RequestBuilder& RequestBuilder::Query(const std::string& key,
-                                      const std::string& value,
-                                      bool encode) {
-  url_.AppendQuery(key, value, encode);
-  return *this;
-}
-
 RequestBuilder& RequestBuilder::File(const webcc::Path& path,
                                      bool infer_media_type,
                                      std::size_t chunk_size) {

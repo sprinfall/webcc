@@ -66,14 +66,33 @@ public:
     return Method(methods::kPatch).Url(url, encode);
   }
 
-  RequestBuilder& Url(const std::string& url, bool encode = false);
+  RequestBuilder& Url(const std::string& url, bool encode = false) {
+    url_ = webcc::Url{ url, encode };
+    return *this;
+  }
+
+  RequestBuilder& Port(const std::string& port) {
+    url_.set_port(port);
+    return *this;
+  }
+
+  RequestBuilder& Port(std::uint16_t port) {
+    url_.set_port(std::to_string(port));
+    return *this;
+  }
 
   // Append a piece to the path.
-  RequestBuilder& Path(const std::string& path, bool encode = false);
+  RequestBuilder& Path(const std::string& path, bool encode = false) {
+    url_.AppendPath(path, encode);
+    return *this;
+  }
 
   // Append a parameter to the query.
   RequestBuilder& Query(const std::string& key, const std::string& value,
-                        bool encode = false);
+                        bool encode = false) {
+    url_.AppendQuery(key, value, encode);
+    return *this;
+  }
 
   RequestBuilder& MediaType(const std::string& media_type) {
     media_type_ = media_type;

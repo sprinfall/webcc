@@ -9,7 +9,6 @@
 #include "json/json.h"
 
 #include "webcc/client_session.h"
-#include "webcc/logger.h"
 
 namespace bfs = boost::filesystem;
 
@@ -457,14 +456,4 @@ TEST(ClientTest, KeepAlive) {
   } catch (const webcc::Error& error) {
     std::cerr << error << std::endl;
   }
-}
-
-// -----------------------------------------------------------------------------
-
-int main(int argc, char* argv[]) {
-  // Set webcc::LOG_CONSOLE to enable logging.
-  WEBCC_LOG_INIT("", 0);
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

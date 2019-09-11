@@ -2,6 +2,8 @@
 
 set(AT_SRCS
     client_autotest.cc
+    client_timeout_autotest.cc
+    main.cc
     )
 
 set(AT_TARGET_NAME webcc_autotest)

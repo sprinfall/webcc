@@ -75,6 +75,10 @@ public:
     return query_;
   }
 
+  void set_port(const std::string& port) {
+    port_ = port;
+  }
+
   // Append a piece of path.
   void AppendPath(const std::string& piece, bool encode = false);
 
