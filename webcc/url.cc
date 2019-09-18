@@ -83,7 +83,8 @@ std::string EncodeImpl(const std::string& raw,  // UTF8
 
   for (auto i = raw.begin(); i != raw.end(); ++i) {
     // For UTF8 encoded string, char ASCII can be greater than 127.
-    int c = static_cast<int>(*i);
+    // Cast to unsigned char firstly to make sure it's in [0,255].
+    int c = static_cast<unsigned char>(*i);
 
     if (should_encode(c)) {
       encoded.push_back('%');
@@ -101,7 +102,8 @@ std::string EncodeImpl(const std::string& raw,  // UTF8
 // are called unreserved. These include uppercase and lowercase letters, decimal
 // digits, hyphen, period, underscore, and tilde.
 inline bool IsUnreserved(int c) {
-  return std::isalnum(c) || c == '-' || c == '.' || c == '_' || c == '~';
+  return std::isalnum((unsigned char)c) || c == '-' || c == '.' || c == '_' ||
+         c == '~';
 }
 
 // General delimiters serve as the delimiters between different uri components.
