@@ -63,98 +63,56 @@ void Log(int level, const char* file, int line, const char* format, ...);
 //        prefix of "webcc/". So don't log from a header file!
 #define __FILENAME__ std::strrchr("\\" __FILE__, '\\') + 1
 
+#else
+
+#define __FILENAME__ std::strrchr("/" __FILE__, '/') + 1
+
+#endif  // defined(_WIN32) || defined(_WIN64)
+
 #if WEBCC_LOG_LEVEL <= WEBCC_VERB
 #define LOG_VERB(format, ...) \
-    webcc::Log(WEBCC_VERB, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
+  webcc::Log(WEBCC_VERB, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
 #else
 #define LOG_VERB(format, ...)
 #endif
 
 #if WEBCC_LOG_LEVEL <= WEBCC_INFO
 #define LOG_INFO(format, ...) \
-    webcc::Log(WEBCC_INFO, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
+  webcc::Log(WEBCC_INFO, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
 #else
 #define LOG_INFO(format, ...)
 #endif
 
 #if WEBCC_LOG_LEVEL <= WEBCC_USER
 #define LOG_USER(format, ...) \
-    webcc::Log(WEBCC_USER, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
+  webcc::Log(WEBCC_USER, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
 #else
 #define LOG_INFO(format, ...)
 #endif
 
 #if WEBCC_LOG_LEVEL <= WEBCC_WARN
 #define LOG_WARN(format, ...) \
-    webcc::Log(WEBCC_WARN, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
+  webcc::Log(WEBCC_WARN, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
 #else
 #define LOG_WARN(format, ...)
 #endif
 
 #if WEBCC_LOG_LEVEL <= WEBCC_ERRO
 #define LOG_ERRO(format, ...) \
-    webcc::Log(WEBCC_ERRO, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
+  webcc::Log(WEBCC_ERRO, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
 #else
 #define LOG_ERRO(format, ...)
 #endif
-
-#else
-
-// See: https://stackoverflow.com/a/8488201
-#define __FILENAME__ std::strrchr("/" __FILE__, '/') + 1
-
-#if WEBCC_LOG_LEVEL <= WEBCC_VERB
-#define LOG_VERB(format, args...) \
-    webcc::Log(WEBCC_VERB, __FILENAME__, __LINE__, format, ##args);
-#else
-#define LOG_VERB(format, args...)
-#endif
-
-#if WEBCC_LOG_LEVEL <= WEBCC_INFO
-#define LOG_INFO(format, args...) \
-    webcc::Log(WEBCC_INFO, __FILENAME__, __LINE__, format, ##args);
-#else
-#define LOG_INFO(format, args...)
-#endif
-
-#if WEBCC_LOG_LEVEL <= WEBCC_USER
-#define LOG_USER(format, args...) \
-    webcc::Log(WEBCC_USER, __FILENAME__, __LINE__, format, ##args);
-#else
-#define LOG_INFO(format, args...)
-#endif
-
-#if WEBCC_LOG_LEVEL <= WEBCC_WARN
-#define LOG_WARN(format, args...) \
-    webcc::Log(WEBCC_WARN, __FILENAME__, __LINE__, format, ##args);
-#else
-#define LOG_WARN(format, args...)
-#endif
-
-#if WEBCC_LOG_LEVEL <= WEBCC_ERRO
-#define LOG_ERRO(format, args...) \
-    webcc::Log(WEBCC_ERRO, __FILENAME__, __LINE__, format, ##args);
-#else
-#define LOG_ERRO(format, args...)
-#endif
-
-#endif  // defined(_WIN32) || defined(_WIN64)
 
 #else  // WEBCC_ENABLE_LOG == 0
 
 #define WEBCC_LOG_INIT(dir, modes)
 
-#if (defined(_WIN32) || defined(_WIN64))
 #define LOG_VERB(format, ...)
 #define LOG_INFO(format, ...)
+#define LOG_USER(format, ...)
 #define LOG_WARN(format, ...)
 #define LOG_ERRO(format, ...)
-#else
-#define LOG_VERB(format, args...)
-#define LOG_INFO(format, args...)
-#define LOG_WARN(format, args...)
-#define LOG_ERRO(format, args...)
-#endif  // defined(_WIN32) || defined(_WIN64)
 
 #endif  // WEBCC_ENABLE_LOG
 
