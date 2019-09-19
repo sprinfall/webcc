@@ -98,12 +98,17 @@ std::string EncodeImpl(const std::string& raw,  // UTF8
   return encoded;
 }
 
+// Our own implementation of alpha numeric instead of std::isalnum to avoid
+// taking locale into account.
+inline bool IsAlNum(int c) {
+  return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+}
+
 // Characters that are allowed in a URI but do not have a reserved purpose are
 // are called unreserved. These include uppercase and lowercase letters, decimal
 // digits, hyphen, period, underscore, and tilde.
 inline bool IsUnreserved(int c) {
-  return std::isalnum((unsigned char)c) || c == '-' || c == '.' || c == '_' ||
-         c == '~';
+  return IsAlNum((unsigned char)c) || c == '-' || c == '.' || c == '_' || c == '~';
 }
 
 // General delimiters serve as the delimiters between different uri components.
