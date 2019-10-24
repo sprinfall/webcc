@@ -55,6 +55,14 @@ public:
     args_ = args;
   }
 
+  const std::string& ip() const {
+    return ip_;
+  }
+
+  void set_ip(const std::string& ip) {
+    ip_ = ip;
+  }
+
   // Check if the body is a multi-part form data.
   bool IsForm() const;
 
@@ -73,6 +81,9 @@ private:
   // The URL regex matched arguments (usually resource ID's).
   // Used by server only.
   UrlArgs args_;
+
+  // Client IP address.
+  std::string ip_;
 };
 
 using RequestPtr = std::shared_ptr<Request>;

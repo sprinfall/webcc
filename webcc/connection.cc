@@ -19,6 +19,13 @@ Connection::Connection(tcp::socket socket, ConnectionPool* pool,
 
 void Connection::Start() {
   request_.reset(new Request{});
+
+  boost::system::error_code ec;
+  auto endpoint = socket_.remote_endpoint(ec);
+  if (!ec) {
+    request_->set_ip(endpoint.address().to_string());
+  }
+
   request_parser_.Init(request_.get(), view_matcher_);
   DoRead();
 }
