@@ -158,9 +158,6 @@ void Client::WriteRequest(RequestPtr request) {
 void Client::ReadResponse() {
   LOG_VERB("Read response (timeout: %ds)...", timeout_);
 
-  timer_.expires_after(std::chrono::seconds(timeout_));
-
-  DoWaitTimer();
   DoReadResponse();
 
   if (!error_) {
@@ -179,26 +176,25 @@ void Client::DoReadResponse() {
     length = inner_length;
   };
 
-  // Read the first piece of data asynchronously so that the timer could also
-  // be async-waited.
-  socket_->AsyncReadSome(std::move(handler), &buffer_);
+  while (true) {
+    ec = boost::asio::error::would_block;
+    length = 0;
 
-  // Block until the asynchronous operation has completed.
-  do {
-    io_context_.run_one();
-  } while (ec == boost::asio::error::would_block);
+    socket_->AsyncReadSome(std::move(handler), &buffer_);
 
-  // Now we have read the first piece of data.
-  // The left data will be read synchronously to void stack overflow because of
-  // too many recursive calls.
+    // Start the timer.
+    DoWaitTimer();
 
-  // Stop the timer.
-  CancelTimer();
+    // Block until the asynchronous operation has completed.
+    do {
+      io_context_.run_one();
+    } while (ec == boost::asio::error::would_block);
 
-  do {
+    // Stop the timer.
+    CancelTimer();
+
+    // The error normally is caused by timeout. See OnTimer().
     if (ec || length == 0) {
-      // For the first async-read, the error normally is caused by timeout.
-      // See OnTimer().
       Close();
       error_.Set(Error::kSocketReadError, "Socket read error");
       LOG_ERRO("Socket read error (%s).", ec.message().c_str());
@@ -230,15 +226,12 @@ void Client::DoReadResponse() {
       LOG_INFO("Finished to read the HTTP response.");
       break;
     }
-
-    // Read next piece of data synchronously.
-    socket_->ReadSome(&buffer_, &length, &ec);
-
-  } while (true);
+  }
 }
 
 void Client::DoWaitTimer() {
   LOG_VERB("Wait timer asynchronously.");
+  timer_.expires_after(std::chrono::seconds(timeout_));
   timer_.async_wait(std::bind(&Client::OnTimer, this, std::placeholders::_1));
 }
 
