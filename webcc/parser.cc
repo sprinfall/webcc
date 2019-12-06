@@ -55,7 +55,9 @@ bool StringBodyHandler::Finish() {
     return false;
   }
 #else
-  LOG_WARN("Compressed HTTP content remains untouched.");
+  if (body->compressed()) {
+    LOG_WARN("Compressed HTTP content remains untouched.");
+  }
 #endif  // WEBCC_ENABLE_GZIP
 
   message_->SetBody(body, false);

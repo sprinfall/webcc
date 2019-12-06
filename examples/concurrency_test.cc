@@ -6,18 +6,17 @@
 #include "webcc/client_session.h"
 #include "webcc/logger.h"
 
-// CS Server:
-//   $ concurrency_test 10 http://localhost:55555/patient/query?global_search=ivory&count=200&offset=0&sort_item=birth_date&sort_order=asc
-// GitHub:
-//   $ concurrency_test 10 https://api.github.com/public/events
-
 int main(int argc, const char* argv[]) {
   if (argc < 3) {
     std::cerr << "Usage: concurrency_test <workers> <url>" << std::endl;
+    std::cerr << "E.g.," << std::endl;
+    std::cerr << "  $ concurrency_test 10 https://api.github.com/public/events"
+              << std::endl;
+    std::cerr << "  $ concurrency_test 10 http://localhost:8080/" << std::endl;
     return 1;
   }
 
-  WEBCC_LOG_INIT("", webcc::LOG_CONSOLE_FILE_OVERWRITE);
+  WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
   int workers = std::atoi(argv[1]);
   std::string url = argv[2];
@@ -29,13 +28,17 @@ int main(int argc, const char* argv[]) {
 
   for (int i = 0; i < workers; ++i) {
     threads.emplace_back([&url]() {
+      // NOTE: Each thread has its own client session.
       webcc::ClientSession session;
       session.set_timeout(180);
 
       try {
         LOG_USER("Start");
-        session.Get(url);
+
+        session.Send(webcc::RequestBuilder{}.Get(url)());
+
         LOG_USER("End");
+
       } catch (const webcc::Error& error) {
         LOG_ERRO("Error: %s", error.message().c_str());
       }

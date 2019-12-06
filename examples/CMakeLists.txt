@@ -29,6 +29,9 @@ if(UNIX)
     set(EXAMPLE_LIBS ${EXAMPLE_LIBS} ${CMAKE_DL_LIBS})
 endif()
 
+add_executable(concurrency_test concurrency_test.cc)
+target_link_libraries(concurrency_test ${EXAMPLE_LIBS})
+
 add_executable(client_basics client_basics.cc)
 target_link_libraries(client_basics ${EXAMPLE_LIBS})
 

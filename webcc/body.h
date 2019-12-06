@@ -84,6 +84,10 @@ public:
     return data_;
   }
 
+  bool compressed() const {
+    return compressed_;
+  }
+
 #if WEBCC_ENABLE_GZIP
 
   bool Compress() override;
