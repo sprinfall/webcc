@@ -8,7 +8,8 @@ set(UT_TARGET_NAME webcc_unittest)
 # Common libraries to link.
 set(UT_LIBS
     webcc
-    gtest
+    GTest::GTest
+    GTest::Main
     Boost::filesystem
     Boost::system
     Boost::date_time

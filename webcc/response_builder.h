@@ -94,7 +94,8 @@ public:
 
   // Use the file content as body.
   // NOTE: Error::kFileError might be thrown.
-  ResponseBuilder& File(const webcc::Path& path, bool infer_media_type = true,
+  ResponseBuilder& File(const std::filesystem::path& path,
+                        bool infer_media_type = true,
                         std::size_t chunk_size = 1024);
 
   ResponseBuilder& Header(const std::string& key, const std::string& value) {

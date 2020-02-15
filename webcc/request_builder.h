@@ -1,6 +1,7 @@
 #ifndef WEBCC_REQUEST_BUILDER_H_
 #define WEBCC_REQUEST_BUILDER_H_
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -128,7 +129,8 @@ public:
 
   // Use the file content as body.
   // NOTE: Error::kFileError might be thrown.
-  RequestBuilder& File(const webcc::Path& path, bool infer_media_type = true,
+  RequestBuilder& File(const std::filesystem::path& path,
+                       bool infer_media_type = true,
                        std::size_t chunk_size = 1024);
 
   // Add a form part.
@@ -138,7 +140,8 @@ public:
   }
 
   // Add a form part of file.
-  RequestBuilder& FormFile(const std::string& name, const webcc::Path& path,
+  RequestBuilder& FormFile(const std::string& name,
+                           const std::filesystem::path& path,
                            const std::string& media_type = "");
 
   // Add a form part of string data.

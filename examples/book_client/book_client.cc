@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "boost/algorithm/string/predicate.hpp"
-#include "boost/filesystem/operations.hpp"
 #include "json/json.h"
 
 #include "book_json.h"
@@ -125,7 +124,8 @@ bool BookClient::Delete(const std::string& id) {
   }
 }
 
-bool BookClient::GetPhoto(const std::string& id, const bfs::path& path) {
+bool BookClient::GetPhoto(const std::string& id,
+                          const std::filesystem::path& path) {
   try {
     auto r = session_.Send(WEBCC_GET(url_).
                            Path("books").Path(id).Path("photo")(),
@@ -145,7 +145,8 @@ bool BookClient::GetPhoto(const std::string& id, const bfs::path& path) {
   }
 }
 
-bool BookClient::SetPhoto(const std::string& id, const bfs::path& path) {
+bool BookClient::SetPhoto(const std::string& id,
+                          const std::filesystem::path& path) {
   try {
     if (!CheckPhoto(path)) {
       return false;
@@ -167,12 +168,13 @@ bool BookClient::SetPhoto(const std::string& id, const bfs::path& path) {
   }
 }
 
-bool BookClient::CheckPhoto(const bfs::path& photo) {
+bool BookClient::CheckPhoto(const std::filesystem::path& photo) {
   if (photo.empty()) {
     return false;
   }
 
-  if (!bfs::is_regular_file(photo) || !bfs::exists(photo)) {
+  if (!std::filesystem::is_regular_file(photo) ||
+      !std::filesystem::exists(photo)) {
     return false;
   }
 

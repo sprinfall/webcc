@@ -2,7 +2,6 @@
 
 #include "json/json.h"
 
-#include "boost/filesystem/operations.hpp"
 #include "webcc/response_builder.h"
 
 #include "book.h"
@@ -54,7 +53,7 @@ webcc::ResponsePtr BookListView::Post(webcc::RequestPtr request) {
 
 // -----------------------------------------------------------------------------
 
-BookDetailView::BookDetailView(bfs::path photo_dir)
+BookDetailView::BookDetailView(std::filesystem::path photo_dir)
     : photo_dir_(std::move(photo_dir)) {
 }
 
@@ -122,8 +121,8 @@ webcc::ResponsePtr BookDetailView::Delete(webcc::RequestPtr request) {
 
   // Delete the photo from file system.
   if (!photo_name.empty()) {
-    boost::system::error_code ec;
-    bfs::remove(photo_dir_ / photo_name, ec);
+    std::error_code ec;
+    std::filesystem::remove(photo_dir_ / photo_name, ec);
   }
 
   return webcc::ResponseBuilder{}.OK()();
@@ -131,7 +130,7 @@ webcc::ResponsePtr BookDetailView::Delete(webcc::RequestPtr request) {
 
 // -----------------------------------------------------------------------------
 
-BookPhotoView::BookPhotoView(bfs::path photo_dir)
+BookPhotoView::BookPhotoView(std::filesystem::path photo_dir)
     : photo_dir_(std::move(photo_dir)) {
 }
 
@@ -161,8 +160,8 @@ webcc::ResponsePtr BookPhotoView::Get(webcc::RequestPtr request) {
     return webcc::ResponseBuilder{}.NotFound()();
   }
 
-  bfs::path photo_path = photo_dir_ / book.photo;
-  if (!bfs::exists(photo_path)) {
+  std::filesystem::path photo_path = photo_dir_ / book.photo;
+  if (!std::filesystem::exists(photo_path)) {
     return webcc::ResponseBuilder{}.NotFound()();
   }
 
@@ -216,8 +215,8 @@ webcc::ResponsePtr BookPhotoView::Delete(webcc::RequestPtr request) {
   }
 
   // Error handling is simplified.
-  boost::system::error_code ec;
-  bfs::remove(photo_dir_ / book.photo, ec);
+  std::error_code ec;
+  std::filesystem::remove(photo_dir_ / book.photo, ec);
 
   return webcc::ResponseBuilder{}.OK()();
 }

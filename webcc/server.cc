@@ -1,10 +1,8 @@
 #include "webcc/server.h"
 
 #include <csignal>
+#include <fstream>
 #include <utility>
-
-#include "boost/filesystem/fstream.hpp"
-#include "boost/filesystem/operations.hpp"
 
 #include "webcc/body.h"
 #include "webcc/logger.h"
@@ -12,13 +10,13 @@
 #include "webcc/response.h"
 #include "webcc/utility.h"
 
-namespace bfs = boost::filesystem;
+namespace sfs = std::filesystem;
 
 using tcp = boost::asio::ip::tcp;
 
 namespace webcc {
 
-Server::Server(std::uint16_t port, const Path& doc_root)
+Server::Server(std::uint16_t port, const std::filesystem::path& doc_root)
     : port_(port), doc_root_(doc_root), file_chunk_size_(1024), running_(false),
       acceptor_(io_context_), signals_(io_context_) {
   AddSignals();
@@ -298,8 +296,8 @@ bool Server::MatchViewOrStatic(const std::string& method,
 
   // Try to match a static file.
   if (method == methods::kGet && !doc_root_.empty()) {
-    Path path = doc_root_ / url;
-    if (!bfs::is_directory(path) && bfs::exists(path)) {
+    std::filesystem::path path = doc_root_ / url;
+    if (!sfs::is_directory(path) && sfs::exists(path)) {
       return true;
     }
   }
@@ -315,7 +313,7 @@ ResponsePtr Server::ServeStatic(RequestPtr request) {
     return {};
   }
 
-  Path path = doc_root_ / request->url().path();
+  std::filesystem::path path = doc_root_ / request->url().path();
 
   try {
     // NOTE: FileBody might throw Error::kFileError.

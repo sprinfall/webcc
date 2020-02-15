@@ -1,6 +1,6 @@
+#include <filesystem>
 #include <iostream>
 
-#include "boost/filesystem/operations.hpp"
 #include "webcc/logger.h"
 
 #include "book_client.h"
@@ -45,8 +45,9 @@ int main(int argc, char* argv[]) {
 
   std::string url = argv[1];
 
-  bfs::path photo_dir = argv[2];
-  if (!bfs::is_directory(photo_dir) || !bfs::exists(photo_dir)) {
+  std::filesystem::path photo_dir = argv[2];
+  if (!std::filesystem::is_directory(photo_dir) ||
+      !std::filesystem::exists(photo_dir)) {
     std::cerr << "Invalid photo dir!" << std::endl;
     return 1;
   }

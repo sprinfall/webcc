@@ -15,7 +15,6 @@
 #include "boost/asio/connect.hpp"
 #include "boost/asio/read.hpp"
 #include "boost/asio/write.hpp"
-#include "boost/core/ignore_unused.hpp"
 
 #include "webcc/logger.h"
 
@@ -26,9 +25,7 @@ namespace webcc {
 Socket::Socket(boost::asio::io_context& io_context) : socket_(io_context) {
 }
 
-bool Socket::Connect(const std::string& host, const Endpoints& endpoints) {
-  boost::ignore_unused(host);
-
+bool Socket::Connect(const std::string& /*host*/, const Endpoints& endpoints) {
   boost::system::error_code ec;
   boost::asio::connect(socket_, endpoints, ec);
 

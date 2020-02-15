@@ -12,7 +12,8 @@ set(AT_TARGET_NAME webcc_autotest)
 set(AT_LIBS
     webcc
     jsoncpp
-    gtest
+    GTest::GTest
+    GTest::Main
     Boost::filesystem
     Boost::system
     Boost::date_time

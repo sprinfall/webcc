@@ -51,7 +51,7 @@ RequestPtr RequestBuilder::operator()() {
   return request;
 }
 
-RequestBuilder& RequestBuilder::File(const webcc::Path& path,
+RequestBuilder& RequestBuilder::File(const std::filesystem::path& path,
                                      bool infer_media_type,
                                      std::size_t chunk_size) {
   body_.reset(new FileBody{ path, chunk_size });
@@ -64,7 +64,7 @@ RequestBuilder& RequestBuilder::File(const webcc::Path& path,
 }
 
 RequestBuilder& RequestBuilder::FormFile(const std::string& name,
-                                         const webcc::Path& path,
+                                         const std::filesystem::path& path,
                                          const std::string& media_type) {
   assert(!name.empty());
   return Form(FormPart::NewFile(name, path, media_type));

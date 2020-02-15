@@ -1,17 +1,17 @@
 #include "webcc/utility.h"
 
+#include <algorithm>
 #include <ctime>
+#include <filesystem>
+#include <fstream>
 #include <iomanip>  // for put_time
 #include <sstream>
 
 #include "boost/algorithm/string.hpp"
-#include "boost/filesystem/fstream.hpp"
 #include "boost/uuid/random_generator.hpp"
 #include "boost/uuid/uuid_io.hpp"
 
 #include "webcc/version.h"
-
-namespace bfs = boost::filesystem;
 
 namespace webcc {
 namespace utility {
@@ -62,18 +62,18 @@ bool ToSize(const std::string& str, int base, std::size_t* size) {
   return true;
 }
 
-std::size_t TellSize(const Path& path) {
+std::size_t TellSize(const std::filesystem::path& path) {
   // Flag "ate": seek to the end of stream immediately after open.
-  bfs::ifstream stream{ path, std::ios::binary | std::ios::ate };
+  std::ifstream stream{ path, std::ios::binary | std::ios::ate };
   if (stream.fail()) {
     return kInvalidLength;
   }
   return static_cast<std::size_t>(stream.tellg());
 }
 
-bool ReadFile(const Path& path, std::string* output) {
+bool ReadFile(const std::filesystem::path& path, std::string* output) {
   // Flag "ate": seek to the end of stream immediately after open.
-  bfs::ifstream stream{ path, std::ios::binary | std::ios::ate };
+  std::ifstream stream{ path, std::ios::binary | std::ios::ate };
   if (stream.fail()) {
     return false;
   }

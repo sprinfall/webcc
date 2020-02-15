@@ -1,8 +1,6 @@
 #include "webcc/body.h"
 
 #include "boost/algorithm/string.hpp"
-#include "boost/core/ignore_unused.hpp"
-#include "boost/filesystem/operations.hpp"
 
 #include "webcc/logger.h"
 #include "webcc/utility.h"
@@ -10,8 +8,6 @@
 #if WEBCC_ENABLE_GZIP
 #include "webcc/gzip.h"
 #endif
-
-namespace bfs = boost::filesystem;
 
 namespace webcc {
 
@@ -61,9 +57,7 @@ void StringBody::InitPayload() {
   index_ = 0;
 }
 
-Payload StringBody::NextPayload(bool free_previous) {
-  boost::ignore_unused(free_previous);
-
+Payload StringBody::NextPayload(bool /*free_previous*/) {
   if (index_ == 0) {
     index_ = 1;
     return { boost::asio::buffer(data_) };
@@ -161,7 +155,7 @@ void FormBody::Free(std::size_t index) {
 
 // -----------------------------------------------------------------------------
 
-FileBody::FileBody(const Path& path, std::size_t chunk_size)
+FileBody::FileBody(const std::filesystem::path& path, std::size_t chunk_size)
     : path_(path), chunk_size_(chunk_size), auto_delete_(false), size_(0) {
   size_ = utility::TellSize(path_);
   if (size_ == kInvalidLength) {
@@ -169,15 +163,15 @@ FileBody::FileBody(const Path& path, std::size_t chunk_size)
   }
 }
 
-FileBody::FileBody(const Path& path, bool auto_delete)
+FileBody::FileBody(const std::filesystem::path& path, bool auto_delete)
     : path_(path), chunk_size_(0), auto_delete_(auto_delete), size_(0) {
   // Don't need to tell file size.
 }
 
 FileBody::~FileBody() {
   if (auto_delete_ && !path_.empty()) {
-    boost::system::error_code ec;
-    bfs::remove(path_, ec);
+    std::error_code ec;
+    std::filesystem::remove(path_, ec);
     if (ec) {
       LOG_ERRO("Failed to remove file (%s).", ec.message().c_str());
     }
@@ -200,9 +194,7 @@ void FileBody::InitPayload() {
   }
 }
 
-Payload FileBody::NextPayload(bool free_previous) {
-  boost::ignore_unused(free_previous);
-
+Payload FileBody::NextPayload(bool /*free_previous*/) {
   if (ifstream_.read(&chunk_[0], chunk_.size()).gcount() > 0) {
     return {
       boost::asio::buffer(chunk_.data(), (std::size_t)ifstream_.gcount())
@@ -215,7 +207,7 @@ void FileBody::Dump(std::ostream& os, const std::string& prefix) const {
   os << prefix << "<file: " << path_.string() << ">" << std::endl;
 }
 
-bool FileBody::Move(const Path& new_path) {
+bool FileBody::Move(const std::filesystem::path& new_path) {
   if (path_ == new_path) {
     return false;
   }
@@ -224,8 +216,8 @@ bool FileBody::Move(const Path& new_path) {
     ifstream_.close();
   }
 
-  boost::system::error_code ec;
-  bfs::rename(path_, new_path, ec);
+  std::error_code ec;
+  std::filesystem::rename(path_, new_path, ec);
 
   if (ec) {
     LOG_ERRO("Failed to rename file (%s).", ec.message().c_str());

@@ -8,7 +8,6 @@
 #include <vector>
 
 #include "boost/asio/buffer.hpp"  // for const_buffer
-#include "boost/filesystem/path.hpp"
 
 #include "webcc/config.h"
 
@@ -52,8 +51,6 @@ using Strings = std::vector<std::string>;
 // Regex sub-matches of the URL (usually resource ID's).
 // Could also be considered as arguments, so named as UrlArgs.
 using UrlArgs = std::vector<std::string>;
-
-using Path = boost::filesystem::path;
 
 using Payload = std::vector<boost::asio::const_buffer>;
 

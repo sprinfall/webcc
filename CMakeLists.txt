@@ -63,7 +63,7 @@ if(WIN32)
 endif()
 
 # C++ standard requirements.
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -136,7 +136,11 @@ if(WEBCC_ENABLE_AUTOTEST OR WEBCC_ENABLE_EXAMPLES)
 endif()
 
 if(WEBCC_ENABLE_AUTOTEST OR WEBCC_ENABLE_UNITTEST)
-    add_subdirectory(${THIRD_PARTY_DIR}/src/gtest)
+    find_package(GTest REQUIRED)
+    if(GTEST_FOUND)
+        add_definitions(-DGTEST_LANG_CXX11=1)
+        include_directories(${GTEST_INCLUDE_DIRS})
+    endif()
 endif()
 
 if(WEBCC_ENABLE_AUTOTEST)

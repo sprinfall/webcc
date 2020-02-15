@@ -1,6 +1,7 @@
 #ifndef WEBCC_SERVER_H_
 #define WEBCC_SERVER_H_
 
+#include <filesystem>
 #include <string>
 #include <thread>
 #include <vector>
@@ -19,7 +20,8 @@ namespace webcc {
 
 class Server : public Router {
 public:
-  explicit Server(std::uint16_t port, const Path& doc_root = {});
+  explicit Server(std::uint16_t port,
+                  const std::filesystem::path& doc_root = {});
 
   ~Server() = default;
 
@@ -96,7 +98,7 @@ private:
   std::uint16_t port_;
 
   // The directory with the static files to be served.
-  Path doc_root_;
+  std::filesystem::path doc_root_;
 
   // The size of the chunk loaded into memory each time when serving a
   // static file.

@@ -1,6 +1,7 @@
 #ifndef BOOK_CLIENT_H_
 #define BOOK_CLIENT_H_
 
+#include <filesystem>
 #include <list>
 #include <string>
 
@@ -10,8 +11,6 @@
 #include "webcc/client_session.h"
 
 #include "book.h"
-
-namespace bfs = boost::filesystem;
 
 class BookClient {
 public:
@@ -30,13 +29,13 @@ public:
   bool Delete(const std::string& id);
 
   // Get photo, save to the given path.
-  bool GetPhoto(const std::string& id, const bfs::path& path);
+  bool GetPhoto(const std::string& id, const std::filesystem::path& path);
 
   // Set photo using the file of the given path.
-  bool SetPhoto(const std::string& id, const bfs::path& path);
+  bool SetPhoto(const std::string& id, const std::filesystem::path& path);
 
 private:
-  bool CheckPhoto(const bfs::path& photo);
+  bool CheckPhoto(const std::filesystem::path& photo);
 
   // Check HTTP response status.
   bool CheckStatus(webcc::ResponsePtr response, int expected_status);

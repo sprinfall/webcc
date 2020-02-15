@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cstdarg>
 #include <ctime>
+#include <filesystem>
 #include <iomanip>  // for put_time
 #include <mutex>
 #include <sstream>
@@ -20,10 +21,6 @@
 #include <sys/types.h>
 #endif
 
-#include "boost/filesystem.hpp"
-
-namespace bfs = boost::filesystem;
-
 namespace webcc {
 
 // -----------------------------------------------------------------------------
@@ -36,7 +33,7 @@ static const char* kLevelNames[] = {
 
 // -----------------------------------------------------------------------------
 
-static FILE* FOpen(const bfs::path& path, bool overwrite) {
+static FILE* FOpen(const std::filesystem::path& path, bool overwrite) {
 #if (defined(_WIN32) || defined(_WIN64))
   return _wfopen(path.wstring().c_str(), overwrite ? L"w+" : L"a+");
 #else
@@ -48,7 +45,7 @@ struct Logger {
   Logger() : file(nullptr), modes(0) {
   }
 
-  void Init(const bfs::path& path, int _modes) {
+  void Init(const std::filesystem::path& path, int _modes) {
     modes = _modes;
 
     // Create log file only if necessary.
@@ -134,8 +131,6 @@ static const bool g_terminal_has_color = []() {
 
 // -----------------------------------------------------------------------------
 
-namespace bfs = boost::filesystem;
-
 // std::this_thread::get_id() returns a very long ID (same as pthread_self())
 // on Linux, e.g., 140219133990656. syscall(SYS_gettid) is much prefered because
 // it's shorter and the same as `ps -T -p <pid>` output.
@@ -158,22 +153,22 @@ static std::string GetThreadID() {
   return thread_id;
 }
 
-static bfs::path InitLogPath(const bfs::path& dir) {
+static std::filesystem::path InitLogPath(const std::filesystem::path& dir) {
   if (dir.empty()) {
-    return bfs::current_path() / WEBCC_LOG_FILE_NAME;
+    return std::filesystem::current_path() / WEBCC_LOG_FILE_NAME;
   }
 
-  if (!bfs::exists(dir) || !bfs::is_directory(dir)) {
-    boost::system::error_code ec;
-    if (!bfs::create_directories(dir, ec) || ec) {
-      return bfs::path();
+  if (!std::filesystem::exists(dir) || !std::filesystem::is_directory(dir)) {
+    std::error_code ec;
+    if (!std::filesystem::create_directories(dir, ec) || ec) {
+      return std::filesystem::path{};
     }
   }
 
   return (dir / WEBCC_LOG_FILE_NAME);
 }
 
-void LogInit(const bfs::path& dir, int modes) {
+void LogInit(const std::filesystem::path& dir, int modes) {
   // Suppose this is called from the main thread.
   g_main_thread_id = DoGetThreadID();
 
