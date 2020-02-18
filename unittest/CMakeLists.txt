@@ -10,9 +10,6 @@ set(UT_LIBS
     webcc
     GTest::GTest
     GTest::Main
-    Boost::filesystem
-    Boost::system
-    Boost::date_time
     "${CMAKE_THREAD_LIBS_INIT}")
 
 if(WEBCC_ENABLE_SSL)

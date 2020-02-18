@@ -3,9 +3,6 @@
 # Common libraries to link for examples.
 set(EXAMPLE_LIBS
     webcc
-    Boost::filesystem
-    Boost::system
-    Boost::date_time
     "${CMAKE_THREAD_LIBS_INIT}")
 
 if(WEBCC_ENABLE_SSL)

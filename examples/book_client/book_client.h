@@ -5,7 +5,6 @@
 #include <list>
 #include <string>
 
-#include "boost/filesystem/path.hpp"
 #include "json/json-forwards.h"
 
 #include "webcc/client_session.h"

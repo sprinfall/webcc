@@ -2,6 +2,7 @@
 
 #include "webcc/base64.h"
 #include "webcc/logger.h"
+#include "webcc/string.h"
 #include "webcc/utility.h"
 
 #if WEBCC_ENABLE_GZIP
@@ -37,7 +38,7 @@ RequestPtr RequestBuilder::operator()() {
   } else if (!form_parts_.empty()) {
     // Another choice to generate the boundary is like what Apache does.
     // See: https://stackoverflow.com/a/5686863
-    auto boundary = utility::RandomUuid();
+    auto boundary = random_string(30);
 
     request->SetContentType("multipart/form-data; boundary=" + boundary);
 

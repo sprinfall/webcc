@@ -27,33 +27,8 @@ public:
 
   explicit Url(const std::string& str, bool encode = false);
 
-#if WEBCC_DEFAULT_MOVE_COPY_ASSIGN
-
   Url(Url&&) = default;
   Url& operator=(Url&&) = default;
-
-#else
-
-  Url(Url&& rhs)
-      : scheme_(std::move(rhs.scheme_)),
-        host_(std::move(rhs.host_)),
-        port_(std::move(rhs.port_)),
-        path_(std::move(rhs.path_)),
-        query_(std::move(rhs.query_)) {
-  }
-
-  Url& operator=(Url&& rhs) {
-    if (&rhs != this) {
-      scheme_ = std::move(rhs.scheme_);
-      host_ = std::move(rhs.host_);
-      port_ = std::move(rhs.port_);
-      path_ = std::move(rhs.path_);
-      query_ = std::move(rhs.query_);
-    }
-    return *this;
-  }
-
-#endif  // WEBCC_DEFAULT_MOVE_COPY_ASSIGN
 
   const std::string& scheme() const {
     return scheme_;

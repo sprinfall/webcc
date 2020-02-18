@@ -4,8 +4,6 @@
 #include <iosfwd>
 #include <string>
 
-#include "boost/filesystem/path.hpp"
-
 struct Book {
   std::string id;
   std::string title;

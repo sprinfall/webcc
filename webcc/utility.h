@@ -15,9 +15,6 @@ class path;
 namespace webcc {
 namespace utility {
 
-// Get a randomly generated UUID.
-std::string RandomUuid();
-
 // Get default user agent for HTTP headers.
 const std::string& UserAgent();
 
@@ -25,14 +22,6 @@ const std::string& UserAgent();
 // E.g., Wed, 21 Oct 2015 07:28:00 GMT
 // See: https://tools.ietf.org/html/rfc7231#section-7.1.1.2
 std::string GetTimestamp();
-
-// Split a key-value string.
-// E.g., split "Connection: Keep-Alive".
-bool SplitKV(const std::string& str, char delimiter, std::string* key,
-             std::string* value, bool trim = true);
-
-// Convert string to size_t.
-bool ToSize(const std::string& str, int base, std::size_t* size);
 
 // Tell the size in bytes of the given file.
 // Return kInvalidLength (-1) on failure.

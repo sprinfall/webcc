@@ -4,8 +4,6 @@
 
 #include "gtest/gtest.h"
 
-#include "boost/algorithm/string.hpp"
-
 #include "json/json.h"
 
 #include "webcc/client_session.h"
@@ -314,7 +312,7 @@ TEST(ClientTest, Post) {
 static sfs::path GenerateTempFile(const std::string& data) {
   try {
     sfs::path path =
-        sfs::temp_directory_path() / webcc::string::RandomString(10);
+        sfs::temp_directory_path() / webcc::random_string(10);
 
     std::ofstream ofs;
     ofs.open(path, std::ios::binary);
@@ -434,26 +432,24 @@ TEST(ClientTest, KeepAlive) {
     // Keep-Alive by default.
     auto r = session.Send(webcc::RequestBuilder{}.Get(url)());
 
-    using boost::iequals;
-
-    EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Keep-alive"));
+    EXPECT_TRUE(webcc::iequals(r->GetHeader("Connection"), "Keep-alive"));
 
     // Close by setting Connection header directly.
     r = session.Send(webcc::RequestBuilder{}.Get(url).
                      Header("Connection", "Close")
                      ());
 
-    EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Close"));
+    EXPECT_TRUE(webcc::iequals(r->GetHeader("Connection"), "Close"));
 
     // Close by using request builder.
     r = session.Send(webcc::RequestBuilder{}.Get(url).KeepAlive(false)());
 
-    EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Close"));
+    EXPECT_TRUE(webcc::iequals(r->GetHeader("Connection"), "Close"));
 
     // Keep-Alive explicitly by using request builder.
     r = session.Send(webcc::RequestBuilder{}.Get(url).KeepAlive(true)());
 
-    EXPECT_TRUE(iequals(r->GetHeader("Connection"), "Keep-alive"));
+    EXPECT_TRUE(webcc::iequals(r->GetHeader("Connection"), "Keep-alive"));
 
   } catch (const webcc::Error& error) {
     std::cerr << error << std::endl;

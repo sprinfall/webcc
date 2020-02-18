@@ -3,10 +3,9 @@
 #include <random>
 
 namespace webcc {
-namespace string {
 
-// See: https://stackoverflow.com/a/24586587
-std::string RandomString(std::size_t length) {
+// Ref: https://stackoverflow.com/a/24586587
+std::string random_string(std::size_t length) {
   static const char chrs[] =
       "0123456789"
       "abcdefghijklmnopqrstuvwxyz"
@@ -26,15 +25,31 @@ std::string RandomString(std::size_t length) {
   return s;
 }
 
-bool EqualsNoCase(const std::string& str1, const std::string& str2) {
-  if (str1.size() != str2.size()) {
+bool to_size_t(const std::string& str, int base, std::size_t* size) {
+  try {
+    *size = static_cast<std::size_t>(std::stoul(str, 0, base));
+  } catch (const std::exception&) {
+    return false;
+  }
+  return true;
+}
+
+bool split_kv(std::string& key, std::string& value, const std::string& str,
+              char delim, bool trim_spaces) {
+  std::size_t pos = str.find(delim);
+  if (pos == std::string::npos) {
     return false;
   }
 
-  return std::equal(str1.begin(), str1.end(), str2.begin(), [](int c1, int c2) {
-    return std::toupper(c1) == std::toupper(c2);
-  });
+  key = str.substr(0, pos);
+  value = str.substr(pos + 1);
+
+  if (trim_spaces) {
+    trim(key);
+    trim(value);
+  }
+
+  return true;
 }
 
-}  // namespace string
 }  // namespace webcc

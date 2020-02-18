@@ -7,21 +7,11 @@
 #include <iomanip>  // for put_time
 #include <sstream>
 
-#include "boost/algorithm/string.hpp"
-#include "boost/uuid/random_generator.hpp"
-#include "boost/uuid/uuid_io.hpp"
-
+#include "webcc/string.h"
 #include "webcc/version.h"
 
 namespace webcc {
 namespace utility {
-
-std::string RandomUuid() {
-  boost::uuids::uuid u = boost::uuids::random_generator()();
-  std::stringstream ss;
-  ss << u;
-  return ss.str();
-}
 
 const std::string& UserAgent() {
   static auto s_user_agent = std::string("Webcc/") + WEBCC_VERSION;
@@ -33,33 +23,6 @@ std::string GetTimestamp() {
   std::stringstream ss;
   ss << std::put_time(std::gmtime(&t), "%a, %d %b %Y %H:%M:%S") << " GMT";
   return ss.str();
-}
-
-bool SplitKV(const std::string& str, char delimiter, std::string* key,
-             std::string* value, bool trim) {
-  std::size_t pos = str.find(delimiter);
-  if (pos == std::string::npos) {
-    return false;
-  }
-
-  *key = str.substr(0, pos);
-  *value = str.substr(pos + 1);
-
-  if (trim) {
-    boost::trim(*key);
-    boost::trim(*value);
-  }
-
-  return true;
-}
-
-bool ToSize(const std::string& str, int base, std::size_t* size) {
-  try {
-    *size = static_cast<std::size_t>(std::stoul(str, 0, base));
-  } catch (const std::exception&) {
-    return false;
-  }
-  return true;
 }
 
 std::size_t TellSize(const std::filesystem::path& path) {
@@ -91,7 +54,7 @@ bool ReadFile(const std::filesystem::path& path, std::string* output) {
 void DumpByLine(const std::string& data, std::ostream& os,
                 const std::string& prefix) {
   std::vector<std::string> lines;
-  boost::split(lines, data, boost::is_any_of("\n"));
+  split(lines, data, '\n');
 
   std::size_t size = 0;
 

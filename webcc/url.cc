@@ -4,8 +4,7 @@
 #include <cctype>
 #include <functional>
 
-#include "boost/algorithm/string/trim.hpp"
-
+#include "webcc/string.h"
 #include "webcc/utility.h"
 
 namespace webcc {
@@ -238,7 +237,8 @@ void Url::AppendQuery(const std::string& key, const std::string& value,
 }
 
 void Url::Parse(const std::string& str) {
-  std::string tmp = boost::trim_left_copy(str);
+  std::string tmp = str;
+  ltrim(tmp);
 
   std::size_t p = std::string::npos;
 
@@ -309,7 +309,7 @@ UrlQuery::UrlQuery(const std::string& encoded_str) {
 
       std::string key;
       std::string value;
-      if (utility::SplitKV(kv, '=', &key, &value, false)) {
+      if (split_kv(key, value, kv, '=', false)) {
         parameters_.push_back({ DecodeUnsafe(key), DecodeUnsafe(value) });
       }
     }

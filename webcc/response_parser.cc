@@ -1,9 +1,8 @@
 #include "webcc/response_parser.h"
 
-#include "boost/algorithm/string.hpp"
-
 #include "webcc/logger.h"
 #include "webcc/response.h"
+#include "webcc/string.h"
 
 namespace webcc {
 
@@ -54,7 +53,7 @@ bool ResponseParser::ParseStartLine(const std::string& line) {
     return false;
   }
 
-  if (!boost::starts_with(parts[0], "HTTP/1.")) {
+  if (!starts_with(parts[0], "HTTP/1.")) {
     LOG_ERRO("Invalid HTTP version: %s", parts[0].c_str());
     return false;
   }

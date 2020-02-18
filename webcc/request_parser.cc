@@ -2,10 +2,9 @@
 
 #include <vector>
 
-#include "boost/algorithm/string.hpp"
-
 #include "webcc/logger.h"
 #include "webcc/request.h"
+#include "webcc/string.h"
 #include "webcc/utility.h"
 
 namespace webcc {
@@ -36,7 +35,7 @@ bool RequestParser::OnHeadersEnd() {
 
 bool RequestParser::ParseStartLine(const std::string& line) {
   std::vector<std::string> strs;
-  boost::split(strs, line, boost::is_any_of(" "), boost::token_compress_on);
+  split(strs, line, ' ', true);
 
   if (strs.size() != 3) {
     return false;
@@ -190,7 +189,7 @@ bool RequestParser::ParsePartHeaders(bool* need_more_data) {
     }
 
     Header header;
-    if (!utility::SplitKV(line, ':', &header.first, &header.second)) {
+    if (!split_kv(header.first, header.second, line, ':')) {
       LOG_ERRO("Invalid part header line: %s", line.c_str());
       return false;
     }
@@ -199,7 +198,7 @@ bool RequestParser::ParsePartHeaders(bool* need_more_data) {
              header.second.c_str());
 
     // Parse Content-Disposition.
-    if (boost::iequals(header.first, headers::kContentDisposition)) {
+    if (iequals(header.first, headers::kContentDisposition)) {
       ContentDisposition content_disposition(header.second);
       if (!content_disposition.valid()) {
         LOG_ERRO("Invalid content-disposition header: %s",

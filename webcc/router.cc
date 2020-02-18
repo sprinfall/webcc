@@ -2,9 +2,8 @@
 
 #include <algorithm>
 
-#include "boost/algorithm/string.hpp"
-
 #include "webcc/logger.h"
+#include "webcc/string.h"
 
 namespace webcc {
 
@@ -60,7 +59,7 @@ ViewPtr Router::FindView(const std::string& method, const std::string& url,
         return route.view;
       }
     } else {
-      if (boost::iequals(route.url, url)) {
+      if (iequals(route.url, url)) {
         return route.view;
       }
     }
@@ -88,7 +87,7 @@ bool Router::MatchView(const std::string& method, const std::string& url,
         return true;
       }
     } else {
-      if (boost::iequals(route.url, url)) {
+      if (iequals(route.url, url)) {
         *stream = route.view->Stream(method);
         return true;
       }

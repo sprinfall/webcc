@@ -2,9 +2,8 @@
 
 #include <codecvt>
 
-#include "boost/algorithm/string.hpp"
-
 #include "webcc/logger.h"
+#include "webcc/string.h"
 #include "webcc/utility.h"
 
 namespace webcc {
@@ -63,7 +62,7 @@ const std::string& Headers::Get(const std::string& key, bool* existed) const {
 std::vector<Header>::iterator Headers::Find(const std::string& key) {
   auto it = headers_.begin();
   for (; it != headers_.end(); ++it) {
-    if (boost::iequals(it->first, key)) {
+    if (iequals(it->first, key)) {
       break;
     }
   }
@@ -75,7 +74,7 @@ std::vector<Header>::iterator Headers::Find(const std::string& key) {
 static bool ParseValue(const std::string& str, const std::string& expected_key,
                        std::string* value) {
   std::string key;
-  if (!utility::SplitKV(str, '=', &key, value)) {
+  if (!split_kv(key, *value, str, '=')) {
     return false;
   }
 
@@ -124,8 +123,8 @@ void ContentType::Init(const std::string& str) {
     other = str.substr(pos + 1);
   }
 
-  boost::trim(media_type_);
-  boost::trim(other);
+  trim(media_type_);
+  trim(other);
 
   if (media_type_ == "multipart/form-data") {
     multipart_ = true;
@@ -143,13 +142,13 @@ void ContentType::Init(const std::string& str) {
 
 // -----------------------------------------------------------------------------
 
-static void Unquote(std::string& str) {
-  boost::trim_if(str, boost::is_any_of("\""));
+static inline void Unquote(std::string& str) {
+  trim(str, "\"");
 }
 
 bool ContentDisposition::Init(const std::string& str) {
   std::vector<std::string> parts;
-  boost::split(parts, str, boost::is_any_of(";"));
+  split(parts, str, ';');
 
   if (parts.empty()) {
     return false;
@@ -162,7 +161,7 @@ bool ContentDisposition::Init(const std::string& str) {
   std::string key;
   std::string value;
   for (std::size_t i = 1; i < parts.size(); ++i) {
-    if (!utility::SplitKV(parts[i], '=', &key, &value)) {
+    if (!split_kv(key, value, parts[i], '=')) {
       return false;
     }
 
