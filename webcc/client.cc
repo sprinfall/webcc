@@ -2,7 +2,7 @@
 
 #include "webcc/logger.h"
 
-using boost::asio::ip::tcp;
+using asio::ip::tcp;
 
 namespace webcc {
 
@@ -99,7 +99,7 @@ void Client::DoConnect(RequestPtr request, const std::string& default_port) {
     port = default_port;
   }
 
-  boost::system::error_code ec;
+  std::error_code ec;
   auto endpoints = resolver.resolve(tcp::v4(), request->host(), port, ec);
 
   if (ec) {
@@ -132,7 +132,7 @@ void Client::WriteRequest(RequestPtr request) {
 
   // Use sync API directly since we don't need timeout control.
 
-  boost::system::error_code ec;
+  std::error_code ec;
 
   if (socket_->Write(request->GetPayload(), &ec)) {
     // Write request body.
@@ -166,18 +166,18 @@ void Client::ReadResponse() {
 }
 
 void Client::DoReadResponse() {
-  boost::system::error_code ec = boost::asio::error::would_block;
+  std::error_code ec = asio::error::would_block;
   std::size_t length = 0;
 
   // The read handler.
-  auto handler = [&ec, &length](boost::system::error_code inner_ec,
+  auto handler = [&ec, &length](std::error_code inner_ec,
                                 std::size_t inner_length) {
     ec = inner_ec;
     length = inner_length;
   };
 
   while (true) {
-    ec = boost::asio::error::would_block;
+    ec = asio::error::would_block;
     length = 0;
 
     socket_->AsyncReadSome(std::move(handler), &buffer_);
@@ -188,7 +188,7 @@ void Client::DoReadResponse() {
     // Block until the asynchronous operation has completed.
     do {
       io_context_.run_one();
-    } while (ec == boost::asio::error::would_block);
+    } while (ec == asio::error::would_block);
 
     // Stop the timer.
     CancelTimer();
@@ -235,11 +235,11 @@ void Client::DoWaitTimer() {
   timer_.async_wait(std::bind(&Client::OnTimer, this, std::placeholders::_1));
 }
 
-void Client::OnTimer(boost::system::error_code ec) {
+void Client::OnTimer(std::error_code ec) {
   LOG_VERB("On timer.");
 
   // timer_.cancel() was called.
-  if (ec == boost::asio::error::operation_aborted) {
+  if (ec == asio::error::operation_aborted) {
     LOG_VERB("Timer canceled.");
     return;
   }
@@ -249,7 +249,7 @@ void Client::OnTimer(boost::system::error_code ec) {
     return;
   }
 
-  if (timer_.expiry() <= boost::asio::steady_timer::clock_type::now()) {
+  if (timer_.expiry() <= asio::steady_timer::clock_type::now()) {
     // The deadline has passed. The socket is closed so that any outstanding
     // asynchronous operations are canceled.
     LOG_WARN("HTTP client timed out.");

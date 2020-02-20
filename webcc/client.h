@@ -6,9 +6,9 @@
 #include <string>
 #include <vector>
 
-#include "boost/asio/io_context.hpp"
-#include "boost/asio/ip/tcp.hpp"
-#include "boost/asio/steady_timer.hpp"
+#include "asio/io_context.hpp"
+#include "asio/ip/tcp.hpp"
+#include "asio/steady_timer.hpp"
 
 #include "webcc/globals.h"
 #include "webcc/request.h"
@@ -82,13 +82,13 @@ private:
   void DoReadResponse();
 
   void DoWaitTimer();
-  void OnTimer(boost::system::error_code ec);
+  void OnTimer(std::error_code ec);
 
   // Cancel any async-operations waiting on the timer.
   void CancelTimer();
 
 private:
-  boost::asio::io_context io_context_;
+  asio::io_context io_context_;
 
   // Socket connection.
   std::unique_ptr<SocketBase> socket_;
@@ -97,7 +97,7 @@ private:
   ResponseParser response_parser_;
 
   // Timer for the timeout control.
-  boost::asio::steady_timer timer_;
+  asio::steady_timer timer_;
 
   // The buffer for reading response.
   std::vector<char> buffer_;

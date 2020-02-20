@@ -58,7 +58,7 @@ void StringBody::InitPayload() {
 Payload StringBody::NextPayload(bool /*free_previous*/) {
   if (index_ == 0) {
     index_ = 1;
-    return { boost::asio::buffer(data_) };
+    return { asio::buffer(data_) };
   }
   return {};
 }
@@ -129,7 +129,7 @@ Payload FormBody::NextPayload(bool free_previous) {
 }
 
 void FormBody::AddBoundary(Payload* payload) {
-  using boost::asio::buffer;
+  using asio::buffer;
 
   payload->push_back(buffer(literal_buffers::DOUBLE_DASHES));
   payload->push_back(buffer(boundary_));
@@ -137,7 +137,7 @@ void FormBody::AddBoundary(Payload* payload) {
 }
 
 void FormBody::AddBoundaryEnd(Payload* payload) {
-  using boost::asio::buffer;
+  using asio::buffer;
 
   payload->push_back(buffer(literal_buffers::DOUBLE_DASHES));
   payload->push_back(buffer(boundary_));
@@ -195,7 +195,7 @@ void FileBody::InitPayload() {
 Payload FileBody::NextPayload(bool /*free_previous*/) {
   if (ifstream_.read(&chunk_[0], chunk_.size()).gcount() > 0) {
     return {
-      boost::asio::buffer(chunk_.data(), (std::size_t)ifstream_.gcount())
+      asio::buffer(chunk_.data(), (std::size_t)ifstream_.gcount())
     };
   }
   return {};

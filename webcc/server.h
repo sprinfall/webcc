@@ -6,9 +6,9 @@
 #include <thread>
 #include <vector>
 
-#include "boost/asio/io_context.hpp"
-#include "boost/asio/ip/tcp.hpp"
-#include "boost/asio/signal_set.hpp"
+#include "asio/io_context.hpp"
+#include "asio/ip/tcp.hpp"
+#include "asio/signal_set.hpp"
 
 #include "webcc/connection.h"
 #include "webcc/connection_pool.h"
@@ -111,16 +111,16 @@ private:
   std::mutex state_mutex_;
 
   // The io_context used to perform asynchronous operations.
-  boost::asio::io_context io_context_;
+  asio::io_context io_context_;
 
   // Acceptor used to listen for incoming connections.
-  boost::asio::ip::tcp::acceptor acceptor_;
+  asio::ip::tcp::acceptor acceptor_;
 
   // The connection pool which owns all live connections.
   ConnectionPool pool_;
 
   // The signals for processing termination notifications.
-  boost::asio::signal_set signals_;
+  asio::signal_set signals_;
 
   // Worker threads.
   std::vector<std::thread> worker_threads_;

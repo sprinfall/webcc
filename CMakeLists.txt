@@ -1,11 +1,5 @@
 cmake_minimum_required(VERSION 3.1.0)
 
-if(POLICY CMP0074)
-    # find_package() uses <PackageName>_ROOT variables.
-    # This policy was introduced in CMake version 3.12.
-    cmake_policy(SET CMP0074 NEW)
-endif()
-
 project(webcc)
 
 option(WEBCC_ENABLE_AUTOTEST "Build automation test?" OFF)
@@ -29,37 +23,10 @@ if(WEBCC_ENABLE_UNITTEST)
     enable_testing()
 endif()
 
-# Automatically detect _WIN32_WINNT for Asio.
-# See: https://stackoverflow.com/a/40217291
 if(WIN32)
-    macro(get_WIN32_WINNT version)
-        if(CMAKE_SYSTEM_VERSION)
-            set(ver ${CMAKE_SYSTEM_VERSION})
-            string(REGEX MATCH "^([0-9]+).([0-9])" ver ${ver})
-            string(REGEX MATCH "^([0-9]+)" verMajor ${ver})
-            # Check for Windows 10, b/c we'll need to convert to hex 'A'.
-            if("${verMajor}" MATCHES "10")
-                set(verMajor "A")
-                string(REGEX REPLACE "^([0-9]+)" ${verMajor} ver ${ver})
-            endif("${verMajor}" MATCHES "10")
-            # Remove all remaining '.' characters.
-            string(REPLACE "." "" ver ${ver})
-            # Prepend each digit with a zero.
-            string(REGEX REPLACE "([0-9A-Z])" "0\\1" ver ${ver})
-            set(${version} "0x${ver}")
-        endif(CMAKE_SYSTEM_VERSION)
-    endmacro(get_WIN32_WINNT)
-
-    get_WIN32_WINNT(ver)
-    # E.g., 0x0601 for Win7.
-    message(STATUS "_WIN32_WINNT=${ver}")
     # Asio needs this!
-    add_definitions(-D_WIN32_WINNT=${ver})
-endif()
-
-if(WIN32)
-    # Disable warning on boost string algorithms.
-    add_definitions(-D_SCL_SECURE_NO_WARNINGS)
+    # 0x0601 means Win7. So our application targets Win7 and above.
+    add_definitions(-D_WIN32_WINNT=0x0601)
 endif()
 
 # C++ standard requirements.
@@ -71,15 +38,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # See: https://stackoverflow.com/a/29871891
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-
-# Boost 1.66+ required.
-set(Boost_USE_STATIC_LIBS ON)
-set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.66.0 REQUIRED COMPONENTS system filesystem date_time)
-if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
-    link_directories(${Boost_LIBRARY_DIRS})
-endif()
 
 if(WEBCC_ENABLE_SSL)
     # Commented on 20190529.
@@ -101,6 +59,9 @@ include_directories(
     )
 
 set(THIRD_PARTY_DIR ${PROJECT_SOURCE_DIR}/third_party)
+
+# For Asio
+include_directories(${THIRD_PARTY_DIR}/include)
 
 if(WIN32)
     include_directories(${THIRD_PARTY_DIR}/win32/include)
@@ -135,6 +96,7 @@ if(WEBCC_ENABLE_AUTOTEST OR WEBCC_ENABLE_EXAMPLES)
     add_subdirectory(${THIRD_PARTY_DIR}/src/jsoncpp)
 endif()
 
+# GTest
 if(WEBCC_ENABLE_AUTOTEST OR WEBCC_ENABLE_UNITTEST)
     find_package(GTest REQUIRED)
     if(GTEST_FOUND)
