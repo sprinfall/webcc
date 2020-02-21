@@ -2,15 +2,14 @@
 
 ## Dependencies
 
-* [Boost](https://www.boost.org/) (asio, system, filesystem, date_time)
-* [OpenSSL](https://www.openssl.org/) (HTTPS)
-* [Zlib](https://www.zlib.net/) (GZIP compression)
-* [Googletest/gtest](https://github.com/google/googletest) (automation and unit tests)
+* [Asio](https://github.com/chriskohlhoff/asio) (already included in `third_party` folder)
+* [OpenSSL](https://www.openssl.org/) (for HTTPS, optional)
+* [Zlib](https://www.zlib.net/) (for GZIP compression, optional)
+* [Googletest/gtest](https://github.com/google/googletest) (for automation and unit tests, optional)
 * [CMake](https://cmake.org/)
 
-Googletest is included in `third_party/src`. No need to install.
-
 OpenSSL and Zlib are **optional** since they could be disabled. See the build options below.
+Googletest is also **optional** unless you want to build the automation and unit tests.
 
 ## Build Options
 
