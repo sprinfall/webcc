@@ -1,12 +1,10 @@
-# webcc
+# Webcc - C++ HTTP Library
 
-[同学们，【中文版】在这里！](README_zh_CN.md)
+[__中文版__](README_zh_CN.md)
 
-Lightweight C++ HTTP client and server library based on [Boost Asio](https://www.boost.org/doc/libs/release/libs/asio/).
+Lightweight C++ HTTP __client and server__ library based on [Asio](https://github.com/chriskohlhoff/asio) for __embedding__ purpose.
 
-Please turn to our [Wiki](https://github.com/sprinfall/webcc/wiki) for more tutorials and guides.
-
-Wondering how to build Webcc? Check [Build Instructions](https://github.com/sprinfall/webcc/wiki/Build-Instructions).
+Please turn to [doc](doc/) for more tutorials and guides. E.g., [Build Instructions](doc/Build-Instructions.md).
 
 Git repo: https://github.com/sprinfall/webcc. Please check this one instead of the forked for the latest features.
 
@@ -164,7 +162,7 @@ The file will not be loaded into the memory all at once, instead, it will be rea
 
 Please note that `Content-Length` header will still be set to the true size of the file, this is different from the handling of chunked data (`Transfer-Encoding: chunked`).
 
-Please check the [examples](https://github.com/sprinfall/webcc/tree/master/examples/) for more information. 
+Please check the [examples](examples/) for more information. 
 
 ## Server API
 
@@ -316,4 +314,4 @@ int main(int argc, char* argv[]) {
   return 0;
 ```
 
-Please see [examples/book_server](https://github.com/sprinfall/webcc/tree/master/examples/book_server) for more details.
+Please see [examples/book_server](examples/book_server) for more details.
