@@ -1,10 +1,16 @@
-# webcc
+# Webcc - C++ HTTP 程序库
 
-基于 [Boost Asio](https://www.boost.org/doc/libs/release/libs/asio/) 开发的轻量级 C++ HTTP 程序库，同时支持客户端与服务端。 
+**注意：master 分支的代码，避免了对 Boost 的依赖，但是需要 C++17 编译器；Asio 用的是独立版，并不是随 Boost 发布的 Asio。vs2013_compatible 分支则保留了对 Boost 的依赖，但是能在 VS2013 中编译。**
 
-[编译指南](https://github.com/sprinfall/webcc/wiki/Build-Instructions)，目前只有英文版。
+基于 [Asio](https://github.com/chriskohlhoff/asio) 开发的轻量级 C++ HTTP 程序库，同时支持客户端与服务端。
 
-代码仓库: [https://github.com/sprinfall/webcc](https://github.com/sprinfall/webcc)。请认准链接，其他人 fork 的仓库，都不是最新的。
+不管你是要访问 HTTP 服务（比如调用 REST API、下载一个文件），还是要在你的程序里嵌入一个 HTTP 服务（比如 REST Server），Webcc 都是个不错的选择。
+
+Boost Beast 没有一个开箱即用的 HTTP Server，微软 cpprest 的 API 设计复杂，且 server 部分也几乎不可用。Webcc 能满足大多数需求，又兼顾了性能和代码质量。这一点你看一下我们的代码心里就有数了。
+
+[编译指南](doc/Build-Instructions.md)，目前只有英文版。
+
+代码仓库: [https://github.com/sprinfall/webcc](https://github.com/sprinfall/webcc)。 请认准链接，其他人 fork 的仓库，都不是最新的。
 
 **功能概述**
 
@@ -161,7 +167,7 @@ auto r = session.Send(webcc::RequestBuilder{}.
 
 注意，`Content-Length` 头部还是会设置为文件的真实大小，不同于 `Transfer-Encoding: chunked` 的分块数据形式。
 
-更多示例和用法，请参考 [examples](https://github.com/sprinfall/webcc/tree/master/examples/) 目录。 
+更多示例和用法，请参考 [examples](examples/) 目录。 
 
 ## 服务端 API
 
@@ -200,7 +206,7 @@ int main() {
 
 简单解释一下。一个服务器 (server) 对应多个视图 (view)，不同的视图对应不同的资源，视图通过 URL 路由，且 URL 可以为正则表达式。
 
-完整代码请见 [examples/hello_world_server](https://github.com/sprinfall/webcc/tree/master/examples/hello_world_server.cc)。 
+完整代码请见 [examples/hello_world_server](examples/hello_world_server.cc)。 
 
 下面看一个更复杂的例子。
 
@@ -330,4 +336,4 @@ int main(int argc, char* argv[]) {
 }
 ```
 
-完整实现请见 [examples/book_server](https://github.com/sprinfall/webcc/tree/master/examples/book_server)。
+完整实现请见 [examples/book_server](examples/book_server)。
