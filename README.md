@@ -8,7 +8,23 @@ Please turn to [doc](doc/) for more tutorials and guides. E.g., [Build Instructi
 
 Git repo: https://github.com/sprinfall/webcc. Please check this one instead of the forked for the latest features.
 
-**Features**
+**Contents**
+* [Overview](#overview)
+* [Client API](#client-api)
+    * [A Complete Example](#a-complete-example)
+    * [Request Builder](#request-builder)
+    * [HTTPS](#request-builder)
+    * [Invoke GitHub REST API](#invoke-github-rest-api)
+    * [Authorization](#authorization)
+    * [Keep-Alive](#keep-alive)
+    * [POST Request](#post-request)
+    * [Download Files](#download-files)
+    * [Upload Files](#upload-files)
+* [Server API](#server-api)
+    * [Hello World](#hello-world)
+    * [REST Book Server](#rest-book-server)
+    
+## Overview
 
 - Cross-platform: Windows, Linux and MacOS
 - Easy-to-use client API inspired by Python [requests](https://2.python-requests.org//en/master/)
@@ -25,6 +41,8 @@ Git repo: https://github.com/sprinfall/webcc. Please check this one instead of t
 - No memory leak detected by [VLD](https://kinddragon.github.io/vld/)
 
 ## Client API
+
+### A Complete Example
 
 Let's start from a complete client example:
 
@@ -60,6 +78,8 @@ int main() {
 }
 ```
 
+### Request Builder
+
 As you can see, a helper class named `RequestBuilder` is used to chain the parameters and finally build a request object. Please pay attention to the `()` operator.
 
 URL query parameters can be easily added through `Query()` method:
@@ -80,6 +100,8 @@ session.Send(webcc::RequestBuilder{}.
              ());
 ```
 
+### HTTPS
+
 Accessing HTTPS has no difference from HTTP:
 
 ```cpp
@@ -87,6 +109,8 @@ session.Send(webcc::RequestBuilder{}.Get("https://httpbin.org/get")());
 ```
 
 *NOTE: The HTTPS/SSL support requires the build option `WEBCC_ENABLE_SSL` to be enabled.*
+
+### Invoke GitHub REST API
 
 Listing GitHub public events is not a big deal:
 
@@ -99,6 +123,8 @@ auto r = session.Send(webcc::RequestBuilder{}.
 You can then parse `r->data()` to JSON object with your favorite JSON library. My choice for the examples is [jsoncpp](https://github.com/open-source-parsers/jsoncpp). But Webcc itself doesn't understand JSON nor require one. It's up to you to choose the most appropriate JSON library.
 
 `RequestBuilder` provides a lot of functions for you to customize the request. Let's see more examples.
+
+### Authorization
 
 In order to list the followers of an authorized GitHub user, you need either **Basic Authorization**:
 
@@ -118,6 +144,8 @@ session.Send(webcc::RequestBuilder{}.
              ());
 ```
 
+### Keep-Alive
+
 Though **Keep-Alive** (i.e., persistent connection) is a good feature and enabled by default, you can turn it off:
 
 ```cpp
@@ -129,6 +157,8 @@ auto r = session.Send(webcc::RequestBuilder{}.
 
 The API for other HTTP requests is no different from GET.
 
+### POST Request
+
 POST request needs a body which is normally a JSON string for REST API. Let's post a small UTF-8 encoded JSON string:
 
 ```cpp
@@ -137,6 +167,8 @@ session.Send(webcc::RequestBuilder{}.
              Body("{'name'='Adam', 'age'=20}").Json().Utf8()
              ());
 ```
+
+### Download Files
 
 Webcc has the ability to stream large response data to a file. This is especially useful when downloading files.
 
@@ -148,6 +180,8 @@ auto r = session.Send(webcc::RequestBuilder{}.
 // Move the streamed file to your destination.
 r->file_body()->Move("./wolf.jpeg");
 ```
+
+### Upload Files
 
 Streaming is also available for uploading:
 
@@ -162,11 +196,13 @@ The file will not be loaded into the memory all at once, instead, it will be rea
 
 Please note that `Content-Length` header will still be set to the true size of the file, this is different from the handling of chunked data (`Transfer-Encoding: chunked`).
 
-Please check the [examples](examples/) for more information. 
+Please check the [examples](examples/) for more information.
 
 ## Server API
 
-### Hello, World!
+### Hello World
+
+Run the following example, open your browser with `localhost:8080`, you should see "Hello, World!".
 
 ```cpp
 class HelloView : public webcc::View {
@@ -196,7 +232,7 @@ int main() {
 }
 ```
 
-### Book Server
+### REST Book Server
 
 Suppose you want to create a book server and provide the following operations with RESTful API:
 
