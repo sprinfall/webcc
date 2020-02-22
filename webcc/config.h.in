@@ -11,7 +11,7 @@
 #if WEBCC_ENABLE_LOG
 // 0:VERB, 1:INFO, 2:USER, 3:WARN or 4:ERRO
 #define WEBCC_LOG_LEVEL @WEBCC_LOG_LEVEL@
-#endif
+#endif  // WEBCC_ENABLE_LOG
 
 // Set 1/0 to enable/disable SSL/HTTPS.
 #define WEBCC_ENABLE_SSL @WEBCC_ENABLE_SSL@
