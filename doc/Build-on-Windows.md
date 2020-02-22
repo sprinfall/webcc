@@ -1,37 +1,17 @@
 # Build on Windows
 
-VS 2013 and above is required for building `Webcc` on Windows.
+I'm using [Visual Studio 2019 Community](https://visualstudio.microsoft.com/vs/community/), but I think 2017 should be OK, too.
 
-## Install Boost
-
-Download the .7z or .zip from [here](https://www.boost.org/users/download/#live). Unpack it.
-
-Open `VS Native Tools Command Prompt` from Windows start menu.
-
-![VS Cmd Prompts Win7](screenshots/vs_cmd_prompts_win7.png)
-
-E.g., I choose `VS2015 x64 Native Tools Command Prompt` to build a 64-bit Boost.
-
-In the prompt, `cd` to the Boost root directory. Run `bootstrap.bat` to generate `b2.exe`:
-
-Run `b2.exe` to start the build:
-
-```
-b2 --with-system --with-filesystem --with-date_time variant=debug variant=release link=static threading=multi stage
-```
-
-Only `system`, `filesystem` and `date_time` are built. `Asio` is a header-only library.
-
-We don't install Boost to another place (e.g., `C:\Boost`) by specifying `stage` instead of `install` at the end of the command. In order to let CMake find Boost, please add an environment variable named `Boost_ROOT` pointing to the root directory of Boost.
+Webcc depends on `std::filesystem` which is a C++17 feature. There's a branch which is still using `boost::filesystem` so it could be built with VS2013. Check out it if you have only VS2013.
 
 ## Install OpenSSL
 
 Download from [here](http://slproweb.com/products/Win32OpenSSL.html).
 
-The following installers are recommended for development:
+The following installers (the "L" might change) are recommended for development:
 
-- Win64 OpenSSL v1.1.0k
-- Win32 OpenSSL v1.1.0k
+- Win64 OpenSSL v1.1.0L
+- Win32 OpenSSL v1.1.0L
 
 During the installation, you will be asked to copy OpenSSL DLLs (`libcrypto-1_1-x64.dll` and `libssl-1_1-x64.dll`) to "The Windows system directory" or "The OpenSSL libraries (/bin) directory". If you choose the later, remember to add the path (e.g., `C:\OpenSSL-Win64\bin`) to the `PATH` environment variable.
 
@@ -47,9 +27,25 @@ Zlib has been included in `third_party\src`. Maybe it's not a good idea.
 
 In order to integrate `webcc` into your project, you have to integrate this zlib, too. This makes it complicated. I will come back to this later.
 
-## Generate VS Solution
+## Install Googletest
 
-Open CMake, set **Where is the source code** to Webcc root directory (e.g., `D:/github/webcc`), set **Where to build the binaries** to any directory (e.g., `D:/github/webcc/build_vs2015_64`).
+Download the latest release of [Googletest](https://github.com/google/googletest/releases).
+
+Use CMake to generate VS solution:
+
+![Googletest Installation](screenshots/win_cmake_config_gtest.png)
+
+Please note the highlighted configurations.
+
+The `CMAKE_INSTALL_PREFIX` has been changed to `D:/lib/cmake_install_2019_64` (NOTE: use "/" instead of "\\" as path seperators!). This path should be added to an environment variable named `CMAKE_PREFIX_PATH`. Then, CMake can find this installed Googletest during the configuration of Webcc.
+
+![CMAKE_PREFIX_PATH](screenshots/win_cmake_prefix_path.png)
+
+After build Googletest in VS, install it by building `INSTALL` project from the whole solution.
+
+## Build Webcc
+
+Open CMake, set **Where is the source code** to Webcc root directory (e.g., `D:/github/webcc`), set **Where to build the binaries** to any directory (e.g., `D:/github/webcc/build_2019_64`).
 
 Check _**Grouped**_ and _**Advanced**_ two check boxes.
 
