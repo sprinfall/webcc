@@ -40,9 +40,11 @@ int main(int argc, const char* argv[]) {
   LOG_USER("Sleep seconds: %d", sleep_seconds);
 
   try {
-    webcc::Server server(8080);
+    webcc::Server server{ 8080 };
 
-    server.Route("/", std::make_shared<HelloView>(sleep_seconds));
+    auto view = std::make_shared<HelloView>(sleep_seconds);
+    server.Route("/", view);
+    server.Route("/hello", view);
 
     server.Run(workers);
 

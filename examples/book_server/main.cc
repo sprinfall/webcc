@@ -6,15 +6,6 @@
 
 #include "views.h"
 
-// Memory leak detection with VLD.
-#if (defined(_WIN32) || defined(_WIN64))
-#if defined(_DEBUG) && defined(WEBCC_ENABLE_VLD)
-#pragma message ("< include vld.h >")
-#include "vld/vld.h"
-#pragma comment(lib, "vld")
-#endif
-#endif
-
 int main(int argc, char* argv[]) {
   if (argc < 3) {
     std::cout << "usage: book_server <port> <upload_dir>" << std::endl;
@@ -43,7 +34,7 @@ int main(int argc, char* argv[]) {
   std::cout << "Book photos will be saved to: " << photo_dir << std::endl;
 
   try {
-    webcc::Server server(port);  // No doc root
+    webcc::Server server{ port };  // No doc root
 
     server.Route("/books",
                  std::make_shared<BookListView>(),

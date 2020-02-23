@@ -5,15 +5,6 @@
 
 #include "book_client.h"
 
-// Memory leak detection with VLD.
-#if (defined(_WIN32) || defined(_WIN64))
-#if defined(_DEBUG) && defined(WEBCC_ENABLE_VLD)
-#pragma message ("< include vld.h >")
-#include "vld/vld.h"
-#pragma comment(lib, "vld")
-#endif
-#endif
-
 // -----------------------------------------------------------------------------
 
 void PrintSeparator() {
@@ -56,7 +47,7 @@ int main(int argc, char* argv[]) {
 
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE_FILE_OVERWRITE);
 
-  BookClient client(url);
+  BookClient client{ url };
 
   PrintSeparator();
 
