@@ -4,7 +4,7 @@
 
 Lightweight C++ HTTP __client and server__ library based on [Asio](https://github.com/chriskohlhoff/asio) for __embedding__ purpose.
 
-Please turn to [doc](doc/) for more tutorials and guides. E.g., [Build Instructions](doc/Build-Instructions.md).
+Please turn to [doc](doc/) for more tutorials and guides. E.g., [Build Instructions](doc/Build-Instructions.md) and [Integrate Into Your Project](doc/Integrate-Into-Your-Project.md).
 
 Git repo: https://github.com/sprinfall/webcc. Please check this one instead of the forked for the latest features.
 
@@ -13,15 +13,18 @@ Git repo: https://github.com/sprinfall/webcc. Please check this one instead of t
 * [Client API](#client-api)
     * [A Complete Example](#a-complete-example)
     * [Request Builder](#request-builder)
-    * [HTTPS](#request-builder)
-    * [Invoke GitHub REST API](#invoke-github-rest-api)
+    * [HTTPS](#https)
+    * [Invoking GitHub REST API](#invoking-github-rest-api)
     * [Authorization](#authorization)
-    * [Keep-Alive](#keep-alive)
+    * [Keep-Alive (Persistent Connection)](#keep-alive)
     * [POST Request](#post-request)
-    * [Download Files](#download-files)
-    * [Upload Files](#upload-files)
+    * [Downloading Files](#downloading-files)
+    * [Uploading Files](#uploading-files)
 * [Server API](#server-api)
-    * [Hello World](#hello-world)
+    * [A Minimal Server](#a-minimal-server)
+    * [URL Route](#url-route)
+    * [Running A Server](#running-a-server)
+    * [Response Builder](#response-builder)
     * [REST Book Server](#rest-book-server)
     
 ## Overview
@@ -38,7 +41,6 @@ Git repo: https://github.com/sprinfall/webcc. Please check this one instead of t
 - Timeout control
 - Source code follows [Google C++ Style](https://google.github.io/styleguide/cppguide.html)
 - Automation tests and unit tests included
-- No memory leak detected by [VLD](https://kinddragon.github.io/vld/)
 
 ## Client API
 
@@ -110,7 +112,7 @@ session.Send(webcc::RequestBuilder{}.Get("https://httpbin.org/get")());
 
 *NOTE: The HTTPS/SSL support requires the build option `WEBCC_ENABLE_SSL` to be enabled.*
 
-### Invoke GitHub REST API
+### Invoking GitHub REST API
 
 Listing GitHub public events is not a big deal:
 
@@ -131,7 +133,7 @@ In order to list the followers of an authorized GitHub user, you need either **B
 ```cpp
 session.Send(webcc::RequestBuilder{}.
              Get("https://api.github.com/user/followers").
-             AuthBasic(login, password)  //  Should be replaced by valid login and passwords
+             AuthBasic(<login>, <password>)
              ());
 ```
 
@@ -140,13 +142,13 @@ Or **Token Authorization**:
 ```cpp
 session.Send(webcc::RequestBuilder{}.
              Get("https://api.github.com/user/followers").
-             AuthToken(token)  // Should be replaced by a valid token
+             AuthToken(<token>)
              ());
 ```
 
 ### Keep-Alive
 
-Though **Keep-Alive** (i.e., persistent connection) is a good feature and enabled by default, you can turn it off:
+Though **Keep-Alive** (i.e., Persistent Connection) is a good feature and enabled by default, you can turn it off:
 
 ```cpp
 auto r = session.Send(webcc::RequestBuilder{}.
@@ -168,27 +170,27 @@ session.Send(webcc::RequestBuilder{}.
              ());
 ```
 
-### Download Files
+### Downloading Files
 
 Webcc has the ability to stream large response data to a file. This is especially useful when downloading files.
 
 ```cpp
 auto r = session.Send(webcc::RequestBuilder{}.
                       Get("http://httpbin.org/image/jpeg")
-                      (), true);  // stream = true
+                      (), /*stream=*/true);
 
 // Move the streamed file to your destination.
 r->file_body()->Move("./wolf.jpeg");
 ```
 
-### Upload Files
+### Uploading Files
 
 Streaming is also available for uploading:
 
 ```cpp
 auto r = session.Send(webcc::RequestBuilder{}.
                       Post("http://httpbin.org/post").
-                      File(path)  // Should be replaced by a valid file path
+                      File(local/file/path)
                       ());
 ```
 
@@ -200,11 +202,17 @@ Please check the [examples](examples/) for more information.
 
 ## Server API
 
-### Hello World
+### A Minimal Server
 
-Run the following example, open your browser with `localhost:8080`, you should see "Hello, World!".
+The following example is a minimal yet complete HTTP server.
+
+Start it, open a browser with `localhost:8080`, you will see `Hello, World!` as response.
 
 ```cpp
+#include "webcc/logger.h"
+#include "webcc/response_builder.h"
+#include "webcc/server.h"
+
 class HelloView : public webcc::View {
 public:
   webcc::ResponsePtr Handle(webcc::RequestPtr request) override {
@@ -218,7 +226,7 @@ public:
 
 int main() {
   try {
-    webcc::Server server(8080);
+    webcc::Server server{ 8080 };
 
     server.Route("/", std::make_shared<HelloView>());
 
@@ -231,6 +239,53 @@ int main() {
   return 0;
 }
 ```
+
+Every server program has a server object taking a port number (e.g., `8080`) as argument. It listens to this port for incoming connections and requests.
+
+### URL Route
+
+The `Route()` method routes different URLs to different `views`.
+
+You can route different URLs to the same view:
+
+```cpp
+server.Route("/", std::make_shared<HelloView>());
+server.Route("/hello", std::make_shared<HelloView>());
+```
+
+Or even the same view object:
+
+```cpp
+auto view = std::make_shared<HelloView>();
+server.Route("/", view);
+server.Route("/hello", view);
+```
+
+But normally a view only handles a specific URL (see the Book Server example). 
+
+The URL could be regular expressions. The Book Server example uses a regex URL to match against book IDs.
+
+Finally, it's always suggested to explicitly specify the HTTP methods allowed for a route:
+
+```cpp
+server.Route("/", std::make_shared<HelloView>(), { "GET" });
+```
+
+### Running A Server
+
+The last thing about server is `Run()`:
+
+```cpp
+void Run(std::size_t workers = 1, std::size_t loops = 1);
+```
+
+Workers are threads which will be waken to process the HTTP requests once they arrive. Theoretically, the more `workers` you have, the more concurrency you gain. In practice, you have to take the number of CPU cores into account and allocate a reasonable number for it.
+
+The `loops` means the number of threads running the IO Context of Asio. Normally, one thread is good enough, but it could be more than that.
+
+### Response Builder
+
+The server API provides a helper class `ResponseBuilder` for the views to chain the parameters and finally build a response object. This is exactly the same strategy as `RequestBuilder`.
 
 ### REST Book Server
 
@@ -330,7 +385,7 @@ int main(int argc, char* argv[]) {
   // ...
 
   try {
-    webcc::Server server(8080);
+    webcc::Server server{ 8080 };
 
     server.Route("/books",
                  std::make_shared<BookListView>(),
