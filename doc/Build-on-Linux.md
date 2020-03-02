@@ -1,62 +1,26 @@
 # Build on Linux
 
-_For any Ubuntu based Linux distributions._
+_For Ubuntu based Linux distributions._
+
+_NOTE: The usage of C++17 `filesystem` library requires GCC to be version 8 and above. It means that Webcc will not compile on Ubuntu LTS 18.04._
+
+## Install Build Essential
+
+```
+sudo apt install build-essential
+```
+
+## Install CMake
+
+```
+sudo apt install cmake
+```
 
 ## Install Zlib & OpenSSL
 
 ```
 sudo apt install zlib1g-dev libssl-dev
 ```
-
-## Install Boost
-
-Download the .tar.bz2 or .tar.gz from [here](https://www.boost.org/users/download/#live). The current version is 1.70.0.
-
-Unpack and go into the directory:
-
-```
-tar -xzf boost_1_70_0.tar.bz2
-cd boost_1_70_0
-```
-
-Run `bootstrap.sh` to generate `b2`:
-
-```
-./bootstrap.sh
-```
-
-You can change install prefix with `--prefix` (default is `/usr/local`, need `sudo`), but I don't recommend.
-
-Build and install:
-
-```
-sudo ./b2 --with-system --with-filesystem --with-date_time variant=debug link=static threading=multi -j4 install
-```
-
-Notes:
-
-- Only build the specified libraries. `Asio` itself is header only so doesn’t have to be built.
-- Only build static libraries (`link=static`)
-- The number after `-j` depends on the number of CPU cores you have.
-- If you want to build release version libraries, set `variant=release`. The `debug` and `release` libraries have exactly the same name, so you cannot build them both at the same time.
-- Don’t forget the `sudo` since the install prefix is `/usr/local`.
-
-To clean the build, run `b2` with target "clean":
-
-```
-./b2 clean
-```
-
-The libraries are installed to `/usr/local/lib`. E.g.,
-
-```
-$ ls -l /usr/local/lib/libboost*
--rw-r--r--  1 adam  admin   540288 Apr 21 11:01 /usr/local/lib/libboost_date_time.a
--rw-r--r--  1 adam  admin  1717736 Apr 21 11:01 /usr/local/lib/libboost_filesystem.a
--rw-r--r--  1 root  admin     2976 Apr 21 11:01 /usr/local/lib/libboost_system.a
-```
-
-The headers are installed to `/usr/local/include/boost`.
 
 ## Build Webcc
 
@@ -75,7 +39,7 @@ cmake -G"Unix Makefiles" \
     -DWEBCC_ENABLE_LOG=1 \
     -DWEBCC_LOG_LEVEL=0 \
     -DWEBCC_ENABLE_SSL=1 \
-    -DWEBCC_ENABLE_GZIP=1 \
+    -DWEBCC_ENABLE_GZIP=1 \g
     -DWEBCC_ENABLE_AUTOTEST=OFF \
     -DWEBCC_ENABLE_UNITTEST=OFF \
     -DWEBCC_ENABLE_EXAMPLES=OFF \
