@@ -1,7 +1,10 @@
 #ifndef WEBCC_UTILITY_H_
 #define WEBCC_UTILITY_H_
 
+#include <iosfwd>
 #include <string>
+
+#include "asio/ip/tcp.hpp"
 
 #include "webcc/globals.h"
 
@@ -34,6 +37,14 @@ bool ReadFile(const std::filesystem::path& path, std::string* output);
 // Also limit the maximum size of the data to be dumped.
 void DumpByLine(const std::string& data, std::ostream& os,
                 const std::string& prefix);
+
+// Print TCP endpoint.
+// Usage: PrintEndpoint(std::cout, endpoint)
+void PrintEndpoint(std::ostream& ostream,
+                   const asio::ip::tcp::endpoint& endpoint);
+
+// TCP endpoint to string.
+std::string EndpointToString(const asio::ip::tcp::endpoint& endpoint);
 
 }  // namespace utility
 }  // namespace webcc

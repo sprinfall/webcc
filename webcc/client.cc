@@ -99,6 +99,8 @@ void Client::DoConnect(RequestPtr request, const std::string& default_port) {
     port = default_port;
   }
 
+  LOG_VERB("Resolve host (%s)...", request->host().c_str());
+
   std::error_code ec;
   auto endpoints = resolver.resolve(tcp::v4(), request->host(), port, ec);
 

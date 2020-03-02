@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iomanip>  // for put_time
+#include <iostream>
 #include <sstream>
 
 #include "webcc/string.h"
@@ -70,6 +71,22 @@ void DumpByLine(const std::string& data, std::ostream& os,
       size += line.size();
     }
   }
+}
+
+void PrintEndpoint(std::ostream& ostream,
+                   const asio::ip::tcp::endpoint& endpoint) {
+  ostream << endpoint;
+  if (endpoint.protocol() == asio::ip::tcp::v4()) {
+    ostream << ", v4";
+  } else if (endpoint.protocol() == asio::ip::tcp::v6()) {
+    ostream << ", v6";
+  }
+}
+
+std::string EndpointToString(const asio::ip::tcp::endpoint& endpoint) {
+  std::stringstream ss;
+  PrintEndpoint(ss, endpoint);
+  return ss.str();
 }
 
 }  // namespace utility
