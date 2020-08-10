@@ -22,6 +22,10 @@ RequestPtr RequestBuilder::operator()() {
     request->SetHeader(std::move(headers_[i - 1]), std::move(headers_[i]));
   }
 
+  if (!accept_.empty()) {
+    request->SetHeader(headers::kAccept, std::move(accept_));
+  }
+
   // If no Keep-Alive, explicitly set `Connection` to "Close".
   if (!keep_alive_) {
     request->SetHeader(headers::kConnection, "Close");
@@ -76,6 +80,13 @@ RequestBuilder& RequestBuilder::FormData(const std::string& name,
                                          const std::string& media_type) {
   assert(!name.empty());
   return Form(FormPart::New(name, std::move(data), media_type));
+}
+
+RequestBuilder& RequestBuilder::Header(const std::string& key,
+                                       const std::string& value) {
+  headers_.push_back(key);
+  headers_.push_back(value);
+  return *this;
 }
 
 RequestBuilder& RequestBuilder::Auth(const std::string& type,

@@ -46,6 +46,9 @@ public:
     charset_ = charset;
   }
 
+  // Set content types to accept.
+  void Accept(const std::string& content_types);
+
   // Set authorization.
   void Auth(const std::string& type, const std::string& credentials);
 
@@ -69,11 +72,11 @@ private:
   ResponsePtr DoSend(RequestPtr request, bool stream);
 
 private:
-  // Default media type for `Content-Type` header.
+  // The media (or MIME) type of `Content-Type` header.
   // E.g., "application/json".
   std::string media_type_;
 
-  // Default charset for `Content-Type` header.
+  // The charset of `Content-Type` header.
   // E.g., "utf-8".
   std::string charset_;
 

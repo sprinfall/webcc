@@ -117,6 +117,12 @@ public:
     return *this;
   }
 
+  // Set content types to accept.
+  RequestBuilder& Accept(const std::string& content_types) {
+    accept_ = content_types;
+    return *this;
+  }
+
   RequestBuilder& Body(const std::string& data) {
     body_.reset(new StringBody{ data, false });
     return *this;
@@ -148,11 +154,7 @@ public:
   RequestBuilder& FormData(const std::string& name, std::string&& data,
                            const std::string& media_type = "");
 
-  RequestBuilder& Header(const std::string& key, const std::string& value) {
-    headers_.push_back(key);
-    headers_.push_back(value);
-    return *this;
-  }
+  RequestBuilder& Header(const std::string& key, const std::string& value);
 
   RequestBuilder& KeepAlive(bool keep_alive = true) {
     keep_alive_ = keep_alive;
@@ -185,11 +187,17 @@ private:
   // Request body.
   BodyPtr body_;
 
-  // Media type of the body (e.g., "application/json").
+  // The media (or MIME) type of `Content-Type` header.
+  // E.g., "application/json".
   std::string media_type_;
 
-  // Character set of the body (e.g., "utf-8").
+  // The charset of `Content-Type` header.
+  // E.g., "utf-8".
   std::string charset_;
+
+  // Accept content types (could be comma separated multiple types).
+  // E.g., "application/json", "text/html, application/xhtml+xml".
+  std::string accept_;
 
   // Files to upload for a POST request.
   std::vector<FormPartPtr> form_parts_;

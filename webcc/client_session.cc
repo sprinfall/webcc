@@ -13,6 +13,12 @@ ClientSession::ClientSession(int timeout, bool ssl_verify,
   InitHeaders();
 }
 
+void ClientSession::Accept(const std::string& content_types) {
+  if (!content_types.empty()) {
+    headers_.Set(headers::kAccept, content_types);
+  }
+}
+
 void ClientSession::Auth(const std::string& type,
                          const std::string& credentials) {
   headers_.Set(headers::kAuthorization, type + " " + credentials);
@@ -74,13 +80,13 @@ void ClientSession::InitHeaders() {
   // Simply put, "deflate" is not recommended for HTTP 1.1 encoding.
   // (https://www.zlib.net/zlib_faq.html#faq39)
 
+  headers_.Set(kAccept, "*/*");
+
 #if WEBCC_ENABLE_GZIP
   headers_.Set(kAcceptEncoding, "gzip, deflate");
 #else
   headers_.Set(kAcceptEncoding, "identity");
 #endif  // WEBCC_ENABLE_GZIP
-
-  headers_.Set(kAccept, "*/*");
 
   headers_.Set(kConnection, "Keep-Alive");
 }
