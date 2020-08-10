@@ -2,22 +2,22 @@
 
 I'm using [Visual Studio 2019 Community](https://visualstudio.microsoft.com/vs/community/), but I think 2017 should be OK, too.
 
-Webcc depends on `std::filesystem` which is a C++17 feature. There's a branch which is still using `boost::filesystem` so it could be built with VS2013. Check out it if you have only VS2013.
+Webcc depends on `std::filesystem` which is a C++17 feature. There's a branch ([legacy](https://github.com/sprinfall/webcc/tree/legacy)) which is still using `boost::filesystem` so it could be built with VS2013. Check out it if you have only VS2013.
 
 ## Install OpenSSL
 
 Download from [here](http://slproweb.com/products/Win32OpenSSL.html).
 
-The following installers (the "L" might change) are recommended for development:
+The following installers (the "g" might change) are recommended for development:
 
-- Win64 OpenSSL v1.1.0L
-- Win32 OpenSSL v1.1.0L
+- Win64 OpenSSL v1.1.1g
+- Win32 OpenSSL v1.1.1g
 
-During the installation, you will be asked to copy OpenSSL DLLs (`libcrypto-1_1-x64.dll` and `libssl-1_1-x64.dll`) to "The Windows system directory" or "The OpenSSL libraries (/bin) directory". If you choose the later, remember to add the path (e.g., `C:\OpenSSL-Win64\bin`) to the `PATH` environment variable.
+During the installation, you will be asked to copy OpenSSL DLLs (`libcrypto-1_1-x64.dll` and `libssl-1_1-x64.dll`) to "The Windows system directory" or "The OpenSSL libraries (/bin) directory". If you choose the later, remember to add the path (e.g., `C:\Program Files\OpenSSL-Win64\bin`) to the `PATH` environment variable.
 
 ![OpenSSL Installation](screenshots/win_openssl_install.png)
 
-OpenSSL can also be statically linked (see `C:\OpenSSL-Win64\lib\VC\static`), but it's not recommended. Because the static libraries might not match the version of your VS.
+OpenSSL can also be statically linked (see `C:\Program Files\OpenSSL-Win64\lib\VC\static`), but it's not recommended. Because the static libraries might not match the version of your VS.
 
 The only drawback of dynamic link is that you must distribute the OpenSSL DLLs together with your program.
 
