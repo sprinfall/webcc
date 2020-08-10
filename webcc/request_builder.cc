@@ -22,10 +22,6 @@ RequestPtr RequestBuilder::operator()() {
     request->SetHeader(std::move(headers_[i - 1]), std::move(headers_[i]));
   }
 
-  if (!accept_.empty()) {
-    request->SetHeader(headers::kAccept, std::move(accept_));
-  }
-
   // If no Keep-Alive, explicitly set `Connection` to "Close".
   if (!keep_alive_) {
     request->SetHeader(headers::kConnection, "Close");

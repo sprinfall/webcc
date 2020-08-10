@@ -117,10 +117,10 @@ public:
     return *this;
   }
 
-  // Set content types to accept.
+  // Set (comma separated) content types to accept.
+  // E.g., "application/json", "text/html, application/xhtml+xml".
   RequestBuilder& Accept(const std::string& content_types) {
-    accept_ = content_types;
-    return *this;
+    return Header(headers::kAccept, content_types);
   }
 
   RequestBuilder& Body(const std::string& data) {
@@ -194,10 +194,6 @@ private:
   // The charset of `Content-Type` header.
   // E.g., "utf-8".
   std::string charset_;
-
-  // Accept content types (could be comma separated multiple types).
-  // E.g., "application/json", "text/html, application/xhtml+xml".
-  std::string accept_;
 
   // Files to upload for a POST request.
   std::vector<FormPartPtr> form_parts_;
