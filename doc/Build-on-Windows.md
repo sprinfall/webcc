@@ -10,14 +10,14 @@ Download from [here](http://slproweb.com/products/Win32OpenSSL.html).
 
 The following installers (the "g" might change) are recommended for development:
 
-- Win64 OpenSSL v1.1.0g
-- Win32 OpenSSL v1.1.0g
+- Win64 OpenSSL v1.1.1g
+- Win32 OpenSSL v1.1.1g
 
-During the installation, you will be asked to copy OpenSSL DLLs (`libcrypto-1_1-x64.dll` and `libssl-1_1-x64.dll`) to "The Windows system directory" or "The OpenSSL libraries (/bin) directory". If you choose the later, remember to add the path (e.g., `C:\OpenSSL-Win64\bin`) to the `PATH` environment variable.
+During the installation, you will be asked to copy OpenSSL DLLs (`libcrypto-1_1-x64.dll` and `libssl-1_1-x64.dll`) to "The Windows system directory" or "The OpenSSL libraries (/bin) directory". If you choose the later, remember to add the path (e.g., `C:\Program Files\OpenSSL-Win64\bin`) to the `PATH` environment variable.
 
 ![OpenSSL Installation](screenshots/win_openssl_install.png)
 
-OpenSSL can also be statically linked (see `C:\OpenSSL-Win64\lib\VC\static`), but it's not recommended. Because the static libraries might not match the version of your VS.
+OpenSSL can also be statically linked (see `C:\Program Files\OpenSSL-Win64\lib\VC\static`), but it's not recommended. Because the static libraries might not match the version of your VS.
 
 The only drawback of dynamic link is that you must distribute the OpenSSL DLLs together with your program.
 
