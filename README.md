@@ -2,6 +2,10 @@
 
 [__中文版__](README_zh_CN.md)
 
+**NOTE：**
+- **master** branch uses C++17 so it doesn't need _Boost_. Asio, as a header-only library, has been included in the `third_party` folder.
+- **[legacy](https://github.com/sprinfall/webcc/tree/legacy)** branch only uses limited C++11 features, so it could be built by old compilers like _VS2013_ and _GCC 4.8_.
+
 Lightweight C++ HTTP __client and server__ library based on [Asio](https://github.com/chriskohlhoff/asio) for __embedding__ purpose.
 
 Please turn to [doc](doc/) for more tutorials and guides. E.g., [Build Instructions](doc/Build-Instructions.md) and [Integrate Into Your Project](doc/Integrate-Into-Your-Project.md).
