@@ -1,6 +1,9 @@
 # Webcc - C++ HTTP 程序库
 
-**注意：master 分支的代码，避免了对 Boost 的依赖，但是需要 C++17 编译器；Asio 用的是独立版，并不是随 Boost 发布的 Asio。vs2013_compatible 分支则保留了对 Boost 的依赖，但是能在 VS2013 中编译。**
+**注意：**
+
+- master 分支不需要 Boost，但是依赖 C++17，Asio 用的是独立版（已包含在 `third_party` 目录）。
+- [legacy](https://github.com/sprinfall/webcc/tree/legacy) 分支只使用了有限的 C++11 特性，需要 Boost 支撑（asio, system, filesystem, regex 等），**能支持较老的编译器，比如 VS2013 和 GCC 4.8**。
 
 基于 [Asio](https://github.com/chriskohlhoff/asio) 开发的轻量级 C++ HTTP 程序库，同时支持客户端与服务端。
 
