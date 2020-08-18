@@ -10,9 +10,8 @@
 
 BookClient::BookClient(const std::string& url, int timeout)
     : url_(url), session_(timeout) {
-  // Default Content-Type for requests who have a body.
-  session_.set_media_type("application/json");
-  session_.set_charset("utf-8");
+  // Default Content-Type for requests with a body.
+  session_.SetContentType("application/json", "utf-8");
 }
 
 bool BookClient::Query(std::list<Book>* books) {

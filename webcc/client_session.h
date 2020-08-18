@@ -38,11 +38,13 @@ public:
     headers_.Set(key, value);
   }
 
-  void set_media_type(const std::string& media_type) {
+  // Set `Content-Type` header, e.g., ("application/json", "utf-8").
+  // Only applied when:
+  //   - the request to send has no `Content-Type` header, and
+  //   - the request has a body.
+  void SetContentType(const std::string& media_type,
+                      const std::string& charset = "") {
     media_type_ = media_type;
-  }
-
-  void set_charset(const std::string& charset) {
     charset_ = charset;
   }
 
