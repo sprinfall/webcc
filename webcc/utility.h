@@ -24,7 +24,7 @@ const std::string& UserAgent();
 // Get the timestamp for HTTP Date header field.
 // E.g., Wed, 21 Oct 2015 07:28:00 GMT
 // See: https://tools.ietf.org/html/rfc7231#section-7.1.1.2
-std::string GetTimestamp();
+std::string HttpDate();
 
 // Tell the size in bytes of the given file.
 // Return kInvalidLength (-1) on failure.

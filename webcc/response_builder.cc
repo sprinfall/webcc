@@ -57,7 +57,7 @@ ResponseBuilder& ResponseBuilder::File(const std::filesystem::path& path,
 
 ResponseBuilder& ResponseBuilder::Date() {
   headers_.push_back(headers::kDate);
-  headers_.push_back(utility::GetTimestamp());
+  headers_.push_back(utility::HttpDate());
   return *this;
 }
 

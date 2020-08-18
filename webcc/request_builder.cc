@@ -104,7 +104,7 @@ RequestBuilder& RequestBuilder::AuthToken(const std::string& token) {
 
 RequestBuilder& RequestBuilder::Date() {
   headers_.push_back(headers::kDate);
-  headers_.push_back(utility::GetTimestamp());
+  headers_.push_back(utility::HttpDate());
   return *this;
 }
 
