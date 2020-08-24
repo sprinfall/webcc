@@ -16,9 +16,15 @@ using tcp = asio::ip::tcp;
 
 namespace webcc {
 
-Server::Server(std::uint16_t port, const std::filesystem::path& doc_root)
-    : port_(port), doc_root_(doc_root), file_chunk_size_(1024), running_(false),
-      acceptor_(io_context_), signals_(io_context_) {
+Server::Server(asio::ip::tcp protocol, std::uint16_t port,
+               const sfs::path& doc_root)
+    : protocol_(protocol),
+      port_(port),
+      doc_root_(doc_root),
+      file_chunk_size_(1024),
+      running_(false),
+      acceptor_(io_context_),
+      signals_(io_context_) {
   AddSignals();
 }
 
@@ -112,7 +118,7 @@ void Server::AsyncWaitSignals() {
 bool Server::Listen(std::uint16_t port) {
   std::error_code ec;
 
-  tcp::endpoint endpoint(tcp::v4(), port);
+  tcp::endpoint endpoint(protocol_, port);
 
   // Open the acceptor.
   acceptor_.open(endpoint.protocol(), ec);
@@ -296,7 +302,7 @@ bool Server::MatchViewOrStatic(const std::string& method,
 
   // Try to match a static file.
   if (method == methods::kGet && !doc_root_.empty()) {
-    std::filesystem::path path = doc_root_ / url;
+    sfs::path path = doc_root_ / url;
     if (!sfs::is_directory(path) && sfs::exists(path)) {
       return true;
     }
@@ -313,7 +319,7 @@ ResponsePtr Server::ServeStatic(RequestPtr request) {
     return {};
   }
 
-  std::filesystem::path path = doc_root_ / request->url().path();
+  sfs::path path = doc_root_ / request->url().path();
 
   try {
     // NOTE: FileBody might throw Error::kFileError.

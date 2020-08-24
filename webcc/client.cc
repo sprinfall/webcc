@@ -102,7 +102,9 @@ void Client::DoConnect(RequestPtr request, const std::string& default_port) {
   LOG_VERB("Resolve host (%s)...", request->host().c_str());
 
   std::error_code ec;
-  auto endpoints = resolver.resolve(tcp::v4(), request->host(), port, ec);
+
+  // The protocol depends on the `host`, both V4 and V6 are supported.
+  auto endpoints = resolver.resolve(request->host(), port, ec);
 
   if (ec) {
     LOG_ERRO("Host resolve error (%s): %s, %s.", ec.message().c_str(),

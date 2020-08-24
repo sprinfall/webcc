@@ -40,7 +40,7 @@ int main(int argc, const char* argv[]) {
   LOG_USER("Sleep seconds: %d", sleep_seconds);
 
   try {
-    webcc::Server server{ 8080 };
+    webcc::Server server{ asio::ip::tcp::v4(), 8080 };
 
     auto view = std::make_shared<HelloView>(sleep_seconds);
     server.Route("/", view);

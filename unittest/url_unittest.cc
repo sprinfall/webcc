@@ -81,3 +81,14 @@ TEST(UrlTest, Full) {
   EXPECT_EQ("/path/to", url.path());
   EXPECT_EQ("key=value", url.query());
 }
+
+
+TEST(UrlTest, IPv6) {
+  webcc::Url url("http://[::1]:8080");
+
+  EXPECT_EQ("http", url.scheme());
+  EXPECT_EQ("[::1]", url.host());
+  EXPECT_EQ("8080", url.port());
+  EXPECT_EQ("", url.path());
+  EXPECT_EQ("", url.query());
+}

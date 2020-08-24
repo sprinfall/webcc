@@ -274,10 +274,15 @@ void Url::Parse(const std::string& str) {
   }
 
   if (!host_.empty()) {
-    p = host_.find(':');
+    // Check if there's a port.
+    p = host_.find_last_of(':');
     if (p != std::string::npos) {
-      port_ = host_.substr(p + 1);
-      host_ = host_.substr(0, p);
+      // For IPv6: [::1]:8080
+      std::size_t bracket = host_.find_last_of(']');
+      if (bracket == std::string::npos || p > bracket) {
+        port_ = host_.substr(p + 1);
+        host_ = host_.substr(0, p);
+      }
     }
   }
 }

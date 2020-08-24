@@ -20,8 +20,8 @@ namespace webcc {
 
 class Server : public Router {
 public:
-  explicit Server(std::uint16_t port,
-                  const std::filesystem::path& doc_root = {});
+  Server(asio::ip::tcp protocol, std::uint16_t port,
+         const std::filesystem::path& doc_root = {});
 
   ~Server() = default;
 
@@ -94,6 +94,9 @@ private:
   ResponsePtr ServeStatic(RequestPtr request);
 
 private:
+  // tcp::v4() or tcp::v6()
+  asio::ip::tcp protocol_;
+
   // Port number.
   std::uint16_t port_;
 

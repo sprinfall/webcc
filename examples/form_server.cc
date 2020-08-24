@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
   std::uint16_t port = static_cast<std::uint16_t>(std::atoi(argv[1]));
 
   try {
-    webcc::Server server(port);
+    webcc::Server server{ asio::ip::tcp::v4(), port };
 
     server.Route("/upload", std::make_shared<FileUploadView>(), { "POST" });
 
