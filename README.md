@@ -417,7 +417,7 @@ int main(int argc, char* argv[]) {
 
 Please see [examples/book_server](examples/book_server) for more details.
 
-## IPv6 Support]
+## IPv6 Support
 
 ### IPv6 Server
 
