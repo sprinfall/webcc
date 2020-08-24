@@ -297,7 +297,6 @@ void Run(std::size_t workers = 1, std::size_t loops = 1);
 
 服务端 API 提供了一个辅助类 `ResponseBuilder`，方便视图串联起各种参数，最后再生成一个响应对象。和 `RequestBuilder` 完全是同一种策略。
 
-
 ### REST Book Server
 
 假定你想创建一个关于书的服务，提供下面这些 REST API：
