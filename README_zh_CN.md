@@ -15,10 +15,33 @@ Boost Beast 没有一个开箱即用的 HTTP Server，微软 cpprest 的 API 设
 
 代码仓库: [https://github.com/sprinfall/webcc](https://github.com/sprinfall/webcc)。 请认准链接，其他人 fork 的仓库，都不是最新的。
 
-**功能概述**
+**内容**
+* [功能概述](#功能概述)
+* [客户端 API](#客户端-api)
+    * [一个完整的例子](#一个完整的例子)
+    * [Request Builder](#request-builder)
+    * [HTTPS](#https)
+    * [调用 GitHub REST API](#调用-github-rest-api)
+    * [Authorization](#authorization)
+    * [Keep-Alive](#keep-alive)
+    * [POST 请求](#post-请求)
+    * [下载文件](#下载文件)
+    * [上传文件](#上传文件)
+* 服务端 API
+    * [一个最小的服务器](#一个最小的服务器)
+    * [URL 路由](#url-路由)
+    * [运行服务器](#运行服务器)
+    * [Response Builder](#response-builder)
+    * [REST Book Server](#rest-book-server)
+* [IPv6 支持](#ipv6-支持)
+    * [IPv6 服务端](#ipv6-服务端)
+    * [IPv6 客户端](#ipv6-客户端)
+
+## 功能概述
 
 - 跨平台: Windows，Linux 及 MacOS
 - 简单好用的客户端 API，借鉴了 Python 的 [requests](https://2.python-requests.org//en/master/) 程序库
+- 支持 IPv6
 - 支持 SSL/HTTPS，依赖 OpenSSL（可选）
 - 支持 GZip 压缩，依赖 Zlib（可选）
 - 持久连接 (Keep-Alive)
@@ -32,6 +55,8 @@ Boost Beast 没有一个开箱即用的 HTTP Server，微软 cpprest 的 API 设
 - 无内存泄漏（[VLD](https://kinddragon.github.io/vld/) 检测）
 
 ## 客户端 API
+
+### 一个完整的例子
 
 先来看一个完整的例子：
 
@@ -66,6 +91,8 @@ int main() {
 }
 ```
 
+### Request Builder
+
 如你所见，这里通过一个辅助类 `RequestBuilder`，串联起各种参数，最后再生成一个请求对象。注意不要漏了最后的 `()` 操作符。
 
 通过 `Query()` 可以方便地指定 URL 查询参数：
@@ -86,6 +113,8 @@ session.Send(webcc::RequestBuilder{}.
              ());
 ```
 
+### HTTPS
+
 访问 HTTPS 和访问 HTTP 没有差别，对用户是透明的：
 
 ```cpp
@@ -93,6 +122,8 @@ session.Send(webcc::RequestBuilder{}.Get("https://httpbin.org/get")());
 ```
 
 *注意：对 HTTPS/SSL 的支持，需要启用编译选项 `WEBCC_ENABLE_SSL`，也会依赖 OpenSSL。*
+
+### 调用 GitHub REST API
 
 列出 GitHub 公开事件 (public events) 也不是什么难题：
 
@@ -107,6 +138,8 @@ auto r = session.Send(webcc::RequestBuilder{}.
 我在示例程序里用的是 [jsoncpp](https://github.com/open-source-parsers/jsoncpp)，但是 Webcc 本身并不理解 JSON，用什么 JSON 程序库，完全是你自己的选择。
 
 `RequestBuilder` 本质上是为了解决 C++ 没有“键值参数”的问题，它提供了很多函数供你定制请求的样子。
+
+### Authorization
 
 为了列出一个授权的 (authorized) GitHub 用户的“粉丝” (followers)，要么使用 **Basic 认证**：
 
@@ -126,6 +159,8 @@ session.Send(webcc::RequestBuilder{}.
              ());
 ```
 
+### Keep-Alive
+
 尽管 **持久连接** (Keep-Alive) 这个功能不错，你也可以手动关掉它：
 
 ```cpp
@@ -137,6 +172,8 @@ auto r = session.Send(webcc::RequestBuilder{}.
 
 其他 HTTP 请求的 API 跟 GET 并无太多差别。
 
+### POST 请求
+
 POST 请求需要一个“体” (body)，就 REST API 来说通常是一个 JSON 字符串。让我们 POST 一个 UTF-8 编码的 JSON 字符串：
 
 ```cpp
@@ -145,6 +182,8 @@ session.Send(webcc::RequestBuilder{}.
              Body("{'name'='Adam', 'age'=20}").Json().Utf8()
              ());
 ```
+
+### 下载文件
 
 Webcc 可以把大型的响应数据串流到临时文件，串流在下载文件时特别有用。
 
@@ -156,6 +195,8 @@ auto r = session.Send(webcc::RequestBuilder{}.
 // 把串流的文件移到目标位置
 r->file_body()->Move("./wolf.jpeg");
 ```
+
+### 上传文件
 
 不光下载，上传也可以串流：
 
@@ -174,12 +215,16 @@ auto r = session.Send(webcc::RequestBuilder{}.
 
 ## 服务端 API
 
-### Hello, World!
+### 一个最小的服务器
 
 下面是个 `Hello, World!` 级别的服务程序。
 程序运行后，打开浏览器，输入 `http://localhost:8080`，页面显示 `Hello, World!`。
 
 ```cpp
+#include "webcc/logger.h"
+#include "webcc/response_builder.h"
+#include "webcc/server.h"
+
 class HelloView : public webcc::View {
 public:
   webcc::ResponsePtr Handle(webcc::RequestPtr request) override {
@@ -193,7 +238,7 @@ public:
 
 int main() {
   try {
-    webcc::Server server(8080);
+    webcc::Server server{ asio::ip::tcp::v4(), 8080 };
 
     server.Route("/", std::make_shared<HelloView>());
 
@@ -207,13 +252,53 @@ int main() {
 }
 ```
 
-简单解释一下。一个服务器 (server) 对应多个视图 (view)，不同的视图对应不同的资源，视图通过 URL 路由，且 URL 可以为正则表达式。
+### URL 路由
 
-完整代码请见 [examples/hello_world_server](examples/hello_world_server.cc)。 
+通过 `Route()` 方法，不同的 URLs 被路由到不同的**视图**。
 
-下面看一个更复杂的例子。
+你也可以路由不同的 URLs 到同一个视图：
 
-### Book Server
+```cpp
+server.Route("/", std::make_shared<HelloView>());
+server.Route("/hello", std::make_shared<HelloView>());
+```
+
+甚至路由到同一个视图对象：
+
+```cpp
+auto view = std::make_shared<HelloView>();
+server.Route("/", view);
+server.Route("/hello", view);
+```
+
+但是一般情况下，一个视图只处理一种特定的 URL（请参考 Book Server 示例）。
+
+URL 可以是**正则表达式**。Book Server 示例用了一个正则表达式的 URL 来匹配书本的 ID。
+
+最后，强烈建议你总是显式地指定一个路由所允许的 HTTP 方法：
+
+```cpp
+server.Route("/", std::make_shared<HelloView>(), { "GET" });
+```
+
+### 运行服务器
+
+关于服务器的最后一件事就是 `Run()`：
+
+```cpp
+void Run(std::size_t workers = 1, std::size_t loops = 1);
+```
+
+工作者 (`workers`) 代表那些会被唤醒去处理 HTTP 请求的线程。理论上，工作者越多，并发能力越强。实际操作时，你得考虑你有多少个可用的 CPU 内核，然后为它分配一个合理的数目。
+
+第二个参数 (`loops`) 代表运行 Asio 上下文 (IO Context) 的线程个数。一般来说，一个线程就足够了，但是也可以为多个。
+
+### Response Builder
+
+服务端 API 提供了一个辅助类 `ResponseBuilder`，方便视图串联起各种参数，最后再生成一个响应对象。和 `RequestBuilder` 完全是同一种策略。
+
+
+### REST Book Server
 
 假定你想创建一个关于书的服务，提供下面这些 REST API：
 
@@ -316,7 +401,7 @@ int main(int argc, char* argv[]) {
   // ...
 
   try {
-    webcc::Server server(8080);
+    webcc::Server server{ asio::ip::tcp::v4(), 8080 };
 
     server.Route("/books",
                  std::make_shared<BookListView>(),
@@ -340,3 +425,23 @@ int main(int argc, char* argv[]) {
 ```
 
 完整实现请见 [examples/book_server](examples/book_server)。
+
+## IPv6 支持
+
+### IPv6 服务端
+
+只需把 Server 的 `protocol` 参数改成 `asio::ip::tcp::v6()`：
+
+```cpp
+webcc::Server server{ asio::ip::tcp::v6(), 8080 };
+```
+
+### IPv6 客户端
+
+只需指定一个 IPv6 地址：
+
+```cpp
+auto r = session.Send(webcc::RequestBuilder{}.
+                      Get("http://[::1]:8080/books").
+                      ());
+```
