@@ -10,7 +10,7 @@
 
 Lightweight C++ HTTP __client and server__ library based on [Asio](https://github.com/chriskohlhoff/asio) for __embedding__ purpose.
 
-Please turn to [doc](doc/) for more tutorials and guides. E.g., [Build Instructions](doc/Build-Instructions.md) and [Integrate Into Your Project](doc/Integrate-Into-Your-Project.md).
+=> [Build Instructions](doc/Build-Instructions.md)
 
 Git repo: https://github.com/sprinfall/webcc. Please check this one instead of the forked for the latest features.
 
