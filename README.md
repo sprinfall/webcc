@@ -250,8 +250,6 @@ int main() {
 }
 ```
 
-Every server program has a server object taking a port number (e.g., `8080`) as argument. It listens to this port for incoming connections and requests.
-
 ### URL Route
 
 The `Route()` method routes different URLs to different `views`.
