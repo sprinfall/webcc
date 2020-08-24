@@ -32,11 +32,15 @@ Git repo: https://github.com/sprinfall/webcc. Please check this one instead of t
     * [Running A Server](#running-a-server)
     * [Response Builder](#response-builder)
     * [REST Book Server](#rest-book-server)
+* [IPv6 Support](#ipv6-support)
+    * [IPv6 Server](#ipv6-server)
+    * [IPv6 Client](#ipv6-client)
     
 ## Overview
 
 - Cross-platform: Windows, Linux and MacOS
 - Easy-to-use client API inspired by Python [requests](https://2.python-requests.org//en/master/)
+- IPv6 support
 - SSL/HTTPS support with OpenSSL (optional)
 - GZip compression support with Zlib (optional)
 - Persistent (Keep-Alive) connections
@@ -232,7 +236,7 @@ public:
 
 int main() {
   try {
-    webcc::Server server{ 8080 };
+    webcc::Server server{ asio::ip::tcp::v4(), 8080 };
 
     server.Route("/", std::make_shared<HelloView>());
 
@@ -391,7 +395,7 @@ int main(int argc, char* argv[]) {
   // ...
 
   try {
-    webcc::Server server{ 8080 };
+    webcc::Server server{ asio::ip::tcp::v4(), 8080 };
 
     server.Route("/books",
                  std::make_shared<BookListView>(),
@@ -412,3 +416,23 @@ int main(int argc, char* argv[]) {
 ```
 
 Please see [examples/book_server](examples/book_server) for more details.
+
+## IPv6 Support]
+
+### IPv6 Server
+
+Only need to change the protocol to `asio::ip::tcp::v6()`:
+
+```cpp
+webcc::Server server{ asio::ip::tcp::v6(), 8080 };
+```
+
+### IPv6 Client
+
+Only need to specify an IPv6 address:
+
+```cpp
+auto r = session.Send(webcc::RequestBuilder{}.
+                      Get("http://[::1]:8080/books").
+                      ());
+```
