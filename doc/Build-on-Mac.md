@@ -10,9 +10,9 @@ Download the .dmg from [here](https://cmake.org/download/). Just double click an
 
 ## Install Boost
 
-Download the .tar.bz2 or .tar.gz from [here](https://www.boost.org/users/download/#live). The current version is 1.70.0.
+Download the .tar.bz2 or .tar.gz from [here](https://www.boost.org/users/download/#live).
 
-Unpack and go into the directory:
+Unpack and go into the directory (suppose Boost version is 1.70):
 
 ```
 tar -xzf boost_1_70_0.tar.bz2
@@ -30,7 +30,7 @@ You can change install prefix with `--prefix` option (default is `/usr/local`, n
 Build and install:
 
 ```
-sudo ./b2 --with-system --with-filesystem --with-date_time variant=debug link=static threading=multi -j4 install
+sudo ./b2 --with-system --with-date_time variant=debug link=static threading=multi -j4 install
 ```
 
 Notes:
@@ -52,7 +52,6 @@ The libraries are installed to `/usr/local/lib`. E.g.,
 ```
 $ ls -l /usr/local/lib/libboost*
 -rw-r--r--  1 adam  admin   540288 Apr 21 11:01 /usr/local/lib/libboost_date_time.a
--rw-r--r--  1 adam  admin  1717736 Apr 21 11:01 /usr/local/lib/libboost_filesystem.a
 -rw-r--r--  1 root  admin     2976 Apr 21 11:01 /usr/local/lib/libboost_system.a
 ```
 

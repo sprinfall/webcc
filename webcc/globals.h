@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "asio/buffer.hpp"  // for const_buffer
+#include "boost/asio/buffer.hpp"  // for const_buffer
 
 #include "webcc/config.h"
 
@@ -21,7 +21,7 @@ using Strings = std::vector<std::string>;
 // Could also be considered as arguments, so named as UrlArgs.
 using UrlArgs = std::vector<std::string>;
 
-using Payload = std::vector<asio::const_buffer>;
+using Payload = std::vector<boost::asio::const_buffer>;
 
 // -----------------------------------------------------------------------------
 

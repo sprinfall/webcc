@@ -97,16 +97,16 @@ void DumpByLine(const std::string& data, std::ostream& os,
 }
 
 void PrintEndpoint(std::ostream& ostream,
-                   const asio::ip::tcp::endpoint& endpoint) {
+                   const boost::asio::ip::tcp::endpoint& endpoint) {
   ostream << endpoint;
-  if (endpoint.protocol() == asio::ip::tcp::v4()) {
+  if (endpoint.protocol() == boost::asio::ip::tcp::v4()) {
     ostream << ", v4";
-  } else if (endpoint.protocol() == asio::ip::tcp::v6()) {
+  } else if (endpoint.protocol() == boost::asio::ip::tcp::v6()) {
     ostream << ", v6";
   }
 }
 
-std::string EndpointToString(const asio::ip::tcp::endpoint& endpoint) {
+std::string EndpointToString(const boost::asio::ip::tcp::endpoint& endpoint) {
   std::stringstream ss;
   PrintEndpoint(ss, endpoint);
   return ss.str();

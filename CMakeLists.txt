@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.11)
 
+if(POLICY CMP0074)
+    # find_package() uses <PackageName>_ROOT variables.
+    # This policy was introduced in CMake version 3.12.
+    cmake_policy(SET CMP0074 NEW)
+endif()
+
 project(webcc)
 
 # Output directories
@@ -44,6 +50,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
+# Boost
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_MULTITHREADED ON)
+find_package(Boost 1.66.0 REQUIRED COMPONENTS system date_time)
+if(Boost_FOUND)
+    message(STATUS "Boost version: ${Boost_VERSION}")
+    include_directories(${Boost_INCLUDE_DIRS})
+endif()
+
 if(WEBCC_ENABLE_SSL)
     # Commented on 20190529.
     # The static libs have linkage issues with VS2015 on Win10.
@@ -64,9 +79,6 @@ include_directories(
     )
 
 set(THIRD_PARTY_DIR ${PROJECT_SOURCE_DIR}/third_party)
-
-# For Asio
-include_directories(${THIRD_PARTY_DIR}/include)
 
 # For jsoncpp
 include_directories(${THIRD_PARTY_DIR}/src)

@@ -8,6 +8,7 @@ set(UT_TARGET_NAME webcc_unittest)
 # Common libraries to link.
 set(UT_LIBS
     webcc
+    ${Boost_LIBRARIES}
     GTest::GTest
     GTest::Main
     "${CMAKE_THREAD_LIBS_INIT}")

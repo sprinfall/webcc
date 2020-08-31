@@ -95,7 +95,7 @@ void Message::SetContentType(const std::string& media_type,
 }
 
 Payload Message::GetPayload() const {
-  using asio::buffer;
+  using boost::asio::buffer;
 
   Payload payload;
 

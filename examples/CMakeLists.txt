@@ -3,6 +3,7 @@
 # Common libraries to link for examples.
 set(EXAMPLE_LIBS
     webcc
+    ${Boost_LIBRARIES}
     "${CMAKE_THREAD_LIBS_INIT}")
 
 if(WEBCC_ENABLE_SSL)

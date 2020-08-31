@@ -1,7 +1,7 @@
 # webcc
 
 # Don't use any deprecated definitions (e.g., io_service).
-add_definitions(-DASIO_NO_DEPRECATED)
+add_definitions(-DBOOST_ASIO_NO_DEPRECATED)
 
 if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)

@@ -41,7 +41,7 @@ public:
 class ClientTimeoutTest : public testing::Test {
 public:
   static void SetUpTestCase() {
-    g_server.reset(new webcc::Server{ asio::ip::tcp::v4(), kPort });
+    g_server.reset(new webcc::Server{ boost::asio::ip::tcp::v4(), kPort });
 
     g_server->Route(webcc::R{ "/sleep/(\\d+)" },
                     std::make_shared<HelloView>());

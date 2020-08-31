@@ -2,12 +2,12 @@
 
 #include <utility>
 
-#include "asio/write.hpp"
+#include "boost/asio/write.hpp"
 
 #include "webcc/connection_pool.h"
 #include "webcc/logger.h"
 
-using asio::ip::tcp;
+using boost::asio::ip::tcp;
 
 namespace webcc {
 
@@ -20,7 +20,7 @@ Connection::Connection(tcp::socket socket, ConnectionPool* pool,
 void Connection::Start() {
   request_.reset(new Request{});
 
-  std::error_code ec;
+  boost::system::error_code ec;
   auto endpoint = socket_.remote_endpoint(ec);
   if (!ec) {
     request_->set_ip(endpoint.address().to_string());
@@ -36,7 +36,7 @@ void Connection::Close() {
   // Initiate graceful connection closure.
   // Socket close VS. shutdown:
   //   https://stackoverflow.com/questions/4160347/close-vs-shutdown-socket
-  std::error_code ec;
+  boost::system::error_code ec;
   socket_.shutdown(tcp::socket::shutdown_both, ec);
 
   if (ec) {
@@ -82,17 +82,17 @@ void Connection::SendResponse(Status status, bool no_keep_alive) {
 }
 
 void Connection::DoRead() {
-  socket_.async_read_some(asio::buffer(buffer_),
+  socket_.async_read_some(boost::asio::buffer(buffer_),
                           std::bind(&Connection::OnRead, shared_from_this(),
                                     std::placeholders::_1,
                                     std::placeholders::_2));
 }
 
-void Connection::OnRead(std::error_code ec, std::size_t length) {
+void Connection::OnRead(boost::system::error_code ec, std::size_t length) {
   if (ec) {
-    if (ec == asio::error::eof) {
+    if (ec == boost::asio::error::eof) {
       LOG_INFO("Socket read EOF (%s).", ec.message().c_str());
-    } else if (ec == asio::error::operation_aborted) {
+    } else if (ec == boost::asio::error::operation_aborted) {
       // The socket of this connection has been closed.
       // This happens, e.g., when the server was stopped by a signal (Ctrl-C).
       LOG_WARN("Socket operation aborted (%s).", ec.message().c_str());
@@ -102,7 +102,7 @@ void Connection::OnRead(std::error_code ec, std::size_t length) {
 
     // Don't try to send any response back.
 
-    if (ec != asio::error::operation_aborted) {
+    if (ec != boost::asio::error::operation_aborted) {
       pool_->Close(shared_from_this());
     }  // else: The socket of this connection has already been closed.
 
@@ -135,13 +135,13 @@ void Connection::DoWrite() {
   LOG_VERB("HTTP response:\n%s", response_->Dump().c_str());
 
   // Firstly, write the headers.
-  asio::async_write(socket_, response_->GetPayload(),
+  boost::asio::async_write(socket_, response_->GetPayload(),
                            std::bind(&Connection::OnWriteHeaders,
                                      shared_from_this(), std::placeholders::_1,
                                      std::placeholders::_2));
 }
 
-void Connection::OnWriteHeaders(std::error_code ec,
+void Connection::OnWriteHeaders(boost::system::error_code ec,
                                 std::size_t length) {
   if (ec) {
     OnWriteError(ec);
@@ -156,7 +156,7 @@ void Connection::DoWriteBody() {
   auto payload = response_->body()->NextPayload();
 
   if (!payload.empty()) {
-    asio::async_write(socket_, payload,
+    boost::asio::async_write(socket_, payload,
                              std::bind(&Connection::OnWriteBody,
                                        shared_from_this(),
                                        std::placeholders::_1,
@@ -167,7 +167,7 @@ void Connection::DoWriteBody() {
   }
 }
 
-void Connection::OnWriteBody(std::error_code ec, std::size_t length) {
+void Connection::OnWriteBody(boost::system::error_code ec, std::size_t length) {
   if (ec) {
     OnWriteError(ec);
   } else {
@@ -187,10 +187,10 @@ void Connection::OnWriteOK() {
   }
 }
 
-void Connection::OnWriteError(std::error_code ec) {
+void Connection::OnWriteError(boost::system::error_code ec) {
   LOG_ERRO("Socket write error (%s).", ec.message().c_str());
 
-  if (ec != asio::error::operation_aborted) {
+  if (ec != boost::asio::error::operation_aborted) {
     pool_->Close(shared_from_this());
   }
 }

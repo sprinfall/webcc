@@ -11,6 +11,7 @@ set(AT_TARGET_NAME webcc_autotest)
 # Common libraries to link.
 set(AT_LIBS
     webcc
+    ${Boost_LIBRARIES}
     jsoncpp
     GTest::GTest
     "${CMAKE_THREAD_LIBS_INIT}")

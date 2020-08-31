@@ -4,7 +4,7 @@
 #include <iosfwd>
 #include <string>
 
-#include "asio/ip/tcp.hpp"
+#include "boost/asio/ip/tcp.hpp"
 
 #include "webcc/globals.h"
 
@@ -41,10 +41,10 @@ void DumpByLine(const std::string& data, std::ostream& os,
 // Print TCP endpoint.
 // Usage: PrintEndpoint(std::cout, endpoint)
 void PrintEndpoint(std::ostream& ostream,
-                   const asio::ip::tcp::endpoint& endpoint);
+                   const boost::asio::ip::tcp::endpoint& endpoint);
 
 // TCP endpoint to string.
-std::string EndpointToString(const asio::ip::tcp::endpoint& endpoint);
+std::string EndpointToString(const boost::asio::ip::tcp::endpoint& endpoint);
 
 }  // namespace utility
 }  // namespace webcc

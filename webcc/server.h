@@ -6,9 +6,9 @@
 #include <thread>
 #include <vector>
 
-#include "asio/io_context.hpp"
-#include "asio/ip/tcp.hpp"
-#include "asio/signal_set.hpp"
+#include "boost/asio/io_context.hpp"
+#include "boost/asio/ip/tcp.hpp"
+#include "boost/asio/signal_set.hpp"
 
 #include "webcc/connection.h"
 #include "webcc/connection_pool.h"
@@ -20,7 +20,7 @@ namespace webcc {
 
 class Server : public Router {
 public:
-  Server(asio::ip::tcp protocol, std::uint16_t port,
+  Server(boost::asio::ip::tcp protocol, std::uint16_t port,
          const std::filesystem::path& doc_root = {});
 
   ~Server() = default;
@@ -95,7 +95,7 @@ private:
 
 private:
   // tcp::v4() or tcp::v6()
-  asio::ip::tcp protocol_;
+  boost::asio::ip::tcp protocol_;
 
   // Port number.
   std::uint16_t port_;
@@ -114,16 +114,16 @@ private:
   std::mutex state_mutex_;
 
   // The io_context used to perform asynchronous operations.
-  asio::io_context io_context_;
+  boost::asio::io_context io_context_;
 
   // Acceptor used to listen for incoming connections.
-  asio::ip::tcp::acceptor acceptor_;
+  boost::asio::ip::tcp::acceptor acceptor_;
 
   // The connection pool which owns all live connections.
   ConnectionPool pool_;
 
   // The signals for processing termination notifications.
-  asio::signal_set signals_;
+  boost::asio::signal_set signals_;
 
   // Worker threads.
   std::vector<std::thread> worker_threads_;

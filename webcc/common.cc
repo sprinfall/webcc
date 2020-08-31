@@ -214,7 +214,7 @@ FormPartPtr FormPart::NewFile(const std::string& name,
 }
 
 void FormPart::Prepare(Payload* payload) {
-  using asio::buffer;
+  using boost::asio::buffer;
 
   if (data_.empty() && !path_.empty()) {
     if (!utility::ReadFile(path_, &data_)) {

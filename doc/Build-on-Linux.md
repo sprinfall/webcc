@@ -22,6 +22,55 @@ sudo apt install cmake
 sudo apt install zlib1g-dev libssl-dev
 ```
 
+## Install Boost
+
+Download the `.tar.bz2` or `.tar.gz` from [here](https://www.boost.org/users/download/#live).
+
+Unpack and go into the directory (suppose Boost version is 1.70):
+
+```
+tar -xzf boost_1_70_0.tar.bz2
+cd boost_1_70_0
+```
+
+Run `bootstrap.sh` to generate `b2`:
+
+```
+./bootstrap.sh
+```
+
+You can change install prefix with `--prefix` (default is `/usr/local`, need `sudo`), but I don't recommend.
+
+Build and install:
+
+```
+sudo ./b2 --with-system --with-date_time variant=debug link=static threading=multi -j4 install
+```
+
+Notes:
+
+- Only build the specified libraries. `Asio` itself is header only so doesn’t have to be built.
+- Only build static libraries (`link=static`)
+- The number after `-j` depends on the number of CPU cores you have.
+- If you want to build release version libraries, set `variant=release`. The `debug` and `release` libraries have exactly the same name, so you cannot build them both at the same time.
+- Don’t forget the `sudo` since the install prefix is `/usr/local`.
+
+To clean the build, run `b2` with target "clean":
+
+```
+./b2 clean
+```
+
+The libraries are installed to `/usr/local/lib`. E.g.,
+
+```
+$ ls -l /usr/local/lib/libboost*
+-rw-r--r--  1 adam  admin   540288 Apr 21 11:01 /usr/local/lib/libboost_date_time.a
+...
+```
+
+The headers are installed to `/usr/local/include/boost`.
+
 ## Build Webcc
 
 Create a build folder under the root (or any other) directory, and `cd` to it:
@@ -39,7 +88,7 @@ cmake -G"Unix Makefiles" \
     -DWEBCC_ENABLE_LOG=1 \
     -DWEBCC_LOG_LEVEL=0 \
     -DWEBCC_ENABLE_SSL=1 \
-    -DWEBCC_ENABLE_GZIP=1 \g
+    -DWEBCC_ENABLE_GZIP=1 \
     -DWEBCC_ENABLE_AUTOTEST=OFF \
     -DWEBCC_ENABLE_UNITTEST=OFF \
     -DWEBCC_ENABLE_EXAMPLES=OFF \
@@ -66,7 +115,7 @@ Install the libraries:
 make install
 ```
 
-If you `WEBCC_ENABLE_AUTOTEST` was `ON`, you can run the automation test:
+If `WEBCC_ENABLE_AUTOTEST` was `ON`, you can run the automation test:
 
 ```
 cd autotest

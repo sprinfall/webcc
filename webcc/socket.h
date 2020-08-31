@@ -3,13 +3,13 @@
 
 #include <vector>
 
-#include "asio/ip/tcp.hpp"
+#include "boost/asio/ip/tcp.hpp"
 
 #include "webcc/config.h"
 #include "webcc/request.h"
 
 #if WEBCC_ENABLE_SSL
-#include "asio/ssl.hpp"
+#include "boost/asio/ssl.hpp"
 #endif  // WEBCC_ENABLE_SSL
 
 namespace webcc {
@@ -20,18 +20,18 @@ class SocketBase {
 public:
   virtual ~SocketBase() = default;
 
-  using Endpoints = asio::ip::tcp::resolver::results_type;
+  using Endpoints = boost::asio::ip::tcp::resolver::results_type;
 
   using ReadHandler =
-      std::function<void(std::error_code, std::size_t)>;
+      std::function<void(boost::system::error_code, std::size_t)>;
 
   // TODO: Remove |host|
   virtual bool Connect(const std::string& host, const Endpoints& endpoints) = 0;
 
-  virtual bool Write(const Payload& payload, std::error_code* ec) = 0;
+  virtual bool Write(const Payload& payload, boost::system::error_code* ec) = 0;
 
   virtual bool ReadSome(std::vector<char>* buffer, std::size_t* size,
-                        std::error_code* ec) = 0;
+                        boost::system::error_code* ec) = 0;
 
   virtual void AsyncReadSome(ReadHandler&& handler,
                              std::vector<char>* buffer) = 0;
@@ -43,21 +43,21 @@ public:
 
 class Socket : public SocketBase {
 public:
-  explicit Socket(asio::io_context& io_context);
+  explicit Socket(boost::asio::io_context& io_context);
 
   bool Connect(const std::string& host, const Endpoints& endpoints) override;
 
-  bool Write(const Payload& payload, std::error_code* ec) override;
+  bool Write(const Payload& payload, boost::system::error_code* ec) override;
 
   bool ReadSome(std::vector<char>* buffer, std::size_t* size,
-                std::error_code* ec) override;
+                boost::system::error_code* ec) override;
 
   void AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) override;
 
   bool Close() override;
 
 private:
-  asio::ip::tcp::socket socket_;
+  boost::asio::ip::tcp::socket socket_;
 };
 
 // -----------------------------------------------------------------------------
@@ -66,15 +66,15 @@ private:
 
 class SslSocket : public SocketBase {
 public:
-  explicit SslSocket(asio::io_context& io_context,
+  explicit SslSocket(boost::asio::io_context& io_context,
                      bool ssl_verify = true);
 
   bool Connect(const std::string& host, const Endpoints& endpoints) override;
 
-  bool Write(const Payload& payload, std::error_code* ec) override;
+  bool Write(const Payload& payload, boost::system::error_code* ec) override;
 
   bool ReadSome(std::vector<char>* buffer, std::size_t* size,
-                std::error_code* ec) override;
+                boost::system::error_code* ec) override;
 
   void AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) override;
 
@@ -83,9 +83,9 @@ public:
 private:
   bool Handshake(const std::string& host);
 
-  asio::ssl::context ssl_context_;
+  boost::asio::ssl::context ssl_context_;
 
-  asio::ssl::stream<asio::ip::tcp::socket> ssl_socket_;
+  boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket_;
 
   // Verify the certificate of the peer (remote server) or not.
   bool ssl_verify_;

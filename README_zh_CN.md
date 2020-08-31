@@ -2,10 +2,9 @@
 
 **注意：**
 
-- master 分支不需要 Boost，但是依赖 C++17，Asio 用的是独立版（已包含在 `third_party` 目录）。
-- [legacy](https://github.com/sprinfall/webcc/tree/legacy) 分支只使用了有限的 C++11 特性，需要 Boost 支撑（asio, system, filesystem, regex 等），**能支持较老的编译器，比如 VS2013 和 GCC 4.8**。
+- [legacy](https://github.com/sprinfall/webcc/tree/legacy) 分支只使用了有限的 C++11 特性，**能支持较老的编译器，比如 VS2013 和 GCC 4.8**。
 
-基于 [Asio](https://github.com/chriskohlhoff/asio) 开发的轻量级 C++ HTTP 程序库，同时支持客户端与服务端。
+基于 [Boost Asio](https://www.boost.org/doc/libs/release/libs/asio/) 开发的轻量级 C++ HTTP 程序库，同时支持客户端与服务端。
 
 不管你是要访问 HTTP 服务（比如调用 REST API、下载一个文件），还是要在你的程序里嵌入一个 HTTP 服务（比如 REST Server），Webcc 都是个不错的选择。
 
@@ -238,7 +237,7 @@ public:
 
 int main() {
   try {
-    webcc::Server server{ asio::ip::tcp::v4(), 8080 };
+    webcc::Server server{ boost::asio::ip::tcp::v4(), 8080 };
 
     server.Route("/", std::make_shared<HelloView>());
 
@@ -400,7 +399,7 @@ int main(int argc, char* argv[]) {
   // ...
 
   try {
-    webcc::Server server{ asio::ip::tcp::v4(), 8080 };
+    webcc::Server server{ boost::asio::ip::tcp::v4(), 8080 };
 
     server.Route("/books",
                  std::make_shared<BookListView>(),
@@ -429,10 +428,10 @@ int main(int argc, char* argv[]) {
 
 ### IPv6 服务端
 
-只需把 Server 的 `protocol` 参数改成 `asio::ip::tcp::v6()`：
+只需把 Server 的 `protocol` 参数改成 `boost::asio::ip::tcp::v6()`：
 
 ```cpp
-webcc::Server server{ asio::ip::tcp::v6(), 8080 };
+webcc::Server server{ boost::asio::ip::tcp::v6(), 8080 };
 ```
 
 ### IPv6 客户端

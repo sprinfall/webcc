@@ -17,7 +17,7 @@ int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
   try {
-    webcc::Server server{ asio::ip::tcp::v4(), 8080 };
+    webcc::Server server{ boost::asio::ip::tcp::v4(), 8080 };
 
     server.Route("/", std::make_shared<HelloView>());
 

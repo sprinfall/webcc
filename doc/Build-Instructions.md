@@ -2,7 +2,7 @@
 
 ## Dependencies
 
-* [Asio](https://github.com/chriskohlhoff/asio) (already included in `third_party` folder)
+* [Boost 1.66+](https://www.boost.org/) (asio, system, date_time)
 * [OpenSSL](https://www.openssl.org/) (for HTTPS, optional)
 * [Zlib](https://www.zlib.net/) (for GZIP compression, optional)
 * [Googletest/gtest](https://github.com/google/googletest) (for automation and unit tests, optional)

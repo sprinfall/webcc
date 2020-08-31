@@ -12,11 +12,11 @@
 
 namespace sfs = std::filesystem;
 
-using tcp = asio::ip::tcp;
+using tcp = boost::asio::ip::tcp;
 
 namespace webcc {
 
-Server::Server(asio::ip::tcp protocol, std::uint16_t port,
+Server::Server(boost::asio::ip::tcp protocol, std::uint16_t port,
                const sfs::path& doc_root)
     : protocol_(protocol),
       port_(port),
@@ -75,7 +75,7 @@ void Server::Run(std::size_t workers, std::size_t loops) {
   } else {
     std::vector<std::thread> loop_threads;
     for (std::size_t i = 0; i < loops; ++i) {
-      loop_threads.emplace_back(&asio::io_context::run, &io_context_);
+      loop_threads.emplace_back(&boost::asio::io_context::run, &io_context_);
     }
     // Join the threads for blocking.
     for (std::size_t i = 0; i < loops; ++i) {
@@ -105,7 +105,7 @@ void Server::AddSignals() {
 
 void Server::AsyncWaitSignals() {
   signals_.async_wait(
-      [this](std::error_code, int signo) {
+      [this](boost::system::error_code, int signo) {
         // The server is stopped by canceling all outstanding asynchronous
         // operations. Once all operations have finished the io_context::run()
         // call will exit.
@@ -116,7 +116,7 @@ void Server::AsyncWaitSignals() {
 }
 
 bool Server::Listen(std::uint16_t port) {
-  std::error_code ec;
+  boost::system::error_code ec;
 
   tcp::endpoint endpoint(protocol_, port);
 
@@ -145,7 +145,7 @@ bool Server::Listen(std::uint16_t port) {
   // Start listening for connections.
   // After listen, the client is able to connect to the server even the server
   // has not started to accept the connection yet.
-  acceptor_.listen(asio::socket_base::max_listen_connections, ec);
+  acceptor_.listen(boost::asio::socket_base::max_listen_connections, ec);
   if (ec) {
     LOG_ERRO("Acceptor listen error (%s).", ec.message().c_str());
     return false;
@@ -156,7 +156,7 @@ bool Server::Listen(std::uint16_t port) {
 
 void Server::AsyncAccept() {
   acceptor_.async_accept(
-      [this](std::error_code ec, tcp::socket socket) {
+      [this](boost::system::error_code ec, tcp::socket socket) {
         // Check whether the server was stopped by a signal before this
         // completion handler had a chance to run.
         if (!acceptor_.is_open()) {

@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
   std::string doc_root = argv[2];
 
   try {
-    webcc::Server server{ asio::ip::tcp::v4(), port, doc_root };
+    webcc::Server server{ boost::asio::ip::tcp::v4(), port, doc_root };
 
     if (argc == 4) {
       server.set_file_chunk_size(std::atoi(argv[3]));

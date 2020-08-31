@@ -12,9 +12,9 @@
 #endif  // defined(_WIN32) || defined(_WIN64)
 #endif  // WEBCC_ENABLE_SSL
 
-#include "asio/connect.hpp"
-#include "asio/read.hpp"
-#include "asio/write.hpp"
+#include "boost/asio/connect.hpp"
+#include "boost/asio/read.hpp"
+#include "boost/asio/write.hpp"
 
 #include "webcc/logger.h"
 
@@ -22,12 +22,12 @@ namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-Socket::Socket(asio::io_context& io_context) : socket_(io_context) {
+Socket::Socket(boost::asio::io_context& io_context) : socket_(io_context) {
 }
 
 bool Socket::Connect(const std::string& /*host*/, const Endpoints& endpoints) {
-  std::error_code ec;
-  asio::connect(socket_, endpoints, ec);
+  boost::system::error_code ec;
+  boost::asio::connect(socket_, endpoints, ec);
 
   if (ec) {
     LOG_ERRO("Socket connect error (%s).", ec.message().c_str());
@@ -37,25 +37,25 @@ bool Socket::Connect(const std::string& /*host*/, const Endpoints& endpoints) {
   return true;
 }
 
-bool Socket::Write(const Payload& payload, std::error_code* ec) {
-  asio::write(socket_, payload, *ec);
+bool Socket::Write(const Payload& payload, boost::system::error_code* ec) {
+  boost::asio::write(socket_, payload, *ec);
   return !(*ec);
 }
 
 bool Socket::ReadSome(std::vector<char>* buffer, std::size_t* size,
-                      std::error_code* ec) {
-  *size = socket_.read_some(asio::buffer(*buffer), *ec);
+                      boost::system::error_code* ec) {
+  *size = socket_.read_some(boost::asio::buffer(*buffer), *ec);
   return (*size != 0 && !(*ec));
 }
 
 void Socket::AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) {
-  socket_.async_read_some(asio::buffer(*buffer), std::move(handler));
+  socket_.async_read_some(boost::asio::buffer(*buffer), std::move(handler));
 }
 
 bool Socket::Close() {
-  std::error_code ec;
+  boost::system::error_code ec;
 
-  socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
+  socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
 
   if (ec) {
     LOG_WARN("Socket shutdown error (%s).", ec.message().c_str());
@@ -125,9 +125,9 @@ static bool UseSystemCertificateStore(SSL_CTX* ssl_ctx) {
 
 #endif  // defined(_WIN32) || defined(_WIN64)
 
-namespace ssl = asio::ssl;
+namespace ssl = boost::asio::ssl;
 
-SslSocket::SslSocket(asio::io_context& io_context, bool ssl_verify)
+SslSocket::SslSocket(boost::asio::io_context& io_context, bool ssl_verify)
     : ssl_context_(ssl::context::sslv23),
       ssl_socket_(io_context, ssl_context_),
       ssl_verify_(ssl_verify) {
@@ -142,8 +142,8 @@ SslSocket::SslSocket(asio::io_context& io_context, bool ssl_verify)
 }
 
 bool SslSocket::Connect(const std::string& host, const Endpoints& endpoints) {
-  std::error_code ec;
-  asio::connect(ssl_socket_.lowest_layer(), endpoints, ec);
+  boost::system::error_code ec;
+  boost::asio::connect(ssl_socket_.lowest_layer(), endpoints, ec);
 
   if (ec) {
     LOG_ERRO("Socket connect error (%s).", ec.message().c_str());
@@ -153,24 +153,24 @@ bool SslSocket::Connect(const std::string& host, const Endpoints& endpoints) {
   return Handshake(host);
 }
 
-bool SslSocket::Write(const Payload& payload, std::error_code* ec) {
-  asio::write(ssl_socket_, payload, *ec);
+bool SslSocket::Write(const Payload& payload, boost::system::error_code* ec) {
+  boost::asio::write(ssl_socket_, payload, *ec);
   return !(*ec);
 }
 
 bool SslSocket::ReadSome(std::vector<char>* buffer, std::size_t* size,
-                         std::error_code* ec) {
-  *size = ssl_socket_.read_some(asio::buffer(*buffer), *ec);
+                         boost::system::error_code* ec) {
+  *size = ssl_socket_.read_some(boost::asio::buffer(*buffer), *ec);
   return (*size != 0 && !(*ec));
 }
 
 void SslSocket::AsyncReadSome(ReadHandler&& handler,
                               std::vector<char>* buffer) {
-  ssl_socket_.async_read_some(asio::buffer(*buffer), std::move(handler));
+  ssl_socket_.async_read_some(boost::asio::buffer(*buffer), std::move(handler));
 }
 
 bool SslSocket::Close() {
-  std::error_code ec;
+  boost::system::error_code ec;
   ssl_socket_.lowest_layer().close(ec);
   return !ec;
 }
@@ -182,10 +182,16 @@ bool SslSocket::Handshake(const std::string& host) {
     ssl_socket_.set_verify_mode(ssl::verify_none);
   }
 
+  // ssl::host_name_verification has been added since Boost 1.73 to replace
+  // ssl::rfc2818_verification.
+#if BOOST_VERSION < 107300
   ssl_socket_.set_verify_callback(ssl::rfc2818_verification(host));
+#else
+  ssl_socket_.set_verify_callback(ssl::host_name_verification(host));
+#endif  // BOOST_VERSION < 107300
 
   // Use sync API directly since we don't need timeout control.
-  std::error_code ec;
+  boost::system::error_code ec;
   ssl_socket_.handshake(ssl::stream_base::client, ec);
 
   if (ec) {

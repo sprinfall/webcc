@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
   std::cout << "Book photos will be saved to: " << photo_dir << std::endl;
 
   try {
-    webcc::Server server{ asio::ip::tcp::v4(), port };
+    webcc::Server server{ boost::asio::ip::tcp::v4(), port };
 
     server.Route("/books",
                  std::make_shared<BookListView>(),

@@ -1,14 +1,13 @@
 # Webcc - C++ HTTP Library
 
 **NOTE：**
-- **master** branch uses C++17 so it doesn't need _Boost_. Asio, as a header-only library, has been included in the `third_party` folder.
 - **[legacy](https://github.com/sprinfall/webcc/tree/legacy)** branch only uses limited C++11 features, so it could be built by old compilers like _VS2013_ and _GCC 4.8_.
 
 ----
 
 [__中文版 README__](README_zh_CN.md)
 
-Lightweight C++ HTTP __client and server__ library based on [Asio](https://github.com/chriskohlhoff/asio) for __embedding__ purpose.
+Lightweight C++ HTTP __client and server__ library based on [Asio](https://www.boost.org/doc/libs/release/libs/asio/) for __embedding__ purpose.
 
 => [Build Instructions](doc/Build-Instructions.md)
 
@@ -236,7 +235,7 @@ public:
 
 int main() {
   try {
-    webcc::Server server{ asio::ip::tcp::v4(), 8080 };
+    webcc::Server server{ boost::asio::ip::tcp::v4(), 8080 };
 
     server.Route("/", std::make_shared<HelloView>());
 
@@ -393,7 +392,7 @@ int main(int argc, char* argv[]) {
   // ...
 
   try {
-    webcc::Server server{ asio::ip::tcp::v4(), 8080 };
+    webcc::Server server{ boost::asio::ip::tcp::v4(), 8080 };
 
     server.Route("/books",
                  std::make_shared<BookListView>(),
@@ -419,10 +418,10 @@ Please see [examples/book_server](examples/book_server) for more details.
 
 ### IPv6 Server
 
-Only need to change the protocol to `asio::ip::tcp::v6()`:
+Only need to change the protocol to `boost::asio::ip::tcp::v6()`:
 
 ```cpp
-webcc::Server server{ asio::ip::tcp::v6(), 8080 };
+webcc::Server server{ boost::asio::ip::tcp::v6(), 8080 };
 ```
 
 ### IPv6 Client

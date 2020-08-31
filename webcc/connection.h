@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "asio/ip/tcp.hpp"
+#include "boost/asio/ip/tcp.hpp"
 
 #include "webcc/globals.h"
 #include "webcc/queue.h"
@@ -23,7 +23,7 @@ using ConnectionPtr = std::shared_ptr<Connection>;
 
 class Connection : public std::enable_shared_from_this<Connection> {
 public:
-  Connection(asio::ip::tcp::socket socket, ConnectionPool* pool,
+  Connection(boost::asio::ip::tcp::socket socket, ConnectionPool* pool,
              Queue<ConnectionPtr>* queue, ViewMatcher&& view_matcher);
 
   ~Connection() = default;
@@ -53,17 +53,17 @@ public:
 
 private:
   void DoRead();
-  void OnRead(std::error_code ec, std::size_t length);
+  void OnRead(boost::system::error_code ec, std::size_t length);
 
   void DoWrite();
-  void OnWriteHeaders(std::error_code ec, std::size_t length);
+  void OnWriteHeaders(boost::system::error_code ec, std::size_t length);
   void DoWriteBody();
-  void OnWriteBody(std::error_code ec, std::size_t length);
+  void OnWriteBody(boost::system::error_code ec, std::size_t length);
   void OnWriteOK();
-  void OnWriteError(std::error_code ec);
+  void OnWriteError(boost::system::error_code ec);
 
   // The socket for the connection.
-  asio::ip::tcp::socket socket_;
+  boost::asio::ip::tcp::socket socket_;
 
   // The connection pool.
   ConnectionPool* pool_;
