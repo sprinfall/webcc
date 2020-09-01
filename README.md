@@ -38,7 +38,7 @@ Git repo: https://github.com/sprinfall/webcc. Please check this one instead of t
 ## Overview
 
 - Cross-platform: Windows, Linux and MacOS
-- Easy-to-use client API inspired by Python [requests](https://2.python-requests.org//en/master/)
+- Easy-to-use client API inspired by Python [requests](https://github.com/psf/requests)
 - IPv6 support
 - SSL/HTTPS support with OpenSSL (optional)
 - GZip compression support with Zlib (optional)
