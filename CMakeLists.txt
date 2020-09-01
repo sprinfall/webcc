@@ -22,7 +22,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BUILD_DIR}/bin/release)
 
 option(WEBCC_ENABLE_AUTOTEST "Build automation test?" OFF)
 option(WEBCC_ENABLE_UNITTEST "Build unit test?" OFF)
-option(WEBCC_ENABLE_EXAMPLES "Build examples?" OFF)
+option(WEBCC_ENABLE_EXAMPLES "Build examples?" ON)
 
 set(WEBCC_ENABLE_LOG   1 CACHE STRING "Enable logging? (1:Yes, 0:No)")
 set(WEBCC_ENABLE_SSL   0 CACHE STRING "Enable SSL/HTTPS (need OpenSSL)? (1:Yes, 0:No)")
@@ -44,11 +44,6 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-# CMake 3.1.0+ required.
-# See: https://stackoverflow.com/a/29871891
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
 
 # Boost
 set(Boost_USE_STATIC_LIBS ON)
@@ -84,19 +79,10 @@ set(THIRD_PARTY_DIR ${PROJECT_SOURCE_DIR}/third_party)
 include_directories(${THIRD_PARTY_DIR}/src)
 
 if(WEBCC_ENABLE_GZIP)
-    # For using zlib on Windows.
-    if(WIN32)
-        add_subdirectory(${THIRD_PARTY_DIR}/src/zlib)
-
-        include_directories(${THIRD_PARTY_DIR}/src/zlib)
-
-        # For including CMake generated zconf.h.
-        include_directories(${PROJECT_BINARY_DIR}/third_party/src/zlib)
-    else()
-        find_package(ZLIB REQUIRED)
-        if(ZLIB_FOUND)
-            include_directories(${ZLIB_INCLUDE_DIRS})
-        endif()
+    find_package(ZLIB REQUIRED)
+    if(ZLIB_FOUND)
+        # You can link to ${ZLIB_LIBRARIES} or the imported target ZLIB::ZLIB.
+        include_directories(${ZLIB_INCLUDE_DIRS})
     endif()
 endif()
 

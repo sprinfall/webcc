@@ -8,26 +8,8 @@ set(UT_TARGET_NAME webcc_unittest)
 # Common libraries to link.
 set(UT_LIBS
     webcc
-    ${Boost_LIBRARIES}
     GTest::GTest
-    GTest::Main
-    "${CMAKE_THREAD_LIBS_INIT}")
-
-if(WEBCC_ENABLE_SSL)
-    set(UT_LIBS ${UT_LIBS} ${OPENSSL_LIBRARIES})
-
-    if(WIN32)
-        set(UT_LIBS ${UT_LIBS} crypt32)
-    endif()
-endif()
-
-if(WEBCC_ENABLE_GZIP)
-    if(WIN32)
-        set(UT_LIBS ${UT_LIBS} zlibstatic)
-    else()
-        set(UT_LIBS ${UT_LIBS} ${ZLIB_LIBRARIES})
-    endif()
-endif()
+    GTest::Main)
 
 if(UNIX)
     # Add `-ldl` for Linux to avoid "undefined reference to `dlopen'".

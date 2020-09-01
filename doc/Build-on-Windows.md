@@ -45,11 +45,23 @@ The only drawback of dynamic link is that you must distribute the OpenSSL DLLs t
 
 ## Install Zlib
 
-Zlib has been included in `third_party\src`.
+Download Zlib from https://www.zlib.net/.
 
-In order to integrate `webcc` into your project, you have to integrate this zlib, too. This makes it complicated. I will come back to this later.
+Use CMake to generate VS solution. Click _**Configure**_ button.
 
-*TODO: Use CMake `find_package()` instead.*
+By default, `CMAKE_INSTALL_PREFIX` points to a folder like `C:/Program Files (x86)/zlib` which is not what we want.
+
+Change `CMAKE_INSTALL_PREFIX` to a folder where you would like to install all the third party libraries. E.g., `D:/lib/cmake_install_2019_64` (NOTE: you must use "/" instead of "\\" as path seperator!).
+
+Remove all the `INSTALL_XXX_DIR` entries. Click _**Configure**_ button again. Now the `INSTALL_XXX_DIR` entries point to the folder defined by `CMAKE_INSTALL_PREFIX`.
+
+Leave all other options untouched, click _**Generate**_ button to generate the VS solution.
+
+Launch the VS solution and build `INSTALL` project for both Debug and Release.
+
+Zlib should now have been installed to the given folder.
+
+In order for CMake to find Zlib during the configuration of Webcc, please add an environment variable named `CMAKE_PREFIX_PATH` which points to the CMake install directory.
 
 ## Install Googletest
 

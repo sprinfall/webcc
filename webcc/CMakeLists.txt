@@ -33,6 +33,31 @@ set(TARGET webcc)
 
 add_library(${TARGET} STATIC ${SOURCES} ${HEADERS})
 
+# Link to pthread for Linux. 
+# See: https://stackoverflow.com/a/29871891
+if(UNIX)
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+    find_package(Threads REQUIRED)
+    target_link_libraries(${TARGET} Threads::Threads)
+endif()
+
+# Boost
+target_link_libraries(${TARGET} ${Boost_LIBRARIES})
+
+# ZLIB
+if(WEBCC_ENABLE_GZIP)
+	# The imported target ZLIB::ZLIB could be used instead.
+    target_link_libraries(${TARGET} ${ZLIB_LIBRARIES})
+endif()
+
+# OpenSSL
+if(WEBCC_ENABLE_SSL)
+    target_link_libraries(${TARGET} ${OPENSSL_LIBRARIES})
+    if(WIN32)
+        target_link_libraries(${TARGET} crypt32)
+    endif()
+endif()
+
 # Install lib and header files.
 # On Linux, if CMAKE_INSTALL_PREFIX is ~, the lib (libwebcc.a) will be installed
 # to ~/lib and header files will be installed to ~/include.

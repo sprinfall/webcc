@@ -1,26 +1,7 @@
 # Examples
 
 # Common libraries to link for examples.
-set(EXAMPLE_LIBS
-    webcc
-    ${Boost_LIBRARIES}
-    "${CMAKE_THREAD_LIBS_INIT}")
-
-if(WEBCC_ENABLE_SSL)
-    set(EXAMPLE_LIBS ${EXAMPLE_LIBS} ${OPENSSL_LIBRARIES})
-
-    if(WIN32)
-        set(EXAMPLE_LIBS ${EXAMPLE_LIBS} crypt32)
-    endif()
-endif()
-
-if(WEBCC_ENABLE_GZIP)
-    if(WIN32)
-        set(EXAMPLE_LIBS ${EXAMPLE_LIBS} zlibstatic)
-    else()
-        set(EXAMPLE_LIBS ${EXAMPLE_LIBS} ${ZLIB_LIBRARIES})
-    endif()
-endif()
+set(EXAMPLE_LIBS webcc)
 
 if(UNIX)
     # Add `-ldl` for Linux to avoid "undefined reference to `dlopen'".
