@@ -2,7 +2,7 @@
 
 ## Dependencies
 
-* [Boost 1.66+](https://www.boost.org/) (asio, system, date_time)
+* [Boost 1.66+](https://www.boost.org/) (asio, system, date_time, filesystem)
 * [OpenSSL](https://www.openssl.org/) (for HTTPS, optional)
 * [Zlib](https://www.zlib.net/) (for GZIP compression, optional)
 * [Googletest/gtest](https://github.com/google/googletest) (for automation and unit tests, optional)

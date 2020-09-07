@@ -6,6 +6,8 @@
 #include "webcc/string.h"
 #include "webcc/utility.h"
 
+namespace bfs = boost::filesystem;
+
 namespace webcc {
 
 // -----------------------------------------------------------------------------
@@ -190,8 +192,7 @@ FormPartPtr FormPart::New(const std::string& name, std::string&& data,
   return form_part;
 }
 
-FormPartPtr FormPart::NewFile(const std::string& name,
-                              const std::filesystem::path& path,
+FormPartPtr FormPart::NewFile(const std::string& name, const bfs::path& path,
                               const std::string& media_type) {
   auto form_part = std::make_shared<FormPart>();
 

@@ -1,7 +1,7 @@
 #ifndef VIEWS_H_
 #define VIEWS_H_
 
-#include <filesystem>
+#include "boost/filesystem/path.hpp"
 
 #include "webcc/view.h"
 
@@ -25,7 +25,7 @@ private:
 // URL: /books/{id}
 class BookDetailView : public webcc::View {
 public:
-  explicit BookDetailView(std::filesystem::path photo_dir);
+  explicit BookDetailView(boost::filesystem::path photo_dir);
 
   webcc::ResponsePtr Handle(webcc::RequestPtr request) override;
 
@@ -40,7 +40,7 @@ private:
   webcc::ResponsePtr Delete(webcc::RequestPtr request);
 
 private:
-  std::filesystem::path photo_dir_;
+  boost::filesystem::path photo_dir_;
 };
 
 // -----------------------------------------------------------------------------
@@ -48,7 +48,7 @@ private:
 // URL: /books/{id}/photo
 class BookPhotoView : public webcc::View {
 public:
-  explicit BookPhotoView(std::filesystem::path photo_dir);
+  explicit BookPhotoView(boost::filesystem::path photo_dir);
 
   webcc::ResponsePtr Handle(webcc::RequestPtr request) override;
 
@@ -68,7 +68,7 @@ private:
   webcc::ResponsePtr Delete(webcc::RequestPtr request);
 
 private:
-  std::filesystem::path photo_dir_;
+  boost::filesystem::path photo_dir_;
 };
 
 #endif  // VIEWS_H_

@@ -1,9 +1,10 @@
 #ifndef BOOK_CLIENT_H_
 #define BOOK_CLIENT_H_
 
-#include <filesystem>
 #include <list>
 #include <string>
+
+#include "boost/filesystem/path.hpp"
 
 #include "json/json-forwards.h"
 
@@ -28,13 +29,13 @@ public:
   bool Delete(const std::string& id);
 
   // Get photo, save to the given path.
-  bool GetPhoto(const std::string& id, const std::filesystem::path& path);
+  bool GetPhoto(const std::string& id, const boost::filesystem::path& path);
 
   // Set photo using the file of the given path.
-  bool SetPhoto(const std::string& id, const std::filesystem::path& path);
+  bool SetPhoto(const std::string& id, const boost::filesystem::path& path);
 
 private:
-  bool CheckPhoto(const std::filesystem::path& photo);
+  bool CheckPhoto(const boost::filesystem::path& photo);
 
   // Check HTTP response status.
   bool CheckStatus(webcc::ResponsePtr response, int expected_status);

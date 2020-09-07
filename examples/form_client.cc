@@ -1,12 +1,13 @@
 // A client posting multipart form data.
 
-#include <filesystem>
 #include <iostream>
+
+#include "boost/filesystem/operations.hpp"
 
 #include "webcc/client_session.h"
 #include "webcc/logger.h"
 
-namespace sfs = std::filesystem;
+namespace bfs = boost::filesystem;
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {
@@ -23,7 +24,7 @@ int main(int argc, char* argv[]) {
 
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
-  const sfs::path upload_dir(argv[1]);
+  const bfs::path upload_dir(argv[1]);
 
   std::string url;
   if (argc == 3) {
@@ -32,7 +33,7 @@ int main(int argc, char* argv[]) {
     url = "http://httpbin.org/post";
   }
 
-  if (!sfs::is_directory(upload_dir) || !sfs::exists(upload_dir)) {
+  if (!bfs::is_directory(upload_dir) || !bfs::exists(upload_dir)) {
     std::cerr << "Invalid upload dir!" << std::endl;
     return 1;
   }

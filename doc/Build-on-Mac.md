@@ -12,11 +12,11 @@ Download the .dmg from [here](https://cmake.org/download/). Just double click an
 
 Download the .tar.bz2 or .tar.gz from [here](https://www.boost.org/users/download/#live).
 
-Unpack and go into the directory (suppose Boost version is 1.70):
+Unpack and go into the directory (suppose Boost version is 1.74):
 
 ```
-tar -xzf boost_1_70_0.tar.bz2
-cd boost_1_70_0
+tar -xzf boost_1_74_0.tar.bz2
+cd boost_1_74_0
 ```
 
 Run `bootstrap.sh` to generate `b2`:
@@ -30,7 +30,7 @@ You can change install prefix with `--prefix` option (default is `/usr/local`, n
 Build and install:
 
 ```
-sudo ./b2 --with-system --with-date_time variant=debug link=static threading=multi -j4 install
+sudo ./b2 --with-system --with-date_time --with-filesystem variant=debug link=static threading=multi -j4 install
 ```
 
 Notes:
@@ -53,6 +53,7 @@ The libraries are installed to `/usr/local/lib`. E.g.,
 $ ls -l /usr/local/lib/libboost*
 -rw-r--r--  1 adam  admin   540288 Apr 21 11:01 /usr/local/lib/libboost_date_time.a
 -rw-r--r--  1 root  admin     2976 Apr 21 11:01 /usr/local/lib/libboost_system.a
+...
 ```
 
 The headers are installed to `/usr/local/include/boost`.
@@ -114,34 +115,4 @@ Open Terminal, go to the build directory, run `make`. E.g.,
 ```
 $ cd github/webcc_build
 $ make -j4
-```
-
-There might be some warnings, just ignore them.
-
-Suppose you have checked `WEBCC_ENABLE_AUTOTEST` during the configuration, you can run it now.
-
-```
-$ cd autotest
-$ ./webcc_autotest
-[==========] Running 7 tests from 1 test case.
-[----------] Global test environment set-up.
-[----------] 7 tests from ClientTest
-[ RUN      ] ClientTest.Get_RequestFunc
-[       OK ] ClientTest.Get_RequestFunc (1066 ms)
-[ RUN      ] ClientTest.Get_Shortcut
-[       OK ] ClientTest.Get_Shortcut (1844 ms)
-[ RUN      ] ClientTest.Get_SSL
-[       OK ] ClientTest.Get_SSL (2158 ms)
-[ RUN      ] ClientTest.Compression_Gzip
-[       OK ] ClientTest.Compression_Gzip (913 ms)
-[ RUN      ] ClientTest.Compression_Deflate
-[       OK ] ClientTest.Compression_Deflate (921 ms)
-[ RUN      ] ClientTest.KeepAlive
-[       OK ] ClientTest.KeepAlive (5121 ms)
-[ RUN      ] ClientTest.GetImageJpeg
-[       OK ] ClientTest.GetImageJpeg (1244 ms)
-[----------] 7 tests from ClientTest (13267 ms total)
-[----------] Global test environment tear-down
-[==========] 7 tests from 1 test case ran. (13267 ms total)
-[  PASSED  ] 7 tests.
 ```

@@ -41,14 +41,14 @@ if(WIN32)
 endif()
 
 # C++ standard requirements.
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Boost
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.66.0 REQUIRED COMPONENTS system date_time)
+find_package(Boost 1.66.0 REQUIRED COMPONENTS system date_time filesystem)
 if(Boost_FOUND)
     message(STATUS "Boost version: ${Boost_VERSION}")
     include_directories(${Boost_INCLUDE_DIRS})

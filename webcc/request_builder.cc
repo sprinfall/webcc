@@ -9,6 +9,8 @@
 #include "webcc/gzip.h"
 #endif
 
+namespace bfs = boost::filesystem;
+
 namespace webcc {
 
 RequestPtr RequestBuilder::operator()() {
@@ -52,7 +54,7 @@ RequestPtr RequestBuilder::operator()() {
   return request;
 }
 
-RequestBuilder& RequestBuilder::File(const std::filesystem::path& path,
+RequestBuilder& RequestBuilder::File(const bfs::path& path,
                                      bool infer_media_type,
                                      std::size_t chunk_size) {
   body_.reset(new FileBody{ path, chunk_size });
@@ -65,7 +67,7 @@ RequestBuilder& RequestBuilder::File(const std::filesystem::path& path,
 }
 
 RequestBuilder& RequestBuilder::FormFile(const std::string& name,
-                                         const std::filesystem::path& path,
+                                         const bfs::path& path,
                                          const std::string& media_type) {
   assert(!name.empty());
   return Form(FormPart::NewFile(name, path, media_type));

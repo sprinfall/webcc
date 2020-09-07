@@ -2,14 +2,17 @@
 
 #include <algorithm>
 #include <ctime>
-#include <filesystem>
 #include <fstream>
 #include <iomanip>  // for put_time
 #include <iostream>
 #include <sstream>
 
+#include "boost/filesystem/fstream.hpp"
+
 #include "webcc/string.h"
 #include "webcc/version.h"
+
+namespace bfs = boost::filesystem;
 
 namespace webcc {
 namespace utility {
@@ -49,18 +52,18 @@ std::string HttpDate() {
   return std::string(buf) + " GMT";
 }
 
-std::size_t TellSize(const std::filesystem::path& path) {
+std::size_t TellSize(const bfs::path& path) {
   // Flag "ate": seek to the end of stream immediately after open.
-  std::ifstream stream{ path, std::ios::binary | std::ios::ate };
+  bfs::ifstream stream{ path, std::ios::binary | std::ios::ate };
   if (stream.fail()) {
     return kInvalidLength;
   }
   return static_cast<std::size_t>(stream.tellg());
 }
 
-bool ReadFile(const std::filesystem::path& path, std::string* output) {
+bool ReadFile(const bfs::path& path, std::string* output) {
   // Flag "ate": seek to the end of stream immediately after open.
-  std::ifstream stream{ path, std::ios::binary | std::ios::ate };
+  bfs::ifstream stream{ path, std::ios::binary | std::ios::ate };
   if (stream.fail()) {
     return false;
   }

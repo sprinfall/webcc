@@ -1,11 +1,13 @@
 #ifndef WEBCC_BODY_H_
 #define WEBCC_BODY_H_
 
-#include <filesystem>
 #include <fstream>
 #include <memory>
 #include <string>
 #include <utility>
+
+#include "boost/filesystem/fstream.hpp"
+#include "boost/filesystem/path.hpp"
 
 #include "webcc/common.h"
 
@@ -152,14 +154,14 @@ private:
 class FileBody : public Body {
 public:
   // For message to be sent out.
-  FileBody(const std::filesystem::path& path, std::size_t chunk_size);
+  FileBody(const boost::filesystem::path& path, std::size_t chunk_size);
 
   // For message received.
   // No |chunk_size| is needed since you don't iterate the payload of a
   // received message.
   // If |auto_delete| is true, the file will be deleted on destructor unless it
   // is moved to another path (see Move()).
-  FileBody(const std::filesystem::path& path, bool auto_delete = false);
+  FileBody(const boost::filesystem::path& path, bool auto_delete = false);
 
   ~FileBody() override;
 
@@ -173,7 +175,7 @@ public:
 
   void Dump(std::ostream& os, const std::string& prefix) const override;
 
-  const std::filesystem::path& path() const {
+  const boost::filesystem::path& path() const {
     return path_;
   }
 
@@ -186,17 +188,17 @@ public:
   // If |new_path| resolves to an existing non-directory file, it is removed.
   // If |new_path| resolves to an existing directory, it is removed if empty
   // on ISO/IEC 9945 but is an error on Windows.
-  // See std::filesystem::rename() for more details.
-  bool Move(const std::filesystem::path& new_path);
+  // See boost::filesystem::rename() for more details.
+  bool Move(const boost::filesystem::path& new_path);
 
 private:
-  std::filesystem::path path_;
+  boost::filesystem::path path_;
   std::size_t chunk_size_;
   bool auto_delete_;
 
   std::size_t size_;  // File size in bytes
 
-  std::ifstream ifstream_;
+  boost::filesystem::ifstream ifstream_;
   std::string chunk_;
 };
 

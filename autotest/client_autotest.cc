@@ -1,6 +1,8 @@
-#include <filesystem>
 #include <fstream>
 #include <iostream>
+
+#include "boost/filesystem/fstream.hpp"
+#include "boost/filesystem/operations.hpp"
 
 #include "gtest/gtest.h"
 
@@ -9,7 +11,7 @@
 #include "webcc/client_session.h"
 #include "webcc/string.h"
 
-namespace sfs = std::filesystem;
+namespace bfs = boost::filesystem;
 
 // -----------------------------------------------------------------------------
 
@@ -194,15 +196,15 @@ TEST(ClientTest, Get_Jpeg_Stream) {
     EXPECT_TRUE(!file_body->path().empty());
 
     // Backup the path of the temp file.
-    const sfs::path ori_path = file_body->path();
+    const bfs::path ori_path = file_body->path();
 
-    const sfs::path new_path("./wolf.jpeg");
+    const bfs::path new_path("./wolf.jpeg");
 
     bool moved = file_body->Move(new_path);
     EXPECT_TRUE(moved);
-    EXPECT_TRUE(sfs::exists(new_path));
+    EXPECT_TRUE(bfs::exists(new_path));
     // The file in the original path should not exist any more.
-    EXPECT_TRUE(!sfs::exists(ori_path));
+    EXPECT_TRUE(!bfs::exists(ori_path));
 
     // After move, the original path should be reset.
     EXPECT_TRUE(file_body->path().empty());
@@ -218,7 +220,7 @@ TEST(ClientTest, Get_Jpeg_Stream_NoMove) {
   webcc::ClientSession session;
 
   try {
-    sfs::path ori_path;
+    bfs::path ori_path;
 
     {
       auto r = session.Send(webcc::RequestBuilder{}.
@@ -236,7 +238,7 @@ TEST(ClientTest, Get_Jpeg_Stream_NoMove) {
     }
 
     // The temp file should be deleted.
-    EXPECT_TRUE(!sfs::exists(ori_path));
+    EXPECT_TRUE(!bfs::exists(ori_path));
 
   } catch (const webcc::Error& error) {
     std::cerr << error << std::endl;
@@ -309,23 +311,22 @@ TEST(ClientTest, Post) {
   }
 }
 
-static sfs::path GenerateTempFile(const std::string& data) {
+static bfs::path GenerateTempFile(const std::string& data) {
   try {
-    sfs::path path =
-        sfs::temp_directory_path() / webcc::random_string(10);
+    bfs::path path = bfs::temp_directory_path() / webcc::random_string(10);
 
-    std::ofstream ofs;
+    bfs::ofstream ofs;
     ofs.open(path, std::ios::binary);
     if (ofs.fail()) {
-      return sfs::path{};
+      return bfs::path{};
     }
 
     ofs << data;
 
     return path;
 
-  } catch (const sfs::filesystem_error&) {
-    return sfs::path{};
+  } catch (const bfs::filesystem_error&) {
+    return bfs::path{};
   }
 }
 
@@ -356,8 +357,8 @@ TEST(ClientTest, Post_FileBody) {
   }
 
   // Remove the temp file.
-  std::error_code ec;
-  sfs::remove(path, ec);
+  boost::system::error_code ec;
+  bfs::remove(path, ec);
 }
 
 #if WEBCC_ENABLE_GZIP

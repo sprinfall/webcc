@@ -9,12 +9,7 @@
 #include <cstring>  // for strrchr()
 #include <string>
 
-// Avoid include <filesystem> in the header.
-namespace std {
-namespace filesystem {
-class path;
-}  // namespace filesystem
-}  // namespace std
+#include "boost/filesystem/path.hpp"
 
 // Log levels.
 // VERB is similar to DEBUG commonly used by other projects.
@@ -49,7 +44,7 @@ const int LOG_FILE_OVERWRITE = LOG_FILE | LOG_OVERWRITE;
 
 // Initialize logger.
 // If |dir| is empty, log file will be generated in current directory.
-void LogInit(const std::filesystem::path& dir, int modes);
+void LogInit(const boost::filesystem::path& dir, int modes);
 
 void Log(int level, const char* file, int line, const char* format, ...);
 

@@ -2,11 +2,15 @@
 
 #include <iostream>
 
+#include "boost/filesystem/operations.hpp"
+
 #include "json/json.h"
 
 #include "webcc/string.h"
 
 #include "book_json.h"
+
+namespace bfs = boost::filesystem;
 
 BookClient::BookClient(const std::string& url, int timeout)
     : url_(url), session_(timeout) {
@@ -124,8 +128,7 @@ bool BookClient::Delete(const std::string& id) {
   }
 }
 
-bool BookClient::GetPhoto(const std::string& id,
-                          const std::filesystem::path& path) {
+bool BookClient::GetPhoto(const std::string& id, const bfs::path& path) {
   try {
     auto r = session_.Send(WEBCC_GET(url_).
                            Path("books").Path(id).Path("photo")(),
@@ -145,8 +148,7 @@ bool BookClient::GetPhoto(const std::string& id,
   }
 }
 
-bool BookClient::SetPhoto(const std::string& id,
-                          const std::filesystem::path& path) {
+bool BookClient::SetPhoto(const std::string& id, const bfs::path& path) {
   try {
     if (!CheckPhoto(path)) {
       return false;
@@ -168,13 +170,12 @@ bool BookClient::SetPhoto(const std::string& id,
   }
 }
 
-bool BookClient::CheckPhoto(const std::filesystem::path& photo) {
+bool BookClient::CheckPhoto(const bfs::path& photo) {
   if (photo.empty()) {
     return false;
   }
 
-  if (!std::filesystem::is_regular_file(photo) ||
-      !std::filesystem::exists(photo)) {
+  if (!bfs::is_regular_file(photo) || !bfs::exists(photo)) {
     return false;
   }
 

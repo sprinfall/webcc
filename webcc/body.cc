@@ -1,11 +1,15 @@
 #include "webcc/body.h"
 
+#include "boost/filesystem/operations.hpp"
+
 #include "webcc/logger.h"
 #include "webcc/utility.h"
 
 #if WEBCC_ENABLE_GZIP
 #include "webcc/gzip.h"
 #endif
+
+namespace bfs = boost::filesystem;
 
 namespace webcc {
 
@@ -153,7 +157,7 @@ void FormBody::Free(std::size_t index) {
 
 // -----------------------------------------------------------------------------
 
-FileBody::FileBody(const std::filesystem::path& path, std::size_t chunk_size)
+FileBody::FileBody(const bfs::path& path, std::size_t chunk_size)
     : path_(path), chunk_size_(chunk_size), auto_delete_(false), size_(0) {
   size_ = utility::TellSize(path_);
   if (size_ == kInvalidLength) {
@@ -161,15 +165,15 @@ FileBody::FileBody(const std::filesystem::path& path, std::size_t chunk_size)
   }
 }
 
-FileBody::FileBody(const std::filesystem::path& path, bool auto_delete)
+FileBody::FileBody(const bfs::path& path, bool auto_delete)
     : path_(path), chunk_size_(0), auto_delete_(auto_delete), size_(0) {
   // Don't need to tell file size.
 }
 
 FileBody::~FileBody() {
   if (auto_delete_ && !path_.empty()) {
-    std::error_code ec;
-    std::filesystem::remove(path_, ec);
+    boost::system::error_code ec;
+    bfs::remove(path_, ec);
     if (ec) {
       LOG_ERRO("Failed to remove file (%s).", ec.message().c_str());
     }
@@ -205,7 +209,7 @@ void FileBody::Dump(std::ostream& os, const std::string& prefix) const {
   os << prefix << "<file: " << path_.string() << ">" << std::endl;
 }
 
-bool FileBody::Move(const std::filesystem::path& new_path) {
+bool FileBody::Move(const bfs::path& new_path) {
   if (path_ == new_path) {
     return false;
   }
@@ -214,8 +218,8 @@ bool FileBody::Move(const std::filesystem::path& new_path) {
     ifstream_.close();
   }
 
-  std::error_code ec;
-  std::filesystem::rename(path_, new_path, ec);
+  boost::system::error_code ec;
+  bfs::rename(path_, new_path, ec);
 
   if (ec) {
     LOG_ERRO("Failed to rename file (%s).", ec.message().c_str());

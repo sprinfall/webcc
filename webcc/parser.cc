@@ -1,5 +1,7 @@
 #include "webcc/parser.h"
 
+#include "boost/filesystem/operations.hpp"
+
 #include "webcc/logger.h"
 #include "webcc/message.h"
 #include "webcc/string.h"
@@ -8,6 +10,8 @@
 #if WEBCC_ENABLE_GZIP
 #include "webcc/gzip.h"
 #endif
+
+namespace bfs = boost::filesystem;
 
 namespace webcc {
 
@@ -65,7 +69,7 @@ bool StringBodyHandler::Finish() {
 
 bool FileBodyHandler::OpenFile() {
   try {
-    temp_path_ = std::filesystem::temp_directory_path();
+    temp_path_ = bfs::temp_directory_path();
 
     // Generate a random string as file name.
     // A replacement of boost::filesystem::unique_path().
@@ -74,7 +78,7 @@ bool FileBodyHandler::OpenFile() {
     LOG_VERB("Generate a temp path for streaming: %s",
              temp_path_.string().c_str());
 
-  } catch (const std::filesystem::filesystem_error&) {
+  } catch (const bfs::filesystem_error&) {
     LOG_ERRO("Failed to generate temp path for streaming.");
     return false;
   }

@@ -1,9 +1,11 @@
 #ifndef WEBCC_PARSER_H_
 #define WEBCC_PARSER_H_
 
-#include <filesystem>
 #include <fstream>
 #include <string>
+
+#include "boost/filesystem/fstream.hpp"
+#include "boost/filesystem/path.hpp"
 
 #include "webcc/common.h"
 #include "webcc/globals.h"
@@ -82,8 +84,8 @@ public:
 
 private:
   std::size_t streamed_size_ = 0;
-  std::ofstream ofstream_;
-  std::filesystem::path temp_path_;
+  boost::filesystem::ofstream ofstream_;
+  boost::filesystem::path temp_path_;
 };
 
 // -----------------------------------------------------------------------------

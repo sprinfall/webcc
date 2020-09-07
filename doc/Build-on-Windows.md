@@ -15,12 +15,12 @@ In the prompt, `cd` to the Boost root directory. Run `bootstrap.bat` to generate
 Run `b2.exe` to start the build:
 
 ```
-b2 --with-system --with-date_time variant=debug variant=release link=static threading=multi address-model=64 stage
+b2 --with-system --with-date_time --with-filesystem variant=debug variant=release link=static threading=multi address-model=64 stage
 ```
 
 NOTE: Given `address-model=64` `b2.exe` will not build any x86 libraries.
 
-As you can see, we only need to build `system` and `date_time` which are used by Asio. Asio itself is a header-only library.
+As you can see, we only need to build `system`, `date_time` and `filesystem`. Asio itself is a header-only library.
 
 We don't install Boost to any other place (e.g., `C:\Boost`). We just `stage` it where it is.
 

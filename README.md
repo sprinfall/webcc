@@ -7,7 +7,7 @@
 
 [__中文版 README__](README_zh_CN.md)
 
-Lightweight C++ HTTP __client and server__ library based on [Asio](https://www.boost.org/doc/libs/release/libs/asio/) for __embedding__ purpose.
+Lightweight C++ HTTP __client and server__ library based on [Boost Asio](https://www.boost.org/doc/libs/release/libs/asio/) for __embedding__ purpose.
 
 => [Build Instructions](doc/Build-Instructions.md)
 

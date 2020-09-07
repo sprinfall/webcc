@@ -1,10 +1,11 @@
 #ifndef WEBCC_SERVER_H_
 #define WEBCC_SERVER_H_
 
-#include <filesystem>
 #include <string>
 #include <thread>
 #include <vector>
+
+#include "boost/filesystem/path.hpp"
 
 #include "boost/asio/io_context.hpp"
 #include "boost/asio/ip/tcp.hpp"
@@ -21,7 +22,7 @@ namespace webcc {
 class Server : public Router {
 public:
   Server(boost::asio::ip::tcp protocol, std::uint16_t port,
-         const std::filesystem::path& doc_root = {});
+         const boost::filesystem::path& doc_root = {});
 
   ~Server() = default;
 
@@ -101,7 +102,7 @@ private:
   std::uint16_t port_;
 
   // The directory with the static files to be served.
-  std::filesystem::path doc_root_;
+  boost::filesystem::path doc_root_;
 
   // The size of the chunk loaded into memory each time when serving a
   // static file.

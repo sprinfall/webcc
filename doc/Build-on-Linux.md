@@ -2,8 +2,6 @@
 
 _For Ubuntu based Linux distributions._
 
-_NOTE: The usage of C++17 `filesystem` library requires GCC to be version 8 and above. It means that Webcc will not compile on Ubuntu LTS 18.04._
-
 ## Install Build Essential
 
 ```
@@ -12,9 +10,7 @@ sudo apt install build-essential
 
 ## Install CMake
 
-```
-sudo apt install cmake
-```
+Please refer to https://apt.kitware.com/.
 
 ## Install Zlib & OpenSSL
 
@@ -26,11 +22,11 @@ sudo apt install zlib1g-dev libssl-dev
 
 Download the `.tar.bz2` or `.tar.gz` from [here](https://www.boost.org/users/download/#live).
 
-Unpack and go into the directory (suppose Boost version is 1.70):
+Unpack and go into the directory (suppose Boost version is 1.74):
 
 ```
-tar -xzf boost_1_70_0.tar.bz2
-cd boost_1_70_0
+tar -xzf boost_1_74_0.tar.bz2
+cd boost_1_74_0
 ```
 
 Run `bootstrap.sh` to generate `b2`:
@@ -44,7 +40,7 @@ You can change install prefix with `--prefix` (default is `/usr/local`, need `su
 Build and install:
 
 ```
-sudo ./b2 --with-system --with-date_time variant=debug link=static threading=multi -j4 install
+sudo ./b2 --with-system --with-date_time --with-filesystem variant=debug link=static threading=multi -j4 install
 ```
 
 Notes:
@@ -91,7 +87,7 @@ cmake -G"Unix Makefiles" \
     -DWEBCC_ENABLE_GZIP=1 \
     -DWEBCC_ENABLE_AUTOTEST=OFF \
     -DWEBCC_ENABLE_UNITTEST=OFF \
-    -DWEBCC_ENABLE_EXAMPLES=OFF \
+    -DWEBCC_ENABLE_EXAMPLES=ON \
     ..
 ```
 
@@ -108,16 +104,3 @@ make -j4
 ```
 
 The number after `-j` depends on how many CPU cores you have. You can just ignore `-j` option.
-
-Install the libraries:
-
-```bash
-make install
-```
-
-If `WEBCC_ENABLE_AUTOTEST` was `ON`, you can run the automation test:
-
-```
-cd autotest
-./webcc_autotest
-```
