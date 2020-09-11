@@ -63,7 +63,7 @@ set(WEBCC_ENABLE_GZIP 0 CACHE STRING "是否开启 GZIP 压缩？（1：是，0�
 
 目前，最推荐的集成方式仍然是“源码集成”，即，把 webcc 整个子目录拷贝到你自己的项目中，并添加相应的 CMake 配置。
 
-具体怎么做，请参考：https://github.com/sprinfall/webcc-integration。
+具体怎么做，请参考：[https://github.com/sprinfall/webcc-integration](https://github.com/sprinfall/webcc-integration)。
 
 ## Ubuntu
 
@@ -79,7 +79,7 @@ $ sudo apt install build-essential
 
 拿 Ubuntu 18.04 来说，直接通过 apt 安装的 CMake 版本仅为 3.10，并不能满足我们的需求。Boost 1.66 就需要 CMake 3.11 以上，更不用说 Boost 1.74 了。
 
-要安装新版 CMake，请参考 https://apt.kitware.com/。
+要安装新版 CMake，请参考 [https://apt.kitware.com/](https://apt.kitware.com/)。
 
 ### OpenSSL
 
@@ -233,7 +233,7 @@ OpenSSL 也可以静态链接（见 `C:\Program Files\OpenSSL-Win64\lib\VC\stati
 
 ## Zlib
 
-从 https://www.zlib.net/ 下载 Zlib。
+从 [这里](https://www.zlib.net/) 下载 Zlib。
 
 使用 CMake 生成 VS solution。点击 **Configure** 按钮。
 
