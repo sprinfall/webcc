@@ -10,7 +10,7 @@
 
 Boost Beast 没有一个开箱即用的 HTTP Server，微软 cpprest 的 API 设计复杂，且 server 部分也几乎不可用。Webcc 能满足大多数需求，又兼顾了性能和代码质量。这一点你看一下我们的代码心里就有数了。
 
-[编译指南](doc/Build-Instructions.md)，目前只有英文版。
+=> [编译指南](doc/Build-Instructions_zh_CN.md)。
 
 代码仓库: [https://github.com/sprinfall/webcc](https://github.com/sprinfall/webcc)。 请认准链接，其他人 fork 的仓库，都不是最新的。
 
