@@ -19,6 +19,40 @@ void ClientSession::Accept(const std::string& content_types) {
   }
 }
 
+#if WEBCC_ENABLE_GZIP
+
+// Content-Encoding Tokens:
+//   (https://en.wikipedia.org/wiki/HTTP_compression)
+//
+// * compress 每 UNIX "compress" program method (historic; deprecated in most
+//              applications and replaced by gzip or deflate);
+// * deflate  每 compression based on the deflate algorithm, a combination of
+//              the LZ77 algorithm and Huffman coding, wrapped inside the
+//              zlib data format;
+// * gzip     每 GNU zip format. Uses the deflate algorithm for compression,
+//              but the data format and the checksum algorithm differ from
+//              the "deflate" content-encoding. This method is the most
+//              broadly supported as of March 2011.
+// * identity 每 No transformation is used. This is the default value for
+//              content coding.
+//
+// A note about "deflate":
+// "gzip" is the gzip format, and "deflate" is the zlib format. They should
+// probably have called the second one "zlib" instead to avoid confusion with
+// the raw deflate compressed data format.
+// Simply put, "deflate" is not recommended for HTTP 1.1 encoding.
+// (https://www.zlib.net/zlib_faq.html#faq39)
+
+void ClientSession::AcceptGzip(bool gzip) {
+  if (gzip) {
+    headers_.Set(headers::kAcceptEncoding, "gzip, deflate");
+  } else {
+    headers_.Set(headers::kAcceptEncoding, "identity");
+  }
+}
+
+#endif  // WEBCC_ENABLE_GZIP
+
 void ClientSession::Auth(const std::string& type,
                          const std::string& credentials) {
   headers_.Set(headers::kAuthorization, type + " " + credentials);
@@ -54,41 +88,15 @@ ResponsePtr ClientSession::Send(RequestPtr request, bool stream) {
 }
 
 void ClientSession::InitHeaders() {
-  using namespace headers;
+  headers_.Set(headers::kUserAgent, utility::UserAgent());
 
-  headers_.Set(kUserAgent, utility::UserAgent());
+  headers_.Set(headers::kAccept, "*/*");
 
-  // Content-Encoding Tokens:
-  //   (https://en.wikipedia.org/wiki/HTTP_compression)
-  //
-  // * compress 每 UNIX "compress" program method (historic; deprecated in most
-  //              applications and replaced by gzip or deflate);
-  // * deflate  每 compression based on the deflate algorithm, a combination of
-  //              the LZ77 algorithm and Huffman coding, wrapped inside the
-  //              zlib data format;
-  // * gzip     每 GNU zip format. Uses the deflate algorithm for compression,
-  //              but the data format and the checksum algorithm differ from
-  //              the "deflate" content-encoding. This method is the most
-  //              broadly supported as of March 2011.
-  // * identity 每 No transformation is used. This is the default value for
-  //              content coding.
-  //
-  // A note about "deflate":
-  // "gzip" is the gzip format, and "deflate" is the zlib format. They should
-  // probably have called the second one "zlib" instead to avoid confusion with
-  // the raw deflate compressed data format.
-  // Simply put, "deflate" is not recommended for HTTP 1.1 encoding.
-  // (https://www.zlib.net/zlib_faq.html#faq39)
+  // Accept-Encoding is always default to "identity", even if GZIP is enabled.
+  // Please overwrite with AcceptGzip().
+  headers_.Set(headers::kAcceptEncoding, "identity");
 
-  headers_.Set(kAccept, "*/*");
-
-#if WEBCC_ENABLE_GZIP
-  headers_.Set(kAcceptEncoding, "gzip, deflate");
-#else
-  headers_.Set(kAcceptEncoding, "identity");
-#endif  // WEBCC_ENABLE_GZIP
-
-  headers_.Set(kConnection, "Keep-Alive");
+  headers_.Set(headers::kConnection, "Keep-Alive");
 }
 
 ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream) {
@@ -141,9 +149,11 @@ ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream) {
   }
 
   auto response = client->response();
+
   // The client object might be cached in the pool.
   // Reset to make sure it won't keep a reference to the response object.
   client->Reset();
+
   return response;
 }
 

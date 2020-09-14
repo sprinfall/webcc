@@ -128,6 +128,10 @@ int main() {
 
   webcc::ClientSession session;
 
+#if WEBCC_ENABLE_GZIP
+  session.AcceptGzip();
+#endif
+
   ListEvents(session);
 
   //ListUserFollowers(session, "sprinfall");

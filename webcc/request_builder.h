@@ -124,6 +124,13 @@ public:
     return Header(headers::kAccept, content_types);
   }
 
+#if WEBCC_ENABLE_GZIP
+
+  // Accept Gzip compressed response data or not.
+  RequestBuilder& AcceptGzip(bool gzip = true);
+
+#endif  // WEBCC_ENABLE_GZIP
+
   RequestBuilder& Body(const std::string& data) {
     body_.reset(new StringBody{ data, false });
     return *this;
@@ -173,10 +180,17 @@ public:
   RequestBuilder& Date();
 
 #if WEBCC_ENABLE_GZIP
+
+  // Compress the body data (only for string body).
+  // NOTE:
+  // Most servers don't support compressed requests.
+  // Even the requests module from Python doesn't have a built-in support.
+  // See: https://github.com/kennethreitz/requests/issues/1753
   RequestBuilder& Gzip(bool gzip = true) {
     gzip_ = gzip;
     return *this;
   }
+
 #endif  // WEBCC_ENABLE_GZIP
 
 private:
@@ -207,11 +221,6 @@ private:
   bool keep_alive_ = true;
 
 #if WEBCC_ENABLE_GZIP
-  // Compress the body data (only for string body).
-  // NOTE:
-  // Most servers don't support compressed requests.
-  // Even the requests module from Python doesn't have a built-in support.
-  // See: https://github.com/kennethreitz/requests/issues/1753
   bool gzip_ = false;
 #endif  // WEBCC_ENABLE_GZIP
 };

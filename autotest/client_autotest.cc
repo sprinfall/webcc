@@ -44,31 +44,9 @@ TEST(ClientTest, Head) {
     EXPECT_EQ(webcc::Status::kOK, r->status());
     EXPECT_EQ("OK", r->reason());
 
-    EXPECT_EQ("", r->data());
-
-  } catch (const webcc::Error& error) {
-    std::cerr << error << std::endl;
-  }
-}
-
-// Force Accept-Encoding to be "identity" so that HttpBin.org will include
-// a Content-Length header in the response.
-// This tests that the response with Content-Length while no body could be
-// correctly parsed.
-TEST(ClientTest, Head_AcceptEncodingIdentity) {
-  webcc::ClientSession session;
-
-  try {
-    auto r = session.Send(webcc::RequestBuilder{}.
-                          Head("http://httpbin.org/get").
-                          Header("Accept-Encoding", "identity")
-                          ());
-
-    EXPECT_EQ(webcc::Status::kOK, r->status());
-    EXPECT_EQ("OK", r->reason());
-
     EXPECT_TRUE(r->HasHeader(webcc::headers::kContentLength));
 
+    // The response of HTTP HEAD method has no body.
     EXPECT_EQ("", r->data());
 
   } catch (const webcc::Error& error) {
@@ -77,30 +55,6 @@ TEST(ClientTest, Head_AcceptEncodingIdentity) {
 }
 
 // -----------------------------------------------------------------------------
-
-static void AssertGet(webcc::ResponsePtr r) {
-  EXPECT_EQ(webcc::Status::kOK, r->status());
-  EXPECT_EQ("OK", r->reason());
-
-  Json::Value json = StringToJson(r->data());
-
-  Json::Value args = json["args"];
-
-  EXPECT_EQ(2, args.size());
-  EXPECT_EQ("value1", args["key1"].asString());
-  EXPECT_EQ("value2", args["key2"].asString());
-
-  Json::Value headers = json["headers"];
-
-  EXPECT_EQ("application/json", headers["Accept"].asString());
-  EXPECT_EQ("httpbin.org", headers["Host"].asString());
-
-#if WEBCC_ENABLE_GZIP
-  EXPECT_EQ("gzip, deflate", headers["Accept-Encoding"].asString());
-#else
-  EXPECT_EQ("identity", headers["Accept-Encoding"].asString());
-#endif  // WEBCC_ENABLE_GZIP
-}
 
 TEST(ClientTest, Get) {
   webcc::ClientSession session;
@@ -112,7 +66,22 @@ TEST(ClientTest, Get) {
                           Header("Accept", "application/json")
                           ());
 
-    AssertGet(r);
+    EXPECT_EQ(webcc::Status::kOK, r->status());
+    EXPECT_EQ("OK", r->reason());
+
+    Json::Value json = StringToJson(r->data());
+
+    Json::Value args = json["args"];
+
+    EXPECT_EQ(2, args.size());
+    EXPECT_EQ("value1", args["key1"].asString());
+    EXPECT_EQ("value2", args["key2"].asString());
+
+    Json::Value headers = json["headers"];
+
+    EXPECT_EQ("application/json", headers["Accept"].asString());
+    EXPECT_EQ("identity", headers["Accept-Encoding"].asString());
+    EXPECT_EQ("httpbin.org", headers["Host"].asString());
 
   } catch (const webcc::Error& error) {
     std::cerr << error << std::endl;
@@ -152,10 +121,25 @@ TEST(ClientTest, Get_SSL) {
     auto r = session.Send(webcc::RequestBuilder{}.
                           Get("https://httpbin.org/get").
                           Query("key1", "value1").Query("key2", "value2").
-                          Header("Accept", "application/json")
+                          Accept("application/json")
                           ());
 
-    AssertGet(r);
+    EXPECT_EQ(webcc::Status::kOK, r->status());
+    EXPECT_EQ("OK", r->reason());
+
+    Json::Value json = StringToJson(r->data());
+
+    Json::Value args = json["args"];
+
+    EXPECT_EQ(2, args.size());
+    EXPECT_EQ("value1", args["key1"].asString());
+    EXPECT_EQ("value2", args["key2"].asString());
+
+    Json::Value headers = json["headers"];
+
+    EXPECT_EQ("application/json", headers["Accept"].asString());
+    EXPECT_EQ("identity", headers["Accept-Encoding"].asString());
+    EXPECT_EQ("httpbin.org", headers["Host"].asString());
 
   } catch (const webcc::Error& error) {
     std::cerr << error << std::endl;
@@ -248,9 +232,11 @@ TEST(ClientTest, Get_Jpeg_Stream_NoMove) {
 // -----------------------------------------------------------------------------
 
 #if WEBCC_ENABLE_GZIP
+
 // Test Gzip compressed response.
 TEST(ClientTest, Get_Gzip) {
   webcc::ClientSession session;
+  session.AcceptGzip();
 
   try {
     auto r = session.Send(webcc::RequestBuilder{}.
@@ -265,12 +251,11 @@ TEST(ClientTest, Get_Gzip) {
     std::cerr << error << std::endl;
   }
 }
-#endif  // WEBCC_ENABLE_GZIP
 
-#if WEBCC_ENABLE_GZIP
 // Test Deflate compressed response.
 TEST(ClientTest, Get_Deflate) {
   webcc::ClientSession session;
+  session.AcceptGzip();
 
   try {
     auto r = session.Send(webcc::RequestBuilder{}.
@@ -285,6 +270,7 @@ TEST(ClientTest, Get_Deflate) {
     std::cerr << error << std::endl;
   }
 }
+
 #endif  // WEBCC_ENABLE_GZIP
 
 // -----------------------------------------------------------------------------

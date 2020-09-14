@@ -54,6 +54,19 @@ RequestPtr RequestBuilder::operator()() {
   return request;
 }
 
+#if WEBCC_ENABLE_GZIP
+
+// Accept Gzip compressed response data or not.
+RequestBuilder& RequestBuilder::AcceptGzip(bool gzip) {
+  if (gzip) {
+    return Header(headers::kAcceptEncoding, "gzip, deflate");
+  } else {
+    return Header(headers::kAcceptEncoding, "identity");
+  }
+}
+
+#endif  // WEBCC_ENABLE_GZIP
+
 RequestBuilder& RequestBuilder::File(const bfs::path& path,
                                      bool infer_media_type,
                                      std::size_t chunk_size) {
