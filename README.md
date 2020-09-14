@@ -9,7 +9,7 @@
 
 Lightweight C++ HTTP __client and server__ library based on [Boost Asio](https://www.boost.org/doc/libs/release/libs/asio/) for __embedding__ purpose.
 
-=> [Build Instructions](doc/Build-Instructions.md) ([__中文版__](doc/Build-Instructions_zn_CN.md))
+=> [Build Instructions](doc/Build-Instructions.md) ([__中文版__](doc/Build-Instructions_zh_CN.md))
 
 Git repo: https://github.com/sprinfall/webcc. Please check this one instead of the forked for the latest features.
 
