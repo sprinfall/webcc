@@ -26,6 +26,7 @@ Boost Beast 没有一个开箱即用的 HTTP Server，微软 cpprest 的 API 设
     * [POST 请求](#post-请求)
     * [下载文件](#下载文件)
     * [上传文件](#上传文件)
+    * [多线程调用](#多线程调用)
 * [服务端 API](#服务端-api)
     * [一个最小的服务器](#一个最小的服务器)
     * [URL 路由](#url-路由)
@@ -210,7 +211,36 @@ auto r = session.Send(webcc::RequestBuilder{}.
 
 注意，`Content-Length` 头部还是会设置为文件的真实大小，不同于 `Transfer-Encoding: chunked` 的分块数据形式。
 
-更多示例和用法，请参考 [examples](examples/) 目录。 
+### 多线程调用
+
+一个 `ClientSession` 对象同时只能给一个线程使用，不可以在多个线程间共享。
+
+多线程调用示例:
+
+```cpp
+void ThreadedClient() {
+  std::vector<std::thread> threads;
+
+  for (int i = 0; i < 3; ++i) {
+    threads.emplace_back([]() {
+      webcc::ClientSession session;
+
+      try {
+        auto r = session.Send(webcc::RequestBuilder{}.
+                              Get("http://httpbin.org/get")
+                              ());
+        std::cout << r->data() << std::endl;
+
+      } catch (const webcc::Error&) {
+      }
+    });
+  }
+
+  for (auto& t : threads) {
+    t.join();
+  }
+}
+``` 
 
 ## 服务端 API
 
