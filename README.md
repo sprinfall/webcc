@@ -25,6 +25,7 @@ Git repo: https://github.com/sprinfall/webcc. Please check this one instead of t
     * [POST Request](#post-request)
     * [Downloading Files](#downloading-files)
     * [Uploading Files](#uploading-files)
+    * [Client API and Threads](#client-api-and-threads)
 * [Server API](#server-api)
     * [A Minimal Server](#a-minimal-server)
     * [URL Route](#url-route)
@@ -207,7 +208,36 @@ The file will not be loaded into the memory all at once, instead, it will be rea
 
 Please note that `Content-Length` header will still be set to the true size of the file, this is different from the handling of chunked data (`Transfer-Encoding: chunked`).
 
-Please check the [examples](examples/) for more information.
+### Client API and Threads
+
+A `ClientSession` shouldn't be shared by multiple threads. Please create a new session for each thread.
+
+Example:
+
+```cpp
+void ThreadedClient() {
+  std::vector<std::thread> threads;
+
+  for (int i = 0; i < 3; ++i) {
+    threads.emplace_back([]() {
+      webcc::ClientSession session;
+
+      try {
+        auto r = session.Send(webcc::RequestBuilder{}.
+                              Get("http://httpbin.org/get")
+                              ());
+        std::cout << r->data() << std::endl;
+
+      } catch (const webcc::Error&) {
+      }
+    });
+  }
+
+  for (auto& t : threads) {
+    t.join();
+  }
+}
+```
 
 ## Server API
 
