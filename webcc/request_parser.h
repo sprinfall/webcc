@@ -26,8 +26,6 @@ private:
   // asks for data streaming.
   bool OnHeadersEnd() override;
 
-  bool Stream() const;
-
   bool ParseStartLine(const std::string& line) override;
 
   // Override to handle multipart form data which is request only.
@@ -51,13 +49,14 @@ private:
   // received. The parsing will stop and fail if no view can be matched.
   ViewMatcher view_matcher_;
 
-  // Form data parsing step.
+  // Form data parsing steps.
   enum Step {
     kStart,
     kBoundaryParsed,
     kHeadersParsed,
     kEnded,
   };
+
   Step step_ = kStart;
 
   // The current form part being parsed.

@@ -1,5 +1,6 @@
 // A server handling multipart form data.
 
+#include <fstream>
 #include <iostream>
 #include <string>
 
@@ -25,7 +26,13 @@ private:
 
     for (auto& part : request->form_parts()) {
       std::cout << "name: " << part->name() << std::endl;
-      std::cout << "data: " << std::endl << part->data() << std::endl;
+
+      if (part->file_name().empty()) {
+        std::cout << "data: " << part->data() << std::endl;
+      } else {
+        // Save part->data() as binary to file.
+        // ...
+      }
     }
 
     return webcc::ResponseBuilder{}.Created().Body("OK")();
@@ -36,7 +43,7 @@ private:
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {
-    std::cout << "usage: file_upload_server <port>" << std::endl;
+    std::cout << "usage: form_server <port>" << std::endl;
     return 1;
   }
 

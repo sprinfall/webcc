@@ -130,6 +130,7 @@ protected:
 
   bool ParseHeaderLine(const std::string& line);
 
+  // Parse the given length of data.
   virtual bool ParseContent(const char* data, std::size_t length);
 
   bool ParseFixedContent(const char* data, std::size_t length);

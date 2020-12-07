@@ -50,14 +50,10 @@ bool RequestParser::ParseStartLine(const std::string& line) {
 }
 
 bool RequestParser::ParseContent(const char* data, std::size_t length) {
-  if (chunked_) {
-    return ParseChunkedContent(data, length);
+  if (content_type_.multipart()) {
+    return ParseMultipartContent(data, length);
   } else {
-    if (content_type_.multipart()) {
-      return ParseMultipartContent(data, length);
-    } else {
-      return ParseFixedContent(data, length);
-    }
+    return Parser::ParseContent(data, length);
   }
 }
 
@@ -115,13 +111,18 @@ bool RequestParser::ParseMultipartContent(const char* data,
       std::size_t off = 0;
       std::size_t count = 0;
       bool ended = false;
+
       // TODO: Remember last CRLF position.
-      if (!GetNextBoundaryLine(&off, &count, &ended)) {
-        // Wait until next boundary.
+
+      bool next_boundary_found = GetNextBoundaryLine(&off, &count, &ended);
+
+      if (!next_boundary_found) {
+        part_->AppendData(pending_data_);
+        pending_data_.clear();
         break;
       }
 
-      LOG_INFO("Next boundary found.");
+      // Next boundary found.
 
       // This part has ended.
       if (off > 2) {
@@ -269,7 +270,7 @@ bool RequestParser::IsBoundary(const std::string& str, std::size_t off,
       *end = true;
     }
   }
-  
+
   return strncmp(boundary.c_str(), &str[off + 2], boundary.size()) == 0;
 }
 
