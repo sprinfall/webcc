@@ -1,7 +1,5 @@
 # Webcc 编译指南
 
-**TOC**
-
 * [概览](#概览)
     * [编译依赖](#编译依赖)
     * [编译选项](#编译选项)
@@ -102,7 +100,7 @@ $ sudo apt install zlib1g-dev
 从 Boost 官网下载 [源码包](https://www.boost.org/users/download/#live)，解压并进入根目录：
 
 ```
-$ tar -xzf boost_1_74_0.tar.bz2
+$ tar xzf boost_1_74_0.tar.gz
 $ cd boost_1_74_0
 ```
 

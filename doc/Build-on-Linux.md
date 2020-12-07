@@ -25,7 +25,7 @@ Download the `.tar.bz2` or `.tar.gz` from [here](https://www.boost.org/users/dow
 Unpack and go into the directory (suppose Boost version is 1.74):
 
 ```
-tar -xzf boost_1_74_0.tar.bz2
+tar -xzf boost_1_74_0.tar.gz
 cd boost_1_74_0
 ```
 
