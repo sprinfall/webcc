@@ -113,12 +113,7 @@ bool RequestParser::ParseMultipartContent(const char* data,
       bool ended = false;
 
       // TODO: Remember last CRLF position.
-
-      bool next_boundary_found = GetNextBoundaryLine(&off, &count, &ended);
-
-      if (!next_boundary_found) {
-        part_->AppendData(pending_data_);
-        pending_data_.clear();
+      if (!GetNextBoundaryLine(&off, &count, &ended)) {
         break;
       }
 
