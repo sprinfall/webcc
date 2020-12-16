@@ -48,7 +48,7 @@ bool ResponseParser::ParseStartLine(const std::string& line) {
   std::vector<std::string> parts;
   SplitStartLine(line, &parts);
 
-  if (parts.size() != 3) {
+  if (parts.size() < 2) {
     LOG_ERRO("Invalid HTTP response status line: %s", line.c_str());
     return false;
   }
@@ -65,7 +65,9 @@ bool ResponseParser::ParseStartLine(const std::string& line) {
     return false;
   }
 
-  response_->set_reason(parts[2]);
+  if (parts.size() > 2) {
+    response_->set_reason(parts[2]);
+  }
 
   return true;
 }
