@@ -34,6 +34,9 @@ target_link_libraries(server_states ${EXAMPLE_LIBS})
 add_executable(form_client form_client.cc)
 target_link_libraries(form_client ${EXAMPLE_LIBS})
 
+add_executable(form_urlencoded_client form_urlencoded_client.cc)
+target_link_libraries(form_urlencoded_client ${EXAMPLE_LIBS})
+
 add_executable(form_server form_server.cc)
 target_link_libraries(form_server ${EXAMPLE_LIBS})
 
