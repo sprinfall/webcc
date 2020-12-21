@@ -217,7 +217,7 @@ bool RequestParser::ParsePartHeaders(bool* need_more_data) {
 }
 
 bool RequestParser::GetNextBoundaryLine(std::size_t* b_off,
-                                        std::size_t* b_count,
+                                        std::size_t* b_len,
                                         bool* ended) {
   std::size_t off = 0;
 
@@ -227,15 +227,15 @@ bool RequestParser::GetNextBoundaryLine(std::size_t* b_off,
       break;
     }
 
-    std::size_t count = pos - off;
-    if (count == 0) {
+    std::size_t len = pos - off;
+    if (len == 0) {
       off = pos + 2;
       continue;  // Empty line
     }
 
-    if (IsBoundary(pending_data_, off, count, ended)) {
+    if (IsBoundary(pending_data_, off, len, ended)) {
       *b_off = off;
-      *b_count = count;
+      *b_len = len;
       return true;
     }
 

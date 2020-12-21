@@ -35,8 +35,7 @@ private:
 
   bool ParseMultipartContent(const char* data, std::size_t length);
   bool ParsePartHeaders(bool* need_more_data);
-  bool GetNextBoundaryLine(std::size_t* b_off, std::size_t* b_count,
-                           bool* ended);
+  bool GetNextBoundaryLine(std::size_t* b_off, std::size_t* b_len, bool* ended);
 
   // Check if the str.substr(off, count) is a boundary.
   bool IsBoundary(const std::string& str, std::size_t off,

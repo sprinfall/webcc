@@ -29,6 +29,12 @@ public:
   Server(const Server&) = delete;
   Server& operator=(const Server&) = delete;
 
+  void set_buffer_size(std::size_t buffer_size) {
+    if (buffer_size > 0) {
+      buffer_size_ = buffer_size;
+    }
+  }
+
   void set_file_chunk_size(std::size_t file_chunk_size) {
     assert(file_chunk_size > 0);
     file_chunk_size_ = file_chunk_size;
@@ -84,7 +90,7 @@ private:
   // The connection will keep alive if it's a persistent connection. When next
   // request comes, this connection will be put back to the queue again.
   virtual void Handle(ConnectionPtr connection);
- 
+
   // Match the view by HTTP method and URL (path).
   // Return if a view or static file is matched or not.
   // If the view asks for data streaming, |stream| will be set to true.
@@ -103,6 +109,9 @@ private:
 
   // The directory with the static files to be served.
   boost::filesystem::path doc_root_;
+
+  // The size of the buffer for reading request.
+  std::size_t buffer_size_;
 
   // The size of the chunk loaded into memory each time when serving a
   // static file.

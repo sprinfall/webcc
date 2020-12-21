@@ -24,7 +24,8 @@ using ConnectionPtr = std::shared_ptr<Connection>;
 class Connection : public std::enable_shared_from_this<Connection> {
 public:
   Connection(boost::asio::ip::tcp::socket socket, ConnectionPool* pool,
-             Queue<ConnectionPtr>* queue, ViewMatcher&& view_matcher);
+             Queue<ConnectionPtr>* queue, ViewMatcher&& view_matcher,
+             std::size_t buffer_size);
 
   ~Connection() = default;
 

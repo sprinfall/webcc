@@ -23,6 +23,7 @@ Server::Server(boost::asio::ip::tcp protocol, std::uint16_t port,
     : protocol_(protocol),
       port_(port),
       doc_root_(doc_root),
+      buffer_size_(kBufferSize),
       file_chunk_size_(1024),
       running_(false),
       acceptor_(io_context_),
@@ -173,7 +174,8 @@ void Server::AsyncAccept() {
                                         _2, _3);
 
           auto connection = std::make_shared<Connection>(
-              std::move(socket), &pool_, &queue_, std::move(view_matcher));
+              std::move(socket), &pool_, &queue_, std::move(view_matcher),
+              buffer_size_);
 
           pool_.Start(connection);
         }

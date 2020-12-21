@@ -54,6 +54,8 @@ int main(int argc, char* argv[]) {
   try {
     webcc::Server server{ boost::asio::ip::tcp::v4(), port };
 
+    server.set_buffer_size(webcc::kBufferSize * 10);
+
     server.Route("/upload", std::make_shared<FileUploadView>(), { "POST" });
 
     server.Run();
