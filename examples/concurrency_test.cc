@@ -40,7 +40,7 @@ int main(int argc, const char* argv[]) {
         LOG_USER("End");
 
       } catch (const webcc::Error& error) {
-        LOG_ERRO("Error: %s", error.message().c_str());
+        std::cerr << error << std::endl;
       }
     });
   }
