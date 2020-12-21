@@ -120,7 +120,7 @@ bool RequestParser::ParseMultipartContent(const char* data,
       // Next boundary found.
 
       // This part has ended.
-      if (off > 2) {
+      if (off >= 2) {
         // -2 for excluding the CRLF after the data.
         part_->AppendData(pending_data_.data(), off - 2);
 
