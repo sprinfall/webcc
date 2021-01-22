@@ -118,6 +118,7 @@ bool RequestParser::ParseMultipartContent(const char* data,
       }
 
       // Next boundary found.
+      LOG_INFO("Next boundary found, off=%u", off);
 
       // This part has ended.
       if (off >= 2) {
@@ -128,7 +129,7 @@ bool RequestParser::ParseMultipartContent(const char* data,
         // +2 for including the CRLF after the boundary.
         pending_data_.erase(0, off + count + 2);
       } else {
-        LOG_ERRO("Invalid part data.");
+        LOG_ERRO("Invalid part data. off=%u", off);
         return false;
       }
 

@@ -40,10 +40,14 @@ target_link_libraries(form_urlencoded_client ${EXAMPLE_LIBS})
 add_executable(form_server form_server.cc)
 target_link_libraries(form_server ${EXAMPLE_LIBS})
 
-add_subdirectory(book_server)
-add_subdirectory(book_client)
-
 if(WIN32)
     add_executable(url_unicode url_unicode.cc encoding.cc encoding.h)
     target_link_libraries(url_unicode ${EXAMPLE_LIBS})
+endif()
+
+add_subdirectory(book_server)
+add_subdirectory(book_client)
+
+if(WEBCC_ENABLE_QT_EXAMPLES)
+    add_subdirectory(qt_app_server)
 endif()

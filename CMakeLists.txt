@@ -23,6 +23,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BUILD_DIR}/bin/release)
 option(WEBCC_ENABLE_AUTOTEST "Build automation test?" OFF)
 option(WEBCC_ENABLE_UNITTEST "Build unit test?" OFF)
 option(WEBCC_ENABLE_EXAMPLES "Build examples?" ON)
+option(WEBCC_ENABLE_QT_EXAMPLES "Build Qt application examples?" OFF)
 
 set(WEBCC_ENABLE_LOG   1 CACHE STRING "Enable logging? (1:Yes, 0:No)")
 set(WEBCC_ENABLE_SSL   0 CACHE STRING "Enable SSL/HTTPS (need OpenSSL)? (1:Yes, 0:No)")
