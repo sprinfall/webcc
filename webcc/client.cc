@@ -36,10 +36,10 @@ Error Client::Request(RequestPtr request, bool connect, bool stream) {
   //   - If request.Accept-Encoding is "identity", the response will have
   //     Content-Length.
   if (request->method() == methods::kHead) {
-    response_parser_.set_ignroe_body(true);
+    response_parser_.set_ignore_body(true);
   } else {
     // Reset in case the connection is persistent.
-    response_parser_.set_ignroe_body(false);
+    response_parser_.set_ignore_body(false);
   }
 
   io_context_.restart();

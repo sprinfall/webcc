@@ -73,7 +73,7 @@ bool ResponseParser::ParseStartLine(const std::string& line) {
 }
 
 bool ResponseParser::ParseContent(const char* data, std::size_t length) {
-  if (ignroe_body_) {
+  if (ignore_body_) {
     Finish();
     return true;
   }

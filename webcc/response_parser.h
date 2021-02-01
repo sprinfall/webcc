@@ -16,8 +16,8 @@ public:
 
   void Init(Response* response, bool stream = false);
 
-  void set_ignroe_body(bool ignroe_body) {
-    ignroe_body_ = ignroe_body;
+  void set_ignore_body(bool ignore_body) {
+    ignore_body_ = ignore_body;
   }
 
 private:
@@ -37,7 +37,7 @@ private:
 
   // The response for HEAD request could also have `Content-Length` header,
   // set this flag to ignore it.
-  bool ignroe_body_ = false;
+  bool ignore_body_ = false;
 };
 
 }  // namespace webcc
