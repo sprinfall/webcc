@@ -4,7 +4,7 @@
 #include "webcc/logger.h"
 #include "webcc/utility.h"
 
-#if WEBCC_ENABLE_GZIP
+#ifdef WEBCC_ENABLE_GZIP
 #include "webcc/gzip.h"
 #endif
 
@@ -24,7 +24,7 @@ ResponsePtr ResponseBuilder::operator()() {
   if (body_) {
     response->SetContentType(media_type_, charset_);
 
-#if WEBCC_ENABLE_GZIP
+#ifdef WEBCC_ENABLE_GZIP
     if (gzip_) {
       // Don't try to compress the response if the request doesn't accept gzip.
       if (request_ && request_->AcceptEncodingGzip()) {

@@ -20,10 +20,10 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${BUILD_DIR}/bin/release)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${BUILD_DIR}/bin/release)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BUILD_DIR}/bin/release)
 
-option(WEBCC_ENABLE_AUTOTEST "Build automation test?" OFF)
-option(WEBCC_ENABLE_UNITTEST "Build unit test?" OFF)
-option(WEBCC_ENABLE_EXAMPLES "Build examples?" ON)
-option(WEBCC_ENABLE_QT_EXAMPLES "Build Qt application examples?" OFF)
+option(BUILD_AUTOTEST "Build automation test?" OFF)
+option(BUILD_UNITTEST "Build unit test?" OFF)
+option(BUILD_EXAMPLES "Build examples?" ON)
+option(BUILD_QT_EXAMPLES "Build Qt application examples?" OFF)
 
 set(WEBCC_ENABLE_LOG   1 CACHE STRING "Enable logging? (1:Yes, 0:No)")
 set(WEBCC_ENABLE_SSL   0 CACHE STRING "Enable SSL/HTTPS (need OpenSSL)? (1:Yes, 0:No)")
@@ -31,14 +31,14 @@ set(WEBCC_ENABLE_GZIP  0 CACHE STRING "Enable gzip compression (need Zlib)? (1:Y
 
 set(WEBCC_LOG_LEVEL    2 CACHE STRING "Log level (0:VERB, 1:INFO, 2:USER, 3:WARN or 4:ERRO)")
 
-if(WEBCC_ENABLE_UNITTEST)
+if(BUILD_UNITTEST)
     enable_testing()
 endif()
 
 if(WIN32)
     # Asio needs this!
     # 0x0601 means Win7. So our application targets Win7 and above.
-    add_definitions(-D_WIN32_WINNT=0x0601)
+    add_compile_definitions(_WIN32_WINNT=0x0601)
 endif()
 
 # C++ standard requirements.
@@ -89,7 +89,7 @@ endif()
 
 add_subdirectory(webcc)
 
-if(WEBCC_ENABLE_AUTOTEST OR WEBCC_ENABLE_EXAMPLES)
+if(BUILD_AUTOTEST OR BUILD_EXAMPLES)
     # For including jsoncpp as "json/json.h".
     include_directories(${THIRD_PARTY_DIR}/src/jsoncpp)
 
@@ -97,7 +97,7 @@ if(WEBCC_ENABLE_AUTOTEST OR WEBCC_ENABLE_EXAMPLES)
 endif()
 
 # GTest
-if(WEBCC_ENABLE_AUTOTEST OR WEBCC_ENABLE_UNITTEST)
+if(BUILD_AUTOTEST OR BUILD_UNITTEST)
     find_package(GTest REQUIRED)
     if(GTEST_FOUND)
         add_definitions(-DGTEST_LANG_CXX11=1)
@@ -105,14 +105,14 @@ if(WEBCC_ENABLE_AUTOTEST OR WEBCC_ENABLE_UNITTEST)
     endif()
 endif()
 
-if(WEBCC_ENABLE_AUTOTEST)
+if(BUILD_AUTOTEST)
     add_subdirectory(autotest)
 endif()
 
-if(WEBCC_ENABLE_UNITTEST)
+if(BUILD_UNITTEST)
     add_subdirectory(unittest)
 endif()
 
-if(WEBCC_ENABLE_EXAMPLES)
+if(BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()

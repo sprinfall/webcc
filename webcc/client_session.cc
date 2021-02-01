@@ -19,7 +19,7 @@ void ClientSession::Accept(const std::string& content_types) {
   }
 }
 
-#if WEBCC_ENABLE_GZIP
+#ifdef WEBCC_ENABLE_GZIP
 
 // Content-Encoding Tokens:
 //   (https://en.wikipedia.org/wiki/HTTP_compression)
@@ -117,7 +117,7 @@ ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream) {
   client->set_ssl_verify(ssl_verify_);
   client->set_buffer_size(buffer_size_);
   client->set_timeout(timeout_);
- 
+
   Error error = client->Request(request, !reuse, stream);
 
   if (error) {

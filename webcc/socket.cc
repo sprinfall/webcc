@@ -1,6 +1,6 @@
 #include "webcc/socket.h"
 
-#if WEBCC_ENABLE_SSL
+#ifdef WEBCC_ENABLE_SSL
 #if (defined(_WIN32) || defined(_WIN64))
 
 #include <windows.h>
@@ -75,7 +75,7 @@ bool Socket::Close() {
 
 // -----------------------------------------------------------------------------
 
-#if WEBCC_ENABLE_SSL
+#ifdef WEBCC_ENABLE_SSL
 
 #if (defined(_WIN32) || defined(_WIN64))
 

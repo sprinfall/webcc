@@ -29,7 +29,7 @@ public:
     return GetSize() == 0;
   }
 
-#if WEBCC_ENABLE_GZIP
+#ifdef WEBCC_ENABLE_GZIP
 
   // Compress the data with Gzip.
   // If data size <= threshold (1400 bytes), no compression will be taken
@@ -90,7 +90,7 @@ public:
     return compressed_;
   }
 
-#if WEBCC_ENABLE_GZIP
+#ifdef WEBCC_ENABLE_GZIP
 
   bool Compress() override;
 

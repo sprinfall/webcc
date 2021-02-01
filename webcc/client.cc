@@ -78,7 +78,7 @@ void Client::Close() {
 
 void Client::Connect(RequestPtr request) {
   if (request->url().scheme() == "https") {
-#if WEBCC_ENABLE_SSL
+#ifdef WEBCC_ENABLE_SSL
     socket_.reset(new SslSocket{ io_context_, ssl_verify_ });
     DoConnect(request, "443");
 #else

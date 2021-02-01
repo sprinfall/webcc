@@ -51,7 +51,7 @@ public:
   // Set content types to accept.
   void Accept(const std::string& content_types);
 
-#if WEBCC_ENABLE_GZIP
+#ifdef WEBCC_ENABLE_GZIP
 
   // Accept Gzip compressed response data or not.
   void AcceptGzip(bool gzip = true);

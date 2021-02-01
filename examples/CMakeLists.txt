@@ -48,6 +48,6 @@ endif()
 add_subdirectory(book_server)
 add_subdirectory(book_client)
 
-if(WEBCC_ENABLE_QT_EXAMPLES)
+if(BUILD_QT_EXAMPLES)
     add_subdirectory(qt_app_server)
 endif()

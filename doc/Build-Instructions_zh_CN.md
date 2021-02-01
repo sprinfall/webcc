@@ -141,7 +141,9 @@ $ ls -l /usr/local/lib/libboost*
 
 ### Googletest
 
-TODO
+```
+$ sudo apt install libgtest-dev
+```
 
 ### Webcc
 
@@ -156,13 +158,14 @@ $ cd build
 
 ```
 $ cmake -G"Unix Makefiles" \
+    -DBUILD_AUTOTEST=OFF \
+    -DBUILD_UNITTEST=OFF \
+    -DBUILD_EXAMPLES=ON \
+    -DBUILD_QT_EXAMPLES=OFF \
     -DWEBCC_ENABLE_LOG=1 \
     -DWEBCC_LOG_LEVEL=0 \
     -DWEBCC_ENABLE_SSL=1 \
     -DWEBCC_ENABLE_GZIP=1 \
-    -DWEBCC_ENABLE_AUTOTEST=OFF \
-    -DWEBCC_ENABLE_UNITTEST=OFF \
-    -DWEBCC_ENABLE_EXAMPLES=ON \
     ..
 ```
 

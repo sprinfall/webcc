@@ -5,7 +5,7 @@
 #include "webcc/logger.h"
 #include "webcc/utility.h"
 
-#if WEBCC_ENABLE_GZIP
+#ifdef WEBCC_ENABLE_GZIP
 #include "webcc/gzip.h"
 #endif
 
@@ -15,7 +15,7 @@ namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-#if WEBCC_ENABLE_GZIP
+#ifdef WEBCC_ENABLE_GZIP
 
 bool StringBody::Compress() {
   if (compressed_) {
@@ -110,7 +110,7 @@ void FormBody::InitPayload() {
 
 Payload FormBody::NextPayload(bool free_previous) {
   Payload payload;
-  
+
   // Free previous payload.
   if (free_previous) {
     if (index_ > 0) {
