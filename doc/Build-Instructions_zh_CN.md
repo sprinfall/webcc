@@ -1,10 +1,10 @@
 # Webcc 编译指南
 
-* [概览](#概览)
-* [Ubuntu](#ubuntu)
-* [Windows](#windows)
+* [Overview](#overview)
+* [Build on Ubuntu](#build-on-ubuntu)
+* [Build on Windows](#build-on-windows)
 
-## 概览
+## Overview
 
 ### 编译依赖
 
@@ -49,7 +49,7 @@ set(WEBCC_LOG_LEVEL    2 CACHE STRING "日志等级（0: VERB, 1: INFO, 2: USER,
 
 具体怎么做，请参考：[https://github.com/sprinfall/webcc-integration](https://github.com/sprinfall/webcc-integration)。
 
-## Ubuntu
+## Build on Ubuntu
 
 *注意：基于 Ubuntu 18.04 LTS*
 
@@ -165,7 +165,7 @@ $ cmake -G"Unix Makefiles" \
 $ make
 ```
 
-## Windows
+## Build on Windows
 
 下面以 [Visual Studio 2019 Community](https://visualstudio.microsoft.com/vs/community/) 为例。
 
