@@ -1,23 +1,8 @@
 # Webcc 编译指南
 
 * [概览](#概览)
-    * [编译依赖](#编译依赖)
-    * [编译选项](#编译选项)
-    * [集成](#集成)
 * [Ubuntu](#ubuntu)
-    * [CMake](#cmake)
-    * [OpenSSL](#openssl)
-    * [Zlib](#zlib)
-    * [Boost](#boost)
-    * [Googletest](#googletest)
-    * [Webcc](#webcc)
 * [Windows](#windows)
-    * [CMake](#cmake)
-    * [OpenSSL](#openssl)
-    * [Zlib](#zlib)
-    * [Boost](#boost)
-    * [Googletest](#googletest)
-    * [Webcc](#webcc)
 
 ## 概览
 
