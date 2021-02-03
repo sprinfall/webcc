@@ -1,23 +1,8 @@
-# Webcc Build Instructions
+# Build Instructions
 
 * [Overview](#overview)
-    * [Build Dependencies](#build-dependencies)
-    * [Build Options](#build-options)
-    * [Integration](#integration)
 * [Ubuntu](#ubuntu)
-    * [CMake](#cmake)
-    * [OpenSSL](#openssl)
-    * [Zlib](#zlib)
-    * [Boost](#boost)
-    * [Googletest](#googletest)
-    * [Webcc](#webcc)
 * [Windows](#windows)
-    * [CMake](#cmake)
-    * [OpenSSL](#openssl)
-    * [Zlib](#zlib)
-    * [Boost](#boost)
-    * [Googletest](#googletest)
-    * [Webcc](#webcc)
 
 ## Overview
 
