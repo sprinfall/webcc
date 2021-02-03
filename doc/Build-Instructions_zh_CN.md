@@ -281,7 +281,7 @@ OpenSSL 也可以静态链接（见 `C:\Program Files\OpenSSL-Win64\lib\VC\stati
 
 在 CMake 界面的中间区域，你可以看到很多分了组的配置选项，请根据需要修改相应的选项，比如，设 `WEBCC_ENABLE_SSL` 为 `1` 就可以启用 OpenSSL 的支持。
 
-再次点击 **Configure** 按钮，OpenSSL 已经被 CMake 找到了。 
+再次点击 **Configure** 按钮，OpenSSL 应该已经被 CMake 找到了。 
 
 ![CMake config OpenSSL](screenshots/win_cmake_config_openssl.png)
 
