@@ -1,12 +1,12 @@
 # Build Instructions
 
 * [Overview](#overview)
-* [Ubuntu](#ubuntu)
-* [Windows](#windows)
+* [Build on Ubuntu](#build-on-ubuntu)
+* [Build on Windows](#build-on-windows)
 
 ## Overview
 
-### Build Dependencies
+### Dependencies
 
 * [Boost 1.66+](https://www.boost.org/) (asio, system, date_time, filesystem)
 * [OpenSSL](https://www.openssl.org/) (for HTTPS, optional)
@@ -45,7 +45,7 @@ I suggest to integrate it to your project simply by source code. Just copy the w
 
 Please take a look at this example: [https://github.com/sprinfall/webcc-integration](https://github.com/sprinfall/webcc-integration).
 
-## Ubuntu
+## Build on Ubuntu
 
 *NOTE: Based on Ubuntu 18.04 LTS*
 
@@ -156,7 +156,7 @@ If everything is OK, you can then build with `make`:
 $ make
 ```
 
-## Windows
+## Build on Windows
 
 Based on [Visual Studio 2019 Community](https://visualstudio.microsoft.com/vs/community/).
 
