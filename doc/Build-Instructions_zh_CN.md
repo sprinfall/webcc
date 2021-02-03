@@ -38,15 +38,16 @@ Googletest 也是 **可选的**，除非你想要编译自动化测试和单元�
 下面这些 CMake 选项决定了你将如何编译 webcc 的各个项目，它们应该都不难理解。
 
 ```cmake
-option(WEBCC_ENABLE_AUTOTEST "是否编译自动化测试？" OFF)
-option(WEBCC_ENABLE_UNITTEST "是否编译单元测试？" OFF)
-option(WEBCC_ENABLE_EXAMPLES "是否编译示例？" OFF)
+option(BUILD_AUTOTEST "是否编译自动化测试？" OFF)
+option(BUILD_UNITTEST "是否编译单元测试？" OFF)
+option(BUILD_EXAMPLES "是否编译示例？" OFF)
+option(BUILD_QT_EXAMPLES "是否编译 Qt 程序示例？" OFF)
 
-set(WEBCC_ENABLE_LOG 1 CACHE STRING "是否开启日志？（1：是，0：否）")
-set(WEBCC_LOG_LEVEL 2 CACHE STRING "日志等级（0: VERB, 1: INFO, 2: USER, 3: WARN or 4: ERRO）")
+set(WEBCC_ENABLE_LOG   1 CACHE STRING "是否开启日志？（1：是，0：否）")
+set(WEBCC_ENABLE_SSL   0 CACHE STRING "是否开启 SSL/HTTPS 支持？（1：是，0：否）")
+set(WEBCC_ENABLE_GZIP  0 CACHE STRING "是否开启 GZIP 压缩？（1：是，0：否）")
 
-set(WEBCC_ENABLE_SSL 0 CACHE STRING "是否开启 SSL/HTTPS 支持？（1：是，0：否）")
-set(WEBCC_ENABLE_GZIP 0 CACHE STRING "是否开启 GZIP 压缩？（1：是，0：否）")
+set(WEBCC_LOG_LEVEL    2 CACHE STRING "日志等级（0: VERB, 1: INFO, 2: USER, 3: WARN or 4: ERRO）")
 ```
 
 其中，`option()` 定义的选项取 `ON` 或 `OFF`，相当于 `boolean`；`set()` 定义的选项通常取 0 或 1 表示开关，唯独 `WEBCC_LOG_LEVEL` 取 0 ~ 4，分别代表四个不同的日志等级。
@@ -77,7 +78,7 @@ $ sudo apt install build-essential
 
 拿 Ubuntu 18.04 来说，直接通过 apt 安装的 CMake 版本仅为 3.10，并不能满足我们的需求。Boost 1.66 就需要 CMake 3.11 以上，更不用说 Boost 1.74 了。
 
-要安装新版 CMake，请参考 [https://apt.kitware.com/](https://apt.kitware.com/)。
+请参考 [https://apt.kitware.com/](https://apt.kitware.com/) 来安装较新版本的 CMake。
 
 ### OpenSSL
 
@@ -252,7 +253,7 @@ OpenSSL 也可以静态链接（见 `C:\Program Files\OpenSSL-Win64\lib\VC\stati
 
 然后，Zlib 应该就已经被安装到刚刚指定的那个目录了。
 
-为了让 CMake 能够找到 Zlib（以及其他所有通过 CMake 安装到那个目录的库），我们需要添加一个环境变量叫 `CMAKE_PREFIX_PATH`，让它指向上面指定的这个 CMake 安装目录（即，`D:/lib/cmake_install_2019_64`）。
+为了让 CMake 能够找到 Zlib（以及其他所有通过 CMake 安装到那个目录的库），我们需要添加一个环境变量叫 `CMAKE_PREFIX_PATH`，让它指向上面指定的这个 CMake 安装目录（即 `D:/lib/cmake_install_2019_64`）。
 
 ## Googletest
 
@@ -280,9 +281,7 @@ OpenSSL 也可以静态链接（见 `C:\Program Files\OpenSSL-Win64\lib\VC\stati
 
 在 CMake 界面的中间区域，你可以看到很多分了组的配置选项，请根据需要修改相应的选项，比如，设 `WEBCC_ENABLE_SSL` 为 `1` 就可以启用 OpenSSL 的支持。
 
-![CMake config](screenshots/win_cmake_config.png)
-
-再次点击 **Configure** 按钮，OpenSSL 一个已经被 CMake 找到了。 
+再次点击 **Configure** 按钮，OpenSSL 已经被 CMake 找到了。 
 
 ![CMake config OpenSSL](screenshots/win_cmake_config_openssl.png)
 
