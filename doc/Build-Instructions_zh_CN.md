@@ -54,7 +54,7 @@ set(WEBCC_LOG_LEVEL    2 CACHE STRING "日志等级（0: VERB, 1: INFO, 2: USER,
 
 此外，自动化测试调用的是真正的 HTTP 服务器——[httpbin.org](http://httpbin.org/)。
 
-## 集成
+### 集成
 
 虽然这里介绍了详细的编译过程，但是真正把 webcc 集成到你的项目中却是另一回事。
 
@@ -214,7 +214,7 @@ $ b2 --with-system --with-date_time --with-filesystem variant=debug variant=rele
 
 为了让 CMake 稍后可以找到 Boost，请添加一个环境变量叫 `Boost_ROOT`，让它指向 Boost 的根目录。
 
-## OpenSSL
+### OpenSSL
 
 从 [这里](http://slproweb.com/products/Win32OpenSSL.html) 下载 OpenSSL 的安装包：
 
@@ -233,7 +233,7 @@ OpenSSL 也可以静态链接（见 `C:\Program Files\OpenSSL-Win64\lib\VC\stati
 
 使用动态链接的唯一缺点是，在你发布你的程序时，得把这些 OpenSSL DLL 一起打包。
 
-## Zlib
+### Zlib
 
 从 [这里](https://www.zlib.net/) 下载 Zlib。
 
@@ -255,7 +255,7 @@ OpenSSL 也可以静态链接（见 `C:\Program Files\OpenSSL-Win64\lib\VC\stati
 
 为了让 CMake 能够找到 Zlib（以及其他所有通过 CMake 安装到那个目录的库），我们需要添加一个环境变量叫 `CMAKE_PREFIX_PATH`，让它指向上面指定的这个 CMake 安装目录（即 `D:/lib/cmake_install_2019_64`）。
 
-## Googletest
+### Googletest
 
 下载最新的 release：[Googletest](https://github.com/google/googletest/releases)
 
@@ -269,7 +269,7 @@ OpenSSL 也可以静态链接（见 `C:\Program Files\OpenSSL-Win64\lib\VC\stati
 
 ![CMAKE_PREFIX_PATH](screenshots/win_cmake_prefix_path.png)
 
-## Webcc
+### Webcc
 
 打开 CMake，设置 **Where is the source code** 到 webcc 的根目录，比如 `D:/github/webcc`，设置 **Where to build the binaries** 到任一目录，比如：`D:/github/webcc/build_2019_64`。
 
