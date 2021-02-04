@@ -181,11 +181,7 @@ session.Send(webcc::RequestBuilder{}.
              ());
 ```
 
-除了 JSON 字符串，POST 请求的体可以为任何内容。
-
-它可以为一个文件的二进制内容。见：[上传文件](#上传文件)。
-
-它可以是一个表单 URL 编码（form urlencoded）的字符串：
+除了 JSON 字符串，POST 请求的体可以为任何内容。它可以是一个文件的二进制内容，见：[上传文件](#上传文件)。它也可以是一个 URL 编码的字符串：
 
 ```cpp
 session.SetContentType("application/x-www-form-urlencoded", "utf8");
