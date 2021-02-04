@@ -1,4 +1,4 @@
-# Webcc 编译指南
+# 编译指南
 
 * [Overview](#overview)
 * [Build on Ubuntu](#build-on-ubuntu)
