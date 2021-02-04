@@ -171,7 +171,7 @@ The API for other HTTP requests is no different from GET.
 
 ### POST Request
 
-POST request needs a body which is normally a JSON string for REST API. Let's post a small UTF-8 encoded JSON string:
+A POST request needs a body which is normally a JSON string for REST API. Let's post a small UTF-8 encoded JSON string:
 
 ```cpp
 session.Send(webcc::RequestBuilder{}.
@@ -179,6 +179,31 @@ session.Send(webcc::RequestBuilder{}.
              Body("{'name'='Adam', 'age'=20}").Json().Utf8()
              ());
 ```
+
+The body of a POST request could be any content other than JSON string.
+
+It could be the binary data of a file. See [Uploading Files](#uploading-files).
+
+It could be a form urlencoded string:
+
+```cpp
+webcc::ClientSession session;
+session.SetContentType("application/x-www-form-urlencoded", "utf8");
+
+// Use UrlQuery to compose the urlencoded string.
+// Don't use RequestBuilder::Query() which is dedicated to GET.
+webcc::UrlQuery query;
+query.Add("key1", "value1");
+query.Add("key2", "value2");
+// ...
+
+auto r = session.Send(webcc::RequestBuilder{}.
+                      Post("http://httpbin.org/post").
+                      Body(query.ToString())
+                      ());
+```
+
+Please see [examples/form_urlencoded_client.cc](examples/form_urlencoded_client.cc) for more details.
 
 ### Downloading Files
 
