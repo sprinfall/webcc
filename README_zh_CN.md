@@ -183,6 +183,30 @@ session.Send(webcc::RequestBuilder{}.
              ());
 ```
 
+除了 JSON 字符串，POST 请求的体可以为任何内容。
+
+它可以为一个文件的二进制内容。见：[上传文件](#上传文件)。
+
+它可以是一个表单 URL 编码（form urlencoded）的字符串：
+
+```cpp
+session.SetContentType("application/x-www-form-urlencoded", "utf8");
+
+// 使用 UrlQuery 来组装 URL 编码字符串。
+// 不要使用 RequestBuilder::Query()，那是专门给 GET 请求用的。
+webcc::UrlQuery query;
+query.Add("key1", "value1");
+query.Add("key2", "value2");
+// ...
+
+auto r = session.Send(webcc::RequestBuilder{}.
+                      Post("http://httpbin.org/post").
+                      Body(query.ToString())
+                      ());
+```
+
+更多细节请参见：[examples/form_urlencoded_client.cc](examples/form_urlencoded_client.cc)。
+
 ### 下载文件
 
 Webcc 可以把大型的响应数据串流到临时文件，串流在下载文件时特别有用。
