@@ -7,7 +7,7 @@
 #include "webcc/string.h"
 #include "webcc/utility.h"
 
-#ifdef WEBCC_ENABLE_GZIP
+#if WEBCC_ENABLE_GZIP
 #include "webcc/gzip.h"
 #endif
 
@@ -48,7 +48,7 @@ bool StringBodyHandler::Finish() {
 
   auto body = std::make_shared<StringBody>(std::move(content_), IsCompressed());
 
-#ifdef WEBCC_ENABLE_GZIP
+#if WEBCC_ENABLE_GZIP
   LOG_INFO("Decompress the HTTP content...");
   if (!body->Decompress()) {
     LOG_ERRO("Cannot decompress the HTTP content!");

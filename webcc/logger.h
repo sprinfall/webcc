@@ -4,7 +4,7 @@
 // This file was generated from "config.h.in" by CMake.
 #include "webcc/config.h"
 
-#ifdef WEBCC_ENABLE_LOG
+#if WEBCC_ENABLE_LOG
 
 #include <cstring>  // for strrchr()
 #include <string>

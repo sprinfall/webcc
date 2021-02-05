@@ -87,6 +87,8 @@ if(WEBCC_ENABLE_GZIP)
     endif()
 endif()
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 add_subdirectory(webcc)
 
 if(BUILD_AUTOTEST OR BUILD_EXAMPLES)

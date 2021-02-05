@@ -19,7 +19,7 @@ void ClientSession::Accept(const std::string& content_types) {
   }
 }
 
-#ifdef WEBCC_ENABLE_GZIP
+#if WEBCC_ENABLE_GZIP
 
 // Content-Encoding Tokens:
 //   (https://en.wikipedia.org/wiki/HTTP_compression)

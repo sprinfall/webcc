@@ -1,6 +1,6 @@
 #include "webcc/logger.h"
 
-#ifdef WEBCC_ENABLE_LOG
+#if WEBCC_ENABLE_LOG
 
 #include <cassert>
 #include <chrono>

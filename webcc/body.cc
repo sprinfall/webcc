@@ -5,7 +5,7 @@
 #include "webcc/logger.h"
 #include "webcc/utility.h"
 
-#ifdef WEBCC_ENABLE_GZIP
+#if WEBCC_ENABLE_GZIP
 #include "webcc/gzip.h"
 #endif
 
@@ -15,7 +15,7 @@ namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-#ifdef WEBCC_ENABLE_GZIP
+#if WEBCC_ENABLE_GZIP
 
 bool StringBody::Compress() {
   if (compressed_) {

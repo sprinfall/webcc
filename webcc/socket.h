@@ -8,7 +8,7 @@
 #include "webcc/config.h"
 #include "webcc/request.h"
 
-#ifdef WEBCC_ENABLE_SSL
+#if WEBCC_ENABLE_SSL
 #include "boost/asio/ssl.hpp"
 #endif  // WEBCC_ENABLE_SSL
 
@@ -62,7 +62,7 @@ private:
 
 // -----------------------------------------------------------------------------
 
-#ifdef WEBCC_ENABLE_SSL
+#if WEBCC_ENABLE_SSL
 
 class SslSocket : public SocketBase {
 public:

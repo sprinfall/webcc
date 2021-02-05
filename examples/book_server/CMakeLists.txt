@@ -12,3 +12,4 @@ set(SRCS
 
 add_executable(book_server ${SRCS})
 target_link_libraries(book_server ${EXAMPLE_LIBS} jsoncpp)
+set_target_properties(book_server PROPERTIES FOLDER "Examples")

@@ -5,7 +5,7 @@
 #include "webcc/string.h"
 #include "webcc/utility.h"
 
-#ifdef WEBCC_ENABLE_GZIP
+#if WEBCC_ENABLE_GZIP
 #include "webcc/gzip.h"
 #endif
 
@@ -32,7 +32,7 @@ RequestPtr RequestBuilder::operator()() {
   if (body_) {
     request->SetContentType(media_type_, charset_);
 
-#ifdef WEBCC_ENABLE_GZIP
+#if WEBCC_ENABLE_GZIP
     if (gzip_ && body_->Compress()) {
       request->SetHeader(headers::kContentEncoding, "gzip");
     }
@@ -54,7 +54,7 @@ RequestPtr RequestBuilder::operator()() {
   return request;
 }
 
-#ifdef WEBCC_ENABLE_GZIP
+#if WEBCC_ENABLE_GZIP
 
 // Accept Gzip compressed response data or not.
 RequestBuilder& RequestBuilder::AcceptGzip(bool gzip) {

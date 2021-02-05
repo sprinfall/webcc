@@ -8,41 +8,34 @@ if(UNIX)
     set(EXAMPLE_LIBS ${EXAMPLE_LIBS} ${CMAKE_DL_LIBS})
 endif()
 
-add_executable(concurrency_test concurrency_test.cc)
-target_link_libraries(concurrency_test ${EXAMPLE_LIBS})
+set(SIMPLE_EXAMPLES
+	concurrency_test
+	client_basics
+	hello_world_server
+	static_file_server
+	file_downloader
+	server_states
+	form_client
+	form_server
+	form_urlencoded_client
+	)
 
-add_executable(client_basics client_basics.cc)
-target_link_libraries(client_basics ${EXAMPLE_LIBS})
+foreach(example ${SIMPLE_EXAMPLES})
+	add_executable(${example} ${example}.cc)
+	target_link_libraries(${example} ${EXAMPLE_LIBS})
+	set_target_properties(${example} PROPERTIES FOLDER "Examples")
+endforeach()
 
 if(WEBCC_ENABLE_SSL)
     add_executable(github_client github_client.cc)
     target_link_libraries(github_client ${EXAMPLE_LIBS} jsoncpp)
+	set_target_properties(github_client PROPERTIES FOLDER "Examples")
 endif()
-
-add_executable(hello_world_server hello_world_server.cc)
-target_link_libraries(hello_world_server ${EXAMPLE_LIBS})
-
-add_executable(static_file_server static_file_server.cc)
-target_link_libraries(static_file_server ${EXAMPLE_LIBS})
-
-add_executable(file_downloader file_downloader.cc)
-target_link_libraries(file_downloader ${EXAMPLE_LIBS})
-
-add_executable(server_states server_states.cc)
-target_link_libraries(server_states ${EXAMPLE_LIBS})
-
-add_executable(form_client form_client.cc)
-target_link_libraries(form_client ${EXAMPLE_LIBS})
-
-add_executable(form_urlencoded_client form_urlencoded_client.cc)
-target_link_libraries(form_urlencoded_client ${EXAMPLE_LIBS})
-
-add_executable(form_server form_server.cc)
-target_link_libraries(form_server ${EXAMPLE_LIBS})
 
 if(WIN32)
     add_executable(url_unicode url_unicode.cc encoding.cc encoding.h)
     target_link_libraries(url_unicode ${EXAMPLE_LIBS})
+	set_target_properties(url_unicode PROPERTIES FOLDER "Examples")
 endif()
 
 add_subdirectory(book_server)

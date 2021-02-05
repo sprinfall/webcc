@@ -124,7 +124,7 @@ public:
     return Header(headers::kAccept, content_types);
   }
 
-#ifdef WEBCC_ENABLE_GZIP
+#if WEBCC_ENABLE_GZIP
 
   // Accept Gzip compressed response data or not.
   RequestBuilder& AcceptGzip(bool gzip = true);
@@ -179,7 +179,7 @@ public:
   // Add the `Date` header to the request.
   RequestBuilder& Date();
 
-#ifdef WEBCC_ENABLE_GZIP
+#if WEBCC_ENABLE_GZIP
 
   // Compress the body data (only for string body).
   // NOTE:
@@ -220,7 +220,7 @@ private:
   // Persistent connection.
   bool keep_alive_ = true;
 
-#ifdef WEBCC_ENABLE_GZIP
+#if WEBCC_ENABLE_GZIP
   bool gzip_ = false;
 #endif  // WEBCC_ENABLE_GZIP
 };

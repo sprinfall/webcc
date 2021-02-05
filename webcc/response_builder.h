@@ -109,7 +109,7 @@ public:
   // Add the `Date` header to the response.
   ResponseBuilder& Date();
 
-#ifdef WEBCC_ENABLE_GZIP
+#if WEBCC_ENABLE_GZIP
   ResponseBuilder& Gzip(bool gzip = true) {
     gzip_ = gzip;
     return *this;
@@ -131,7 +131,7 @@ private:
   // Character set of the body (e.g., "utf-8").
   std::string charset_;
 
-#ifdef WEBCC_ENABLE_GZIP
+#if WEBCC_ENABLE_GZIP
   // Compress the body data (only for string body).
   bool gzip_ = false;
 #endif  // WEBCC_ENABLE_GZIP

@@ -8,7 +8,7 @@
 // Set 1/0 to enable/disable logging.
 #define WEBCC_ENABLE_LOG @WEBCC_ENABLE_LOG@
 
-#ifdef WEBCC_ENABLE_LOG
+#if WEBCC_ENABLE_LOG
 // 0:VERB, 1:INFO, 2:USER, 3:WARN or 4:ERRO
 #define WEBCC_LOG_LEVEL @WEBCC_LOG_LEVEL@
 #endif  // WEBCC_ENABLE_LOG
