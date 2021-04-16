@@ -2,13 +2,23 @@
 
 #include <cassert>
 
+#if WEBCC_ENABLE_SSL
+#if (defined(_WIN32) || defined(_WIN64))
+
+#include <cryptuiapi.h>
+#include <wincrypt.h>
+#include <windows.h>
+
+#include "openssl/x509.h"
+
+#endif  // defined(_WIN32) || defined(_WIN64)
+#endif  // WEBCC_ENABLE_SSL
+
 #include "webcc/base64.h"
 #include "webcc/logger.h"
 #include "webcc/url.h"
 #include "webcc/utility.h"
  
-namespace ssl = boost::asio::ssl;
-
 namespace webcc {
 
 #if WEBCC_ENABLE_SSL
@@ -64,7 +74,7 @@ static bool UseSystemCertificateStore(SSL_CTX* ssl_ctx) {
 ClientSession::ClientSession(bool ssl_verify, std::size_t buffer_size)
     : work_guard_(boost::asio::make_work_guard(io_context_)),
 #if WEBCC_ENABLE_SSL
-      ssl_context_(ssl::context::sslv23),
+      ssl_context_(boost::asio::ssl::context::sslv23),
 #endif
       ssl_verify_(ssl_verify), buffer_size_(buffer_size) {
 #if WEBCC_ENABLE_SSL

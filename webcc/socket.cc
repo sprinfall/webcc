@@ -1,17 +1,5 @@
 #include "webcc/socket.h"
 
-#if WEBCC_ENABLE_SSL
-#if (defined(_WIN32) || defined(_WIN64))
-
-#include <cryptuiapi.h>
-#include <wincrypt.h>
-#include <windows.h>
-
-#include "openssl/x509.h"
-
-#endif  // defined(_WIN32) || defined(_WIN64)
-#endif  // WEBCC_ENABLE_SSL
-
 #include "boost/asio/connect.hpp"
 #include "boost/asio/read.hpp"
 #include "boost/asio/write.hpp"
