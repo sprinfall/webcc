@@ -1,8 +1,13 @@
 #ifndef WEBCC_CLIENT_SESSION_H_
 #define WEBCC_CLIENT_SESSION_H_
 
+#include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <vector>
+
+#include "boost/asio/io_context.hpp"
 
 #include "webcc/client_pool.h"
 #include "webcc/request_builder.h"
@@ -11,18 +16,32 @@
 namespace webcc {
 
 // HTTP requests session providing connection-pooling, configuration and more.
-// A session shouldn't be shared by multiple threads. Please create a new
-// session for each thread instead.
+// NOTE: If a session is shared by multiple threads, the requests sent through
+//       it will be serialized by using a mutex.
 class ClientSession {
 public:
-  explicit ClientSession(int timeout = 0, bool ssl_verify = true,
-                         std::size_t buffer_size = 0);
+  explicit ClientSession(bool ssl_verify = true, std::size_t buffer_size = 0);
 
-  ~ClientSession() = default;
+  ~ClientSession();
 
-  void set_timeout(int timeout) {
+  // Start Asio loop in a thread.
+  // You don't have to call Start() manually because it's called by the
+  // constructor.
+  void Start();
+
+  // Stop Asio loop.
+  // You can call Start() to resume the loop.
+  void Stop();
+
+  void set_connect_timeout(int timeout) {
     if (timeout > 0) {
-      timeout_ = timeout;
+      connect_timeout_ = timeout;
+    }
+  }
+
+  void set_read_timeout(int timeout) {
+    if (timeout > 0) {
+      read_timeout_ = timeout;
     }
   }
 
@@ -73,14 +92,35 @@ public:
   // the response body will be FileBody, and you can easily move the temp file
   // to another path with FileBody::Move(). So, |stream| is really useful for
   // downloading files (JPEG, etc.) or saving memory for huge data responses.
-  ResponsePtr Send(RequestPtr request, bool stream = false);
+  ResponsePtr Send(RequestPtr request, bool stream = false,
+                   ProgressCallback callback = {});
+
+  // Cancel any in-progress connecting, writing or reading.
+  void Cancel();
 
 private:
   void InitHeaders();
 
-  ResponsePtr DoSend(RequestPtr request, bool stream);
+  ResponsePtr DoSend(RequestPtr request, bool stream,
+                     ProgressCallback callback);
 
 private:
+  boost::asio::io_context io_context_;
+
+  // The thread to run Asio loop.
+  std::unique_ptr<std::thread> io_thread_;
+
+  using ExecutorType = boost::asio::io_context::executor_type;
+  boost::asio::executor_work_guard<ExecutorType> work_guard_;
+
+  // TODO
+#if WEBCC_ENABLE_SSL
+  boost::asio::ssl::context ssl_context_;
+#endif
+
+  // Is Asio loop running?
+  bool started_ = false;
+
   // The media (or MIME) type of `Content-Type` header.
   // E.g., "application/json".
   std::string media_type_;
@@ -92,18 +132,27 @@ private:
   // Additional headers for each request.
   Headers headers_;
 
-  // Timeout in seconds for receiving response.
-  int timeout_;
+  // Timeout (seconds) for connecting to server.
+  int connect_timeout_ = 0;
+
+  // Timeout (seconds) for reading response.
+  int read_timeout_ = 0;
 
   // Verify the certificate of the peer or not.
-  bool ssl_verify_;
+  bool ssl_verify_ = true;
 
   // The size of the buffer for reading response.
   // 0 means default value will be used.
   std::size_t buffer_size_;
 
-  // Pool for Keep-Alive client connections.
+  // Keep-Alive client connections.
   ClientPool pool_;
+
+  // Current requested client.
+  ClientPtr client_;
+
+  // The mutex to guard the request.
+  std::mutex mutex_;
 };
 
 }  // namespace webcc

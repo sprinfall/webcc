@@ -45,7 +45,12 @@ static FILE* FOpen(const bfs::path& path, bool overwrite) {
 }
 
 struct Logger {
-  Logger() : file(nullptr), modes(0) {
+  Logger() = default;
+
+  ~Logger() {
+    if (file != nullptr) {
+      fclose(file);
+    }
   }
 
   void Init(const bfs::path& path, int _modes) {
@@ -57,14 +62,8 @@ struct Logger {
     }
   }
 
-  ~Logger() {
-    if (file != nullptr) {
-      fclose(file);
-    }
-  }
-
-  FILE* file;
-  int modes;
+  FILE* file = nullptr;
+  int modes = 0;
   std::mutex mutex;
 };
 
@@ -161,10 +160,10 @@ static bfs::path InitLogPath(const bfs::path& dir) {
     return bfs::current_path() / WEBCC_LOG_FILE_NAME;
   }
 
-  if (!bfs::exists(dir) || !bfs::is_directory(dir)) {
-    boost::system::error_code ec;
+  boost::system::error_code ec;
+  if (!bfs::exists(dir, ec) || !bfs::is_directory(dir, ec)) {
     if (!bfs::create_directories(dir, ec) || ec) {
-      return bfs::path{};
+      return {};
     }
   }
 
@@ -216,7 +215,7 @@ void Log(int level, const char* file, int line, const char* format, ...) {
     va_list args;
     va_start(args, format);
 
-    fprintf(g_logger.file, "%s, %s, %7s, %20s, %4d, ",
+    fprintf(g_logger.file, "%s, %s, %7s, %25s, %4d, ",
             timestamp.c_str(), kLevelNames[level], thread_id.c_str(),
             file, line);
 
@@ -239,12 +238,12 @@ void Log(int level, const char* file, int line, const char* format, ...) {
 
     if (g_terminal_has_color) {
       if (level < WEBCC_WARN) {
-        fprintf(stderr, "%s%s, %s, %7s, %20s, %4d, ",
+        fprintf(stderr, "%s%s, %s, %7s, %25s, %4d, ",
                 TERM_RESET,
                 timestamp.c_str(), kLevelNames[level], thread_id.c_str(),
                 file, line);
       } else {
-        fprintf(stderr, "%s%s%s, %s, %7s, %20s, %4d, ",
+        fprintf(stderr, "%s%s%s, %s, %7s, %25s, %4d, ",
                 TERM_RESET,
                 level == WEBCC_WARN ? TERM_YELLOW : TERM_RED,
                 timestamp.c_str(), kLevelNames[level], thread_id.c_str(),
@@ -255,7 +254,7 @@ void Log(int level, const char* file, int line, const char* format, ...) {
 
       fprintf(stderr, "%s\n", TERM_RESET);
     } else {
-      fprintf(stderr, "%s, %s, %7s, %20s, %4d, ",
+      fprintf(stderr, "%s, %s, %7s, %25s, %4d, ",
               timestamp.c_str(), kLevelNames[level], thread_id.c_str(),
               file, line);
 

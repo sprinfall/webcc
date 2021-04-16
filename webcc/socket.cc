@@ -3,9 +3,9 @@
 #if WEBCC_ENABLE_SSL
 #if (defined(_WIN32) || defined(_WIN64))
 
-#include <windows.h>
-#include <wincrypt.h>
 #include <cryptuiapi.h>
+#include <wincrypt.h>
+#include <windows.h>
 
 #include "openssl/x509.h"
 
@@ -18,6 +18,9 @@
 
 #include "webcc/logger.h"
 
+using boost::asio::ip::tcp;
+using namespace std::placeholders;
+
 namespace webcc {
 
 // -----------------------------------------------------------------------------
@@ -25,48 +28,37 @@ namespace webcc {
 Socket::Socket(boost::asio::io_context& io_context) : socket_(io_context) {
 }
 
-bool Socket::Connect(const std::string& /*host*/, const Endpoints& endpoints) {
-  boost::system::error_code ec;
-  boost::asio::connect(socket_, endpoints, ec);
-
-  if (ec) {
-    LOG_ERRO("Socket connect error (%s).", ec.message().c_str());
-    return false;
-  }
-
-  return true;
+void Socket::AsyncConnect(const std::string& host, const Endpoints& endpoints,
+                          ConnectHandler&& handler) {
+  boost::asio::async_connect(socket_, endpoints, std::move(handler));
 }
 
-bool Socket::Write(const Payload& payload, boost::system::error_code* ec) {
-  boost::asio::write(socket_, payload, *ec);
-  return !(*ec);
-}
-
-bool Socket::ReadSome(std::vector<char>* buffer, std::size_t* size,
-                      boost::system::error_code* ec) {
-  *size = socket_.read_some(boost::asio::buffer(*buffer), *ec);
-  return (*size != 0 && !(*ec));
+void Socket::AsyncWrite(const Payload& payload, WriteHandler&& handler) {
+  boost::asio::async_write(socket_, payload, std::move(handler));
 }
 
 void Socket::AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) {
   socket_.async_read_some(boost::asio::buffer(*buffer), std::move(handler));
 }
 
-bool Socket::Close() {
+bool Socket::Shutdown() {
   boost::system::error_code ec;
-
-  socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+  socket_.shutdown(tcp::socket::shutdown_both, ec);
 
   if (ec) {
-    LOG_WARN("Socket shutdown error (%s).", ec.message().c_str());
-    ec.clear();
-    // Don't return, try to close the socket anywhere.
+    LOG_WARN("Socket shutdown error (%s)", ec.message().c_str());
+    return false;
   }
 
+  return true;
+}
+
+bool Socket::Close() {
+  boost::system::error_code ec;
   socket_.close(ec);
 
   if (ec) {
-    LOG_WARN("Socket close error (%s).", ec.message().c_str());
+    LOG_WARN("Socket close error (%s)", ec.message().c_str());
     return false;
   }
 
@@ -77,105 +69,20 @@ bool Socket::Close() {
 
 #if WEBCC_ENABLE_SSL
 
-#if (defined(_WIN32) || defined(_WIN64))
-
-// Let OpenSSL on Windows use the system certificate store
-//   1. Load your certificate (in PCCERT_CONTEXT structure) from Windows Cert
-//      store using Crypto APIs.
-//   2. Get encrypted content of it in binary format as it is.
-//      [PCCERT_CONTEXT->pbCertEncoded].
-//   3. Parse this binary buffer into X509 certificate Object using OpenSSL's
-//      d2i_X509() method.
-//   4. Get handle to OpenSSL's trust store using SSL_CTX_get_cert_store()
-//      method.
-//   5. Load above parsed X509 certificate into this trust store using
-//      X509_STORE_add_cert() method.
-//   6. You are done!
-// NOTES: Enum Windows store with "ROOT" (not "CA").
-// See: https://stackoverflow.com/a/11763389/6825348
-
-static bool UseSystemCertificateStore(SSL_CTX* ssl_ctx) {
-  // NOTE: Cannot use nullptr to replace NULL.
-  HCERTSTORE cert_store = ::CertOpenSystemStoreW(NULL, L"ROOT");
-  if (cert_store == nullptr) {
-    LOG_ERRO("Cannot open Windows system certificate store.");
-    return false;
-  }
-
-  X509_STORE* x509_store = SSL_CTX_get_cert_store(ssl_ctx);
-  PCCERT_CONTEXT cert_context = nullptr;
-
-  while (cert_context = CertEnumCertificatesInStore(cert_store, cert_context)) {
-    auto in = (const unsigned char**)&cert_context->pbCertEncoded;
-    X509* x509 = d2i_X509(nullptr, in, cert_context->cbCertEncoded);
-
-    if (x509 != nullptr) {
-      if (X509_STORE_add_cert(x509_store, x509) == 0) {
-        LOG_ERRO("Cannot add Windows root certificate.");
-      }
-
-      X509_free(x509);
-    }
-  }
-
-  CertFreeCertificateContext(cert_context);
-  CertCloseStore(cert_store, 0);
-  return true;
-}
-
-#endif  // defined(_WIN32) || defined(_WIN64)
-
 namespace ssl = boost::asio::ssl;
 
-SslSocket::SslSocket(boost::asio::io_context& io_context, bool ssl_verify)
-    : ssl_context_(ssl::context::sslv23),
-      ssl_socket_(io_context, ssl_context_),
+SslSocket::SslSocket(boost::asio::io_context& io_context,
+                     ssl::context& ssl_context, bool ssl_verify)
+    : ssl_socket_(io_context, ssl_context),
       ssl_verify_(ssl_verify) {
-#if (defined(_WIN32) || defined(_WIN64))
-  if (ssl_verify_) {
-    UseSystemCertificateStore(ssl_context_.native_handle());
-  }
-#else
-  // Use the default paths for finding CA certificates.
-  ssl_context_.set_default_verify_paths();
-#endif  // defined(_WIN32) || defined(_WIN64)
 }
 
-bool SslSocket::Connect(const std::string& host, const Endpoints& endpoints) {
-  boost::system::error_code ec;
-  boost::asio::connect(ssl_socket_.lowest_layer(), endpoints, ec);
+void SslSocket::AsyncConnect(const std::string& host,
+                             const Endpoints& endpoints,
+                             ConnectHandler&& handler) {
+  connect_handler_ = std::move(handler);
 
-  if (ec) {
-    LOG_ERRO("Socket connect error (%s).", ec.message().c_str());
-    return false;
-  }
 
-  return Handshake(host);
-}
-
-bool SslSocket::Write(const Payload& payload, boost::system::error_code* ec) {
-  boost::asio::write(ssl_socket_, payload, *ec);
-  return !(*ec);
-}
-
-bool SslSocket::ReadSome(std::vector<char>* buffer, std::size_t* size,
-                         boost::system::error_code* ec) {
-  *size = ssl_socket_.read_some(boost::asio::buffer(*buffer), *ec);
-  return (*size != 0 && !(*ec));
-}
-
-void SslSocket::AsyncReadSome(ReadHandler&& handler,
-                              std::vector<char>* buffer) {
-  ssl_socket_.async_read_some(boost::asio::buffer(*buffer), std::move(handler));
-}
-
-bool SslSocket::Close() {
-  boost::system::error_code ec;
-  ssl_socket_.lowest_layer().close(ec);
-  return !ec;
-}
-
-bool SslSocket::Handshake(const std::string& host) {
   if (ssl_verify_) {
     ssl_socket_.set_verify_mode(ssl::verify_peer);
   } else {
@@ -190,16 +97,61 @@ bool SslSocket::Handshake(const std::string& host) {
   ssl_socket_.set_verify_callback(ssl::host_name_verification(host));
 #endif  // BOOST_VERSION < 107300
 
-  // Use sync API directly since we don't need timeout control.
+  boost::asio::async_connect(ssl_socket_.lowest_layer(), endpoints,
+                             std::bind(&SslSocket::OnConnect, this, _1, _2));
+}
+
+void SslSocket::AsyncWrite(const Payload& payload, WriteHandler&& handler) {
+  boost::asio::async_write(ssl_socket_, payload, std::move(handler));
+}
+
+void SslSocket::AsyncReadSome(ReadHandler&& handler,
+                              std::vector<char>* buffer) {
+  ssl_socket_.async_read_some(boost::asio::buffer(*buffer), std::move(handler));
+}
+
+bool SslSocket::Shutdown() {
   boost::system::error_code ec;
-  ssl_socket_.handshake(ssl::stream_base::client, ec);
+  ssl_socket_.lowest_layer().shutdown(tcp::socket::shutdown_both, ec);
 
   if (ec) {
-    LOG_ERRO("Handshake error (%s).", ec.message().c_str());
+    LOG_WARN("Socket shutdown error (%s)", ec.message().c_str());
     return false;
   }
 
   return true;
+}
+
+bool SslSocket::Close() {
+  boost::system::error_code ec;
+  ssl_socket_.lowest_layer().close(ec);
+
+  if (ec) {
+    LOG_WARN("Socket close error (%s)", ec.message().c_str());
+    return false;
+  }
+
+  return true;
+}
+
+void SslSocket::OnConnect(boost::system::error_code ec,
+                          tcp::endpoint endpoint) {
+  if (ec) {
+    connect_handler_(ec, std::move(endpoint));
+    return;
+  }
+
+  // Backup endpoint
+  endpoint_ = std::move(endpoint);
+
+  ssl_socket_.async_handshake(ssl::stream_base::client,
+                              [this](boost::system::error_code ec) {
+    if (ec) {
+      LOG_ERRO("Handshake error (%s)", ec.message().c_str());
+    }
+
+    connect_handler_(ec, std::move(endpoint_));
+  });
 }
 
 #endif  // WEBCC_ENABLE_SSL

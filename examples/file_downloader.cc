@@ -27,7 +27,10 @@ int main(int argc, char* argv[]) {
   webcc::ClientSession session;
 
   try {
-    auto r = session.Send(webcc::RequestBuilder{}.Get(url)(), true);
+    auto r = session.Send(webcc::RequestBuilder{}.Get(url)(), true,
+                          [](std::size_t length, std::size_t total_length) {
+      std::cout << "Progress " << length << " / " << total_length << std::endl;
+    });
 
     if (auto file_body = r->file_body()) {
       file_body->Move(path);

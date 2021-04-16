@@ -30,7 +30,7 @@ int main(int argc, const char* argv[]) {
     threads.emplace_back([&url]() {
       // NOTE: Each thread has its own client session.
       webcc::ClientSession session;
-      session.set_timeout(180);
+      session.set_read_timeout(180);
 
       try {
         LOG_USER("Start");

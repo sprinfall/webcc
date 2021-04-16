@@ -9,7 +9,7 @@
 
 namespace {
 
-const char* kData = "Hello, World!";
+const char* const kData = "Hello, World!";
 
 const std::uint16_t kPort = 8080;
 
@@ -83,8 +83,8 @@ TEST_F(ClientTimeoutTest, NoTimeout) {
 TEST_F(ClientTimeoutTest, Timeout) {
   webcc::ClientSession session;
 
-  // Change timeout to 1s.
-  session.set_timeout(1);
+  // Change read timeout to 1s.
+  session.set_read_timeout(1);
 
   webcc::ResponsePtr r;
   bool timeout = false;

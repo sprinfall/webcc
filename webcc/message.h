@@ -118,7 +118,7 @@ protected:
 
   std::string start_line_;
 
-  std::size_t content_length_;
+  std::size_t content_length_ = kInvalidLength;
 };
 
 }  // namespace webcc

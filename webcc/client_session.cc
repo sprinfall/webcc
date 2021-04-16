@@ -1,16 +1,123 @@
 #include "webcc/client_session.h"
 
+#include <cassert>
+
 #include "webcc/base64.h"
 #include "webcc/logger.h"
 #include "webcc/url.h"
 #include "webcc/utility.h"
+ 
+namespace ssl = boost::asio::ssl;
 
 namespace webcc {
 
-ClientSession::ClientSession(int timeout, bool ssl_verify,
-                             std::size_t buffer_size)
-    : timeout_(timeout), ssl_verify_(ssl_verify), buffer_size_(buffer_size) {
+#if WEBCC_ENABLE_SSL
+#if (defined(_WIN32) || defined(_WIN64))
+
+// Let OpenSSL on Windows use the system certificate store
+//   1. Load your certificate (in PCCERT_CONTEXT structure) from Windows Cert
+//      store using Crypto APIs.
+//   2. Get encrypted content of it in binary format as it is.
+//      [PCCERT_CONTEXT->pbCertEncoded].
+//   3. Parse this binary buffer into X509 certificate Object using OpenSSL's
+//      d2i_X509() method.
+//   4. Get handle to OpenSSL's trust store using SSL_CTX_get_cert_store()
+//      method.
+//   5. Load above parsed X509 certificate into this trust store using
+//      X509_STORE_add_cert() method.
+//   6. You are done!
+// NOTES: Enum Windows store with "ROOT" (not "CA").
+// See: https://stackoverflow.com/a/11763389/6825348
+
+static bool UseSystemCertificateStore(SSL_CTX* ssl_ctx) {
+  // NOTE: Cannot use nullptr to replace NULL.
+  HCERTSTORE cert_store = ::CertOpenSystemStoreW(NULL, L"ROOT");
+  if (cert_store == nullptr) {
+    LOG_ERRO("Cannot open Windows system certificate store.");
+    return false;
+  }
+
+  X509_STORE* x509_store = SSL_CTX_get_cert_store(ssl_ctx);
+  PCCERT_CONTEXT cert_context = nullptr;
+
+  while (cert_context = CertEnumCertificatesInStore(cert_store, cert_context)) {
+    auto in = (const unsigned char**)&cert_context->pbCertEncoded;
+    X509* x509 = d2i_X509(nullptr, in, cert_context->cbCertEncoded);
+
+    if (x509 != nullptr) {
+      if (X509_STORE_add_cert(x509_store, x509) == 0) {
+        LOG_ERRO("Cannot add Windows root certificate.");
+      }
+
+      X509_free(x509);
+    }
+  }
+
+  CertFreeCertificateContext(cert_context);
+  CertCloseStore(cert_store, 0);
+  return true;
+}
+
+#endif  // defined(_WIN32) || defined(_WIN64)
+#endif  // WEBCC_ENABLE_SSL
+
+ClientSession::ClientSession(bool ssl_verify, std::size_t buffer_size)
+    : work_guard_(boost::asio::make_work_guard(io_context_)),
+#if WEBCC_ENABLE_SSL
+      ssl_context_(ssl::context::sslv23),
+#endif
+      ssl_verify_(ssl_verify), buffer_size_(buffer_size) {
+#if WEBCC_ENABLE_SSL
+#if (defined(_WIN32) || defined(_WIN64))
+  // if (ssl_verify_) {
+    UseSystemCertificateStore(ssl_context_.native_handle());
+  // }
+#else
+  // Use the default paths for finding CA certificates.
+  ssl_context_.set_default_verify_paths();
+#endif  // defined(_WIN32) || defined(_WIN64)
+#endif  // WEBCC_ENABLE_SSL
+
   InitHeaders();
+
+  Start();
+}
+
+ClientSession::~ClientSession() {
+  Stop();
+}
+
+void ClientSession::Start() {
+  if (started_) {
+    return;
+  }
+
+  started_ = true;
+
+  io_context_.restart();
+
+  // Run the io context off in its own thread so that it operates completely
+  // asynchronously with respect to the rest of the program.
+
+  io_thread_.reset(new std::thread{ [this]() { io_context_.run(); }});
+
+  LOG_INFO("Loop is now running");
+}
+
+void ClientSession::Stop() {
+  if (!started_) {
+    return;
+  }
+
+  Cancel();
+
+  io_context_.stop();
+
+  io_thread_->join();
+
+  LOG_INFO("Loop stopped");
+
+  started_ = false;
 }
 
 void ClientSession::Accept(const std::string& content_types) {
@@ -68,8 +175,15 @@ void ClientSession::AuthToken(const std::string& token) {
   return Auth("Token", token);
 }
 
-ResponsePtr ClientSession::Send(RequestPtr request, bool stream) {
+ResponsePtr ClientSession::Send(RequestPtr request, bool stream,
+                                ProgressCallback callback) {
   assert(request);
+
+  std::lock_guard<std::mutex> lock{ mutex_ };
+
+  if (!started_) {
+    throw Error{ Error::kStateError, "Loop is not running" };
+  }
 
   for (auto& h : headers_.data()) {
     if (!request->HasHeader(h.first)) {
@@ -84,7 +198,13 @@ ResponsePtr ClientSession::Send(RequestPtr request, bool stream) {
 
   request->Prepare();
 
-  return DoSend(request, stream);
+  return DoSend(request, stream, callback);
+}
+
+void ClientSession::Cancel() {
+  if (client_) {
+    client_->Close();
+  }
 }
 
 void ClientSession::InitHeaders() {
@@ -99,34 +219,40 @@ void ClientSession::InitHeaders() {
   headers_.Set(headers::kConnection, "Keep-Alive");
 }
 
-ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream) {
+ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream,
+                                  ProgressCallback callback) {
   const ClientPool::Key key{ request->url() };
 
   // Reuse a pooled connection.
   bool reuse = false;
 
   ClientPtr client = pool_.Get(key);
+  
   if (!client) {
-    client.reset(new Client{});
+#if WEBCC_ENABLE_SSL
+    client.reset(new Client{ io_context_, ssl_context_ });
+#else
+    client.reset(new Client{ io_context_ });
+#endif  // WEBCC_ENABLE_SSL
     reuse = false;
   } else {
-    LOG_VERB("Reuse an existing connection.");
+    LOG_VERB("Reuse an existing connection");
     reuse = true;
   }
 
   client->set_ssl_verify(ssl_verify_);
   client->set_buffer_size(buffer_size_);
-  client->set_timeout(timeout_);
+  client->set_connect_timeout(connect_timeout_);
+  client->set_read_timeout(read_timeout_);
 
-  Error error = client->Request(request, !reuse, stream);
+  client->set_progress_callback(callback);
 
-  if (error) {
-    if (reuse && error.code() == Error::kSocketWriteError) {
-      LOG_WARN("Cannot send request with the reused connection. "
-               "The server must have closed it, reconnect and try again.");
-      error = client->Request(request, true, stream);
-    }
-  }
+  // Save current client for cancel.
+  client_ = client;
+
+  Error error = client->Request(request, stream);
+
+  client_.reset();
 
   if (error) {
     // Remove the failed connection from pool.
@@ -139,11 +265,11 @@ ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream) {
   // Update connection pool.
 
   if (reuse) {
-    if (client->closed()) {
+    if (!client->connected()) {
       pool_.Remove(key);
     }
   } else {
-    if (!client->closed()) {
+    if (client->connected()) {
       pool_.Add(key, client);
     }
   }

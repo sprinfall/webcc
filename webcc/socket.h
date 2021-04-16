@@ -18,23 +18,28 @@ namespace webcc {
 
 class SocketBase {
 public:
-  virtual ~SocketBase() = default;
-
   using Endpoints = boost::asio::ip::tcp::resolver::results_type;
+
+  using ConnectHandler = std::function<void(boost::system::error_code,
+                                            boost::asio::ip::tcp::endpoint)>;
+
+  using WriteHandler =
+      std::function<void(boost::system::error_code, std::size_t)>;
 
   using ReadHandler =
       std::function<void(boost::system::error_code, std::size_t)>;
 
-  // TODO: Remove |host|
-  virtual bool Connect(const std::string& host, const Endpoints& endpoints) = 0;
+  virtual ~SocketBase() = default;
 
-  virtual bool Write(const Payload& payload, boost::system::error_code* ec) = 0;
+  virtual void AsyncConnect(const std::string& host, const Endpoints& endpoints,
+                            ConnectHandler&& handler) = 0;
 
-  virtual bool ReadSome(std::vector<char>* buffer, std::size_t* size,
-                        boost::system::error_code* ec) = 0;
+  virtual void AsyncWrite(const Payload& payload, WriteHandler&& handler) = 0;
 
   virtual void AsyncReadSome(ReadHandler&& handler,
                              std::vector<char>* buffer) = 0;
+
+  virtual bool Shutdown() = 0;
 
   virtual bool Close() = 0;
 };
@@ -45,14 +50,14 @@ class Socket : public SocketBase {
 public:
   explicit Socket(boost::asio::io_context& io_context);
 
-  bool Connect(const std::string& host, const Endpoints& endpoints) override;
+  void AsyncConnect(const std::string& host, const Endpoints& endpoints,
+                    ConnectHandler&& handler) override;
 
-  bool Write(const Payload& payload, boost::system::error_code* ec) override;
-
-  bool ReadSome(std::vector<char>* buffer, std::size_t* size,
-                boost::system::error_code* ec) override;
+  void AsyncWrite(const Payload& payload, WriteHandler&& handler) override;
 
   void AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) override;
+
+  bool Shutdown() override;
 
   bool Close() override;
 
@@ -66,29 +71,32 @@ private:
 
 class SslSocket : public SocketBase {
 public:
-  explicit SslSocket(boost::asio::io_context& io_context,
-                     bool ssl_verify = true);
+  SslSocket(boost::asio::io_context& io_context,
+            boost::asio::ssl::context& ssl_context,
+            bool ssl_verify = true);
 
-  bool Connect(const std::string& host, const Endpoints& endpoints) override;
+  void AsyncConnect(const std::string& host, const Endpoints& endpoints,
+                    ConnectHandler&& handler) override;
 
-  bool Write(const Payload& payload, boost::system::error_code* ec) override;
-
-  bool ReadSome(std::vector<char>* buffer, std::size_t* size,
-                boost::system::error_code* ec) override;
+  void AsyncWrite(const Payload& payload, WriteHandler&& handler) override;
 
   void AsyncReadSome(ReadHandler&& handler, std::vector<char>* buffer) override;
+
+  bool Shutdown() override;
 
   bool Close() override;
 
 private:
-  bool Handshake(const std::string& host);
+  void OnConnect(boost::system::error_code ec,
+                 boost::asio::ip::tcp::endpoint endpoint);
 
-  boost::asio::ssl::context ssl_context_;
+  ConnectHandler connect_handler_;
+  boost::asio::ip::tcp::endpoint endpoint_;
 
   boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket_;
 
   // Verify the certificate of the peer (remote server) or not.
-  bool ssl_verify_;
+  bool ssl_verify_ = true;
 };
 
 #endif  // WEBCC_ENABLE_SSL

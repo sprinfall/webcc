@@ -8,7 +8,7 @@
 
 namespace webcc {
 
-Message::Message() : body_(new Body{}), content_length_(kInvalidLength) {
+Message::Message() : body_(new Body{}) {
 }
 
 void Message::SetBody(BodyPtr body, bool set_length) {

@@ -49,14 +49,14 @@ bool StringBodyHandler::Finish() {
   auto body = std::make_shared<StringBody>(std::move(content_), IsCompressed());
 
 #if WEBCC_ENABLE_GZIP
-  LOG_INFO("Decompress the HTTP content...");
+  LOG_INFO("Decompress the HTTP content");
   if (!body->Decompress()) {
-    LOG_ERRO("Cannot decompress the HTTP content!");
+    LOG_ERRO("Cannot decompress the HTTP content");
     return false;
   }
 #else
   if (body->compressed()) {
-    LOG_WARN("Compressed HTTP content remains untouched.");
+    LOG_WARN("Compressed HTTP content remains untouched");
   }
 #endif  // WEBCC_ENABLE_GZIP
 
@@ -79,7 +79,7 @@ bool FileBodyHandler::OpenFile() {
              temp_path_.string().c_str());
 
   } catch (const bfs::filesystem_error&) {
-    LOG_ERRO("Failed to generate temp path for streaming.");
+    LOG_ERRO("Failed to generate temp path for streaming");
     return false;
   }
 
@@ -132,6 +132,8 @@ bool Parser::Parse(const char* data, std::size_t length) {
     return ParseContent(data, length);
   }
 
+  header_length_ += length;
+
   // Append the new data to the pending data.
   pending_data_.append(data, length);
 
@@ -140,11 +142,13 @@ bool Parser::Parse(const char* data, std::size_t length) {
   }
 
   if (!header_ended_) {
-    LOG_INFO("HTTP headers will continue in next read.");
+    LOG_INFO("HTTP headers will continue in next read");
     return true;
   }
 
-  LOG_INFO("HTTP headers just ended.");
+  LOG_INFO("HTTP headers just ended");
+
+  header_length_ -= pending_data_.size();
 
   if (!OnHeadersEnd()) {
     // Only request parser can reach here when no view matches the request.
@@ -170,6 +174,7 @@ void Parser::Reset() {
   stream_ = false;
 
   pending_data_.clear();
+  header_length_ = 0;
 
   content_length_ = kInvalidLength;
   content_type_.Reset();
@@ -336,7 +341,7 @@ bool Parser::ParseChunkedContent(const char* data, std::size_t length) {
         return false;
       }
 
-      LOG_VERB("Chunk size: %u.", chunk_size_);
+      LOG_VERB("Chunk size: %u", chunk_size_);
     }
 
     if (chunk_size_ == 0) {
@@ -378,14 +383,14 @@ bool Parser::ParseChunkedContent(const char* data, std::size_t length) {
 }
 
 bool Parser::ParseChunkSize() {
-  LOG_VERB("Parse chunk size.");
+  LOG_VERB("Parse chunk size");
 
   std::string line;
   if (!GetNextLine(0, &line, true)) {
     return true;
   }
 
-  LOG_VERB("Chunk size line: [%s].", line.c_str());
+  LOG_VERB("Chunk size line: [%s]", line.c_str());
 
   std::string hex_str;  // e.g., "cf0" (3312)
 
@@ -397,7 +402,7 @@ bool Parser::ParseChunkSize() {
   }
 
   if (!to_size_t(hex_str, 16, &chunk_size_)) {
-    LOG_ERRO("Invalid chunk-size: %s.", hex_str.c_str());
+    LOG_ERRO("Invalid chunk-size: %s", hex_str.c_str());
     return false;
   }
 

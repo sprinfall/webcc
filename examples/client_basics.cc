@@ -8,7 +8,8 @@ int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
   webcc::ClientSession session;
-
+  session.set_connect_timeout(5);
+  session.set_read_timeout(5);
   session.Accept("application/json");
 
   webcc::ResponsePtr r;

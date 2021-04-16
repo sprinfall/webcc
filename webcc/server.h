@@ -24,10 +24,10 @@ public:
   Server(boost::asio::ip::tcp protocol, std::uint16_t port,
          const boost::filesystem::path& doc_root = {});
 
-  ~Server() = default;
-
   Server(const Server&) = delete;
   Server& operator=(const Server&) = delete;
+
+  ~Server() = default;
 
   void set_buffer_size(std::size_t buffer_size) {
     if (buffer_size > 0) {
@@ -105,20 +105,20 @@ private:
   boost::asio::ip::tcp protocol_;
 
   // Port number.
-  std::uint16_t port_;
+  std::uint16_t port_ = 0;
 
   // The directory with the static files to be served.
   boost::filesystem::path doc_root_;
 
   // The size of the buffer for reading request.
-  std::size_t buffer_size_;
+  std::size_t buffer_size_ = kBufferSize;
 
   // The size of the chunk loaded into memory each time when serving a
   // static file.
-  std::size_t file_chunk_size_;
+  std::size_t file_chunk_size_ = 1024;
 
   // Is the server running?
-  bool running_;
+  bool running_ = false;
 
   // The mutex for guarding the state of the server.
   std::mutex state_mutex_;

@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <exception>
+#include <functional>
 #include <iosfwd>
 #include <string>
 #include <vector>
@@ -23,11 +24,14 @@ using UrlArgs = std::vector<std::string>;
 
 using Payload = std::vector<boost::asio::const_buffer>;
 
+using ProgressCallback =
+    std::function<void(std::size_t length, std::size_t total_length)>;
+
 // -----------------------------------------------------------------------------
 
 const char* const kCRLF = "\r\n";
 
-const std::size_t kInvalidLength = std::string::npos;
+const std::size_t kInvalidLength = -1;
 
 // Default timeout for reading response.
 const int kMaxReadSeconds = 30;
@@ -150,6 +154,7 @@ public:
   enum Code {
     kUnknownError = -1,
     kOK = 0,
+    kStateError,
     kSyntaxError,
     kResolveError,
     kConnectError,
@@ -166,7 +171,7 @@ public:
   }
 
   // Note that `noexcept` is required by GCC.
-  const char* what() const noexcept override{
+  const char* what() const noexcept override {
     return message_.c_str();
   }
 
