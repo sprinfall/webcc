@@ -43,7 +43,7 @@ bool RequestParser::ParseStartLine(const std::string& line) {
     return false;
   }
 
-  request_->set_method(std::move(parts[0].to_string()));
+  request_->set_method(parts[0].to_string());
   request_->set_url(Url{ parts[1].to_string() });
 
   // HTTP version is ignored.
