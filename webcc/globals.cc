@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "webcc/string.h"
+#include "boost/algorithm/string/case_conv.hpp"
 
 namespace webcc {
 
@@ -21,7 +21,7 @@ const char DOUBLE_DASHES[2] = { '-', '-' };
 namespace media_types {
 
 std::string FromExtension(const std::string& ext) {
-  std::string lext = tolower(ext);
+  std::string lext = boost::to_lower_copy(ext);
 
   if (lext == ".htm")   { return "text/html"; }
   if (lext == ".html")  { return "text/html"; }

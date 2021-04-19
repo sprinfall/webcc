@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include "boost/algorithm/string.hpp"
+
 #include "webcc/logger.h"
 #include "webcc/request.h"
 #include "webcc/string.h"
@@ -34,15 +36,15 @@ bool RequestParser::OnHeadersEnd() {
 }
 
 bool RequestParser::ParseStartLine(const std::string& line) {
-  std::vector<std::string> strs;
-  split(strs, line, ' ', true);
+  std::vector<boost::string_view> parts;
+  Split(line, ' ', true, &parts);
 
-  if (strs.size() != 3) {
+  if (parts.size() != 3) {
     return false;
   }
 
-  request_->set_method(std::move(strs[0]));
-  request_->set_url(Url(strs[1]));
+  request_->set_method(std::move(parts[0].to_string()));
+  request_->set_url(Url{ parts[1].to_string() });
 
   // HTTP version is ignored.
 
@@ -95,7 +97,7 @@ bool RequestParser::ParseMultipartContent(const char* data,
       if (ParsePartHeaders(&need_more_data)) {
         // Go to next step.
         step_ = Step::kHeadersParsed;
-        LOG_INFO("Part headers just ended.");
+        LOG_INFO("Part headers just ended");
         continue;
       } else {
         if (need_more_data) {
@@ -129,7 +131,7 @@ bool RequestParser::ParseMultipartContent(const char* data,
         // +2 for including the CRLF after the boundary.
         pending_data_.erase(0, off + count + 2);
       } else {
-        LOG_ERRO("Invalid part data. off=%u", off);
+        LOG_ERRO("Invalid part data, off=%u", off);
         return false;
       }
 
@@ -152,7 +154,7 @@ bool RequestParser::ParseMultipartContent(const char* data,
   }
 
   if (step_ == Step::kEnded) {
-    LOG_INFO("Multipart data has ended.");
+    LOG_INFO("Multipart data has ended");
 
     // Create a body and set to the request.
 
@@ -186,16 +188,16 @@ bool RequestParser::ParsePartHeaders(bool* need_more_data) {
     }
 
     Header header;
-    if (!split_kv(header.first, header.second, line, ':')) {
+    if (!SplitKV(line, ':', true, &header.first, &header.second)) {
       LOG_ERRO("Invalid part header line: %s", line.c_str());
       return false;
     }
 
-    LOG_INFO("Part header (%s: %s).", header.first.c_str(),
+    LOG_INFO("Part header (%s: %s)", header.first.c_str(),
              header.second.c_str());
 
     // Parse Content-Disposition.
-    if (iequals(header.first, headers::kContentDisposition)) {
+    if (boost::iequals(header.first, headers::kContentDisposition)) {
       ContentDisposition content_disposition(header.second);
       if (!content_disposition.valid()) {
         LOG_ERRO("Invalid content-disposition header: %s",
@@ -217,8 +219,7 @@ bool RequestParser::ParsePartHeaders(bool* need_more_data) {
   return true;
 }
 
-bool RequestParser::GetNextBoundaryLine(std::size_t* b_off,
-                                        std::size_t* b_len,
+bool RequestParser::GetNextBoundaryLine(std::size_t* b_off, std::size_t* b_len,
                                         bool* ended) {
   std::size_t off = 0;
 

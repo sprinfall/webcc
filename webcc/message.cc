@@ -2,8 +2,9 @@
 
 #include <sstream>
 
+#include "boost/algorithm/string.hpp"
+
 #include "webcc/logger.h"
-#include "webcc/string.h"
 #include "webcc/utility.h"
 
 namespace webcc {
@@ -52,7 +53,7 @@ bool Message::IsConnectionKeepAlive() const {
     return true;
   }
 
-  if (iequals(connection, "Keep-Alive")) {
+  if (boost::iequals(connection, "Keep-Alive")) {
     return true;
   }
 

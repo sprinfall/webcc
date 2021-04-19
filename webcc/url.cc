@@ -4,6 +4,8 @@
 #include <cctype>
 #include <functional>
 
+#include "boost/algorithm/string/trim.hpp"
+
 #include "webcc/string.h"
 #include "webcc/utility.h"
 
@@ -238,7 +240,7 @@ void Url::AppendQuery(const std::string& key, const std::string& value,
 
 void Url::Parse(const std::string& str) {
   std::string tmp = str;
-  ltrim(tmp);
+  boost::trim_left(tmp);
 
   std::size_t p = std::string::npos;
 
@@ -314,7 +316,7 @@ UrlQuery::UrlQuery(const std::string& encoded_str) {
 
       std::string key;
       std::string value;
-      if (split_kv(key, value, kv, '=', false)) {
+      if (SplitKV(kv, '=', false, &key, &value)) {
         parameters_.push_back({ DecodeUnsafe(key), DecodeUnsafe(value) });
       }
     }
@@ -349,7 +351,7 @@ void UrlQuery::Remove(const std::string& key) {
   }
 }
 
-std::string UrlQuery::ToString() const {
+std::string UrlQuery::ToString(bool encode) const {
   if (parameters_.empty()) {
     return "";
   }
@@ -363,7 +365,11 @@ std::string UrlQuery::ToString() const {
     str += parameters_[i].first + "=" + parameters_[i].second;
   }
 
-  return Url::EncodeQuery(str);
+  if (encode) {
+    return Url::EncodeQuery(str);
+  } else {
+    return str;
+  }
 }
 
 UrlQuery::ConstIterator UrlQuery::Find(const std::string& key) const {

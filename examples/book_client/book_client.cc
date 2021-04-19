@@ -2,11 +2,10 @@
 
 #include <iostream>
 
+#include "boost/algorithm/string.hpp"
 #include "boost/filesystem/operations.hpp"
 
 #include "json/json.h"
-
-#include "webcc/string.h"
 
 #include "book_json.h"
 
@@ -180,7 +179,7 @@ bool BookClient::CheckPhoto(const bfs::path& photo) {
   }
 
   auto ext = photo.extension().string();
-  if (!webcc::iequals(ext, ".jpg") && !webcc::iequals(ext, ".jpeg")) {
+  if (!boost::iequals(ext, ".jpg") && !boost::iequals(ext, ".jpeg")) {
     return false;
   }
 

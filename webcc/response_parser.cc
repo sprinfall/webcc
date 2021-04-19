@@ -1,8 +1,9 @@
 #include "webcc/response_parser.h"
 
+#include "boost/algorithm/string.hpp"
+
 #include "webcc/logger.h"
 #include "webcc/response.h"
-#include "webcc/string.h"
 
 namespace webcc {
 
@@ -25,7 +26,8 @@ void SplitStartLine(const std::string& line, std::vector<std::string>* parts) {
     parts->push_back(line.substr(off, pos - off));
     off = pos + 1;
 
-    for (; off < line.size() && line[off] == SPACE; ++off) {}
+    for (; off < line.size() && line[off] == SPACE; ++off) {
+    }
   }
 
   if (off < line.size()) {
@@ -53,7 +55,7 @@ bool ResponseParser::ParseStartLine(const std::string& line) {
     return false;
   }
 
-  if (!starts_with(parts[0], "HTTP/1.")) {
+  if (!boost::starts_with(parts[0], "HTTP/1.")) {
     LOG_ERRO("Invalid HTTP version: %s", parts[0].c_str());
     return false;
   }

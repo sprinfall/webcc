@@ -32,7 +32,7 @@ std::string HttpDate() {
   //   std::stringstream ss;
   //   ss << std::put_time(gmt, "%a, %d %b %Y %H:%M:%S") << " GMT";
   //   return ss.str();
-  // 
+  //
   //   char buf[26];
   //   std::strftime(buf, 26, "%a, %d %b %Y %H:%M:%S", gmt);
 
@@ -80,16 +80,16 @@ bool ReadFile(const bfs::path& path, std::string* output) {
 
 void DumpByLine(const std::string& data, std::ostream& os,
                 const std::string& prefix) {
-  std::vector<std::string> lines;
-  split(lines, data, '\n');
+  std::vector<boost::string_view> lines;
+  Split(data, '\n', false, &lines);
 
   std::size_t size = 0;
 
-  for (const std::string& line : lines) {
+  for (const auto& line : lines) {
     os << prefix;
 
     if (line.size() + size > kMaxDumpSize) {
-      os.write(line.c_str(), kMaxDumpSize - size);
+      os.write(line.data(), kMaxDumpSize - size);
       os << "..." << std::endl;
       break;
     } else {

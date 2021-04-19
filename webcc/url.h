@@ -109,9 +109,9 @@ public:
 
   void Remove(const std::string& key);
 
-  // Return encoded query string joined with '&'.
+  // Return query string, encoded or not, joined with '&'.
   // E.g., "item=12731&color=blue&size=large".
-  std::string ToString() const;
+  std::string ToString(bool encode = true) const;
 
 private:
   using ConstIterator = std::vector<Parameter>::const_iterator;
