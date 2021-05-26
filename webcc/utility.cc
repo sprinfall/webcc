@@ -24,32 +24,12 @@ const std::string& UserAgent() {
 
 std::string HttpDate() {
   std::time_t t = std::time(nullptr);
-  tm* gmt = std::gmtime(&t);
+  std::tm* gmt = std::gmtime(&t);
 
-  // Either put_time() or strftime() could format the date as expected, but they
-  // are both locale dependent!
-  //
-  //   std::stringstream ss;
-  //   ss << std::put_time(gmt, "%a, %d %b %Y %H:%M:%S") << " GMT";
-  //   return ss.str();
-  //
-  //   char buf[26];
-  //   std::strftime(buf, 26, "%a, %d %b %Y %H:%M:%S", gmt);
-
-  static const char* const kDays[7] = { "Sun", "Mon", "Tue", "Wed",
-                                        "Thu", "Fri", "Sat" };
-
-  static const char* const kMonths[12] = { "Jan", "Feb", "Mar", "Apr",
-                                           "May", "Jun", "Jul", "Aug",
-                                           "Sep", "Oct", "Nov", "Dec" };
-
-  char buf[26];
-
-  std::snprintf(buf, 26, "%s, %.2i %s %i %.2i:%.2i:%.2i", kDays[gmt->tm_wday],
-               gmt->tm_mday, kMonths[gmt->tm_mon], gmt->tm_year + 1900,
-               gmt->tm_hour, gmt->tm_min, gmt->tm_sec);
-
-  return std::string(buf) + " GMT";
+  std::stringstream date;
+  date.imbue(std::locale::classic());  // Use classic C locale
+  date << std::put_time(gmt, "%a, %d %b %y %h:%m:%s") << " GMT";
+  return date.str();
 }
 
 std::size_t TellSize(const bfs::path& path) {
