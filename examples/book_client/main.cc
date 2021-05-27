@@ -1,12 +1,9 @@
 #include <iostream>
 
-#include "boost/filesystem/operations.hpp"
-
+#include "webcc/fs.h"
 #include "webcc/logger.h"
 
 #include "book_client.h"
-
-namespace bfs = boost::filesystem;
 
 // -----------------------------------------------------------------------------
 
@@ -39,8 +36,8 @@ int main(int argc, char* argv[]) {
 
   std::string url = argv[1];
 
-  bfs::path photo_dir = argv[2];
-  if (!bfs::is_directory(photo_dir) || !bfs::exists(photo_dir)) {
+  webcc::fs::path photo_dir = argv[2];
+  if (!webcc::fs::is_directory(photo_dir) || !webcc::fs::exists(photo_dir)) {
     std::cerr << "Invalid photo dir!" << std::endl;
     return 1;
   }

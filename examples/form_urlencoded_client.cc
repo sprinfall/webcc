@@ -5,8 +5,6 @@
 #include "webcc/client_session.h"
 #include "webcc/logger.h"
 
-namespace bfs = boost::filesystem;
-
 int main(int argc, char* argv[]) {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 

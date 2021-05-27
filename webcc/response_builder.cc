@@ -8,8 +8,6 @@
 #include "webcc/gzip.h"
 #endif
 
-namespace bfs = boost::filesystem;
-
 namespace webcc {
 
 ResponsePtr ResponseBuilder::operator()() {
@@ -45,7 +43,7 @@ ResponsePtr ResponseBuilder::operator()() {
   return response;
 }
 
-ResponseBuilder& ResponseBuilder::File(const bfs::path& path,
+ResponseBuilder& ResponseBuilder::File(const fs::path& path,
                                        bool infer_media_type,
                                        std::size_t chunk_size) {
   body_.reset(new FileBody{ path, chunk_size });

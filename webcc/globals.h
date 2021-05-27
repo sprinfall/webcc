@@ -126,6 +126,8 @@ namespace media_types {
 
 const char* const kApplicationJson = "application/json";
 const char* const kApplicationSoapXml = "application/soap+xml";
+const char* const kApplicationFormUrlEncoded =
+    "application/x-www-form-urlencoded";
 const char* const kTextPlain = "text/plain";
 const char* const kTextXml = "text/xml";
 

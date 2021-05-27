@@ -7,12 +7,8 @@
 #include <iostream>
 #include <sstream>
 
-#include "boost/filesystem/fstream.hpp"
-
 #include "webcc/string.h"
 #include "webcc/version.h"
-
-namespace bfs = boost::filesystem;
 
 namespace webcc {
 namespace utility {
@@ -32,18 +28,18 @@ std::string HttpDate() {
   return date.str();
 }
 
-std::size_t TellSize(const bfs::path& path) {
+std::size_t TellSize(const fs::path& path) {
   // Flag "ate": seek to the end of stream immediately after open.
-  bfs::ifstream stream{ path, std::ios::binary | std::ios::ate };
+  fs::ifstream stream{ path, std::ios::binary | std::ios::ate };
   if (stream.fail()) {
     return kInvalidLength;
   }
   return static_cast<std::size_t>(stream.tellg());
 }
 
-bool ReadFile(const bfs::path& path, std::string* output) {
+bool ReadFile(const fs::path& path, std::string* output) {
   // Flag "ate": seek to the end of stream immediately after open.
-  bfs::ifstream stream{ path, std::ios::binary | std::ios::ate };
+  fs::ifstream stream{ path, std::ios::binary | std::ios::ate };
   if (stream.fail()) {
     return false;
   }

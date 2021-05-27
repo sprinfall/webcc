@@ -1,7 +1,5 @@
 #include "views.h"
 
-#include "boost/filesystem/operations.hpp"
-
 #include "json/json.h"
 
 #include "webcc/response_builder.h"
@@ -9,8 +7,6 @@
 #include "book.h"
 #include "book_db.h"
 #include "book_json.h"
-
-namespace bfs = boost::filesystem;
 
 // -----------------------------------------------------------------------------
 
@@ -57,7 +53,7 @@ webcc::ResponsePtr BookListView::Post(webcc::RequestPtr request) {
 
 // -----------------------------------------------------------------------------
 
-BookDetailView::BookDetailView(bfs::path photo_dir)
+BookDetailView::BookDetailView(webcc::fs::path photo_dir)
     : photo_dir_(std::move(photo_dir)) {
 }
 
@@ -125,8 +121,8 @@ webcc::ResponsePtr BookDetailView::Delete(webcc::RequestPtr request) {
 
   // Delete the photo from file system.
   if (!photo_name.empty()) {
-    boost::system::error_code ec;
-    bfs::remove(photo_dir_ / photo_name, ec);
+    webcc::fs::error_code ec;
+    webcc::fs::remove(photo_dir_ / photo_name, ec);
   }
 
   return webcc::ResponseBuilder{}.OK()();
@@ -134,7 +130,7 @@ webcc::ResponsePtr BookDetailView::Delete(webcc::RequestPtr request) {
 
 // -----------------------------------------------------------------------------
 
-BookPhotoView::BookPhotoView(bfs::path photo_dir)
+BookPhotoView::BookPhotoView(webcc::fs::path photo_dir)
     : photo_dir_(std::move(photo_dir)) {
 }
 
@@ -164,8 +160,8 @@ webcc::ResponsePtr BookPhotoView::Get(webcc::RequestPtr request) {
     return webcc::ResponseBuilder{}.NotFound()();
   }
 
-  bfs::path photo_path = photo_dir_ / book.photo;
-  if (!bfs::exists(photo_path)) {
+  webcc::fs::path photo_path = photo_dir_ / book.photo;
+  if (!webcc::fs::exists(photo_path)) {
     return webcc::ResponseBuilder{}.NotFound()();
   }
 
@@ -219,8 +215,8 @@ webcc::ResponsePtr BookPhotoView::Delete(webcc::RequestPtr request) {
   }
 
   // Error handling is simplified.
-  boost::system::error_code ec;
-  bfs::remove(photo_dir_ / book.photo, ec);
+  webcc::fs::error_code ec;
+  webcc::fs::remove(photo_dir_ / book.photo, ec);
 
   return webcc::ResponseBuilder{}.OK()();
 }

@@ -1,13 +1,10 @@
 #include <iostream>
 
-#include "boost/filesystem/operations.hpp"
-
+#include "webcc/fs.h"
 #include "webcc/logger.h"
 #include "webcc/server.h"
 
 #include "views.h"
-
-namespace bfs = boost::filesystem;
 
 int main(int argc, char* argv[]) {
   if (argc < 3) {
@@ -21,16 +18,16 @@ int main(int argc, char* argv[]) {
 
   std::uint16_t port = static_cast<std::uint16_t>(std::atoi(argv[1]));
 
-  bfs::path upload_dir = argv[2];
-  if (!bfs::is_directory(upload_dir) || !bfs::exists(upload_dir)) {
+  webcc::fs::path upload_dir = argv[2];
+  if (!webcc::fs::is_directory(upload_dir) || !webcc::fs::exists(upload_dir)) {
     std::cerr << "Invalid upload dir!" << std::endl;
     return 1;
   }
 
   // Add a sub-dir for book photos.
-  bfs::path photo_dir = upload_dir / "books";
-  if (!bfs::exists(photo_dir)) {
-    bfs::create_directory(photo_dir);
+  webcc::fs::path photo_dir = upload_dir / "books";
+  if (!webcc::fs::exists(photo_dir)) {
+    webcc::fs::create_directory(photo_dir);
   }
 
   std::cout << "Book photos will be saved to: " << photo_dir << std::endl;

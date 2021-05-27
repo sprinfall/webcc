@@ -4,10 +4,8 @@
 #include <fstream>
 #include <string>
 
-#include "boost/filesystem/fstream.hpp"
-#include "boost/filesystem/path.hpp"
-
 #include "webcc/common.h"
+#include "webcc/fs.h"
 #include "webcc/globals.h"
 
 namespace webcc {
@@ -84,8 +82,8 @@ public:
 
 private:
   std::size_t streamed_size_ = 0;
-  boost::filesystem::ofstream ofstream_;
-  boost::filesystem::path temp_path_;
+  fs::ofstream ofstream_;
+  fs::path temp_path_;
 };
 
 // -----------------------------------------------------------------------------

@@ -4,11 +4,10 @@
 #include <list>
 #include <string>
 
-#include "boost/filesystem/path.hpp"
-
 #include "json/json-forwards.h"
 
 #include "webcc/client_session.h"
+#include "webcc/fs.h"
 
 #include "book.h"
 
@@ -29,13 +28,13 @@ public:
   bool Delete(const std::string& id);
 
   // Get photo, save to the given path.
-  bool GetPhoto(const std::string& id, const boost::filesystem::path& path);
+  bool GetPhoto(const std::string& id, const webcc::fs::path& path);
 
   // Set photo using the file of the given path.
-  bool SetPhoto(const std::string& id, const boost::filesystem::path& path);
+  bool SetPhoto(const std::string& id, const webcc::fs::path& path);
 
 private:
-  bool CheckPhoto(const boost::filesystem::path& photo);
+  bool CheckPhoto(const webcc::fs::path& photo);
 
   // Check HTTP response status.
   bool CheckStatus(webcc::ResponsePtr response, int expected_status);

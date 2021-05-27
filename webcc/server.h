@@ -5,14 +5,13 @@
 #include <thread>
 #include <vector>
 
-#include "boost/filesystem/path.hpp"
-
 #include "boost/asio/io_context.hpp"
 #include "boost/asio/ip/tcp.hpp"
 #include "boost/asio/signal_set.hpp"
 
 #include "webcc/connection.h"
 #include "webcc/connection_pool.h"
+#include "webcc/fs.h"
 #include "webcc/queue.h"
 #include "webcc/router.h"
 #include "webcc/url.h"
@@ -22,7 +21,7 @@ namespace webcc {
 class Server : public Router {
 public:
   Server(boost::asio::ip::tcp protocol, std::uint16_t port,
-         const boost::filesystem::path& doc_root = {});
+         const fs::path& doc_root = {});
 
   Server(const Server&) = delete;
   Server& operator=(const Server&) = delete;
@@ -108,7 +107,7 @@ private:
   std::uint16_t port_ = 0;
 
   // The directory with the static files to be served.
-  boost::filesystem::path doc_root_;
+  fs::path doc_root_;
 
   // The size of the buffer for reading request.
   std::size_t buffer_size_ = kBufferSize;

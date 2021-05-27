@@ -4,26 +4,29 @@
 #include <string>
 #include <vector>
 
-#include "boost/filesystem/path.hpp"
-
+#include "webcc/fs.h"
 #include "webcc/request.h"
 #include "webcc/url.h"
 
 // -----------------------------------------------------------------------------
 // Handy macros for creating a RequestBuilder.
 
-#define WEBCC_GET(url) webcc::RequestBuilder{}.Get(url, false)
-#define WEBCC_GET_ENC(url) webcc::RequestBuilder{}.Get(url, true)
-#define WEBCC_HEAD(url) webcc::RequestBuilder{}.Head(url, false)
-#define WEBCC_HEAD_ENC(url) webcc::RequestBuilder{}.Head(url, true)
-#define WEBCC_POST(url) webcc::RequestBuilder{}.Post(url, false)
-#define WEBCC_POST_ENC(url) webcc::RequestBuilder{}.Post(url, true)
-#define WEBCC_PUT(url) webcc::RequestBuilder{}.Put(url, false)
-#define WEBCC_PUT_ENC(url) webcc::RequestBuilder{}.Put(url, true)
-#define WEBCC_DELETE(url) webcc::RequestBuilder{}.Delete(url, false)
-#define WEBCC_DELETE_ENC(url) webcc::RequestBuilder{}.Delete(url, true)
-#define WEBCC_PATCH(url) webcc::RequestBuilder{}.Patch(url, false)
-#define WEBCC_PATCH_ENC(url) webcc::RequestBuilder{}.Patch(url, true)
+#define WEBCC_RB webcc::RequestBuilder{}
+
+// clang-format off
+#define WEBCC_GET(url)          WEBCC_RB.Get(url, false)
+#define WEBCC_GET_ENC(url)      WEBCC_RB.Get(url, true)
+#define WEBCC_HEAD(url)         WEBCC_RB.Head(url, false)
+#define WEBCC_HEAD_ENC(url)     WEBCC_RB.Head(url, true)
+#define WEBCC_POST(url)         WEBCC_RB.Post(url, false)
+#define WEBCC_POST_ENC(url)     WEBCC_RB.Post(url, true)
+#define WEBCC_PUT(url)          WEBCC_RB.Put(url, false)
+#define WEBCC_PUT_ENC(url)      WEBCC_RB.Put(url, true)
+#define WEBCC_DELETE(url)       WEBCC_RB.Delete(url, false)
+#define WEBCC_DELETE_ENC(url)   WEBCC_RB.Delete(url, true)
+#define WEBCC_PATCH(url)        WEBCC_RB.Patch(url, false)
+#define WEBCC_PATCH_ENC(url)    WEBCC_RB.Patch(url, true)
+// clang-format on
 
 // -----------------------------------------------------------------------------
 
@@ -143,8 +146,7 @@ public:
 
   // Use the file content as body.
   // NOTE: Error::kFileError might be thrown.
-  RequestBuilder& File(const boost::filesystem::path& path,
-                       bool infer_media_type = true,
+  RequestBuilder& File(const fs::path& path, bool infer_media_type = true,
                        std::size_t chunk_size = 1024);
 
   // Add a form part.
@@ -154,8 +156,7 @@ public:
   }
 
   // Add a form part of file.
-  RequestBuilder& FormFile(const std::string& name,
-                           const boost::filesystem::path& path,
+  RequestBuilder& FormFile(const std::string& name, const fs::path& path,
                            const std::string& media_type = "");
 
   // Add a form part of string data.

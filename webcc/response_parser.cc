@@ -9,16 +9,16 @@ namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-namespace {
-
-void SplitStartLine(const std::string& line, std::vector<std::string>* parts) {
-  const char SPACE = ' ';
-
+// Split HTTP response status line to three parts.
+// Don't use the general split function because the reason part might also
+// contain spaces.
+static void SplitStatusLine(const std::string& line,
+                            std::vector<std::string>* parts) {
   std::size_t off = 0;
   std::size_t pos = 0;
 
   for (std::size_t i = 0; i < 2; ++i) {
-    pos = line.find(SPACE, off);
+    pos = line.find(' ', off);
     if (pos == std::string::npos) {
       break;
     }
@@ -26,7 +26,9 @@ void SplitStartLine(const std::string& line, std::vector<std::string>* parts) {
     parts->push_back(line.substr(off, pos - off));
     off = pos + 1;
 
-    for (; off < line.size() && line[off] == SPACE; ++off) {
+    // Skip spaces
+    while (off < line.size() && line[off] == ' ') {
+      ++off;
     }
   }
 
@@ -34,8 +36,6 @@ void SplitStartLine(const std::string& line, std::vector<std::string>* parts) {
     parts->push_back(line.substr(off));
   }
 }
-
-}  // namespace
 
 // -----------------------------------------------------------------------------
 
@@ -48,7 +48,7 @@ void ResponseParser::Init(Response* response, bool stream) {
 
 bool ResponseParser::ParseStartLine(const std::string& line) {
   std::vector<std::string> parts;
-  SplitStartLine(line, &parts);
+  SplitStatusLine(line, &parts);
 
   if (parts.size() < 2) {
     LOG_ERRO("Invalid HTTP response status line: %s", line.c_str());

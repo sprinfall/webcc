@@ -9,7 +9,7 @@
 #include <cstring>  // for strrchr()
 #include <string>
 
-#include "boost/filesystem/path.hpp"
+#include "webcc/fs.h"
 
 // Log levels.
 // VERB is similar to DEBUG commonly used by other projects.
@@ -44,7 +44,7 @@ const int LOG_FILE_OVERWRITE = LOG_FILE | LOG_OVERWRITE;
 
 // Initialize logger.
 // If |dir| is empty, log file will be generated in current directory.
-void LogInit(const boost::filesystem::path& dir, int modes);
+void LogInit(const fs::path& dir, int modes);
 
 void Log(int level, const char* file, int line, const char* format, ...);
 

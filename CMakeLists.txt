@@ -25,11 +25,13 @@ option(BUILD_UNITTEST "Build unit test?" OFF)
 option(BUILD_EXAMPLES "Build examples?" ON)
 option(BUILD_QT_EXAMPLES "Build Qt application examples?" OFF)
 
-set(WEBCC_ENABLE_LOG   1 CACHE STRING "Enable logging? (1:Yes, 0:No)")
-set(WEBCC_ENABLE_SSL   0 CACHE STRING "Enable SSL/HTTPS (need OpenSSL)? (1:Yes, 0:No)")
-set(WEBCC_ENABLE_GZIP  0 CACHE STRING "Enable gzip compression (need Zlib)? (1:Yes, 0:No)")
+set(WEBCC_ENABLE_LOG 1 CACHE STRING "Enable logging? (1:Yes, 0:No)")
+set(WEBCC_ENABLE_SSL 0 CACHE STRING "Enable SSL/HTTPS (need OpenSSL)? (1:Yes, 0:No)")
+set(WEBCC_ENABLE_GZIP 0 CACHE STRING "Enable gzip compression (need Zlib)? (1:Yes, 0:No)")
 
-set(WEBCC_LOG_LEVEL    2 CACHE STRING "Log level (0:VERB, 1:INFO, 2:USER, 3:WARN or 4:ERRO)")
+set(WEBCC_LOG_LEVEL 2 CACHE STRING "Log level (0:VERB, 1:INFO, 2:USER, 3:WARN or 4:ERRO)")
+
+set(WEBCC_USE_STD_FILESYSTEM 1 CACHE STRING "Use C++17 filesystem? (1:Yes, 0:No)")
 
 if(BUILD_UNITTEST)
     enable_testing()
@@ -42,16 +44,30 @@ if(WIN32)
 endif()
 
 # C++ standard requirements.
-set(CMAKE_CXX_STANDARD 11)
+
+if(WEBCC_USE_STD_FILESYSTEM)
+    set(CMAKE_CXX_STANDARD 17)
+else()
+    set(CMAKE_CXX_STANDARD 11)
+endif()
+
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Boost
+
+set(BOOST_COMPONENTS system date_time)
+
+if(NOT WEBCC_USE_STD_FILESYSTEM)
+    set(BOOST_COMPONENTS ${BOOST_COMPONENTS} filesystem)
+endif()
+
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.66.0 REQUIRED COMPONENTS system date_time filesystem)
+find_package(Boost 1.66.0 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 if(Boost_FOUND)
     message(STATUS "Boost version: ${Boost_VERSION}")
+    message(STATUS "Boost libraries: ${Boost_LIBRARIES}")
     include_directories(${Boost_INCLUDE_DIRS})
 endif()
 

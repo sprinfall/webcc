@@ -6,8 +6,7 @@
 #include <utility>
 #include <vector>
 
-#include "boost/filesystem/path.hpp"
-
+#include "webcc/fs.h"
 #include "webcc/globals.h"
 
 namespace webcc {
@@ -158,8 +157,7 @@ public:
   // Construct a file part.
   // The file name will be extracted from path.
   // The media type, if not provided, will be inferred from file extension.
-  static FormPartPtr NewFile(const std::string& name,
-                             const boost::filesystem::path& path,
+  static FormPartPtr NewFile(const std::string& name, const fs::path& path,
                              const std::string& media_type = "");
 
   // API: SERVER
@@ -230,7 +228,7 @@ private:
   std::string name_;
 
   // The path of the file to post.
-  boost::filesystem::path path_;
+  fs::path path_;
 
   // The original local file name.
   // E.g., "baby.jpg".

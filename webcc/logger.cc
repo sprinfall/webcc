@@ -18,11 +18,7 @@
 // For getting thread ID.
 #include <sys/syscall.h>
 #include <sys/types.h>
-#endif
-
-#include "boost/filesystem/operations.hpp"
-
-namespace bfs = boost::filesystem;
+#endif  // defined(_WIN32) || defined(_WIN64)
 
 namespace webcc {
 
@@ -36,7 +32,7 @@ static const char* kLevelNames[] = {
 
 // -----------------------------------------------------------------------------
 
-static FILE* FOpen(const bfs::path& path, bool overwrite) {
+static FILE* FOpen(const fs::path& path, bool overwrite) {
 #if (defined(_WIN32) || defined(_WIN64))
   return _wfopen(path.wstring().c_str(), overwrite ? L"w+" : L"a+");
 #else
@@ -53,7 +49,7 @@ struct Logger {
     }
   }
 
-  void Init(const bfs::path& path, int _modes) {
+  void Init(const fs::path& path, int _modes) {
     modes = _modes;
 
     // Create log file only if necessary.
@@ -155,14 +151,14 @@ static std::string GetThreadID() {
   return thread_id;
 }
 
-static bfs::path InitLogPath(const bfs::path& dir) {
+static fs::path InitLogPath(const fs::path& dir) {
   if (dir.empty()) {
-    return bfs::current_path() / WEBCC_LOG_FILE_NAME;
+    return fs::current_path() / WEBCC_LOG_FILE_NAME;
   }
 
-  boost::system::error_code ec;
-  if (!bfs::exists(dir, ec) || !bfs::is_directory(dir, ec)) {
-    if (!bfs::create_directories(dir, ec) || ec) {
+  fs::error_code ec;
+  if (!fs::exists(dir, ec) || !fs::is_directory(dir, ec)) {
+    if (!fs::create_directories(dir, ec) || ec) {
       return {};
     }
   }
@@ -170,7 +166,7 @@ static bfs::path InitLogPath(const bfs::path& dir) {
   return (dir / WEBCC_LOG_FILE_NAME);
 }
 
-void LogInit(const bfs::path& dir, int modes) {
+void LogInit(const fs::path& dir, int modes) {
   // Suppose this is called from the main thread.
   g_main_thread_id = DoGetThreadID();
 
