@@ -1,10 +1,5 @@
 # Webcc - C++ HTTP Library
 
-**NOTE：**
-- **[legacy](https://github.com/sprinfall/webcc/tree/legacy)** branch only uses limited C++11 features, so it could be built by old compilers like _VS2013_ and _GCC 4.8_.
-
-----
-
 [__中文版 README__](README_zh_CN.md)
 
 Lightweight C++ HTTP __client and server__ library based on [Boost Asio](https://www.boost.org/doc/libs/release/libs/asio/) for __embedding__ purpose.
