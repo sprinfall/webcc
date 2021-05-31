@@ -20,11 +20,11 @@ const std::string& UserAgent() {
 
 std::string HttpDate() {
   std::time_t t = std::time(nullptr);
-  std::tm* gmt = std::gmtime(&t);
+  std::tm gmt = *std::gmtime(&t);
 
   std::stringstream date;
   date.imbue(std::locale::classic());  // Use classic C locale
-  date << std::put_time(gmt, "%a, %d %b %y %h:%m:%s") << " GMT";
+  date << std::put_time(&gmt, "%a, %d %b %Y %H:%M:%S GMT");
   return date.str();
 }
 
