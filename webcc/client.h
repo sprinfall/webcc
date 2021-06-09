@@ -88,6 +88,8 @@ public:
   }
 
 private:
+  void DoClose();
+
   void AsyncConnect();
 
   void AsyncResolve(const std::string& default_port);

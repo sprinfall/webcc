@@ -297,7 +297,8 @@ TEST(ClientTest, Post) {
 
 static webcc::fs::path GenerateTempFile(const std::string& data) {
   try {
-    webcc::fs::path path = webcc::fs::temp_directory_path() / webcc::RandomString(10);
+    webcc::fs::path path =
+        webcc::fs::temp_directory_path() / webcc::RandomString(10);
 
     webcc::fs::ofstream ofs;
     ofs.open(path, std::ios::binary);

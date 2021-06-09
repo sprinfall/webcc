@@ -96,7 +96,9 @@ public:
                    ProgressCallback callback = {});
 
   // Cancel any in-progress connecting, writing or reading.
-  void Cancel();
+  // Return if any client object has been closed.
+  // It could be used to exit the program as soon as possible.
+  bool Cancel();
 
 private:
   void InitHeaders();

@@ -211,10 +211,12 @@ ResponsePtr ClientSession::Send(RequestPtr request, bool stream,
   return DoSend(request, stream, callback);
 }
 
-void ClientSession::Cancel() {
+bool ClientSession::Cancel() {
   if (client_) {
     client_->Close();
+    return true;
   }
+  return false;
 }
 
 void ClientSession::InitHeaders() {

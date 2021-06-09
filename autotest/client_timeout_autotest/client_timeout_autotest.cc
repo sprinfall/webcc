@@ -101,3 +101,28 @@ TEST_F(ClientTimeoutTest, Timeout) {
   EXPECT_TRUE(!r);
   EXPECT_TRUE(timeout);
 }
+
+// Test ClientSession::Cancel()
+TEST_F(ClientTimeoutTest, SessionCancel) {
+  webcc::ClientSession session;
+  session.set_read_timeout(30);
+
+  bool canceled = false;
+
+  // Create a thread to cancel the session after 3 seconds.
+  std::thread t{ [&session, &canceled]() {
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    canceled = session.Cancel();
+  } };
+
+  // Send a request and ask the server to sleep 5 seconds before reply.
+  try {
+    auto r = session.Send(WEBCC_GET("http://localhost/sleep/5").Port(kPort)());
+  } catch (const webcc::Error&) {
+  }
+
+  t.join();
+
+  // The request should be canceled.
+  EXPECT_TRUE(canceled);
+}

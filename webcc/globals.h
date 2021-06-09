@@ -109,6 +109,7 @@ const char* const kAuthorization = "Authorization";
 const char* const kContentType = "Content-Type";
 const char* const kContentLength = "Content-Length";
 const char* const kContentEncoding = "Content-Encoding";
+const char* const kContentMD5 = "Content-MD5";
 const char* const kContentDisposition = "Content-Disposition";
 const char* const kConnection = "Connection";
 const char* const kTransferEncoding = "Transfer-Encoding";
@@ -168,7 +169,7 @@ public:
   };
 
 public:
-  Error(Code code = kOK, const std::string& message = "")
+  explicit Error(Code code = kOK, const std::string& message = "")
       : code_(code), message_(message), timeout_(false) {
   }
 
