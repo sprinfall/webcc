@@ -27,17 +27,20 @@ int main(int argc, const char* argv[]) {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
   int workers = 1;
+  int loops = 1;
   int sleep_seconds = 0;
 
   if (argc > 1) {
     workers = std::stoi(argv[1]);
     if (argc > 2) {
-      sleep_seconds = std::stoi(argv[2]);
+      loops = std::stoi(argv[2]);
+      if (argc > 3) {
+        sleep_seconds = std::stoi(argv[3]);
+      }
     }
   }
 
-  LOG_USER("Workers: %d", workers);
-  LOG_USER("Sleep seconds: %d", sleep_seconds);
+  LOG_USER("Workers: %d, loops: %d, sleep: %ds", workers, loops, sleep_seconds);
 
   try {
     webcc::Server server{ boost::asio::ip::tcp::v4(), 8080 };
@@ -46,7 +49,7 @@ int main(int argc, const char* argv[]) {
     server.Route("/", view);
     server.Route("/hello", view);
 
-    server.Run(workers);
+    server.Run(workers, loops);
 
   } catch (const std::exception&) {
     return 1;

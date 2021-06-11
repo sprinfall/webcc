@@ -10,9 +10,20 @@
 #include "webcc/response.h"
 #include "webcc/utility.h"
 
+using namespace std::placeholders;
 using tcp = boost::asio::ip::tcp;
 
 namespace webcc {
+
+// NOTE:
+// Using `asio::strand` is possible but not neccessary:
+//   Define a memeber variable:
+//     asio::strand<asio::io_context::executor_type> strand_;
+//   Initialize the strand with io_context:
+//     strand_(asio::make_strand(io_context_)),
+//   Initialize the acceptor with strand:
+//     acceptor_(strand_)
+// The same applies to the sockets.
 
 Server::Server(boost::asio::ip::tcp protocol, std::uint16_t port,
                const fs::path& doc_root)
@@ -26,6 +37,10 @@ Server::Server(boost::asio::ip::tcp protocol, std::uint16_t port,
 
 void Server::Run(std::size_t workers, std::size_t loops) {
   assert(workers > 0);
+
+#if WEBCC_STUDY_SERVER_THREADING
+  LOG_USER("Run(workers:%u, loops:%u)", workers, loops);
+#endif
 
   {
     std::lock_guard<std::mutex> lock{ state_mutex_ };
@@ -151,8 +166,16 @@ bool Server::Listen(std::uint16_t port) {
 }
 
 void Server::AsyncAccept() {
+#if WEBCC_STUDY_SERVER_THREADING
+  LOG_USER("AsyncAccept");
+#endif
+
   acceptor_.async_accept(
       [this](boost::system::error_code ec, tcp::socket socket) {
+#if WEBCC_STUDY_SERVER_THREADING
+        LOG_USER("Accept handler");
+#endif
+
         // Check whether the server was stopped by a signal before this
         // completion handler had a chance to run.
         if (!acceptor_.is_open()) {
@@ -161,8 +184,6 @@ void Server::AsyncAccept() {
 
         if (!ec) {
           LOG_INFO("Accepted a connection");
-
-          using namespace std::placeholders;
 
           auto view_matcher = std::bind(&Server::MatchViewOrStatic, this, _1,
                                         _2, _3);

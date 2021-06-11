@@ -28,7 +28,7 @@ void Connection::Start() {
   }
 
   request_parser_.Init(request_.get(), view_matcher_);
-  DoRead();
+  AsyncRead();
 }
 
 void Connection::Close() {
@@ -68,7 +68,7 @@ void Connection::SendResponse(ResponsePtr response, bool no_keep_alive) {
 
   response_->Prepare();
 
-  DoWrite();
+  AsyncWrite();
 }
 
 void Connection::SendResponse(Status status, bool no_keep_alive) {
@@ -82,7 +82,11 @@ void Connection::SendResponse(Status status, bool no_keep_alive) {
   SendResponse(response, no_keep_alive);
 }
 
-void Connection::DoRead() {
+void Connection::AsyncRead() {
+#if WEBCC_STUDY_SERVER_THREADING
+  LOG_USER("[%u] AsyncRead()", (unsigned int)this);
+#endif
+
   socket_.async_read_some(boost::asio::buffer(buffer_),
                           std::bind(&Connection::OnRead, shared_from_this(),
                                     std::placeholders::_1,
@@ -90,6 +94,10 @@ void Connection::DoRead() {
 }
 
 void Connection::OnRead(boost::system::error_code ec, std::size_t length) {
+#if WEBCC_STUDY_SERVER_THREADING
+  LOG_USER("[%u] OnRead()", (unsigned int)this);
+#endif
+
   if (ec) {
     if (ec == boost::asio::error::eof) {
       LOG_INFO("Socket read EOF (%s)", ec.message().c_str());
@@ -121,7 +129,7 @@ void Connection::OnRead(boost::system::error_code ec, std::size_t length) {
 
   if (!request_parser_.finished()) {
     // Continue to read the request.
-    DoRead();
+    AsyncRead();
     return;
   }
 
@@ -132,7 +140,11 @@ void Connection::OnRead(boost::system::error_code ec, std::size_t length) {
   queue_->Push(shared_from_this());
 }
 
-void Connection::DoWrite() {
+void Connection::AsyncWrite() {
+#if WEBCC_STUDY_SERVER_THREADING
+  LOG_USER("[%u] AsyncWrite()", (unsigned int)this);
+#endif
+
   LOG_VERB("Response:\n%s", response_->Dump().c_str());
 
   // Firstly, write the headers.
@@ -144,16 +156,20 @@ void Connection::DoWrite() {
 
 void Connection::OnWriteHeaders(boost::system::error_code ec,
                                 std::size_t length) {
+#if WEBCC_STUDY_SERVER_THREADING
+  LOG_USER("[%u] OnWriteHeaders()", (unsigned int)this);
+#endif
+
   if (ec) {
-    OnWriteError(ec);
+    HandleWriteError(ec);
   } else {
     // Write the body payload by payload.
     response_->body()->InitPayload();
-    DoWriteBody();
+    AsyncWriteBody();
   }
 }
 
-void Connection::DoWriteBody() {
+void Connection::AsyncWriteBody() {
   auto payload = response_->body()->NextPayload();
 
   if (!payload.empty()) {
@@ -164,19 +180,23 @@ void Connection::DoWriteBody() {
                                        std::placeholders::_2));
   } else {
     // No more body payload left, we're done.
-    OnWriteOK();
+    HandleWriteOK();
   }
 }
 
 void Connection::OnWriteBody(boost::system::error_code ec, std::size_t length) {
+#if WEBCC_STUDY_SERVER_THREADING
+  LOG_USER("[%u] OnWriteBody()", (unsigned int)this);
+#endif
+
   if (ec) {
-    OnWriteError(ec);
+    HandleWriteError(ec);
   } else {
-    DoWriteBody();
+    AsyncWriteBody();
   }
 }
 
-void Connection::OnWriteOK() {
+void Connection::HandleWriteOK() {
   LOG_INFO("Response has been sent back");
 
   if (request_->IsConnectionKeepAlive()) {
@@ -188,7 +208,7 @@ void Connection::OnWriteOK() {
   }
 }
 
-void Connection::OnWriteError(boost::system::error_code ec) {
+void Connection::HandleWriteError(boost::system::error_code ec) {
   LOG_ERRO("Socket write error (%s)", ec.message().c_str());
 
   if (ec != boost::asio::error::operation_aborted) {
