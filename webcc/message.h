@@ -16,6 +16,9 @@ class Message {
 public:
   Message();
 
+  Message(const Message&) = delete;
+  Message& operator=(const Message&) = delete;
+
   virtual ~Message() = default;
 
   // ---------------------------------------------------------------------------

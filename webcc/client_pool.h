@@ -44,6 +44,9 @@ public:
 public:
   ClientPool() = default;
 
+  ClientPool(const ClientPool&) = delete;
+  ClientPool& operator=(const ClientPool&) = delete;
+
   ~ClientPool();
 
   ClientPtr Get(const Key& key) const;

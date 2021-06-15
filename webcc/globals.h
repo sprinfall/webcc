@@ -170,7 +170,7 @@ public:
 
 public:
   explicit Error(Code code = kOK, const std::string& message = "")
-      : code_(code), message_(message), timeout_(false) {
+      : code_(code), message_(message) {
   }
 
   // Note that `noexcept` is required by GCC.
@@ -206,7 +206,7 @@ public:
 private:
   Code code_;
   std::string message_;
-  bool timeout_;
+  bool timeout_ = false;
 };
 
 std::ostream& operator<<(std::ostream& os, const Error& error);

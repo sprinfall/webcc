@@ -27,9 +27,6 @@ public:
 
   explicit Url(const std::string& str, bool encode = false);
 
-  Url(Url&&) = default;
-  Url& operator=(Url&&) = default;
-
   const std::string& scheme() const {
     return scheme_;
   }
@@ -134,7 +131,7 @@ public:
   std::regex operator()() const {
     std::regex::flag_type flags = std::regex::ECMAScript | std::regex::icase;
 
-    return std::regex(url_, flags);
+    return std::regex{ url_, flags };
   }
 
 private:

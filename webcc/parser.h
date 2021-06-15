@@ -19,6 +19,9 @@ public:
   explicit BodyHandler(Message* message) : message_(message) {
   }
 
+  BodyHandler(const BodyHandler&) = delete;
+  BodyHandler& operator=(const BodyHandler&) = delete;
+
   virtual ~BodyHandler() = default;
 
   virtual void AddContent(const char* data, std::size_t count) = 0;

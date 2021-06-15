@@ -22,6 +22,9 @@ class ClientSession {
 public:
   explicit ClientSession(std::size_t buffer_size = 0);
 
+  ClientSession(const ClientSession&) = delete;
+  ClientSession& operator=(const ClientSession&) = delete;
+
   ~ClientSession();
 
   // Start Asio loop in a thread.

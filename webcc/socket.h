@@ -29,6 +29,11 @@ public:
   using ReadHandler =
       std::function<void(boost::system::error_code, std::size_t)>;
 
+  SocketBase() = default;
+
+  SocketBase(const SocketBase&) = delete;
+  SocketBase& operator=(const SocketBase&) = delete;
+
   virtual ~SocketBase() = default;
 
   virtual void AsyncConnect(const std::string& host, const Endpoints& endpoints,

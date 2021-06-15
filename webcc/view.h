@@ -10,7 +10,12 @@ namespace webcc {
 
 class View {
 public:
+  View() = default;
+
   virtual ~View() = default;
+
+  View(const View&) = delete;
+  View& operator=(const View&) = delete;
 
   virtual ResponsePtr Handle(RequestPtr request) = 0;
 
