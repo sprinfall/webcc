@@ -15,12 +15,12 @@
 
 namespace webcc {
 
-// HTTP requests session providing connection-pooling, configuration and more.
-// NOTE: If a session is shared by multiple threads, the requests sent through
-//       it will be serialized by using a mutex.
+// Client session provides connection-pooling, configuration and more.
+// If a client session is shared by multiple threads, the requests sent through
+// it will be serialized by using a mutex.
 class ClientSession {
 public:
-  explicit ClientSession(bool ssl_verify = true, std::size_t buffer_size = 0);
+  explicit ClientSession(std::size_t buffer_size = 0);
 
   ~ClientSession();
 
@@ -43,10 +43,6 @@ public:
     if (timeout > 0) {
       read_timeout_ = timeout;
     }
-  }
-
-  void set_ssl_verify(bool ssl_verify) {
-    ssl_verify_ = ssl_verify;
   }
 
   void set_buffer_size(std::size_t buffer_size) {
@@ -140,20 +136,17 @@ private:
   // Timeout (seconds) for reading response.
   int read_timeout_ = 0;
 
-  // Verify the certificate of the peer or not.
-  bool ssl_verify_ = true;
-
   // The size of the buffer for reading response.
   // 0 means default value will be used.
   std::size_t buffer_size_;
 
-  // Keep-Alive client connections.
+  // Persistent (keep-alive) client connections.
   ClientPool pool_;
 
   // Current requested client.
   ClientPtr client_;
 
-  // The mutex to guard the request.
+  // The mutex to serialize the requests.
   std::mutex mutex_;
 };
 

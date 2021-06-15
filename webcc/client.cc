@@ -101,7 +101,7 @@ void Client::DoClose() {
 void Client::AsyncConnect() {
   if (request_->url().scheme() == "https") {
 #if WEBCC_ENABLE_SSL
-    socket_.reset(new SslSocket{ io_context_, ssl_context_, ssl_verify_ });
+    socket_.reset(new SslSocket{ io_context_, ssl_context_ });
     AsyncResolve("443");
 #else
     LOG_ERRO("SSL/HTTPS support is not enabled.");

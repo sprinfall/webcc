@@ -36,10 +36,6 @@ public:
 
   ~Client() = default;
 
-  void set_ssl_verify(bool ssl_verify) {
-    ssl_verify_ = ssl_verify;
-  }
-
   void set_buffer_size(std::size_t buffer_size) {
     if (buffer_size > 0) {
       buffer_size_ = buffer_size;
@@ -142,9 +138,6 @@ private:
   // The buffer for reading response.
   std::vector<char> buffer_;
 
-  // Verify the certificate of the peer or not (for HTTPS).
-  bool ssl_verify_ = true;
-
   // The size of the buffer for reading response.
   // 0 means default value will be used.
   std::size_t buffer_size_ = kBufferSize;
@@ -166,6 +159,7 @@ private:
   // Progress callback (optional).
   ProgressCallback progress_callback_;
 
+  // Current error.
   Error error_;
 };
 

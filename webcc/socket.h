@@ -72,8 +72,7 @@ private:
 class SslSocket : public SocketBase {
 public:
   SslSocket(boost::asio::io_context& io_context,
-            boost::asio::ssl::context& ssl_context,
-            bool ssl_verify = true);
+            boost::asio::ssl::context& ssl_context);
 
   void AsyncConnect(const std::string& host, const Endpoints& endpoints,
                     ConnectHandler&& handler) override;
@@ -93,10 +92,7 @@ private:
   ConnectHandler connect_handler_;
   boost::asio::ip::tcp::endpoint endpoint_;
 
-  boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket_;
-
-  // Verify the certificate of the peer (remote server) or not.
-  bool ssl_verify_ = true;
+  boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_stream_;
 };
 
 #endif  // WEBCC_ENABLE_SSL

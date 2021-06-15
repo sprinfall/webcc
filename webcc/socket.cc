@@ -60,9 +60,8 @@ bool Socket::Close() {
 namespace ssl = boost::asio::ssl;
 
 SslSocket::SslSocket(boost::asio::io_context& io_context,
-                     ssl::context& ssl_context, bool ssl_verify)
-    : ssl_socket_(io_context, ssl_context),
-      ssl_verify_(ssl_verify) {
+                     ssl::context& ssl_context)
+    : ssl_stream_(io_context, ssl_context) {
 }
 
 void SslSocket::AsyncConnect(const std::string& host,
@@ -70,37 +69,35 @@ void SslSocket::AsyncConnect(const std::string& host,
                              ConnectHandler&& handler) {
   connect_handler_ = std::move(handler);
 
-
-  if (ssl_verify_) {
-    ssl_socket_.set_verify_mode(ssl::verify_peer);
-  } else {
-    ssl_socket_.set_verify_mode(ssl::verify_none);
-  }
+  // Modes `ssl::verify_fail_if_no_peer_cert` and `ssl::verify_client_once` are
+  // for server only. `ssl::verify_none` is not secure.
+  // See: https://stackoverflow.com/a/12621528
+  ssl_stream_.set_verify_mode(ssl::verify_peer);
 
   // ssl::host_name_verification has been added since Boost 1.73 to replace
   // ssl::rfc2818_verification.
 #if BOOST_VERSION < 107300
-  ssl_socket_.set_verify_callback(ssl::rfc2818_verification(host));
+  ssl_stream_.set_verify_callback(ssl::rfc2818_verification(host));
 #else
-  ssl_socket_.set_verify_callback(ssl::host_name_verification(host));
+  ssl_stream_.set_verify_callback(ssl::host_name_verification(host));
 #endif  // BOOST_VERSION < 107300
 
-  boost::asio::async_connect(ssl_socket_.lowest_layer(), endpoints,
+  boost::asio::async_connect(ssl_stream_.lowest_layer(), endpoints,
                              std::bind(&SslSocket::OnConnect, this, _1, _2));
 }
 
 void SslSocket::AsyncWrite(const Payload& payload, WriteHandler&& handler) {
-  boost::asio::async_write(ssl_socket_, payload, std::move(handler));
+  boost::asio::async_write(ssl_stream_, payload, std::move(handler));
 }
 
 void SslSocket::AsyncReadSome(ReadHandler&& handler,
                               std::vector<char>* buffer) {
-  ssl_socket_.async_read_some(boost::asio::buffer(*buffer), std::move(handler));
+  ssl_stream_.async_read_some(boost::asio::buffer(*buffer), std::move(handler));
 }
 
 bool SslSocket::Shutdown() {
   boost::system::error_code ec;
-  ssl_socket_.lowest_layer().shutdown(tcp::socket::shutdown_both, ec);
+  ssl_stream_.lowest_layer().shutdown(tcp::socket::shutdown_both, ec);
 
   if (ec) {
     LOG_WARN("Socket shutdown error (%s)", ec.message().c_str());
@@ -112,7 +109,7 @@ bool SslSocket::Shutdown() {
 
 bool SslSocket::Close() {
   boost::system::error_code ec;
-  ssl_socket_.lowest_layer().close(ec);
+  ssl_stream_.lowest_layer().close(ec);
 
   if (ec) {
     LOG_WARN("Socket close error (%s)", ec.message().c_str());
@@ -132,7 +129,7 @@ void SslSocket::OnConnect(boost::system::error_code ec,
   // Backup endpoint
   endpoint_ = std::move(endpoint);
 
-  ssl_socket_.async_handshake(ssl::stream_base::client,
+  ssl_stream_.async_handshake(ssl::stream_base::client,
                               [this](boost::system::error_code ec) {
     if (ec) {
       LOG_ERRO("Handshake error (%s)", ec.message().c_str());

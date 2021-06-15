@@ -41,7 +41,7 @@ namespace webcc {
 
 static bool UseSystemCertificateStore(SSL_CTX* ssl_ctx) {
   // NOTE: Cannot use nullptr to replace NULL.
-  HCERTSTORE cert_store = ::CertOpenSystemStoreW(NULL, L"ROOT");
+  HCERTSTORE cert_store = CertOpenSystemStoreW(NULL, L"ROOT");
   if (cert_store == nullptr) {
     LOG_ERRO("Cannot open Windows system certificate store.");
     return false;
@@ -71,17 +71,15 @@ static bool UseSystemCertificateStore(SSL_CTX* ssl_ctx) {
 #endif  // defined(_WIN32) || defined(_WIN64)
 #endif  // WEBCC_ENABLE_SSL
 
-ClientSession::ClientSession(bool ssl_verify, std::size_t buffer_size)
+ClientSession::ClientSession(std::size_t buffer_size)
     : work_guard_(boost::asio::make_work_guard(io_context_)),
 #if WEBCC_ENABLE_SSL
       ssl_context_(boost::asio::ssl::context::sslv23),
 #endif
-      ssl_verify_(ssl_verify), buffer_size_(buffer_size) {
+      buffer_size_(buffer_size) {
 #if WEBCC_ENABLE_SSL
 #if (defined(_WIN32) || defined(_WIN64))
-  // if (ssl_verify_) {
     UseSystemCertificateStore(ssl_context_.native_handle());
-  // }
 #else
   // Use the default paths for finding CA certificates.
   ssl_context_.set_default_verify_paths();
@@ -252,7 +250,6 @@ ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream,
     reuse = true;
   }
 
-  client->set_ssl_verify(ssl_verify_);
   client->set_buffer_size(buffer_size_);
   client->set_connect_timeout(connect_timeout_);
   client->set_read_timeout(read_timeout_);
