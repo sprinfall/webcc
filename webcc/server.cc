@@ -16,7 +16,7 @@ using tcp = boost::asio::ip::tcp;
 namespace webcc {
 
 // NOTE:
-// Using `asio::strand` is possible but not neccessary:
+// Using `asio::strand` is possible but not necessary:
 //   Define a memeber variable:
 //     asio::strand<asio::io_context::executor_type> strand_;
 //   Initialize the strand with io_context:

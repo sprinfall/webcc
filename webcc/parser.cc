@@ -333,9 +333,23 @@ bool Parser::ParseChunkedContent(const char* data, std::size_t length) {
   pending_data_.append(data, length);
 
   while (true) {
+    if (pending_data_.empty()) {
+      // Wait for more data from next read.
+      break;
+    }
+
     // Read chunk-size if necessary.
     if (chunk_size_ == kInvalidLength) {
-      if (!ParseChunkSize()) {
+      std::string line;
+      if (!GetNextLine(0, &line, true)) {
+        // Need more data from next read.
+        // Normally, it shouldn't be here since the chunk size line is very
+        // short.
+        break;
+      }
+
+      if (!ParseChunkSize(line)) {
+        // Invalid chunk size, stop the parsing.
         return false;
       }
 
@@ -350,6 +364,8 @@ bool Parser::ParseChunkedContent(const char* data, std::size_t length) {
     if (chunk_size_ + 2 <= pending_data_.size()) {  // +2 for CRLF
       body_handler_->AddContent(pending_data_.c_str(), chunk_size_);
 
+      // Pending data might become empty after erase. See the empty check at the
+      // beginning of the loop.
       pending_data_.erase(0, chunk_size_ + 2);
 
       // Reset chunk-size (NOT to 0).
@@ -380,18 +396,10 @@ bool Parser::ParseChunkedContent(const char* data, std::size_t length) {
   return true;
 }
 
-bool Parser::ParseChunkSize() {
-  LOG_VERB("Parse chunk size");
-
-  std::string line;
-  if (!GetNextLine(0, &line, true)) {
-    return true;
-  }
-
+bool Parser::ParseChunkSize(const std::string& line) {
   LOG_VERB("Chunk size line: [%s]", line.c_str());
 
   std::string hex_str;  // e.g., "cf0" (3312)
-
   std::size_t pos = line.find(' ');
   if (pos != std::string::npos) {
     hex_str = line.substr(0, pos);

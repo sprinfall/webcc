@@ -2,6 +2,7 @@
 
 #include "boost/asio/connect.hpp"
 #include "boost/asio/read.hpp"
+#include "boost/asio/ssl.hpp"
 #include "boost/asio/write.hpp"
 
 #include "webcc/logger.h"
@@ -69,6 +70,14 @@ void SslSocket::AsyncConnect(const std::string& host,
                              ConnectHandler&& handler) {
   connect_handler_ = std::move(handler);
 
+  // Set SNI (server name indication) host name.
+  // Many hosts need this to handshake successfully (e.g., google.com).
+  // Inspired by Boost.Beast.
+  if (!SSL_set_tlsext_host_name(ssl_stream_.native_handle(), host.c_str())) {
+    // TODO: Call ERR_get_error() to get error.
+    LOG_ERRO("Failed to set SNI host name for SSL");
+  }
+
   // Modes `ssl::verify_fail_if_no_peer_cert` and `ssl::verify_client_once` are
   // for server only. `ssl::verify_none` is not secure.
   // See: https://stackoverflow.com/a/12621528
@@ -97,6 +106,25 @@ void SslSocket::AsyncReadSome(ReadHandler&& handler,
 
 bool SslSocket::Shutdown() {
   boost::system::error_code ec;
+
+  ssl_stream_.lowest_layer().cancel(ec);
+
+  // Shutdown SSL
+  // TODO: Use async_shutdown()?
+  ssl_stream_.shutdown(ec);
+
+  if (ec == boost::asio::error::eof) {
+    // See: https://stackoverflow.com/a/25703699
+    ec = {};
+  }
+
+  if (ec) {
+    LOG_WARN("SSL shutdown error (%s)", ec.message().c_str());
+    return false;
+  }
+
+  // Shutdown TCP
+  // TODO: Not sure if this is necessary?
   ssl_stream_.lowest_layer().shutdown(tcp::socket::shutdown_both, ec);
 
   if (ec) {

@@ -121,6 +121,8 @@ public:
     return content_length_;
   }
 
+  // Parse the given length of data.
+  // Return false if the parsing is failed.
   bool Parse(const char* data, std::size_t length);
 
 protected:
@@ -152,7 +154,8 @@ protected:
   bool ParseFixedContent(const char* data, std::size_t length);
 
   bool ParseChunkedContent(const char* data, std::size_t length);
-  bool ParseChunkSize();
+
+  bool ParseChunkSize(const std::string& line);
 
   bool IsFixedContentFull() const;
 

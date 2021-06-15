@@ -74,7 +74,7 @@ static bool UseSystemCertificateStore(SSL_CTX* ssl_ctx) {
 ClientSession::ClientSession(std::size_t buffer_size)
     : work_guard_(boost::asio::make_work_guard(io_context_)),
 #if WEBCC_ENABLE_SSL
-      ssl_context_(boost::asio::ssl::context::sslv23),
+      ssl_context_(boost::asio::ssl::context::sslv23_client),
 #endif
       buffer_size_(buffer_size) {
 #if WEBCC_ENABLE_SSL

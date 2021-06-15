@@ -46,7 +46,7 @@ target_link_libraries(${TARGET} ${Boost_LIBRARIES})
 
 # ZLIB
 if(WEBCC_ENABLE_GZIP)
-	# The imported target ZLIB::ZLIB could be used instead.
+    # The imported target ZLIB::ZLIB could be used instead.
     target_link_libraries(${TARGET} ${ZLIB_LIBRARIES})
 endif()
 

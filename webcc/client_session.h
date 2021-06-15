@@ -111,7 +111,6 @@ private:
   using ExecutorType = boost::asio::io_context::executor_type;
   boost::asio::executor_work_guard<ExecutorType> work_guard_;
 
-  // TODO
 #if WEBCC_ENABLE_SSL
   boost::asio::ssl::context ssl_context_;
 #endif
