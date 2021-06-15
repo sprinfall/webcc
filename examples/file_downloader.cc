@@ -1,5 +1,9 @@
-// Download files.
-// This example demonstrates the usage of streamed response.
+// file_downloader.cc
+// This example downloads a JPG file.
+
+// NOTE:
+// - The response is streamed to file to avoid comsuming large memory.
+// - A callback is set to be informed about the download progress.
 
 #include <iostream>
 
@@ -26,11 +30,15 @@ int main(int argc, char* argv[]) {
 
   webcc::ClientSession session;
 
+  auto on_progress = [](std::size_t length, std::size_t total_length) {
+    if (total_length > 0) {  // Avoid dividing zero
+      int percent = static_cast<int>(length * 100.0 / total_length);
+      std::cout << "Download progress: " << percent << "%" << std::endl;
+    }
+  };
+
   try {
-    auto r = session.Send(webcc::RequestBuilder{}.Get(url)(), true,
-                          [](std::size_t length, std::size_t total_length) {
-      std::cout << "Progress " << length << " / " << total_length << std::endl;
-    });
+    auto r = session.Send(WEBCC_GET(url)(), true, on_progress);
 
     if (auto file_body = r->file_body()) {
       file_body->Move(path);

@@ -55,8 +55,9 @@ public:
   }
 
   // Set progress callback to be informed about the read progress.
-  // TODO: What about write?
-  // TODO: std::move?
+  // NOTE: Don't use move semantics because in practice, there is no difference
+  //       between copying and moving an object of a closure type.
+  // TODO: Support write progress
   void set_progress_callback(ProgressCallback callback) {
     progress_callback_ = callback;
   }
