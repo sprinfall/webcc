@@ -31,6 +31,7 @@ void Message::SetBody(BodyPtr body, bool set_length) {
 
 const std::string& Message::data() const {
   static const std::string kEmptyData;
+
   auto string_body = std::dynamic_pointer_cast<StringBody>(body_);
   if (!string_body) {
     return kEmptyData;
@@ -43,54 +44,42 @@ std::shared_ptr<FileBody> Message::file_body() const {
 }
 
 bool Message::IsConnectionKeepAlive() const {
-  using headers::kConnection;
-
   bool existed = false;
-  const std::string& connection = GetHeader(kConnection, &existed);
+  const auto& connection = GetHeader(headers::kConnection, &existed);
 
   if (!existed) {
     // Keep-Alive is by default for HTTP/1.1.
     return true;
   }
 
-  if (boost::iequals(connection, "Keep-Alive")) {
-    return true;
-  }
-
-  return false;
+  return boost::iequals(connection, "Keep-Alive");
 }
 
 ContentEncoding Message::GetContentEncoding() const {
-  using headers::kContentEncoding;
-
-  const std::string& encoding = GetHeader(kContentEncoding);
+  const auto& encoding = GetHeader(headers::kContentEncoding);
 
   if (encoding == "gzip") {
     return ContentEncoding::kGzip;
-  }
-
-  if (encoding == "deflate") {
+  } else if (encoding == "deflate") {
     return ContentEncoding::kDeflate;
+  } else {
+    return ContentEncoding::kUnknown;
   }
-
-  return ContentEncoding::kUnknown;
 }
 
 bool Message::AcceptEncodingGzip() const {
-  using headers::kAcceptEncoding;
-
-  return GetHeader(kAcceptEncoding).find("gzip") != std::string::npos;
+  return GetHeader(headers::kAcceptEncoding).find("gzip") != std::string::npos;
 }
 
-void Message::SetContentType(const std::string& media_type,
-                             const std::string& charset) {
-  using headers::kContentType;
-
+void Message::SetContentType(string_view media_type, string_view charset) {
   if (!media_type.empty()) {
     if (charset.empty()) {
-      SetHeader(kContentType, media_type);
+      SetHeader(headers::kContentType, media_type);
     } else {
-      SetHeader(kContentType, media_type + "; charset=" + charset);
+      std::string value = ToString(media_type);
+      value += "; charset=";
+      value += ToString(charset);
+      SetHeader(headers::kContentType, value);
     }
   }
 }
@@ -116,21 +105,21 @@ Payload Message::GetPayload() const {
 }
 
 void Message::Dump(std::ostream& os) const {
-  const std::string prefix = "    > ";
+  static const char* const s_prefix = "    > ";
 
-  os << prefix << start_line_ << std::endl;
+  os << s_prefix << start_line_ << std::endl;
 
   for (const Header& h : headers_.data()) {
-    os << prefix << h.first << ": " << h.second << std::endl;
+    os << s_prefix << h.first << ": " << h.second << std::endl;
   }
 
-  os << prefix << std::endl;
+  os << s_prefix << std::endl;
 
-  body_->Dump(os, prefix);
+  body_->Dump(os, s_prefix);
 }
 
 std::string Message::Dump() const {
-  std::stringstream ss;
+  std::ostringstream ss;
   Dump(ss);
   return ss.str();
 }

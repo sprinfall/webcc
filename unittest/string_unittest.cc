@@ -6,8 +6,36 @@
 
 #include "webcc/string.h"
 
+TEST(StringTest, Trim) {
+  std::string str = "   trim me  ";
+  webcc::string_view sv = str;
+  webcc::Trim(sv);
+  EXPECT_EQ("trim me", sv);
+}
+
+TEST(StringTest, Trim_Left) {
+  std::string str = "   trim me";
+  webcc::string_view sv = str;
+  webcc::Trim(sv);
+  EXPECT_EQ("trim me", sv);
+}
+
+TEST(StringTest, Trim_Right) {
+  std::string str = "trim me  ";
+  webcc::string_view sv = str;
+  webcc::Trim(sv);
+  EXPECT_EQ("trim me", sv);
+}
+
+TEST(StringTest, Trim_Empty) {
+  std::string str = "";
+  webcc::string_view sv = str;
+  webcc::Trim(sv);
+  EXPECT_EQ("", sv);
+}
+
 TEST(StringTest, Split) {
-  std::vector<boost::string_view> parts;
+  std::vector<webcc::string_view> parts;
   webcc::Split("GET /path/to HTTP/1.1", ' ', false, &parts);
 
   EXPECT_EQ(3, parts.size());
@@ -18,12 +46,11 @@ TEST(StringTest, Split) {
 
 TEST(StringTest, Split_TokenCompressOff) {
   std::string str = "one,two,,three,,";
-  std::vector<boost::string_view> parts;
+  std::vector<webcc::string_view> parts;
 
   // Same as:
   //   boost::split(parts, str, boost::is_any_of(","),
   //                boost::token_compress_off);
-
   webcc::Split(str, ',', false, &parts);
 
   EXPECT_EQ(6, parts.size());
@@ -37,7 +64,7 @@ TEST(StringTest, Split_TokenCompressOff) {
 
 TEST(StringTest, Split_TokenCompressOn) {
   std::string str = "one,two,,three,,";
-  std::vector<boost::string_view> parts;
+  std::vector<webcc::string_view> parts;
 
   // Same as:
   //   boost::split(parts, str, boost::is_any_of(","),
@@ -51,8 +78,28 @@ TEST(StringTest, Split_TokenCompressOn) {
   EXPECT_EQ("", parts[3]);
 }
 
+TEST(StringTest, Split_TokensOnly) {
+  std::string str = ",,,,,";
+  std::vector<webcc::string_view> parts;
+
+  // Token compress on
+  webcc::Split(str, ',', true, &parts);
+  EXPECT_EQ(2, parts.size());
+  EXPECT_EQ("", parts[0]);
+  EXPECT_EQ("", parts[1]);
+  
+  parts.clear();
+
+  // Token compress off
+  webcc::Split(str, ',', false, &parts);
+  EXPECT_EQ(6, parts.size());
+  EXPECT_EQ("", parts[0]);
+  EXPECT_EQ("", parts[1]);
+  EXPECT_EQ("", parts[5]);
+}
+
 TEST(StringTest, Split_NewLine) {
-  std::vector<boost::string_view> lines;
+  std::vector<webcc::string_view> lines;
   webcc::Split("line one\nline two\nline 3", '\n', false, &lines);
 
   EXPECT_EQ(3, lines.size());
@@ -64,8 +111,8 @@ TEST(StringTest, Split_NewLine) {
 TEST(StringTest, SplitKV) {
   const std::string str = "key=value";
 
-  std::string key;
-  std::string value;
+  webcc::string_view key;
+  webcc::string_view value;
   bool ok = webcc::SplitKV(str, '=', true, &key, &value);
 
   EXPECT_EQ(true, ok);
@@ -76,8 +123,8 @@ TEST(StringTest, SplitKV) {
 TEST(StringTest, SplitKV_OtherDelim) {
   const std::string str = "key:value";
 
-  std::string key;
-  std::string value;
+  webcc::string_view key;
+  webcc::string_view value;
   bool ok = webcc::SplitKV(str, ':', true, &key, &value);
 
   EXPECT_TRUE(ok);
@@ -89,8 +136,8 @@ TEST(StringTest, SplitKV_OtherDelim) {
 TEST(StringTest, SplitKV_Spaces) {
   const std::string str = " key =  value ";
 
-  std::string key;
-  std::string value;
+  webcc::string_view key;
+  webcc::string_view value;
   bool ok = webcc::SplitKV(str, '=', true, &key, &value);
 
   EXPECT_TRUE(ok);
@@ -102,8 +149,8 @@ TEST(StringTest, SplitKV_Spaces) {
 TEST(StringTest, SplitKV_SpacesNoTrim) {
   const std::string str = " key =  value ";
 
-  std::string key;
-  std::string value;
+  webcc::string_view key;
+  webcc::string_view value;
   bool ok = webcc::SplitKV(str, '=', false, &key, &value);
 
   EXPECT_TRUE(ok);
@@ -115,8 +162,8 @@ TEST(StringTest, SplitKV_SpacesNoTrim) {
 TEST(StringTest, SplitKV_NoKey) {
   const std::string str = "=value";
 
-  std::string key;
-  std::string value;
+  webcc::string_view key;
+  webcc::string_view value;
   bool ok = webcc::SplitKV(str, '=', true, &key, &value);
 
   EXPECT_TRUE(ok);
@@ -128,8 +175,8 @@ TEST(StringTest, SplitKV_NoKey) {
 TEST(StringTest, SplitKV_NoValue) {
   const std::string str = "key=";
 
-  std::string key;
-  std::string value;
+  webcc::string_view key;
+  webcc::string_view value;
   bool ok = webcc::SplitKV(str, '=', true, &key, &value);
 
   EXPECT_TRUE(ok);
@@ -141,8 +188,8 @@ TEST(StringTest, SplitKV_NoValue) {
 TEST(StringTest, SplitKV_NoKeyNoValue) {
   const std::string str = "=";
 
-  std::string key;
-  std::string value;
+  webcc::string_view key;
+  webcc::string_view value;
   bool ok = webcc::SplitKV(str, '=', true, &key, &value);
 
   EXPECT_TRUE(ok);

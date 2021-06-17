@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
     std::cout << "  $ ./form_client path/to/webcc/data/upload" << std::endl;
     std::cout << "  $ ./form_client path/to/webcc/data/upload "
               << "http://httpbin.org/post" << std::endl;
-    std::cout << "(Post the example 'form_server')" << std::endl;
+    std::cout << "(Post to the example 'form_server')" << std::endl;
     std::cout << "  $ ./form_client path/to/webcc/data/upload "
                  "http://localhost:8080/upload"
               << std::endl;
@@ -43,8 +43,7 @@ int main(int argc, char* argv[]) {
   webcc::ClientSession session;
 
   try {
-    auto r = session.Send(webcc::RequestBuilder{}
-                              .Post(url)
+    auto r = session.Send(WEBCC_POST(url)
                               .FormFile("file", upload_dir / "remember.txt")
                               .FormData("json", "{}", "application/json")());
 

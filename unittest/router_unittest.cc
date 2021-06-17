@@ -17,8 +17,7 @@ public:
 TEST(RouterTest, URL_RegexBasic) {
   webcc::Router router;
 
-  router.Route(webcc::R("/instance/(\\d+)"),
-               std::make_shared<MyView>());
+  router.Route(webcc::R{ "/instance/(\\d+)" }, std::make_shared<MyView>());
 
   std::string url = "/instance/12345";
   webcc::UrlArgs args;
@@ -40,7 +39,7 @@ TEST(RouterTest, URL_RegexBasic) {
 TEST(RouterTest, URL_RegexMultiple) {
   webcc::Router router;
 
-  router.Route(webcc::R("/study/(\\d+)/series/(\\d+)/instance/(\\d+)"),
+  router.Route(webcc::R{ "/study/(\\d+)/series/(\\d+)/instance/(\\d+)" },
                std::make_shared<MyView>());
 
   std::string url = "/study/1/series/2/instance/3";

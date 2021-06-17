@@ -42,21 +42,22 @@ private:
                   std::size_t count, bool* end = nullptr) const;
 
 private:
-  Request* request_;
+  // The result request message.
+  Request* request_ = nullptr;
 
   // A function for matching view once the headers of a request has been
   // received. The parsing will stop and fail if no view can be matched.
   ViewMatcher view_matcher_;
 
   // Form data parsing steps.
-  enum Step {
+  enum class Step {
     kStart,
     kBoundaryParsed,
     kHeadersParsed,
     kEnded,
   };
 
-  Step step_ = kStart;
+  Step step_ = Step::kStart;
 
   // The current form part being parsed.
   FormPartPtr part_;

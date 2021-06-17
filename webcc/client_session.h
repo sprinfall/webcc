@@ -52,7 +52,7 @@ public:
     buffer_size_ = buffer_size;
   }
 
-  void SetHeader(const std::string& key, const std::string& value) {
+  void SetHeader(string_view key, string_view value) {
     headers_.Set(key, value);
   }
 
@@ -60,14 +60,13 @@ public:
   // Only applied when:
   //   - the request to send has no `Content-Type` header, and
   //   - the request has a body.
-  void SetContentType(const std::string& media_type,
-                      const std::string& charset = "") {
-    media_type_ = media_type;
-    charset_ = charset;
+  void SetContentType(string_view media_type, string_view charset = "") {
+    media_type_ = ToString(media_type);
+    charset_ = ToString(charset);
   }
 
   // Set content types to accept.
-  void Accept(const std::string& content_types);
+  void Accept(string_view content_types);
 
 #if WEBCC_ENABLE_GZIP
 
@@ -77,13 +76,13 @@ public:
 #endif  // WEBCC_ENABLE_GZIP
 
   // Set authorization.
-  void Auth(const std::string& type, const std::string& credentials);
+  void Auth(string_view type, string_view credentials);
 
   // Set Basic authorization.
-  void AuthBasic(const std::string& login, const std::string& password);
+  void AuthBasic(string_view login, string_view password);
 
   // Set Token authorization.
-  void AuthToken(const std::string& token);
+  void AuthToken(string_view token);
 
   // Send a request.
   // Please use RequestBuilder to build the request.

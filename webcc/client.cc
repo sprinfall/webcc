@@ -114,10 +114,10 @@ void Client::AsyncConnect() {
   }
 }
 
-void Client::AsyncResolve(const std::string& default_port) {
+void Client::AsyncResolve(string_view default_port) {
   std::string port = request_->port();
   if (port.empty()) {
-    port = default_port;
+    port = ToString(default_port);
   }
 
   LOG_VERB("Resolve host (%s)", request_->host().c_str());

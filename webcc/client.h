@@ -89,7 +89,7 @@ private:
 
   void AsyncConnect();
 
-  void AsyncResolve(const std::string& default_port);
+  void AsyncResolve(string_view default_port);
 
   void OnResolve(boost::system::error_code ec,
                  boost::asio::ip::tcp::resolver::results_type endpoints);

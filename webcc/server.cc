@@ -300,7 +300,7 @@ void Server::Handle(ConnectionPtr connection) {
   }
 
   // Save the (regex matched) URL args to request object.
-  request->set_args(args);
+  request->set_args(std::move(args));
 
   // Ask the matched view to process the request.
   ResponsePtr response = view->Handle(request);

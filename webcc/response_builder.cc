@@ -55,6 +55,12 @@ ResponseBuilder& ResponseBuilder::File(const fs::path& path,
   return *this;
 }
 
+ResponseBuilder& ResponseBuilder::Header(string_view key, string_view value) {
+  headers_.push_back(ToString(key));
+  headers_.push_back(ToString(value));
+  return *this;
+}
+
 ResponseBuilder& ResponseBuilder::Date() {
   headers_.push_back(headers::kDate);
   headers_.push_back(utility::HttpDate());

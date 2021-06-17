@@ -10,6 +10,8 @@
 #include "webcc/string.h"
 #include "webcc/version.h"
 
+using boost::asio::ip::tcp;
+
 namespace webcc {
 namespace utility {
 
@@ -22,7 +24,7 @@ std::string HttpDate() {
   std::time_t t = std::time(nullptr);
   std::tm gmt = *std::gmtime(&t);
 
-  std::stringstream date;
+  std::ostringstream date;
   date.imbue(std::locale::classic());  // Use classic C locale
   date << std::put_time(&gmt, "%a, %d %b %Y %H:%M:%S GMT");
   return date.str();
@@ -54,9 +56,8 @@ bool ReadFile(const fs::path& path, std::string* output) {
   return true;
 }
 
-void DumpByLine(const std::string& data, std::ostream& os,
-                const std::string& prefix) {
-  std::vector<boost::string_view> lines;
+void DumpByLine(const std::string& data, std::ostream& os, string_view prefix) {
+  std::vector<string_view> lines;
   Split(data, '\n', false, &lines);
 
   std::size_t size = 0;
@@ -75,18 +76,17 @@ void DumpByLine(const std::string& data, std::ostream& os,
   }
 }
 
-void PrintEndpoint(std::ostream& ostream,
-                   const boost::asio::ip::tcp::endpoint& endpoint) {
+void PrintEndpoint(std::ostream& ostream, const tcp::endpoint& endpoint) {
   ostream << endpoint;
-  if (endpoint.protocol() == boost::asio::ip::tcp::v4()) {
+  if (endpoint.protocol() == tcp::v4()) {
     ostream << ", v4";
-  } else if (endpoint.protocol() == boost::asio::ip::tcp::v6()) {
+  } else if (endpoint.protocol() == tcp::v6()) {
     ostream << ", v6";
   }
 }
 
-std::string EndpointToString(const boost::asio::ip::tcp::endpoint& endpoint) {
-  std::stringstream ss;
+std::string EndpointToString(const tcp::endpoint& endpoint) {
+  std::ostringstream ss;
   PrintEndpoint(ss, endpoint);
   return ss.str();
 }

@@ -16,7 +16,7 @@ Json::Value StringToJson(const std::string& str) {
   Json::Value json;
 
   Json::CharReaderBuilder builder;
-  std::stringstream stream(str);
+  std::istringstream stream{ str };
   std::string errs;
   if (!Json::parseFromStream(builder, stream, &json, &errs)) {
     std::cerr << errs << std::endl;

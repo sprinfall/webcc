@@ -19,7 +19,10 @@
 // Set 1/0 to enable/disable GZIP compression.
 #define WEBCC_ENABLE_GZIP @WEBCC_ENABLE_GZIP@
 
-// Set 1 to use C++17 filesystem or 0 to use Boost filesystem.
+// Set 1 to use std::filesystem or 0 to use boost::filesystem.
 #define WEBCC_USE_STD_FILESYSTEM @WEBCC_USE_STD_FILESYSTEM@
+
+// Set 1 to use std::string_view or 0 to use boost::string_view.
+#define WEBCC_USE_STD_STRING_VIEW @WEBCC_USE_STD_STRING_VIEW@
 
 #endif  // WEBCC_CONFIG_H_

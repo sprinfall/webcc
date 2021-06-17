@@ -12,7 +12,29 @@
 
 #include "webcc/config.h"
 
+#if WEBCC_USE_STD_STRING_VIEW
+#include <string_view>
+#else
+#include "boost/utility/string_view.hpp"
+#endif  // WEBCC_USE_STD_STRING_VIEW
+
 namespace webcc {
+
+// -----------------------------------------------------------------------------
+
+#if WEBCC_USE_STD_STRING_VIEW
+using string_view = std::string_view;
+#else
+using string_view = boost::string_view;
+#endif  // WEBCC_USE_STD_STRING_VIEW
+
+inline std::string ToString(string_view sv) {
+#if WEBCC_USE_STD_STRING_VIEW
+  return std::string{ sv.begin(), sv.end() };
+#else
+  return sv.to_string();
+#endif  // WEBCC_USE_STD_STRING_VIEW
+}
 
 // -----------------------------------------------------------------------------
 
@@ -169,7 +191,7 @@ public:
   };
 
 public:
-  explicit Error(Code code = kOK, const std::string& message = "")
+  explicit Error(Code code = kOK, string_view message = "")
       : code_(code), message_(message) {
   }
 
@@ -186,9 +208,9 @@ public:
     return message_;
   }
 
-  void Set(Code code, const std::string& message) {
+  void Set(Code code, string_view message) {
     code_ = code;
-    message_ = message;
+    message_ = ToString(message);
   }
 
   bool timeout() const {

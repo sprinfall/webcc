@@ -29,7 +29,7 @@ bool HexToDecimal(char hex, int* decimal) {
   return true;
 }
 
-bool Decode(const std::string& encoded, std::string* raw) {
+bool Decode(string_view encoded, std::string* raw) {
   for (auto iter = encoded.begin(); iter != encoded.end(); ++iter) {
     if (*iter == '%') {
       if (++iter == encoded.end()) {
@@ -67,16 +67,16 @@ bool Decode(const std::string& encoded, std::string* raw) {
 
 // Unsafe decode.
 // Return the original string on failure.
-std::string DecodeUnsafe(const std::string& encoded) {
+std::string DecodeUnsafe(string_view encoded) {
   std::string raw;
   if (Decode(encoded, &raw)) {
     return raw;
   }
-  return encoded;
+  return ToString(encoded);
 }
 
 // Encode all characters which should be encoded.
-std::string EncodeImpl(const std::string& raw,  // UTF8
+std::string EncodeImpl(string_view raw,  // UTF8
                        std::function<bool(int)> should_encode) {
   const char kHex[] = "0123456789ABCDEF";
 
@@ -102,14 +102,16 @@ std::string EncodeImpl(const std::string& raw,  // UTF8
 // Our own implementation of alpha numeric instead of std::isalnum to avoid
 // taking locale into account.
 inline bool IsAlNum(int c) {
-  return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+  return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') ||
+         (c >= 'a' && c <= 'z');
 }
 
 // Characters that are allowed in a URI but do not have a reserved purpose are
 // are called unreserved. These include uppercase and lowercase letters, decimal
 // digits, hyphen, period, underscore, and tilde.
 inline bool IsUnreserved(int c) {
-  return IsAlNum((unsigned char)c) || c == '-' || c == '.' || c == '_' || c == '~';
+  return IsAlNum((unsigned char)c) || c == '-' || c == '.' || c == '_' ||
+         c == '~';
 }
 
 // General delimiters serve as the delimiters between different uri components.
@@ -171,23 +173,23 @@ inline bool IsQueryChar(int c) {
 
 // -----------------------------------------------------------------------------
 
-std::string Url::EncodeHost(const std::string& utf8_str) {
+std::string Url::EncodeHost(string_view utf8_str) {
   return EncodeImpl(utf8_str, [](int c) -> bool { return c > 127; });
 }
 
-std::string Url::EncodePath(const std::string& utf8_str) {
+std::string Url::EncodePath(string_view utf8_str) {
   return EncodeImpl(utf8_str, [](int c) -> bool {
     return !IsPathChar(c) || c == '%' || c == '+';
   });
 }
 
-std::string Url::EncodeQuery(const std::string& utf8_str) {
+std::string Url::EncodeQuery(string_view utf8_str) {
   return EncodeImpl(utf8_str, [](int c) -> bool {
     return !IsQueryChar(c) || c == '%' || c == '+';
   });
 }
 
-std::string Url::EncodeFull(const std::string& utf8_str) {
+std::string Url::EncodeFull(string_view utf8_str) {
   return EncodeImpl(utf8_str, [](int c) -> bool {
     return !IsUnreserved(c) && !IsReserved(c);
   });
@@ -195,7 +197,7 @@ std::string Url::EncodeFull(const std::string& utf8_str) {
 
 // -----------------------------------------------------------------------------
 
-Url::Url(const std::string& str, bool encode) {
+Url::Url(string_view str, bool encode) {
   if (encode) {
     Parse(Url::EncodeFull(str));
   } else {
@@ -203,7 +205,7 @@ Url::Url(const std::string& str, bool encode) {
   }
 }
 
-void Url::AppendPath(const std::string& piece, bool encode) {
+void Url::AppendPath(string_view piece, bool encode) {
   if (piece.empty() || piece == "/") {
     return;
   }
@@ -222,24 +224,23 @@ void Url::AppendPath(const std::string& piece, bool encode) {
   if (encode) {
     path_.append(Url::EncodePath(piece));
   } else {
-    path_.append(piece);
+    path_.append(ToString(piece));
   }
 }
 
-void Url::AppendQuery(const std::string& key, const std::string& value,
-                      bool encode) {
+void Url::AppendQuery(string_view key, string_view value, bool encode) {
   if (!query_.empty()) {
     query_ += "&";
   }
   if (encode) {
     query_ += Url::EncodeQuery(key) + "=" + Url::EncodeQuery(value);
   } else {
-    query_ += key + "=" + value;
+    query_ += ToString(key) + "=" + ToString(value);
   }
 }
 
-void Url::Parse(const std::string& str) {
-  std::string tmp = str;
+void Url::Parse(string_view str) {
+  std::string tmp = ToString(str);
   boost::trim_left(tmp);
 
   std::size_t p = std::string::npos;
@@ -314,8 +315,8 @@ UrlQuery::UrlQuery(const std::string& encoded_str) {
         i = j + 1;
       }
 
-      std::string key;
-      std::string value;
+      string_view key;
+      string_view value;
       if (SplitKV(kv, '=', false, &key, &value)) {
         parameters_.push_back({ DecodeUnsafe(key), DecodeUnsafe(value) });
       }

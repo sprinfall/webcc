@@ -20,7 +20,7 @@ static Json::Value StringToJson(const std::string& str) {
   Json::Value json;
 
   Json::CharReaderBuilder builder;
-  std::stringstream stream(str);
+  std::istringstream stream{ str };
   std::string errors;
   if (!Json::parseFromStream(builder, stream, &json, &errors)) {
     std::cerr << errors << std::endl;

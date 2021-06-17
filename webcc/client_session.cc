@@ -128,7 +128,7 @@ void ClientSession::Stop() {
   started_ = false;
 }
 
-void ClientSession::Accept(const std::string& content_types) {
+void ClientSession::Accept(string_view content_types) {
   if (!content_types.empty()) {
     headers_.Set(headers::kAccept, content_types);
   }
@@ -168,18 +168,18 @@ void ClientSession::AcceptGzip(bool gzip) {
 
 #endif  // WEBCC_ENABLE_GZIP
 
-void ClientSession::Auth(const std::string& type,
-                         const std::string& credentials) {
-  headers_.Set(headers::kAuthorization, type + " " + credentials);
+void ClientSession::Auth(string_view type, string_view credentials) {
+  headers_.Set(headers::kAuthorization,
+               ToString(type) + " " + ToString(credentials));
 }
 
-void ClientSession::AuthBasic(const std::string& login,
-                              const std::string& password) {
-  auto credentials = Base64Encode(login + ":" + password);
+void ClientSession::AuthBasic(string_view login, string_view password) {
+  auto credentials =
+      Base64Encode(ToString(login) + ":" + ToString(password));
   return Auth("Basic", credentials);
 }
 
-void ClientSession::AuthToken(const std::string& token) {
+void ClientSession::AuthToken(string_view token) {
   return Auth("Token", token);
 }
 

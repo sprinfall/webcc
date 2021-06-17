@@ -29,11 +29,9 @@ public:
     return headers_;
   }
 
-  bool Set(const std::string& key, const std::string& value);
+  bool Set(string_view key, string_view value);
 
-  bool Set(std::string&& key, std::string&& value);
-
-  bool Has(const std::string& key) const;
+  bool Has(string_view key) const;
 
   // Get header by index.
   const Header& Get(std::size_t index) const {
@@ -44,14 +42,14 @@ public:
   // Get header value by key.
   // If there's no such header with the given key, besides return empty, the
   // optional |existed| parameter will be set to false.
-  const std::string& Get(const std::string& key, bool* existed = nullptr) const;
+  const std::string& Get(string_view key, bool* existed = nullptr) const;
 
   void Clear() {
     headers_.clear();
   }
 
 private:
-  std::vector<Header>::iterator Find(const std::string& key);
+  std::vector<Header>::iterator Find(string_view key);
 
   std::vector<Header> headers_;
 };
@@ -64,9 +62,9 @@ private:
 //   Content-Type: multipart/form-data; boundary=something
 class ContentType {
 public:
-  explicit ContentType(const std::string& str = "");
+  explicit ContentType(string_view str = "");
 
-  void Parse(const std::string& str);
+  void Parse(string_view str);
 
   void Reset();
 
@@ -91,7 +89,7 @@ public:
   }
 
 private:
-  void Init(const std::string& str);
+  void Init(string_view str);
 
 private:
   std::string media_type_;
@@ -109,7 +107,7 @@ private:
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
 class ContentDisposition {
 public:
-  explicit ContentDisposition(const std::string& str) {
+  explicit ContentDisposition(string_view str) {
     valid_ = Init(str);
   }
 
@@ -126,7 +124,7 @@ public:
   }
 
 private:
-  bool Init(const std::string& str);
+  bool Init(string_view str);
 
 private:
   std::string name_;
@@ -151,14 +149,14 @@ public:
   // The data will be moved, no file name is needed.
   // The media type is optional. If the data is a JSON string, you can specify
   // media type as "application/json".
-  static FormPartPtr New(const std::string& name, std::string&& data,
-                         const std::string& media_type = "");
+  static FormPartPtr New(string_view name, std::string&& data,
+                         string_view media_type = "");
 
   // Construct a file part.
   // The file name will be extracted from path.
   // The media type, if not provided, will be inferred from file extension.
-  static FormPartPtr NewFile(const std::string& name, const fs::path& path,
-                             const std::string& media_type = "");
+  static FormPartPtr NewFile(string_view name, const fs::path& path,
+                             string_view media_type = "");
 
   // API: SERVER
   const std::string& name() const {
@@ -214,7 +212,7 @@ public:
   std::size_t GetDataSize();
 
   // Dump to output stream for logging purpose.
-  void Dump(std::ostream& os, const std::string& prefix) const;
+  void Dump(std::ostream& os, string_view prefix) const;
 
 private:
   // Generate headers from properties.

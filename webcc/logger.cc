@@ -135,7 +135,7 @@ static const bool g_terminal_has_color = []() {
 static std::string DoGetThreadID() {
 #if (defined(_WIN32) || defined(_WIN64))
   auto thread_id = std::this_thread::get_id();
-  std::stringstream ss;
+  std::ostringstream ss;
   ss << thread_id;
   return ss.str();
 #else
@@ -184,7 +184,7 @@ static std::string GetTimestamp() {
   auto now = system_clock::now();
   std::time_t t = system_clock::to_time_t(now);
 
-  std::stringstream ss;
+  std::ostringstream ss;
   ss << std::put_time(std::localtime(&t), "%Y-%m-%d %H:%M:%S");
 
   milliseconds milli_seconds =

@@ -39,11 +39,11 @@ int main(int argc, char* argv[]) {
                  std::make_shared<BookListView>(),
                  { "GET", "POST" });
 
-    server.Route(webcc::R("/books/(\\d+)"),
+    server.Route(webcc::R{ "/books/(\\d+)" },
                  std::make_shared<BookDetailView>(photo_dir),
                  { "GET", "PUT", "DELETE" });
 
-    server.Route(webcc::R("/books/(\\d+)/photo"),
+    server.Route(webcc::R{ "/books/(\\d+)/photo" },
                  std::make_shared<BookPhotoView>(photo_dir),
                  { "GET", "PUT", "DELETE" });
 

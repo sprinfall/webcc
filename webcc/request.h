@@ -23,8 +23,8 @@ public:
     return method_;
   }
 
-  void set_method(const std::string& method) {
-    method_ = method;
+  void set_method(string_view method) {
+    method_ = ToString(method);
   }
 
   const Url& url() const {
@@ -44,23 +44,23 @@ public:
   }
 
   UrlQuery query() const {
-    return UrlQuery(url_.query());
+    return UrlQuery{ url_.query() };
   }
 
   const UrlArgs& args() const {
     return args_;
   }
 
-  void set_args(const UrlArgs& args) {
-    args_ = args;
+  void set_args(UrlArgs&& args) {
+    args_ = std::move(args);
   }
 
-  const std::string& ip() const {
-    return ip_;
+  const std::string& address() const {
+    return address_;
   }
 
-  void set_ip(const std::string& ip) {
-    ip_ = ip;
+  void set_address(std::string&& address) {
+    address_ = std::move(address);
   }
 
   // Check if the body is a multi-part form data.
@@ -83,7 +83,7 @@ private:
   UrlArgs args_;
 
   // Client IP address.
-  std::string ip_;
+  std::string address_;
 };
 
 using RequestPtr = std::shared_ptr<Request>;

@@ -15,7 +15,7 @@ public:
 
   // Route a URL to a view.
   // The URL should start with "/". E.g., "/instances".
-  bool Route(const std::string& url, ViewPtr view,
+  bool Route(string_view url, ViewPtr view,
              const Strings& methods = { "GET" });
 
   // Route a URL (as regular expression) to a view.

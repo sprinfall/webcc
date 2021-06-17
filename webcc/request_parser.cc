@@ -36,15 +36,15 @@ bool RequestParser::OnHeadersEnd() {
 }
 
 bool RequestParser::ParseStartLine(const std::string& line) {
-  std::vector<boost::string_view> parts;
+  std::vector<string_view> parts;
   Split(line, ' ', true, &parts);
 
   if (parts.size() != 3) {
     return false;
   }
 
-  request_->set_method(parts[0].to_string());
-  request_->set_url(Url{ parts[1].to_string() });
+  request_->set_method(parts[0]);
+  request_->set_url(Url{ parts[1] });
 
   // HTTP version is ignored.
 
@@ -198,7 +198,7 @@ bool RequestParser::ParsePartHeaders(bool* need_more_data) {
 
     // Parse Content-Disposition.
     if (boost::iequals(header.first, headers::kContentDisposition)) {
-      ContentDisposition content_disposition(header.second);
+      ContentDisposition content_disposition{ header.second };
       if (!content_disposition.valid()) {
         LOG_ERRO("Invalid content-disposition header: %s",
                  header.second.c_str());

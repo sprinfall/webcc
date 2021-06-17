@@ -21,7 +21,37 @@ public:
 
   virtual ~Message() = default;
 
-  // ---------------------------------------------------------------------------
+  const std::string& start_line() const {
+    return start_line_;
+  }
+
+  void set_start_line(string_view start_line) {
+    start_line_ = ToString(start_line);
+  }
+
+  void SetHeader(Header&& header) {
+    headers_.Set(std::move(header.first), std::move(header.second));
+  }
+
+  void SetHeader(string_view key, string_view value) {
+    headers_.Set(key, value);
+  }
+
+  const std::string& GetHeader(string_view key, bool* existed = nullptr) const {
+    return headers_.Get(key, existed);
+  }
+
+  bool HasHeader(string_view key) const {
+    return headers_.Has(key);
+  }
+
+  std::size_t content_length() const {
+    return content_length_;
+  }
+
+  void set_content_length(std::size_t content_length) {
+    content_length_ = content_length;
+  }
 
   void SetBody(BodyPtr body, bool set_length);
 
@@ -37,45 +67,6 @@ public:
   // Return null if the body is not a FileBody.
   std::shared_ptr<FileBody> file_body() const;
 
-  // ---------------------------------------------------------------------------
-
-  void SetHeader(Header&& header) {
-    headers_.Set(std::move(header.first), std::move(header.second));
-  }
-
-  void SetHeader(const std::string& key, const std::string& value) {
-    headers_.Set(key, value);
-  }
-
-  const std::string& GetHeader(const std::string& key,
-                               bool* existed = nullptr) const {
-    return headers_.Get(key, existed);
-  }
-
-  bool HasHeader(const std::string& key) const {
-    return headers_.Has(key);
-  }
-
-  // ---------------------------------------------------------------------------
-
-  const std::string& start_line() const {
-    return start_line_;
-  }
-
-  void set_start_line(const std::string& start_line) {
-    start_line_ = start_line;
-  }
-
-  std::size_t content_length() const {
-    return content_length_;
-  }
-
-  void set_content_length(std::size_t content_length) {
-    content_length_ = content_length;
-  }
-
-  // ---------------------------------------------------------------------------
-
   // Check `Connection` header to see if it's "Keep-Alive".
   bool IsConnectionKeepAlive() const;
 
@@ -88,16 +79,13 @@ public:
 
   // Set `Content-Type` header. E.g.,
   //   SetContentType("application/json; charset=utf-8")
-  void SetContentType(const std::string& content_type) {
+  void SetContentType(string_view content_type) {
     SetHeader(headers::kContentType, content_type);
   }
 
   // Set `Content-Type` header. E.g.,
   //   SetContentType("application/json", "utf-8")
-  void SetContentType(const std::string& media_type,
-                      const std::string& charset);
-
-  // ---------------------------------------------------------------------------
+  void SetContentType(string_view media_type, string_view charset);
 
   // Make the message complete in order to be sent.
   virtual void Prepare() = 0;
@@ -105,8 +93,6 @@ public:
   // Get the payload for the socket to write.
   // This doesn't include the payload(s) of the body!
   Payload GetPayload() const;
-
-  // ---------------------------------------------------------------------------
 
   // Dump to output stream for logging purpose.
   void Dump(std::ostream& os) const;
