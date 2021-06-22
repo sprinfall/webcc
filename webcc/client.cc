@@ -1,5 +1,7 @@
 #include "webcc/client.h"
 
+#include "boost/algorithm/string.hpp"
+
 #include "webcc/logger.h"
 
 using boost::asio::ip::tcp;
@@ -99,19 +101,24 @@ void Client::DoClose() {
 }
 
 void Client::AsyncConnect() {
-  if (request_->url().scheme() == "https") {
-#if WEBCC_ENABLE_SSL
-    socket_.reset(new SslSocket{ io_context_, ssl_context_ });
-    AsyncResolve("443");
-#else
-    LOG_ERRO("SSL/HTTPS support is not enabled.");
-    error_.Set(Error::kSyntaxError, "SSL/HTTPS is not supported");
-    FinishRequest();
-#endif  // WEBCC_ENABLE_SSL
-  } else {
+  if (boost::iequals(request_->url().scheme(), "http")) {
     socket_.reset(new Socket{ io_context_ });
     AsyncResolve("80");
+    return;
   }
+
+#if WEBCC_ENABLE_SSL
+  if (boost::iequals(request_->url().scheme(), "https")) {
+    socket_.reset(new SslSocket{ io_context_, ssl_context_ });
+    AsyncResolve("443");
+    return;
+  }
+#endif  // WEBCC_ENABLE_SSL
+
+  LOG_ERRO("URL scheme (%s) is not supported",
+           request_->url().scheme().c_str());
+  error_.Set(Error::kSyntaxError, "URL scheme not supported");
+  FinishRequest();
 }
 
 void Client::AsyncResolve(string_view default_port) {

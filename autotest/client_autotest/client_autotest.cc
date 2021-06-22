@@ -441,3 +441,33 @@ TEST(ClientTest, KeepAlive) {
     std::cerr << error << std::endl;
   }
 }
+
+// Test that URL scheme is NOT case sensitive.
+TEST(ClientTest, UpperCaseUrlScheme) {
+  webcc::ClientSession session;
+
+  try {
+    auto r = session.Send(WEBCC_GET("HTTP://httpbin.org/get")());
+
+    EXPECT_EQ(webcc::Status::kOK, r->status());
+
+  } catch (const webcc::Error& error) {
+    std::cerr << error << std::endl;
+  }
+}
+
+TEST(ClientTest, InvalidUrlScheme) {
+  webcc::ClientSession session;
+
+  webcc::Error::Code error_code = webcc::Error::kUnknownError;
+
+  try {
+    // NOTE: "httb" is not a valid/supported scheme.
+    auto r = session.Send(WEBCC_GET("httb://httpbin.org/get")());
+
+  } catch (const webcc::Error& error) {
+    error_code = error.code();
+  }
+
+  EXPECT_EQ(webcc::Error::kSyntaxError, error_code);
+}

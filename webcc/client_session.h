@@ -101,6 +101,9 @@ public:
 private:
   void InitHeaders();
 
+  // Check if the scheme of the request is valid.
+  bool CheckUrlScheme(RequestPtr request);
+
   ResponsePtr DoSend(RequestPtr request, bool stream,
                      ProgressCallback callback);
 

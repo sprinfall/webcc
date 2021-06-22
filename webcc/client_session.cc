@@ -14,6 +14,8 @@
 #endif  // defined(_WIN32) || defined(_WIN64)
 #endif  // WEBCC_ENABLE_SSL
 
+#include "boost/algorithm/string.hpp"
+
 #include "webcc/base64.h"
 #include "webcc/logger.h"
 #include "webcc/url.h"
@@ -193,6 +195,10 @@ ResponsePtr ClientSession::Send(RequestPtr request, bool stream,
     throw Error{ Error::kStateError, "Loop is not running" };
   }
 
+  if (!CheckUrlScheme(request)) {
+    throw Error{ Error::kSyntaxError, "Invalid URL scheme" };
+  }
+
   for (auto& h : headers_.data()) {
     if (!request->HasHeader(h.first)) {
       request->SetHeader(h.first, h.second);
@@ -227,6 +233,20 @@ void ClientSession::InitHeaders() {
   headers_.Set(headers::kAcceptEncoding, "identity");
 
   headers_.Set(headers::kConnection, "Keep-Alive");
+}
+
+bool ClientSession::CheckUrlScheme(RequestPtr request) {
+  if (boost::iequals(request->url().scheme(), "http")) {
+    return true;
+  }
+
+#if WEBCC_ENABLE_SSL
+  if (boost::iequals(request->url().scheme(), "https")) {
+    return true;
+  }
+#endif  // WEBCC_ENABLE_SSL
+
+  return false;
 }
 
 ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream,
