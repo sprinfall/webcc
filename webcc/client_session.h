@@ -13,6 +13,10 @@
 #include "webcc/request_builder.h"
 #include "webcc/response.h"
 
+#if WEBCC_ENABLE_SSL
+#include "boost/asio/ssl/context.hpp"
+#endif
+
 namespace webcc {
 
 // Client session provides connection-pooling, configuration and more.
@@ -101,8 +105,13 @@ public:
 private:
   void InitHeaders();
 
-  // Check if the scheme of the request is valid.
-  bool CheckUrlScheme(RequestPtr request);
+  // Create a client object according to the URL scheme.
+  ClientPtr CreateClient(const std::string& url_scheme);
+
+#if WEBCC_ENABLE_SSL
+  // Create SSL context if it's not created.
+  void CreateSslContext();
+#endif  // WEBCC_ENABLE_SSL
 
   ResponsePtr DoSend(RequestPtr request, bool stream,
                      ProgressCallback callback);
@@ -117,7 +126,8 @@ private:
   boost::asio::executor_work_guard<ExecutorType> work_guard_;
 
 #if WEBCC_ENABLE_SSL
-  boost::asio::ssl::context ssl_context_;
+  // SSL context is lazily created on the first HTTPS request.
+  boost::asio::ssl::context* ssl_context_ = nullptr;
 #endif
 
   // Is Asio loop running?

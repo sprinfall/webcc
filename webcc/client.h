@@ -15,21 +15,18 @@
 #include "webcc/request.h"
 #include "webcc/response.h"
 #include "webcc/response_parser.h"
-#include "webcc/socket.h"
+#include "webcc/socket_base.h"
 
 namespace webcc {
+
+class Client;
+using ClientPtr = std::shared_ptr<Client>;
 
 // Synchronous HTTP & HTTPS client.
 // A request won't return until the response is received or timeout occurs.
 class Client {
 public:
-  // TODO
-#if WEBCC_ENABLE_SSL
-  Client(boost::asio::io_context& io_context,
-         boost::asio::ssl::context& ssl_context);
-#else
   explicit Client(boost::asio::io_context& io_context);
-#endif
 
   Client(const Client&) = delete;
   Client& operator=(const Client&) = delete;
@@ -84,10 +81,12 @@ public:
     response_parser_.Init(nullptr, false);
   }
 
-private:
+protected:
   void DoClose();
 
-  void AsyncConnect();
+  // TODO: Rename
+  // TODO: Add class ClientBase ?
+  virtual void AsyncConnect();
 
   void AsyncResolve(string_view default_port);
 
@@ -113,12 +112,8 @@ private:
 
   void FinishRequest();
 
-private:
+protected:
   boost::asio::io_context& io_context_;
-
-#if WEBCC_ENABLE_SSL
-  boost::asio::ssl::context& ssl_context_;
-#endif
 
   std::unique_ptr<SocketBase> socket_;
 
@@ -163,8 +158,6 @@ private:
   // Current error.
   Error error_;
 };
-
-using ClientPtr = std::shared_ptr<Client>;
 
 }  // namespace webcc
 

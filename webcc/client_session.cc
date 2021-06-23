@@ -21,7 +21,13 @@
 #include "webcc/url.h"
 #include "webcc/utility.h"
  
+#if WEBCC_ENABLE_SSL
+#include "webcc/ssl_client.h"
+#endif
+
 namespace webcc {
+
+// -----------------------------------------------------------------------------
 
 #if WEBCC_ENABLE_SSL
 #if (defined(_WIN32) || defined(_WIN64))
@@ -73,21 +79,11 @@ static bool UseSystemCertificateStore(SSL_CTX* ssl_ctx) {
 #endif  // defined(_WIN32) || defined(_WIN64)
 #endif  // WEBCC_ENABLE_SSL
 
+// -----------------------------------------------------------------------------
+
 ClientSession::ClientSession(std::size_t buffer_size)
     : work_guard_(boost::asio::make_work_guard(io_context_)),
-#if WEBCC_ENABLE_SSL
-      ssl_context_(boost::asio::ssl::context::sslv23_client),
-#endif
       buffer_size_(buffer_size) {
-#if WEBCC_ENABLE_SSL
-#if (defined(_WIN32) || defined(_WIN64))
-    UseSystemCertificateStore(ssl_context_.native_handle());
-#else
-  // Use the default paths for finding CA certificates.
-  ssl_context_.set_default_verify_paths();
-#endif  // defined(_WIN32) || defined(_WIN64)
-#endif  // WEBCC_ENABLE_SSL
-
   InitHeaders();
 
   Start();
@@ -95,6 +91,12 @@ ClientSession::ClientSession(std::size_t buffer_size)
 
 ClientSession::~ClientSession() {
   Stop();
+
+#if WEBCC_ENABLE_SSL
+  if (ssl_context_ != nullptr) {
+    delete ssl_context_;
+  }
+#endif  // WEBCC_ENABLE_SSL
 }
 
 void ClientSession::Start() {
@@ -195,10 +197,6 @@ ResponsePtr ClientSession::Send(RequestPtr request, bool stream,
     throw Error{ Error::kStateError, "Loop is not running" };
   }
 
-  if (!CheckUrlScheme(request)) {
-    throw Error{ Error::kSyntaxError, "Invalid URL scheme" };
-  }
-
   for (auto& h : headers_.data()) {
     if (!request->HasHeader(h.first)) {
       request->SetHeader(h.first, h.second);
@@ -235,19 +233,41 @@ void ClientSession::InitHeaders() {
   headers_.Set(headers::kConnection, "Keep-Alive");
 }
 
-bool ClientSession::CheckUrlScheme(RequestPtr request) {
-  if (boost::iequals(request->url().scheme(), "http")) {
-    return true;
+ClientPtr ClientSession::CreateClient(const std::string& url_scheme) {
+  if (boost::iequals(url_scheme, "http")) {
+    return std::make_shared<Client>(io_context_);
   }
 
 #if WEBCC_ENABLE_SSL
-  if (boost::iequals(request->url().scheme(), "https")) {
-    return true;
+  if (boost::iequals(url_scheme, "https")) {
+    CreateSslContext();  // If it's not created yet
+    return std::make_shared<SslClient>(io_context_, *ssl_context_);
   }
 #endif  // WEBCC_ENABLE_SSL
 
-  return false;
+  return {};
 }
+
+#if WEBCC_ENABLE_SSL
+
+void ClientSession::CreateSslContext() {
+  if (ssl_context_ != nullptr) {
+    return;
+  }
+
+  namespace ssl = boost::asio::ssl;
+
+  ssl_context_ = new ssl::context{ ssl::context::sslv23_client };
+
+#if (defined(_WIN32) || defined(_WIN64))
+    UseSystemCertificateStore(ssl_context_->native_handle());
+#else
+    // Use the default paths for finding CA certificates.
+    ssl_context_->set_default_verify_paths();
+#endif  // defined(_WIN32) || defined(_WIN64)
+}
+
+#endif  // WEBCC_ENABLE_SSL
 
 ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream,
                                   ProgressCallback callback) {
@@ -259,11 +279,10 @@ ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream,
   ClientPtr client = pool_.Get(key);
   
   if (!client) {
-#if WEBCC_ENABLE_SSL
-    client.reset(new Client{ io_context_, ssl_context_ });
-#else
-    client.reset(new Client{ io_context_ });
-#endif  // WEBCC_ENABLE_SSL
+    client = CreateClient(request->url().scheme());
+    if (!client) {
+      throw Error{ Error::kSyntaxError, "Invalid URL scheme" };
+    }
     reuse = false;
   } else {
     LOG_VERB("Reuse an existing connection");

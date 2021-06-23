@@ -418,7 +418,7 @@ TEST(ClientTest, KeepAlive) {
     // Keep-Alive by default.
     auto r = session.Send(webcc::RequestBuilder{}.Get(url)());
 
-    EXPECT_TRUE(boost::iequals(r->GetHeader("Connection"), "Keep-alive"));
+    EXPECT_TRUE(boost::iequals(r->GetHeader("Connection"), "Keep-Alive"));
 
     // Close by setting Connection header directly.
     r = session.Send(webcc::RequestBuilder{}.Get(url).
@@ -435,7 +435,7 @@ TEST(ClientTest, KeepAlive) {
     // Keep-Alive explicitly by using request builder.
     r = session.Send(webcc::RequestBuilder{}.Get(url).KeepAlive(true)());
 
-    EXPECT_TRUE(boost::iequals(r->GetHeader("Connection"), "Keep-alive"));
+    EXPECT_TRUE(boost::iequals(r->GetHeader("Connection"), "Keep-Alive"));
 
   } catch (const webcc::Error& error) {
     std::cerr << error << std::endl;

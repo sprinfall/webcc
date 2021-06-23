@@ -15,15 +15,78 @@ configure_file(
 # Adhere to GNU filesystem layout conventions.
 include(GNUInstallDirs)
 
-file(GLOB SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/*.cc)
+set(SOURCES
+    base64.cc
+    body.cc
+    client.cc
+    client_pool.cc
+    client_session.cc
+    common.cc
+    connection.cc
+    connection_pool.cc
+    globals.cc
+    logger.cc
+    message.cc
+    parser.cc
+    request.cc
+    request_builder.cc
+    request_parser.cc
+    response.cc
+    response_builder.cc
+    response_parser.cc
+    router.cc
+    server.cc
+    socket.cc
+    string.cc
+    url.cc
+    utility.cc
+    )
 
-file(GLOB HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+set(HEADERS
+    base64.h
+    body.h
+    client.h
+    client_pool.h
+    client_session.h
+    common.h
+    connection.h
+    connection_pool.h
+    fs.h
+    globals.h
+    logger.h
+    message.h
+    parser.h
+    queue.h
+    request.h
+    request_builder.h
+    request_parser.h
+    response.h
+    response_builder.h
+    response_parser.h
+    router.h
+    server.h
+    socket_base.h
+    socket.h
+    string.h
+    url.h
+    utility.h
+    version.h
+    view.h
+    )
 
-if(NOT WEBCC_ENABLE_GZIP)
-    list(REMOVE_ITEM SOURCES "gzip.cc")
-    list(REMOVE_ITEM HEADERS "gzip.h")
+if(WEBCC_ENABLE_SSL)
+    set(SOURCES ${SOURCES}
+        ssl_socket.cc
+        ssl_client.cc)
+
+    set(HEADERS ${HEADERS}
+        ssl_socket.h
+        ssl_client.h)
+endif()
+
+if(WEBCC_ENABLE_GZIP)
+    set(SOURCES ${SOURCES} "gzip.cc")
+    set(HEADERS ${HEADERS} "gzip.h")
 endif()
 
 set(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Add a postfix to the debug library")

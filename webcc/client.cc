@@ -3,31 +3,18 @@
 #include "boost/algorithm/string.hpp"
 
 #include "webcc/logger.h"
+#include "webcc/socket.h"
 
 using boost::asio::ip::tcp;
 using namespace std::placeholders;
 
 namespace webcc {
 
-#if WEBCC_ENABLE_SSL
-
-Client::Client(boost::asio::io_context& io_context,
-               boost::asio::ssl::context& ssl_context)
-    : io_context_(io_context),
-      ssl_context_(ssl_context),
-      resolver_(io_context),
-      deadline_timer_(io_context) {
-}
-
-#else
-
 Client::Client(boost::asio::io_context& io_context)
     : io_context_(io_context),
       resolver_(io_context),
       deadline_timer_(io_context) {
 }
-
-#endif  // WEBCC_ENABLE_SSL
 
 Error Client::Request(RequestPtr request, bool stream) {
   LOG_VERB("Request begin");
@@ -104,21 +91,12 @@ void Client::AsyncConnect() {
   if (boost::iequals(request_->url().scheme(), "http")) {
     socket_.reset(new Socket{ io_context_ });
     AsyncResolve("80");
-    return;
+  } else {
+    LOG_ERRO("URL scheme (%s) is not supported",
+             request_->url().scheme().c_str());
+    error_.Set(Error::kSyntaxError, "URL scheme not supported");
+    FinishRequest();
   }
-
-#if WEBCC_ENABLE_SSL
-  if (boost::iequals(request_->url().scheme(), "https")) {
-    socket_.reset(new SslSocket{ io_context_, ssl_context_ });
-    AsyncResolve("443");
-    return;
-  }
-#endif  // WEBCC_ENABLE_SSL
-
-  LOG_ERRO("URL scheme (%s) is not supported",
-           request_->url().scheme().c_str());
-  error_.Set(Error::kSyntaxError, "URL scheme not supported");
-  FinishRequest();
 }
 
 void Client::AsyncResolve(string_view default_port) {
