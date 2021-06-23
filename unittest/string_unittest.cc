@@ -1,9 +1,5 @@
 #include "gtest/gtest.h"
 
-#include <vector>
-
-#include "boost/algorithm/string.hpp"
-
 #include "webcc/string.h"
 
 TEST(StringTest, Trim) {

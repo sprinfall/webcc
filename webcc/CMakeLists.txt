@@ -18,7 +18,7 @@ include(GNUInstallDirs)
 set(SOURCES
     base64.cc
     body.cc
-    client.cc
+    client_base.cc
     client_pool.cc
     client_session.cc
     common.cc
@@ -45,6 +45,7 @@ set(SOURCES
 set(HEADERS
     base64.h
     body.h
+    client_base.h
     client.h
     client_pool.h
     client_session.h
@@ -75,13 +76,8 @@ set(HEADERS
     )
 
 if(WEBCC_ENABLE_SSL)
-    set(SOURCES ${SOURCES}
-        ssl_socket.cc
-        ssl_client.cc)
-
-    set(HEADERS ${HEADERS}
-        ssl_socket.h
-        ssl_client.h)
+    set(SOURCES ${SOURCES} ssl_socket.cc)
+    set(HEADERS ${HEADERS} ssl_socket.h ssl_client.h)
 endif()
 
 if(WEBCC_ENABLE_GZIP)
