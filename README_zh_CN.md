@@ -1,7 +1,5 @@
 # Webcc - C++ HTTP 程序库
 
-**注意：[legacy](https://github.com/sprinfall/webcc/tree/legacy) 分支只使用了有限的 C++11 特性，能支持较老的编译器，比如 VS2013 和 GCC 4.8。**
-
 基于 [Boost Asio](https://www.boost.org/doc/libs/release/libs/asio/) 开发的轻量级 C++ HTTP 程序库，同时支持客户端与服务端。
 
 不管你是要访问 HTTP 服务（比如调用 REST API、下载一个文件），还是要在你的程序里嵌入一个 HTTP 服务（比如 REST Server），Webcc 都是个不错的选择。
@@ -38,7 +36,7 @@ Boost Beast 没有一个开箱即用的 HTTP Server，微软 cpprest 的 API 设
 ## 功能概述
 
 - 跨平台: Windows，Linux 及 MacOS
-- 简单好用的客户端 API，借鉴了 Python 的 [requests](https://2.python-requests.org//en/master/) 程序库
+- 简单好用的客户端 API，借鉴了 Python 的 [requests](https://2.python-requests.org/en/master/) 程序库
 - 支持 IPv6
 - 支持 SSL/HTTPS，依赖 OpenSSL（可选）
 - 支持 GZip 压缩，依赖 Zlib（可选）
