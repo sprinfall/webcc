@@ -17,7 +17,8 @@
 #include <Windows.h>
 #else
 // For getting thread ID.
-#include <sys/syscall.h>
+#include <unistd.h>
+#include <sys/syscall.h>  // For SYS_xxx definitions
 #include <sys/types.h>
 #endif  // defined(_WIN32) || defined(_WIN64)
 
