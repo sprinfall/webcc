@@ -91,7 +91,8 @@ protected:
   void OnResolve(boost::system::error_code ec,
                  boost::asio::ip::tcp::resolver::results_type endpoints);
 
-  void OnConnect(boost::system::error_code ec, boost::asio::ip::tcp::endpoint);
+  void OnConnect(boost::system::error_code ec,
+                 boost::asio::ip::tcp::endpoint endpoint);
 
   void AsyncWrite();
   void OnWrite(boost::system::error_code ec, std::size_t length);

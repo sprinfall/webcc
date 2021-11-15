@@ -56,13 +56,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Boost
-
 set(BOOST_COMPONENTS system date_time)
-
 if(NOT WEBCC_USE_STD_FILESYSTEM)
     set(BOOST_COMPONENTS ${BOOST_COMPONENTS} filesystem)
 endif()
-
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost 1.66.0 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
@@ -84,6 +81,14 @@ if(WEBCC_ENABLE_SSL)
     endif()
 endif()
 
+if(WEBCC_ENABLE_GZIP)
+    find_package(ZLIB REQUIRED)
+    if(ZLIB_FOUND)
+        # You can link to ${ZLIB_LIBRARIES} or the imported target ZLIB::ZLIB.
+        include_directories(${ZLIB_INCLUDE_DIRS})
+    endif()
+endif()
+
 include_directories(
     # For including its own headers as "webcc/client.h".
     ${PROJECT_SOURCE_DIR}
@@ -95,14 +100,6 @@ set(THIRD_PARTY_DIR ${PROJECT_SOURCE_DIR}/third_party)
 
 # For jsoncpp
 include_directories(${THIRD_PARTY_DIR}/src)
-
-if(WEBCC_ENABLE_GZIP)
-    find_package(ZLIB REQUIRED)
-    if(ZLIB_FOUND)
-        # You can link to ${ZLIB_LIBRARIES} or the imported target ZLIB::ZLIB.
-        include_directories(${ZLIB_INCLUDE_DIRS})
-    endif()
-endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 

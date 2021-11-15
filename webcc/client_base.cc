@@ -4,6 +4,7 @@
 
 #include "webcc/logger.h"
 #include "webcc/socket.h"
+#include "webcc/utility.h"
 
 using boost::asio::ip::tcp;
 using namespace std::placeholders;
@@ -112,15 +113,22 @@ void ClientBase::OnResolve(boost::system::error_code ec,
 
   LOG_VERB("Connect socket");
 
+  // Enable the following log only for debug purpose.
+#if 0
+  LOG_USER("Resolved endpoints:");
+  for (auto& endpoint : endpoints) {
+    LOG_USER("    - %s", utility::EndpointToString(endpoint).c_str());
+  }
+#endif
+
   AsyncWaitDeadlineTimer(connect_timeout_);
 
   socket_->AsyncConnect(request_->host(), endpoints,
                         std::bind(&ClientBase::OnConnect, this, _1, _2));
 }
 
-void ClientBase::OnConnect(boost::system::error_code ec, tcp::endpoint) {
-  LOG_VERB("On connect");
-
+void ClientBase::OnConnect(boost::system::error_code ec,
+                           tcp::endpoint endpoint) {
   StopDeadlineTimer();
 
   if (ec) {
@@ -128,7 +136,7 @@ void ClientBase::OnConnect(boost::system::error_code ec, tcp::endpoint) {
       // Socket has been closed by OnDeadlineTimer() or CloseSocket().
       LOG_WARN("Connect operation aborted");
     } else {
-      LOG_INFO("Connect error");
+      LOG_ERRO("Connect error (%s)", ec.message().c_str());
       // No need to close socket since no async operation is on it.
       //   socket_->Close();
     }
