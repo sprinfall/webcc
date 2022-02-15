@@ -29,52 +29,6 @@ bool HexToDecimal(char hex, int* decimal) {
   return true;
 }
 
-bool Decode(string_view encoded, std::string* raw) {
-  for (auto iter = encoded.begin(); iter != encoded.end(); ++iter) {
-    if (*iter == '%') {
-      if (++iter == encoded.end()) {
-        // Invalid URI string, two hexadecimal digits must follow '%'.
-        return false;
-      }
-
-      int h_decimal = 0;
-      if (!HexToDecimal(*iter, &h_decimal)) {
-        return false;
-      }
-
-      if (++iter == encoded.end()) {
-        // Invalid URI string, two hexadecimal digits must follow '%'.
-        return false;
-      }
-
-      int l_decimal = 0;
-      if (!HexToDecimal(*iter, &l_decimal)) {
-        return false;
-      }
-
-      raw->push_back(static_cast<char>((h_decimal << 4) + l_decimal));
-
-    } else if (*iter > 127 || *iter < 0) {
-      // Invalid encoded URI string, must be entirely ASCII.
-      return false;
-    } else {
-      raw->push_back(*iter);
-    }
-  }
-
-  return true;
-}
-
-// Unsafe decode.
-// Return the original string on failure.
-std::string DecodeUnsafe(string_view encoded) {
-  std::string raw;
-  if (Decode(encoded, &raw)) {
-    return raw;
-  }
-  return ToString(encoded);
-}
-
 // Encode all characters which should be encoded.
 std::string EncodeImpl(string_view raw,  // UTF8
                        std::function<bool(int)> should_encode) {
@@ -193,6 +147,50 @@ std::string Url::EncodeFull(string_view utf8_str) {
   return EncodeImpl(utf8_str, [](int c) -> bool {
     return !IsUnreserved(c) && !IsReserved(c);
   });
+}
+
+bool Url::Decode(string_view encoded, std::string* raw) {
+  for (auto iter = encoded.begin(); iter != encoded.end(); ++iter) {
+    if (*iter == '%') {
+      if (++iter == encoded.end()) {
+        // Invalid URI string, two hexadecimal digits must follow '%'.
+        return false;
+      }
+
+      int h_decimal = 0;
+      if (!HexToDecimal(*iter, &h_decimal)) {
+        return false;
+      }
+
+      if (++iter == encoded.end()) {
+        // Invalid URI string, two hexadecimal digits must follow '%'.
+        return false;
+      }
+
+      int l_decimal = 0;
+      if (!HexToDecimal(*iter, &l_decimal)) {
+        return false;
+      }
+
+      raw->push_back(static_cast<char>((h_decimal << 4) + l_decimal));
+
+    } else if (*iter > 127 || *iter < 0) {
+      // Invalid encoded URI string, must be entirely ASCII.
+      return false;
+    } else {
+      raw->push_back(*iter);
+    }
+  }
+
+  return true;
+}
+
+std::string Url::DecodeUnsafe(string_view encoded) {
+  std::string raw;
+  if (Decode(encoded, &raw)) {
+    return raw;
+  }
+  return ToString(encoded);
 }
 
 // -----------------------------------------------------------------------------
@@ -318,7 +316,8 @@ UrlQuery::UrlQuery(const std::string& encoded_str) {
       string_view key;
       string_view value;
       if (SplitKV(kv, '=', false, &key, &value)) {
-        parameters_.push_back({ DecodeUnsafe(key), DecodeUnsafe(value) });
+        parameters_.push_back(
+            { Url::DecodeUnsafe(key), Url::DecodeUnsafe(value) });
       }
     }
   }

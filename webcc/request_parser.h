@@ -8,6 +8,7 @@
 
 namespace webcc {
 
+// Parameters: http_method, url_path, [out]stream
 using ViewMatcher =
     std::function<bool(const std::string&, const std::string&, bool*)>;
 

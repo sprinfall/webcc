@@ -37,7 +37,7 @@ if(WEBCC_ENABLE_SSL)
 endif()
 
 if(WIN32)
-    add_executable(url_unicode url_unicode.cc encoding.cc encoding.h)
+    add_executable(url_unicode url_unicode.cc)
     target_link_libraries(url_unicode ${EXAMPLE_LIBS})
     set_target_properties(url_unicode PROPERTIES FOLDER "Examples")
 endif()

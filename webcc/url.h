@@ -22,6 +22,12 @@ public:
   static std::string EncodeQuery(string_view utf8_str);
   static std::string EncodeFull(string_view utf8_str);
 
+  static bool Decode(string_view encoded, std::string* raw);
+
+  // Unsafe decode.
+  // Return the original string on failure.
+  static std::string DecodeUnsafe(string_view encoded);
+
 public:
   Url() = default;
 

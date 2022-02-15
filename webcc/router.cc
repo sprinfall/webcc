@@ -67,7 +67,7 @@ ViewPtr Router::FindView(const std::string& method, const std::string& url,
   return ViewPtr();
 }
 
-bool Router::MatchView(const std::string& method, const std::string& url,
+bool Router::MatchView(const std::string& method, const std::string& url_path,
                        bool* stream) {
   assert(stream != nullptr);
   *stream = false;
@@ -80,13 +80,12 @@ bool Router::MatchView(const std::string& method, const std::string& url,
 
     if (route.url.empty()) {
       std::smatch match;
-
-      if (std::regex_match(url, match, route.url_regex)) {
+      if (std::regex_match(url_path, match, route.url_regex)) {
         *stream = route.view->Stream(method);
         return true;
       }
     } else {
-      if (boost::iequals(route.url, url)) {
+      if (boost::iequals(route.url, url_path)) {
         *stream = route.view->Stream(method);
         return true;
       }

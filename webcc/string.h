@@ -8,6 +8,11 @@
 
 namespace webcc {
 
+#if (defined(_WIN32) || defined(_WIN64))
+std::string Utf16To8(const std::wstring& utf16_string);
+std::wstring Utf8To16(const std::string& utf8_string);
+#endif
+
 // Get a randomly generated string with the given length.
 std::string RandomString(std::size_t length);
 

@@ -28,10 +28,10 @@ public:
   ViewPtr FindView(const std::string& method, const std::string& url,
                    UrlArgs* args);
 
-  // Match the view by HTTP method and URL (path).
+  // Match the view by HTTP method and URL path.
   // Return if a view is matched or not.
   // If the view asks for data streaming, |stream| will be set to true.
-  bool MatchView(const std::string& method, const std::string& url,
+  bool MatchView(const std::string& method, const std::string& url_path,
                  bool* stream);
 
 private:

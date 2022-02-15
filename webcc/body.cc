@@ -202,7 +202,7 @@ Payload FileBody::NextPayload(bool /*free_previous*/) {
 }
 
 void FileBody::Dump(std::ostream& os, const std::string& prefix) const {
-  os << prefix << "<file: " << path_.string() << ">" << std::endl;
+  os << prefix << "<file: " << path_.u8string() << ">" << std::endl;
 }
 
 bool FileBody::Move(const fs::path& new_path) {

@@ -27,6 +27,8 @@ using std::filesystem::path;
 using std::filesystem::filesystem_error;
 
 // functions
+using std::filesystem::absolute;
+using std::filesystem::canonical;
 using std::filesystem::rename;
 using std::filesystem::remove;
 using std::filesystem::exists;
@@ -47,6 +49,8 @@ using boost::filesystem::path;
 using boost::filesystem::filesystem_error;
 
 // functions
+using boost::filesystem::absolute;
+using boost::filesystem::canonical;
 using boost::filesystem::rename;
 using boost::filesystem::remove;
 using boost::filesystem::exists;

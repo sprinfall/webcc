@@ -4,6 +4,8 @@
 #include <fstream>
 #include <utility>
 
+#include "boost/algorithm/string/trim.hpp"
+
 #include "webcc/body.h"
 #include "webcc/logger.h"
 #include "webcc/request.h"
@@ -32,6 +34,7 @@ Server::Server(boost::asio::ip::tcp protocol, std::uint16_t port,
       doc_root_(doc_root),
       acceptor_(io_context_),
       signals_(io_context_) {
+  CheckDocRoot();
   AddSignals();
 }
 
@@ -103,6 +106,27 @@ void Server::Stop() {
 
 bool Server::IsRunning() const {
   return running_ && !io_context_.stopped();
+}
+
+void Server::CheckDocRoot() {
+  try {
+    if (!fs::exists(doc_root_) || !fs::is_directory(doc_root_)) {
+      LOG_ERRO("Doc root is not an existing directory!");
+      return;
+    }
+
+    if (doc_root_.is_relative()) {
+      doc_root_ = fs::absolute(doc_root_);
+    }
+
+    doc_root_ = fs::canonical(doc_root_);
+
+  } catch (fs::filesystem_error& e) {
+    LOG_ERRO("Doc root error: %s", e.what());
+    doc_root_.clear();
+  }
+
+  LOG_INFO("Doc root: %s", doc_root_.u8string().c_str());
 }
 
 void Server::AddSignals() {
@@ -314,14 +338,16 @@ void Server::Handle(ConnectionPtr connection) {
 }
 
 bool Server::MatchViewOrStatic(const std::string& method,
-                               const std::string& url, bool* stream) {
-  if (Router::MatchView(method, url, stream)) {
+                               const std::string& url_path, bool* stream) {
+  if (Router::MatchView(method, url_path, stream)) {
     return true;
   }
 
   // Try to match a static file.
   if (method == methods::kGet && !doc_root_.empty()) {
-    fs::path path = doc_root_ / url;
+    fs::path sub_path = utility::TranslatePath(url_path);
+    //LOG_INFO("Translated URL path: %s", sub_path.u8string().c_str());
+    fs::path path = doc_root_ / sub_path;
 
     fs::error_code ec;
     if (!fs::is_directory(path, ec) && fs::exists(path, ec)) {
@@ -340,7 +366,9 @@ ResponsePtr Server::ServeStatic(RequestPtr request) {
     return {};
   }
 
-  fs::path path = doc_root_ / request->url().path();
+  std::string url_path = Url::DecodeUnsafe(request->url().path());
+  fs::path sub_path = utility::TranslatePath(url_path);
+  fs::path path = doc_root_ / sub_path;
 
   try {
     // NOTE: FileBody might throw Error::kFileError.

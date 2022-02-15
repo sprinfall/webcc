@@ -39,6 +39,19 @@ void PrintEndpoint(std::ostream& ostream,
 // TCP endpoint to string.
 std::string EndpointToString(const boost::asio::ip::tcp::endpoint& endpoint);
 
+// Translate a /-separated URL path to the local (relative) path.
+// Examples:
+//   (Non-Windows)
+//   "/path/to/file" -> "path/to/file"
+//   "/path/./to/../file" -> "path/to/file" (. and .. are ignored)
+//   "/path//to//file" -> "path/to/file"
+//   (Windows)
+//   "/path/to/file" -> "path\to\file"
+//   "/path\\sub/to/file" -> "to\file" (path\\sub is ignored)
+//   "/C:\\test/path" -> "path" (C:\\test is ignored)
+// Reference: Python http/server.py translate_path()
+fs::path TranslatePath(const std::string& utf8_url_path);
+
 }  // namespace utility
 }  // namespace webcc
 
