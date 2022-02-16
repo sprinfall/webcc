@@ -7,8 +7,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "boost/algorithm/string.hpp"
-
 #include "webcc/string.h"
 #include "webcc/version.h"
 
@@ -91,43 +89,6 @@ std::string EndpointToString(const tcp::endpoint& endpoint) {
   std::ostringstream ss;
   PrintEndpoint(ss, endpoint);
   return ss.str();
-}
-
-fs::path TranslatePath(const std::string& utf8_url_path) {
-#if (defined(_WIN32) || defined(_WIN64))
-  std::wstring url_path = Utf8To16(utf8_url_path);
-  std::vector<std::wstring> words;
-  boost::split(words, url_path, boost::is_any_of(L"/"),
-               boost::token_compress_on);
-#else
-  std::vector<std::string> words;
-  boost::split(words, utf8_url_path, boost::is_any_of("/"),
-               boost::token_compress_on);
-#endif  // defined(_WIN32) || defined(_WIN64)
-
-  fs::path path;
-  for (auto& word : words) {
-    // Ignore . and ..
-#if (defined(_WIN32) || defined(_WIN64))
-    if (word == L"." || word == L"..") {
-#else
-    if (word == "." || word == "..") {
-#endif
-      continue;
-    }
-
-    fs::path p{ word };
-
-    // Ignore C:\\, C:, path\\sub, ...
-    // parent_path() is similar to Python os.path.dirname().
-    if (!p.parent_path().empty()) {
-      continue;
-    }
-
-    path /= p;
-  }
-
-  return path;
 }
 
 }  // namespace utility

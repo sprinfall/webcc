@@ -35,7 +35,7 @@ bool Router::Route(const UrlRegex& regex_url, ViewPtr view,
   return true;
 }
 
-ViewPtr Router::FindView(const std::string& method, const std::string& url,
+ViewPtr Router::FindView(const std::string& method, const std::string& url_path,
                          UrlArgs* args) {
   assert(args != nullptr);
 
@@ -48,7 +48,7 @@ ViewPtr Router::FindView(const std::string& method, const std::string& url,
     if (route.url.empty()) {
       std::smatch match;
 
-      if (std::regex_match(url, match, route.url_regex)) {
+      if (std::regex_match(url_path, match, route.url_regex)) {
         // Any sub-matches?
         // Start from 1 because match[0] is the whole string itself.
         for (size_t i = 1; i < match.size(); ++i) {
@@ -58,7 +58,7 @@ ViewPtr Router::FindView(const std::string& method, const std::string& url,
         return route.view;
       }
     } else {
-      if (boost::iequals(route.url, url)) {
+      if (boost::iequals(route.url, url_path)) {
         return route.view;
       }
     }

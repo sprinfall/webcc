@@ -106,6 +106,19 @@ private:
   // Serve static files from the doc root.
   ResponsePtr ServeStatic(RequestPtr request);
 
+  // Translate a /-separated URL path to the local (relative) path.
+  // Examples:
+  //   (Non-Windows)
+  //   "/path/to/file" -> "path/to/file"
+  //   "/path/./to/../file" -> "path/to/file" (. and .. are ignored)
+  //   "/path//to//file" -> "path/to/file"
+  //   (Windows)
+  //   "/path/to/file" -> "path\to\file"
+  //   "/path\\sub/to/file" -> "to\file" (path\\sub is ignored)
+  //   "/C:\\test/path" -> "path" (C:\\test is ignored)
+  // Reference: Python http/server.py translate_path()
+  fs::path TranslatePath(const std::string& utf8_url_path);
+
 private:
   // tcp::v4() or tcp::v6()
   boost::asio::ip::tcp protocol_;

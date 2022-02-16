@@ -24,8 +24,8 @@ public:
   bool Route(const UrlRegex& regex_url, ViewPtr view,
              const Strings& methods = { "GET" });
 
-  // Find the view by HTTP method and URL (path).
-  ViewPtr FindView(const std::string& method, const std::string& url,
+  // Find the view by HTTP method and URL path.
+  ViewPtr FindView(const std::string& method, const std::string& url_path,
                    UrlArgs* args);
 
   // Match the view by HTTP method and URL path.

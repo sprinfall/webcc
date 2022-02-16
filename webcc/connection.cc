@@ -6,6 +6,7 @@
 
 #include "webcc/connection_pool.h"
 #include "webcc/logger.h"
+#include "webcc/utility.h"
 
 using boost::asio::ip::tcp;
 
@@ -66,6 +67,8 @@ void Connection::SendResponse(ResponsePtr response, bool no_keep_alive) {
   } else {
     response_->SetHeader(headers::kConnection, "Close");
   }
+
+  response_->SetHeader(headers::kDate, utility::HttpDate());
 
   response_->Prepare();
 

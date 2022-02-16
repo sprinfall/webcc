@@ -4,12 +4,13 @@
 #include <fstream>
 #include <utility>
 
-#include "boost/algorithm/string/trim.hpp"
+#include "boost/algorithm/string.hpp"
 
 #include "webcc/body.h"
 #include "webcc/logger.h"
 #include "webcc/request.h"
 #include "webcc/response.h"
+#include "webcc/string.h"
 #include "webcc/utility.h"
 
 using namespace std::placeholders;
@@ -297,15 +298,15 @@ void Server::StopWorkers() {
 void Server::Handle(ConnectionPtr connection) {
   auto request = connection->request();
 
-  const Url& url = request->url();
-  LOG_INFO("Request URL path: %s", url.path().c_str());
+  std::string url_path = Url::DecodeUnsafe(request->url().path());
+  LOG_INFO("Request URL path: %s", url_path.c_str());
 
   UrlArgs args;
-  auto view = FindView(request->method(), url.path(), &args);
+  auto view = FindView(request->method(), url_path, &args);
 
   if (!view) {
-    LOG_WARN("No view matches the request: %s %s", request->method().c_str(),
-             url.path().c_str());
+    //LOG_WARN("No view matches the request: %s %s", request->method().c_str(),
+    //         url_path.c_str());
 
     if (request->method() == methods::kGet) {
       // Try to serve static files for GET request.
@@ -343,9 +344,14 @@ bool Server::MatchViewOrStatic(const std::string& method,
     return true;
   }
 
-  // Try to match a static file.
   if (method == methods::kGet && !doc_root_.empty()) {
-    fs::path sub_path = utility::TranslatePath(url_path);
+#if 1
+    // NOTE(20220216):
+    // Don't check file exists or not. ServeStatic() will handle it and return
+    // a NotFound response on file errors.
+    return true;
+#else
+    fs::path sub_path = TranslatePath(url_path);
     //LOG_INFO("Translated URL path: %s", sub_path.u8string().c_str());
     fs::path path = doc_root_ / sub_path;
 
@@ -353,6 +359,7 @@ bool Server::MatchViewOrStatic(const std::string& method,
     if (!fs::is_directory(path, ec) && fs::exists(path, ec)) {
       return true;
     }
+#endif
   }
 
   return false;
@@ -362,13 +369,13 @@ ResponsePtr Server::ServeStatic(RequestPtr request) {
   assert(request->method() == methods::kGet);
 
   if (doc_root_.empty()) {
-    LOG_INFO("The doc root was not specified");
+    // Shouldn't be here!
+    LOG_ERRO("The doc root was not specified");
     return {};
   }
 
   std::string url_path = Url::DecodeUnsafe(request->url().path());
-  fs::path sub_path = utility::TranslatePath(url_path);
-  fs::path path = doc_root_ / sub_path;
+  fs::path path = doc_root_ / TranslatePath(url_path);
 
   try {
     // NOTE: FileBody might throw Error::kFileError.
@@ -388,6 +395,43 @@ ResponsePtr Server::ServeStatic(RequestPtr request) {
     LOG_ERRO("File error: %s", error.message().c_str());
     return {};
   }
+}
+
+fs::path Server::TranslatePath(const std::string& utf8_url_path) {
+#if (defined(_WIN32) || defined(_WIN64))
+  std::wstring url_path = Utf8To16(utf8_url_path);
+  std::vector<std::wstring> words;
+  boost::split(words, url_path, boost::is_any_of(L"/"),
+               boost::token_compress_on);
+#else
+  std::vector<std::string> words;
+  boost::split(words, utf8_url_path, boost::is_any_of("/"),
+               boost::token_compress_on);
+#endif  // defined(_WIN32) || defined(_WIN64)
+
+  fs::path path;
+  for (auto& word : words) {
+    // Ignore . and ..
+#if (defined(_WIN32) || defined(_WIN64))
+    if (word == L"." || word == L"..") {
+#else
+    if (word == "." || word == "..") {
+#endif
+      continue;
+    }
+
+    fs::path p{ word };
+
+    // Ignore C:\\, C:, path\\sub, ...
+    // parent_path() is similar to Python os.path.dirname().
+    if (!p.parent_path().empty()) {
+      continue;
+    }
+
+    path /= p;
+  }
+
+  return path;
 }
 
 }  // namespace webcc
