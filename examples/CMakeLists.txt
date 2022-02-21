@@ -11,6 +11,7 @@ endif()
 set(SIMPLE_EXAMPLES
     concurrency_test
     client_basics
+    heartbeat_client
     hello_world_server
     static_file_server
     file_downloader

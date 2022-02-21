@@ -20,6 +20,9 @@ const std::string& UserAgent();
 // See: https://tools.ietf.org/html/rfc7231#section-7.1.1.2
 std::string HttpDate();
 
+// Format a given time as HTTP date.
+std::string FormatHttpDate(const std::tm& gmt);
+
 // Tell the size in bytes of the given file.
 // Return kInvalidLength (-1) on failure.
 std::size_t TellSize(const fs::path& path);

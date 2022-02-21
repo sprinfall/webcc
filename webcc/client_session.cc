@@ -82,8 +82,7 @@ static bool UseSystemCertificateStore(SSL_CTX* ssl_ctx) {
 // -----------------------------------------------------------------------------
 
 ClientSession::ClientSession(std::size_t buffer_size)
-    : work_guard_(boost::asio::make_work_guard(io_context_)),
-      buffer_size_(buffer_size) {
+    : buffer_size_(buffer_size) {
   InitHeaders();
 
   Start();
@@ -106,6 +105,8 @@ void ClientSession::Start() {
 
   started_ = true;
 
+  work_guard_.reset(new WorkGuard{ io_context_.get_executor() });
+
   io_context_.restart();
 
   // Run the io context off in its own thread so that it operates completely
@@ -123,7 +124,8 @@ void ClientSession::Stop() {
 
   Cancel();
 
-  io_context_.stop();
+  // NOTE(20220221): Don't call `io_context_.stop()` instead!
+  work_guard_.reset();
 
   io_thread_->join();
 

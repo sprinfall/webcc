@@ -23,7 +23,10 @@ const std::string& UserAgent() {
 std::string HttpDate() {
   std::time_t t = std::time(nullptr);
   std::tm gmt = *std::gmtime(&t);
+  return FormatHttpDate(gmt);
+}
 
+std::string FormatHttpDate(const std::tm& gmt) {
   std::ostringstream date;
   date.imbue(std::locale::classic());  // Use classic C locale
   date << std::put_time(&gmt, "%a, %d %b %Y %H:%M:%S GMT");

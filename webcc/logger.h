@@ -41,6 +41,7 @@ enum LogMode {
 const int LOG_CONSOLE_FILE_APPEND = LOG_CONSOLE | LOG_FILE;
 const int LOG_CONSOLE_FILE_OVERWRITE = LOG_CONSOLE | LOG_FILE | LOG_OVERWRITE;
 const int LOG_FILE_OVERWRITE = LOG_FILE | LOG_OVERWRITE;
+const int LOG_FILE_FLUSH_OVERWRITE = LOG_FILE | LOG_FLUSH | LOG_OVERWRITE;
 
 // Initialize logger.
 // If |dir| is empty, log file will be generated in current directory.

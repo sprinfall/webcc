@@ -123,7 +123,8 @@ private:
   std::unique_ptr<std::thread> io_thread_;
 
   using ExecutorType = boost::asio::io_context::executor_type;
-  boost::asio::executor_work_guard<ExecutorType> work_guard_;
+  using WorkGuard = boost::asio::executor_work_guard<ExecutorType>;
+  std::unique_ptr<WorkGuard> work_guard_;
 
 #if WEBCC_ENABLE_SSL
   // SSL context is lazily created on the first HTTPS request.

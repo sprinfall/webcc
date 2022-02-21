@@ -111,9 +111,11 @@ enum Status {
   kOK = 200,
   kCreated = 201,
   kAccepted = 202,
+  kCallbackFailed = 203,
   kNoContent = 204,
   kNotModified = 304,
   kBadRequest = 400,
+  kForbidden = 403,
   kNotFound = 404,
   kInternalServerError = 500,
   kNotImplemented = 501,
@@ -223,6 +225,10 @@ public:
 
   operator bool() const {
     return code_ != kOK;
+  }
+
+  bool IsOK() const {
+    return code_ == kOK;
   }
 
 private:
