@@ -16,13 +16,13 @@ public:
   // Route a URL to a view.
   // The URL should start with "/". E.g., "/instances".
   bool Route(string_view url, ViewPtr view,
-             const Strings& methods = { "GET" });
+             const std::vector<std::string>& methods = { "GET" });
 
   // Route a URL (as regular expression) to a view.
   // The URL should start with "/" and be a regular expression.
   // E.g., "/instances/(\\d+)".
   bool Route(const UrlRegex& regex_url, ViewPtr view,
-             const Strings& methods = { "GET" });
+             const std::vector<std::string>& methods = { "GET" });
 
   // Find the view by HTTP method and URL path.
   ViewPtr FindView(const std::string& method, const std::string& url_path,
@@ -39,7 +39,7 @@ private:
     std::string url;
     std::regex url_regex;
     ViewPtr view;
-    Strings methods;
+    std::vector<std::string> methods;
   };
 
   // Route table.

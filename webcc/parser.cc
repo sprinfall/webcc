@@ -71,7 +71,7 @@ bool FileBodyHandler::OpenFile() {
 
     // Generate a random string as file name.
     // A replacement of boost::filesystem::unique_path().
-    temp_path_ /= RandomString(10);
+    temp_path_ /= RandomAsciiString(10);
 
     LOG_VERB("Generate a temp path for streaming: %s",
              temp_path_.string().c_str());

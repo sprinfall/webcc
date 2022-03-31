@@ -13,8 +13,8 @@ std::string Utf16To8(const std::wstring& utf16_string);
 std::wstring Utf8To16(const std::string& utf8_string);
 #endif
 
-// Get a randomly generated string with the given length.
-std::string RandomString(std::size_t length);
+// Generates randomly an ASCII string in the given length.
+std::string RandomAsciiString(std::size_t length);
 
 // Convert string to size_t.
 // Just a wrapper of std::stoul.

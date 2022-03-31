@@ -18,7 +18,7 @@ bool BookClient::Query(std::list<Book>* books) {
   try {
     auto r = session_.Send(WEBCC_GET(url_).Path("books")());
 
-    if (!CheckStatus(r, webcc::Status::kOK)) {
+    if (!CheckStatus(r, webcc::status_codes::kOK)) {
       // Response HTTP status error.
       return false;
     }
@@ -51,7 +51,7 @@ bool BookClient::Create(const std::string& title, double price,
     auto r = session_.Send(WEBCC_POST(url_).Path("books").
                            Body(JsonToString(req_json))());
 
-    if (!CheckStatus(r, webcc::Status::kCreated)) {
+    if (!CheckStatus(r, webcc::status_codes::kCreated)) {
       return false;
     }
 
@@ -74,7 +74,7 @@ bool BookClient::Get(const std::string& id, Book* book) {
   try {
     auto r = session_.Send(WEBCC_GET(url_).Path("books").Path(id)());
 
-    if (!CheckStatus(r, webcc::Status::kOK)) {
+    if (!CheckStatus(r, webcc::status_codes::kOK)) {
       return false;
     }
 
@@ -96,7 +96,7 @@ bool BookClient::Set(const std::string& id, const std::string& title,
     auto r = session_.Send(WEBCC_PUT(url_).Path("books").Path(id).
                            Body(JsonToString(json))());
 
-    if (!CheckStatus(r, webcc::Status::kOK)) {
+    if (!CheckStatus(r, webcc::status_codes::kOK)) {
       return false;
     }
 
@@ -112,7 +112,7 @@ bool BookClient::Delete(const std::string& id) {
   try {
     auto r = session_.Send(WEBCC_DELETE(url_).Path("books").Path(id)());
 
-    if (!CheckStatus(r, webcc::Status::kOK)) {
+    if (!CheckStatus(r, webcc::status_codes::kOK)) {
       return false;
     }
 
@@ -130,7 +130,7 @@ bool BookClient::GetPhoto(const std::string& id, const webcc::fs::path& path) {
                            Path("books").Path(id).Path("photo")(),
                            true);  // Save to temp file
 
-    if (!CheckStatus(r, webcc::Status::kOK)) {
+    if (!CheckStatus(r, webcc::status_codes::kOK)) {
       return false;
     }
 
@@ -154,7 +154,7 @@ bool BookClient::SetPhoto(const std::string& id, const webcc::fs::path& path) {
                            Path("books").Path(id).Path("photo").
                            File(path)());
 
-    if (!CheckStatus(r, webcc::Status::kOK)) {
+    if (!CheckStatus(r, webcc::status_codes::kOK)) {
       return false;
     }
 

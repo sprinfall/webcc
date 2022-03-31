@@ -19,7 +19,7 @@ int main() {
                          .Query("name", "Adam Gu", true)
                          .Date()());
 
-    assert(r->status() == webcc::Status::kOK);
+    assert(r->status() == webcc::status_codes::kOK);
     assert(!r->data().empty());
 
     r = session.Send(WEBCC_POST("http://httpbin.org/post")
@@ -27,14 +27,14 @@ int main() {
                          .Json()
                          .Utf8()());
 
-    assert(r->status() == webcc::Status::kOK);
+    assert(r->status() == webcc::status_codes::kOK);
     assert(!r->data().empty());
 
 #if WEBCC_ENABLE_SSL
 
     r = session.Send(WEBCC_GET("https://httpbin.org/get")());
 
-    assert(r->status() == webcc::Status::kOK);
+    assert(r->status() == webcc::status_codes::kOK);
     assert(!r->data().empty());
 
 #endif  // WEBCC_ENABLE_SSL

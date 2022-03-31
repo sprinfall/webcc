@@ -29,34 +29,34 @@ public:
   // Some shortcuts for different status codes:
 
   ResponseBuilder& OK() {
-    return Code(Status::kOK);
+    return Code(status_codes::kOK);
   }
 
   ResponseBuilder& Created() {
-    return Code(Status::kCreated);
+    return Code(status_codes::kCreated);
   }
 
   ResponseBuilder& BadRequest() {
-    return Code(Status::kBadRequest);
+    return Code(status_codes::kBadRequest);
   }
 
   ResponseBuilder& NotFound() {
-    return Code(Status::kNotFound);
+    return Code(status_codes::kNotFound);
   }
 
   ResponseBuilder& InternalServerError() {
-    return Code(Status::kInternalServerError);
+    return Code(status_codes::kInternalServerError);
   }
 
   ResponseBuilder& NotImplemented() {
-    return Code(Status::kNotImplemented);
+    return Code(status_codes::kNotImplemented);
   }
 
   ResponseBuilder& ServiceUnavailable() {
-    return Code(Status::kServiceUnavailable);
+    return Code(status_codes::kServiceUnavailable);
   }
 
-  ResponseBuilder& Code(Status code) {
+  ResponseBuilder& Code(int code) {
     code_ = code;
     return *this;
   }
@@ -114,7 +114,7 @@ private:
   RequestPtr request_;
 
   // Status code.
-  Status code_ = Status::kOK;
+  int code_ = status_codes::kOK;
 
   // Response body.
   BodyPtr body_;

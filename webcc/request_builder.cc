@@ -38,7 +38,7 @@ RequestPtr RequestBuilder::operator()() {
   } else if (!form_parts_.empty()) {
     // Another choice to generate the boundary is like what Apache does.
     // See: https://stackoverflow.com/a/5686863
-    auto boundary = RandomString(30);
+    auto boundary = RandomAsciiString(30);
 
     request->SetContentType("multipart/form-data; boundary=" + boundary);
 

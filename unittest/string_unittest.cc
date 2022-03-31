@@ -1,6 +1,20 @@
 #include "gtest/gtest.h"
 
+#include <algorithm>
+
 #include "webcc/string.h"
+
+TEST(StringTest, RandomAsciiString) {
+  EXPECT_TRUE(webcc::RandomAsciiString(0).empty());
+
+  std::string str = webcc::RandomAsciiString(10);
+  EXPECT_EQ(str.size(), 10);
+  EXPECT_TRUE(std::all_of(str.begin(), str.end(), std::isalnum));
+
+  std::string str1 = webcc::RandomAsciiString(20);
+  std::string str2 = webcc::RandomAsciiString(20);
+  EXPECT_TRUE(str1 != str2);
+}
 
 TEST(StringTest, Trim) {
   std::string str = "   trim me  ";

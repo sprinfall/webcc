@@ -8,7 +8,8 @@
 #include <string>
 #include <vector>
 
-#include "boost/asio/buffer.hpp"  // for const_buffer
+// for const_buffer, dynamic_string_buffer, etc.
+#include "boost/asio/buffer.hpp"
 
 #include "webcc/config.h"
 
@@ -37,8 +38,6 @@ inline std::string ToString(string_view sv) {
 }
 
 // -----------------------------------------------------------------------------
-
-using Strings = std::vector<std::string>;
 
 // Regex sub-matches of the URL (usually resource ID's).
 // Could also be considered as arguments, so named as UrlArgs.
@@ -103,24 +102,27 @@ const char* const kPatch = "PATCH";
 
 }  // namespace methods
 
+namespace status_codes {
+
 // HTTP status codes.
 // Don't use "enum class" for converting to/from int easily.
 // The full list is available here:
 //   https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-enum Status {
-  kOK = 200,
-  kCreated = 201,
-  kAccepted = 202,
-  kCallbackFailed = 203,
-  kNoContent = 204,
-  kNotModified = 304,
-  kBadRequest = 400,
-  kForbidden = 403,
-  kNotFound = 404,
-  kInternalServerError = 500,
-  kNotImplemented = 501,
-  kServiceUnavailable = 503,
-};
+
+constexpr int kOK = 200;
+constexpr int kCreated = 201;
+constexpr int kAccepted = 202;
+constexpr int kCallbackFailed = 203;
+constexpr int kNoContent = 204;
+constexpr int kNotModified = 304;
+constexpr int kBadRequest = 400;
+constexpr int kForbidden = 403;
+constexpr int kNotFound = 404;
+constexpr int kInternalServerError = 500;
+constexpr int kNotImplemented = 501;
+constexpr int kServiceUnavailable = 503;
+
+}  // namespace status_codes
 
 namespace headers {
 

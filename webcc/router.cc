@@ -8,7 +8,8 @@
 
 namespace webcc {
 
-bool Router::Route(string_view url, ViewPtr view, const Strings& methods) {
+bool Router::Route(string_view url, ViewPtr view,
+                   const std::vector<std::string>& methods) {
   assert(view);
 
   // TODO: More error check
@@ -19,7 +20,7 @@ bool Router::Route(string_view url, ViewPtr view, const Strings& methods) {
 }
 
 bool Router::Route(const UrlRegex& regex_url, ViewPtr view,
-                   const Strings& methods) {
+                   const std::vector<std::string>& methods) {
   assert(view);
 
   // TODO: More error check

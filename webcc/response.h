@@ -10,7 +10,7 @@ namespace webcc {
 
 class Response : public Message {
 public:
-  explicit Response(Status status = Status::kOK) : status_(status) {
+  explicit Response(int status = status_codes::kOK) : status_(status) {
   }
 
   ~Response() override = default;

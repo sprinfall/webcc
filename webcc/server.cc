@@ -313,12 +313,12 @@ void Server::Handle(ConnectionPtr connection) {
       auto response = ServeStatic(request);
       if (!response) {
         // Static file not found.
-        connection->SendResponse(Status::kNotFound);
+        connection->SendResponse(status_codes::kNotFound);
       } else {
         connection->SendResponse(response);
       }
     } else {
-      connection->SendResponse(Status::kBadRequest);
+      connection->SendResponse(status_codes::kBadRequest);
     }
 
     return;
@@ -334,7 +334,7 @@ void Server::Handle(ConnectionPtr connection) {
   if (response) {
     connection->SendResponse(response);
   } else {
-    connection->SendResponse(Status::kBadRequest);
+    connection->SendResponse(status_codes::kBadRequest);
   }
 }
 
@@ -381,7 +381,7 @@ ResponsePtr Server::ServeStatic(RequestPtr request) {
     // NOTE: FileBody might throw Error::kFileError.
     auto body = std::make_shared<FileBody>(path, file_chunk_size_);
 
-    auto response = std::make_shared<Response>(Status::kOK);
+    auto response = std::make_shared<Response>(status_codes::kOK);
 
     std::string extension = path.extension().string();
     response->SetContentType(media_types::FromExtension(extension), "");

@@ -75,7 +75,7 @@ void Connection::SendResponse(ResponsePtr response, bool no_keep_alive) {
   AsyncWrite();
 }
 
-void Connection::SendResponse(Status status, bool no_keep_alive) {
+void Connection::SendResponse(int status, bool no_keep_alive) {
   auto response = std::make_shared<Response>(status);
 
   // According to the testing based on HTTPie (and Chrome), the `Content-Length`
@@ -125,7 +125,7 @@ void Connection::OnRead(boost::system::error_code ec, std::size_t length) {
   if (!request_parser_.Parse(buffer_.data(), length)) {
     LOG_ERRO("Failed to parse request");
     // Send Bad Request (400) to the client and no Keep-Alive.
-    SendResponse(Status::kBadRequest, true);
+    SendResponse(status_codes::kBadRequest, true);
     // Close the socket connection.
     pool_->Close(shared_from_this());
     return;

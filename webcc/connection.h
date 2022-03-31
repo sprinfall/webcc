@@ -55,7 +55,7 @@ public:
   // Send a response with the given status and an empty body to the client.
   // `Connection` header will be set to "Close" if |no_keep_alive| is true no
   // matter whether the client asked for Keep-Alive or not.
-  void SendResponse(Status status, bool no_keep_alive = false);
+  void SendResponse(int status, bool no_keep_alive = false);
 
 private:
   void AsyncRead();

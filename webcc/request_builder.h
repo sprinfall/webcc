@@ -215,7 +215,7 @@ private:
 
   // Additional headers with the following sequence:
   //   { key1, value1, key2, value2, ... }
-  Strings headers_;
+  std::vector<std::string> headers_;
 
   // Persistent connection.
   bool keep_alive_ = true;

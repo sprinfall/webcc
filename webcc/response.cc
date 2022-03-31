@@ -4,17 +4,19 @@
 
 namespace webcc {
 
+using namespace status_codes;
+
 static const std::pair<int, const char*> kTable[] = {
-  { Status::kOK, "OK" },
-  { Status::kCreated, "Created" },
-  { Status::kAccepted, "Accepted" },
-  { Status::kNoContent, "No Content" },
-  { Status::kNotModified, "Not Modified" },
-  { Status::kBadRequest, "Bad Request" },
-  { Status::kNotFound, "Not Found" },
-  { Status::kInternalServerError, "Internal Server Error" },
-  { Status::kNotImplemented, "Not Implemented" },
-  { Status::kServiceUnavailable, "Service Unavailable" },
+  { kOK, "OK" },
+  { kCreated, "Created" },
+  { kAccepted, "Accepted" },
+  { kNoContent, "No Content" },
+  { kNotModified, "Not Modified" },
+  { kBadRequest, "Bad Request" },
+  { kNotFound, "Not Found" },
+  { kInternalServerError, "Internal Server Error" },
+  { kNotImplemented, "Not Implemented" },
+  { kServiceUnavailable, "Service Unavailable" },
 };
 
 static const char* GetReason(int status) {

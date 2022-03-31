@@ -68,7 +68,7 @@ std::wstring Utf8To16(const std::string& utf8_string) {
 #endif  // defined(_WIN32) || defined(_WIN64)
 
 // Ref: https://stackoverflow.com/a/24586587
-std::string RandomString(std::size_t length) {
+std::string RandomAsciiString(std::size_t length) {
   static const char chrs[] =
       "0123456789"
       "abcdefghijklmnopqrstuvwxyz"
@@ -81,7 +81,7 @@ std::string RandomString(std::size_t length) {
   std::string s;
   s.reserve(length);
 
-  while (length--) {
+  while (length-- > 0) {
     s += chrs[pick(rg)];
   }
 
