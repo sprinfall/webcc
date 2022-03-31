@@ -29,8 +29,8 @@ public:
 #if WEBCC_ENABLE_GZIP
 
   // Compress the data with Gzip.
-  // If data size <= threshold (1400 bytes), no compression will be taken
-  // and false will be simply returned.
+  // If data size <= threshold (1400 bytes), no compression will be taken and
+  // false will be simply returned.
   virtual bool Compress() {
     return false;
   }
@@ -51,7 +51,7 @@ public:
   }
 
   // Get the next payload.
-  // An empty payload returned indicates the end.
+  // Returning an empty payload indicates the end.
   virtual Payload NextPayload(bool free_previous = false) {
     return {};
   }
@@ -67,11 +67,11 @@ using BodyPtr = std::shared_ptr<Body>;
 
 class StringBody : public Body {
 public:
-  explicit StringBody(const std::string& data, bool compressed)
+  StringBody(const std::string& data, bool compressed)
       : data_(data), compressed_(compressed) {
   }
 
-  explicit StringBody(std::string&& data, bool compressed)
+  StringBody(std::string&& data, bool compressed)
       : data_(std::move(data)), compressed_(compressed) {
   }
 
@@ -150,13 +150,11 @@ private:
 // the memory.
 class FileBody : public Body {
 public:
-  // For message to be sent out.
+  // For messages sent out.
   FileBody(const fs::path& path, std::size_t chunk_size);
 
-  // For message received.
-  // No |chunk_size| is needed since you don't iterate the payload of a
-  // received message.
-  // If |auto_delete| is true, the file will be deleted on destructor unless it
+  // For messages received.
+  // If `auto_delete` is true, the file will be deleted on destructor unless it
   // is moved to another path (see Move()).
   FileBody(const fs::path& path, bool auto_delete = false);
 
@@ -180,10 +178,10 @@ public:
   // Used to move the streamed file of the received message to a new place.
   // Applicable to both client and server.
   // After move, the original path will be reset to empty.
-  // If |new_path| and |path_| resolve to the same file, do nothing and just
+  // If `new_path` and `path_` resolve to the same file, do nothing and just
   // return false.
-  // If |new_path| resolves to an existing non-directory file, it is removed.
-  // If |new_path| resolves to an existing directory, it is removed if empty
+  // If `new_path` resolves to an existing non-directory file, it is removed.
+  // If `new_path` resolves to an existing directory, it is removed if empty
   // on ISO/IEC 9945 but is an error on Windows.
   // See fs::rename() for more details.
   bool Move(const fs::path& new_path);

@@ -15,7 +15,7 @@ public:
   ResponseBuilder() = default;
 
   // NOTE:
-  // Currently, |request| is necessary only when Gzip is enabled and the client
+  // Currently, `request` is necessary only when Gzip is enabled and the client
   // does want to accept Gzip compressed response.
   explicit ResponseBuilder(RequestPtr request) : request_(request) {
   }
@@ -100,7 +100,7 @@ public:
 
   ResponseBuilder& Header(string_view key, string_view value);
 
-  // Add the `Date` header to the response.
+  // Add the Date header to the response.
   ResponseBuilder& Date();
 
 #if WEBCC_ENABLE_GZIP
@@ -128,7 +128,7 @@ private:
 #if WEBCC_ENABLE_GZIP
   // Compress the body data (only for string body).
   bool gzip_ = false;
-#endif  // WEBCC_ENABLE_GZIP
+#endif
 
   // Additional headers.
   std::vector<std::string> headers_;

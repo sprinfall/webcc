@@ -1,5 +1,7 @@
 #include "webcc/body.h"
 
+#include "boost/core/ignore_unused.hpp"
+
 #include "webcc/logger.h"
 #include "webcc/utility.h"
 
@@ -15,7 +17,7 @@ namespace webcc {
 
 bool StringBody::Compress() {
   if (compressed_) {
-    return true;  // Already compressed.
+    return true;  // Already compressed
   }
 
   if (data_.size() <= kGzipThreshold) {
@@ -35,7 +37,7 @@ bool StringBody::Compress() {
 
 bool StringBody::Decompress() {
   if (!compressed_) {
-    return true;  // Already decompressed.
+    return true;  // Already decompressed
   }
 
   std::string decompressed;
@@ -55,7 +57,9 @@ void StringBody::InitPayload() {
   index_ = 0;
 }
 
-Payload StringBody::NextPayload(bool /*free_previous*/) {
+Payload StringBody::NextPayload(bool free_previous) {
+  boost::ignore_unused(free_previous);
+
   if (index_ == 0) {
     index_ = 1;
     return { boost::asio::buffer(data_) };
@@ -192,11 +196,12 @@ void FileBody::InitPayload() {
   }
 }
 
-Payload FileBody::NextPayload(bool /*free_previous*/) {
+Payload FileBody::NextPayload(bool free_previous) {
+  boost::ignore_unused(free_previous);
+
   if (ifstream_.read(&chunk_[0], chunk_.size()).gcount() > 0) {
-    return {
-      boost::asio::buffer(chunk_.data(), (std::size_t)ifstream_.gcount())
-    };
+    return { boost::asio::buffer(
+        chunk_.data(), static_cast<std::size_t>(ifstream_.gcount())) };
   }
   return {};
 }

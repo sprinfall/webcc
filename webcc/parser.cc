@@ -424,7 +424,7 @@ bool Parser::Finish() {
   finished_ = true;
 
   // Could be `kInvalidLength` (chunked).
-  // Could be `0` (empty body and `Content-Length : 0`).
+  // Could be `0` (empty body and "Content-Length : 0").
   message_->set_content_length(content_length_);
 
   return body_handler_->Finish();

@@ -41,7 +41,7 @@ public:
 
   // Get header value by key.
   // If there's no such header with the given key, besides return empty, the
-  // optional |existed| parameter will be set to false.
+  // optional `existed` parameter will be set to false.
   const std::string& Get(string_view key, bool* existed = nullptr) const;
 
   void Clear() {
@@ -56,7 +56,7 @@ private:
 
 // -----------------------------------------------------------------------------
 
-// Content-Type header.
+// The Content-Type header.
 // Syntax:
 //   Content-Type: text/html; charset=utf-8
 //   Content-Type: multipart/form-data; boundary=something
@@ -99,7 +99,7 @@ private:
 
 // -----------------------------------------------------------------------------
 
-// Content-Disposition header.
+// The Content-Disposition header.
 // Syntax:
 //   Content-Disposition: form-data
 //   Content-Disposition: form-data; name="fieldName"
@@ -239,7 +239,7 @@ private:
   std::string media_type_;
 
   // Headers generated from the above properties.
-  // Only Used to prepare payload.
+  // Only used to prepare payload.
   Headers headers_;
 
   std::string data_;

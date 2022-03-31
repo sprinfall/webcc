@@ -34,7 +34,7 @@ RequestPtr RequestBuilder::operator()() {
     if (gzip_ && body_->Compress()) {
       request->SetHeader(headers::kContentEncoding, "gzip");
     }
-#endif  // WEBCC_ENABLE_GZIP
+#endif
   } else if (!form_parts_.empty()) {
     // Another choice to generate the boundary is like what Apache does.
     // See: https://stackoverflow.com/a/5686863

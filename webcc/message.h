@@ -67,24 +67,24 @@ public:
   // Return null if the body is not a FileBody.
   std::shared_ptr<FileBody> file_body() const;
 
-  // Check `Connection` header to see if it's "Keep-Alive".
+  // Check the Connection header to see if it's "Keep-Alive".
   bool IsConnectionKeepAlive() const;
 
   // Determine content encoding (gzip, deflate or unknown) from
-  // `Content-Encoding` header.
+  // the Content-Encoding header.
   ContentEncoding GetContentEncoding() const;
 
-  // Check `Accept-Encoding` header to see if it contains "gzip".
+  // Check the Accept-Encoding header to see if it contains "gzip".
   bool AcceptEncodingGzip() const;
 
-  // Set `Content-Type` header. E.g.,
-  //   SetContentType("application/json; charset=utf-8")
+  // Set the Content-Type header.
+  // E.g. SetContentType("application/json; charset=utf-8")
   void SetContentType(string_view content_type) {
     SetHeader(headers::kContentType, content_type);
   }
 
-  // Set `Content-Type` header. E.g.,
-  //   SetContentType("application/json", "utf-8")
+  // Set the Content-Type header.
+  // E.g., SetContentType("application/json", "utf-8")
   void SetContentType(string_view media_type, string_view charset);
 
   // Make the message complete in order to be sent.

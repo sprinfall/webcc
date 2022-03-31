@@ -91,7 +91,7 @@ private:
 
 // -----------------------------------------------------------------------------
 
-// HTTP request and response parser.
+// HTTP request/response parser.
 class Parser {
 public:
   Parser();
@@ -118,8 +118,8 @@ public:
     return header_length_;
   }
 
-  // The content length parsed from `Content-Length` header.
-  // kInvalidLength if the content is chunked.
+  // The content length parsed from the Content-Length header.
+  // Return kInvalidLength if the content is chunked.
   std::size_t content_length() const {
     return content_length_;
   }
@@ -132,7 +132,7 @@ protected:
   void Reset();
 
   // Parse headers from pending data.
-  // Return false only on syntax errors.
+  // Return false only on syntax errors.`
   bool ParseHeaders();
 
   // Called when headers just parsed.
@@ -143,7 +143,7 @@ protected:
 
   // Get next line (using delimiter CRLF) from the pending data.
   // The line will not contain a trailing CRLF.
-  // If |erase| is true, the line, as well as the trailing CRLF, will be erased
+  // If `erase` is true, the line, as well as the trailing CRLF, will be erased
   // from the pending data.
   bool GetNextLine(std::size_t off, std::string* line, bool erase);
 

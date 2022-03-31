@@ -128,11 +128,9 @@ public:
   }
 
 #if WEBCC_ENABLE_GZIP
-
   // Accept Gzip compressed response data or not.
   RequestBuilder& AcceptGzip(bool gzip = true);
-
-#endif  // WEBCC_ENABLE_GZIP
+#endif
 
   RequestBuilder& Body(const std::string& data) {
     body_.reset(new StringBody{ data, false });
@@ -176,7 +174,7 @@ public:
 
   RequestBuilder& AuthToken(string_view token);
 
-  // Add the `Date` header to the request.
+  // Add the Date header to the request.
   RequestBuilder& Date();
 
 #if WEBCC_ENABLE_GZIP
@@ -196,17 +194,17 @@ public:
 private:
   std::string method_;
 
-  // Namespace is added to avoid the conflict with `Url()` method.
+  // Namespace is added to avoid the conflict with Url() method.
   webcc::Url url_;
 
   // Request body.
   BodyPtr body_;
 
-  // The media (or MIME) type of `Content-Type` header.
+  // The media (or MIME) type of the Content-Type header.
   // E.g., "application/json".
   std::string media_type_;
 
-  // The charset of `Content-Type` header.
+  // The charset of the Content-Type header.
   // E.g., "utf-8".
   std::string charset_;
 

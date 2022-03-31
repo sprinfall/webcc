@@ -9,7 +9,7 @@
 
 namespace webcc {
 
-// Connection pool for keep-alive connections.
+// Connection pool for persistent (keep-alive) connections.
 class ClientPool {
 public:
   struct Key {

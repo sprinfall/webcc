@@ -30,7 +30,7 @@ public:
 
   // Match the view by HTTP method and URL path.
   // Return if a view is matched or not.
-  // If the view asks for data streaming, |stream| will be set to true.
+  // If the view asks for data streaming, `stream` will be set to true.
   bool MatchView(const std::string& method, const std::string& url_path,
                  bool* stream);
 

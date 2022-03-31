@@ -60,9 +60,9 @@ public:
     headers_.Set(key, value);
   }
 
-  // Set `Content-Type` header, e.g., ("application/json", "utf-8").
+  // Set Content-Type header, e.g., ("application/json", "utf-8").
   // Only applied when:
-  //   - the request to send has no `Content-Type` header, and
+  //   - the request to send has no Content-Type header, and
   //   - the request has a body.
   void SetContentType(string_view media_type, string_view charset = "") {
     media_type_ = ToString(media_type);
@@ -90,9 +90,9 @@ public:
 
   // Send a request.
   // Please use RequestBuilder to build the request.
-  // If |stream| is true, the response data will be written into a temp file,
+  // If `stream` is true, the response data will be written into a temp file,
   // the response body will be FileBody, and you can easily move the temp file
-  // to another path with FileBody::Move(). So, |stream| is really useful for
+  // to another path with FileBody::Move(). So, `stream` is really useful for
   // downloading files (JPEG, etc.) or saving memory for huge data responses.
   ResponsePtr Send(RequestPtr request, bool stream = false,
                    ProgressCallback callback = {});
@@ -111,7 +111,7 @@ private:
 #if WEBCC_ENABLE_SSL
   // Create SSL context if it's not created.
   void CreateSslContext();
-#endif  // WEBCC_ENABLE_SSL
+#endif
 
   ResponsePtr DoSend(RequestPtr request, bool stream,
                      ProgressCallback callback);
@@ -134,11 +134,11 @@ private:
   // Is Asio loop running?
   bool started_ = false;
 
-  // The media (or MIME) type of `Content-Type` header.
+  // The media (or MIME) type of Content-Type header.
   // E.g., "application/json".
   std::string media_type_;
 
-  // The charset of `Content-Type` header.
+  // The charset of Content-Type header.
   // E.g., "utf-8".
   std::string charset_;
 

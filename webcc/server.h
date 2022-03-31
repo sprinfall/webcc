@@ -44,12 +44,12 @@ public:
   // another thread) or a signal like SIGINT is caught.
   // When the request of a connection has been read, the connection is put into
   // a queue waiting for some worker thread to process. Normally, the more
-  // |workers| you have, the more concurrency you gain (the concurrency also
+  // `workers` you have, the more concurrency you gain (the concurrency also
   // depends on the number of CPU cores). The worker thread pops connections
   // from the queue one by one, prepares the response by the user provided View,
   // then sends it back to the client.
   // Meanwhile, the (event) loop, i.e., io_context, is also running in a number
-  // (|loops|) of threads. Normally, one thread for the loop is good enough, but
+  // (`loops`) of threads. Normally, one thread for the loop is good enough, but
   // it could be more than that.
   void Run(std::size_t workers = 1, std::size_t loops = 1);
 
@@ -96,10 +96,10 @@ private:
 
   // Match the view by HTTP method and URL path.
   // Return if a view or static file is matched or not.
-  // The |url_path| has already been decoded.
-  // The |url_path| is UTF8 encoded by itself, and this is taken into account
+  // The `url_path` has already been decoded.
+  // The `url_path` is UTF8 encoded by itself, and this is taken into account
   // when match the static files.
-  // If the view asks for data streaming, |stream| will be set to true.
+  // If the view asks for data streaming, `stream` will be set to true.
   bool MatchViewOrStatic(const std::string& method, const std::string& url_path,
                          bool* stream);
 
@@ -132,8 +132,7 @@ private:
   // The size of the buffer for reading request.
   std::size_t buffer_size_ = kBufferSize;
 
-  // The size of the chunk loaded into memory each time when serving a
-  // static file.
+  // The size of the chunk for serving static files.
   std::size_t file_chunk_size_ = 1024;
 
   // Is the server running?

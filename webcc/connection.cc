@@ -9,6 +9,7 @@
 #include "webcc/utility.h"
 
 using boost::asio::ip::tcp;
+using namespace std::placeholders;
 
 namespace webcc {
 
@@ -78,7 +79,7 @@ void Connection::SendResponse(ResponsePtr response, bool no_keep_alive) {
 void Connection::SendResponse(int status, bool no_keep_alive) {
   auto response = std::make_shared<Response>(status);
 
-  // According to the testing based on HTTPie (and Chrome), the `Content-Length`
+  // According to the testing based on HTTPie (and Chrome), the Content-Length
   // header is expected for a response with status like 404 even when the body
   // is empty.
   response->SetBody(std::make_shared<Body>(), true);
@@ -91,10 +92,9 @@ void Connection::AsyncRead() {
   LOG_USER("[%u] AsyncRead()", (unsigned int)this);
 #endif
 
-  socket_.async_read_some(boost::asio::buffer(buffer_),
-                          std::bind(&Connection::OnRead, shared_from_this(),
-                                    std::placeholders::_1,
-                                    std::placeholders::_2));
+  socket_.async_read_some(
+      boost::asio::buffer(buffer_),
+      std::bind(&Connection::OnRead, shared_from_this(), _1, _2));
 }
 
 void Connection::OnRead(boost::system::error_code ec, std::size_t length) {
@@ -124,7 +124,7 @@ void Connection::OnRead(boost::system::error_code ec, std::size_t length) {
 
   if (!request_parser_.Parse(buffer_.data(), length)) {
     LOG_ERRO("Failed to parse request");
-    // Send Bad Request (400) to the client and no Keep-Alive.
+    // Send Bad Request (400) to the client and no keep-alive.
     SendResponse(status_codes::kBadRequest, true);
     // Close the socket connection.
     pool_->Close(shared_from_this());
@@ -151,11 +151,9 @@ void Connection::AsyncWrite() {
 
   LOG_VERB("Response:\n%s", response_->Dump().c_str());
 
-  // Firstly, write the headers.
-  boost::asio::async_write(socket_, response_->GetPayload(),
-                           std::bind(&Connection::OnWriteHeaders,
-                                     shared_from_this(), std::placeholders::_1,
-                                     std::placeholders::_2));
+  boost::asio::async_write(
+      socket_, response_->GetPayload(),
+      std::bind(&Connection::OnWriteHeaders, shared_from_this(), _1, _2));
 }
 
 void Connection::OnWriteHeaders(boost::system::error_code ec,
@@ -177,11 +175,9 @@ void Connection::AsyncWriteBody() {
   auto payload = response_->body()->NextPayload();
 
   if (!payload.empty()) {
-    boost::asio::async_write(socket_, payload,
-                             std::bind(&Connection::OnWriteBody,
-                                       shared_from_this(),
-                                       std::placeholders::_1,
-                                       std::placeholders::_2));
+    boost::asio::async_write(
+        socket_, payload,
+        std::bind(&Connection::OnWriteBody, shared_from_this(), _1, _2));
   } else {
     // No more body payload left, we're done.
     HandleWriteOK();

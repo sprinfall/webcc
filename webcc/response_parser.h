@@ -35,8 +35,8 @@ private:
   // The result response message.
   Response* response_ = nullptr;
 
-  // The response for HEAD request could also have `Content-Length` header,
-  // set this flag to ignore it.
+  // The response for HEAD request could also have a Content-Length header.
+  // Set this flag to ignore it.
   bool ignore_body_ = false;
 };
 

@@ -22,7 +22,7 @@ public:
   // Return true if you want the request data of the given method to be streamed
   // to a temp file. Data streaming is useful for receiving large data, e.g.,
   // a JPEG image, posted from the client.
-  virtual bool Stream(const std::string& /*method*/) {
+  virtual bool Stream(const std::string& method) {
     return false;  // No streaming by default
   }
 };

@@ -48,13 +48,11 @@ public:
   void Close();
 
   // Send a response to the client.
-  // `Connection` header will be set to "Close" if |no_keep_alive| is true no
-  // matter whether the client asked for Keep-Alive or not.
+  // The Connection header will be set to "Close" if `no_keep_alive` is true no
+  // matter whether the client asked for keep-alive or not.
   void SendResponse(ResponsePtr response, bool no_keep_alive = false);
 
   // Send a response with the given status and an empty body to the client.
-  // `Connection` header will be set to "Close" if |no_keep_alive| is true no
-  // matter whether the client asked for Keep-Alive or not.
   void SendResponse(int status, bool no_keep_alive = false);
 
 private:

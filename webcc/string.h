@@ -23,7 +23,7 @@ bool ToSizeT(const std::string& str, int base, std::size_t* size);
 void Trim(string_view& sv, const char* spaces = " ");
 
 // Split string without copy.
-// |compress_token| is the same as boost::token_compress_on for boost::split.
+// `compress_token` is the same as boost::token_compress_on for boost::split.
 void Split(string_view input, char delim, bool compress_token,
            std::vector<string_view>* output);
 

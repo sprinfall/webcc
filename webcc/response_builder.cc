@@ -33,8 +33,8 @@ ResponsePtr ResponseBuilder::operator()() {
     }
 #endif  // WEBCC_ENABLE_GZIP
   } else {
-    // Ensure the existing of `Content-Length` header if the body is empty.
-    // `Content-Length: 0` is required by most HTTP clients (e.g., Chrome).
+    // Ensure that the Content-Length header exists if the body is empty.
+    // "Content-Length: 0" is required by most HTTP clients (e.g., Chrome).
     body_ = std::make_shared<webcc::Body>();
   }
 

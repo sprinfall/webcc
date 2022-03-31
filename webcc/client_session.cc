@@ -266,7 +266,7 @@ void ClientSession::CreateSslContext() {
 #else
     // Use the default paths for finding CA certificates.
     ssl_context_->set_default_verify_paths();
-#endif  // defined(_WIN32) || defined(_WIN64)
+#endif
 }
 
 #endif  // WEBCC_ENABLE_SSL
