@@ -11,8 +11,8 @@ TEST(FormBodyTest, Payload) {
 
   form_body.InitPayload();
 
-  auto payload = form_body.NextPayload();
-  EXPECT_TRUE(!payload.empty());
+  webcc::Payload payload = form_body.NextPayload();
+  EXPECT_FALSE(payload.empty());
 
   payload = form_body.NextPayload();
   EXPECT_TRUE(payload.empty());

@@ -24,16 +24,16 @@ TEST(RouterTest, URL_RegexBasic) {
 
   webcc::ViewPtr view = router.FindView("GET", url, &args);
 
-  EXPECT_TRUE(!!view);
+  ASSERT_NE(view, nullptr);
 
-  EXPECT_EQ(1, args.size());
-  EXPECT_EQ("12345", args[0]);
+  EXPECT_EQ(args.size(), 1);
+  EXPECT_EQ(args[0], "12345");
 
   url = "/instance/abcde";
   args.clear();
   view = router.FindView("GET", url, &args);
 
-  EXPECT_TRUE(!view);
+  EXPECT_EQ(view, nullptr);
 }
 
 TEST(RouterTest, URL_RegexMultiple) {
@@ -47,18 +47,18 @@ TEST(RouterTest, URL_RegexMultiple) {
 
   webcc::ViewPtr view = router.FindView("GET", url, &args);
 
-  EXPECT_TRUE(!!view);
+  ASSERT_NE(view, nullptr);
 
-  EXPECT_EQ(3, args.size());
-  EXPECT_EQ("1", args[0]);
-  EXPECT_EQ("2", args[1]);
-  EXPECT_EQ("3", args[2]);
+  EXPECT_EQ(args.size(), 3);
+  EXPECT_EQ(args[0], "1");
+  EXPECT_EQ(args[1], "2");
+  EXPECT_EQ(args[2], "3");
 
   url = "/study/a/series/b/instance/c";
   args.clear();
   view = router.FindView("GET", url, &args);
 
-  EXPECT_TRUE(!view);
+  EXPECT_EQ(view, nullptr);
 }
 
 TEST(RouterTest, URL_NonRegex) {
@@ -71,6 +71,6 @@ TEST(RouterTest, URL_NonRegex) {
 
   webcc::ViewPtr view = router.FindView("GET", url, &args);
 
-  EXPECT_TRUE(!!view);
+  ASSERT_NE(view, nullptr);
   EXPECT_TRUE(args.empty());
 }

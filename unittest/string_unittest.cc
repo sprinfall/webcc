@@ -13,45 +13,45 @@ TEST(StringTest, RandomAsciiString) {
 
   std::string str1 = webcc::RandomAsciiString(20);
   std::string str2 = webcc::RandomAsciiString(20);
-  EXPECT_TRUE(str1 != str2);
+  EXPECT_NE(str1, str2);
 }
 
 TEST(StringTest, Trim) {
   std::string str = "   trim me  ";
   webcc::string_view sv = str;
   webcc::Trim(sv);
-  EXPECT_EQ("trim me", sv);
+  EXPECT_EQ(sv, "trim me");
 }
 
 TEST(StringTest, Trim_Left) {
   std::string str = "   trim me";
   webcc::string_view sv = str;
   webcc::Trim(sv);
-  EXPECT_EQ("trim me", sv);
+  EXPECT_EQ(sv, "trim me");
 }
 
 TEST(StringTest, Trim_Right) {
   std::string str = "trim me  ";
   webcc::string_view sv = str;
   webcc::Trim(sv);
-  EXPECT_EQ("trim me", sv);
+  EXPECT_EQ(sv, "trim me");
 }
 
 TEST(StringTest, Trim_Empty) {
   std::string str = "";
   webcc::string_view sv = str;
   webcc::Trim(sv);
-  EXPECT_EQ("", sv);
+  EXPECT_EQ(sv, "");
 }
 
 TEST(StringTest, Split) {
   std::vector<webcc::string_view> parts;
   webcc::Split("GET /path/to HTTP/1.1", ' ', false, &parts);
 
-  EXPECT_EQ(3, parts.size());
-  EXPECT_EQ("GET", parts[0]);
-  EXPECT_EQ("/path/to", parts[1]);
-  EXPECT_EQ("HTTP/1.1", parts[2]);
+  ASSERT_EQ(parts.size(), 3);
+  EXPECT_EQ(parts[0], "GET");
+  EXPECT_EQ(parts[1], "/path/to");
+  EXPECT_EQ(parts[2], "HTTP/1.1");
 }
 
 TEST(StringTest, Split_TokenCompressOff) {
@@ -63,13 +63,13 @@ TEST(StringTest, Split_TokenCompressOff) {
   //                boost::token_compress_off);
   webcc::Split(str, ',', false, &parts);
 
-  EXPECT_EQ(6, parts.size());
-  EXPECT_EQ("one", parts[0]);
-  EXPECT_EQ("two", parts[1]);
-  EXPECT_EQ("", parts[2]);
-  EXPECT_EQ("three", parts[3]);
-  EXPECT_EQ("", parts[4]);
-  EXPECT_EQ("", parts[5]);
+  ASSERT_EQ(parts.size(), 6);
+  EXPECT_EQ(parts[0], "one");
+  EXPECT_EQ(parts[1], "two");
+  EXPECT_EQ(parts[2], "");
+  EXPECT_EQ(parts[3], "three");
+  EXPECT_EQ(parts[4], "");
+  EXPECT_EQ(parts[5], "");
 }
 
 TEST(StringTest, Split_TokenCompressOn) {
@@ -81,11 +81,11 @@ TEST(StringTest, Split_TokenCompressOn) {
   //                boost::token_compress_on);
   webcc::Split(str, ',', true, &parts);
 
-  EXPECT_EQ(4, parts.size());
-  EXPECT_EQ("one", parts[0]);
-  EXPECT_EQ("two", parts[1]);
-  EXPECT_EQ("three", parts[2]);
-  EXPECT_EQ("", parts[3]);
+  ASSERT_EQ(parts.size(), 4);
+  EXPECT_EQ(parts[0], "one");
+  EXPECT_EQ(parts[1], "two");
+  EXPECT_EQ(parts[2], "three");
+  EXPECT_EQ(parts[3], "");
 }
 
 TEST(StringTest, Split_TokensOnly) {
@@ -94,28 +94,28 @@ TEST(StringTest, Split_TokensOnly) {
 
   // Token compress on
   webcc::Split(str, ',', true, &parts);
-  EXPECT_EQ(2, parts.size());
-  EXPECT_EQ("", parts[0]);
-  EXPECT_EQ("", parts[1]);
+  ASSERT_EQ(parts.size(), 2);
+  EXPECT_EQ(parts[0], "");
+  EXPECT_EQ(parts[1], "");
   
   parts.clear();
 
   // Token compress off
   webcc::Split(str, ',', false, &parts);
-  EXPECT_EQ(6, parts.size());
-  EXPECT_EQ("", parts[0]);
-  EXPECT_EQ("", parts[1]);
-  EXPECT_EQ("", parts[5]);
+  ASSERT_EQ(parts.size(), 6);
+  EXPECT_EQ(parts[0], "");
+  EXPECT_EQ(parts[1], "");
+  EXPECT_EQ(parts[5], "");
 }
 
 TEST(StringTest, Split_NewLine) {
   std::vector<webcc::string_view> lines;
   webcc::Split("line one\nline two\nline 3", '\n', false, &lines);
 
-  EXPECT_EQ(3, lines.size());
-  EXPECT_EQ("line one", lines[0]);
-  EXPECT_EQ("line two", lines[1]);
-  EXPECT_EQ("line 3", lines[2]);
+  ASSERT_EQ(lines.size(), 3);
+  EXPECT_EQ(lines[0], "line one");
+  EXPECT_EQ(lines[1], "line two");
+  EXPECT_EQ(lines[2], "line 3");
 }
 
 TEST(StringTest, SplitKV) {
@@ -125,9 +125,9 @@ TEST(StringTest, SplitKV) {
   webcc::string_view value;
   bool ok = webcc::SplitKV(str, '=', true, &key, &value);
 
-  EXPECT_EQ(true, ok);
-  EXPECT_EQ("key", key);
-  EXPECT_EQ("value", value);
+  EXPECT_TRUE(ok);
+  EXPECT_EQ(key, "key");
+  EXPECT_EQ(value, "value");
 }
 
 TEST(StringTest, SplitKV_OtherDelim) {
@@ -138,9 +138,8 @@ TEST(StringTest, SplitKV_OtherDelim) {
   bool ok = webcc::SplitKV(str, ':', true, &key, &value);
 
   EXPECT_TRUE(ok);
-
-  EXPECT_EQ("key", key);
-  EXPECT_EQ("value", value);
+  EXPECT_EQ(key, "key");
+  EXPECT_EQ(value, "value");
 }
 
 TEST(StringTest, SplitKV_Spaces) {
@@ -151,9 +150,8 @@ TEST(StringTest, SplitKV_Spaces) {
   bool ok = webcc::SplitKV(str, '=', true, &key, &value);
 
   EXPECT_TRUE(ok);
-
-  EXPECT_EQ("key", key);
-  EXPECT_EQ("value", value);
+  EXPECT_EQ(key, "key");
+  EXPECT_EQ(value, "value");
 }
 
 TEST(StringTest, SplitKV_SpacesNoTrim) {
@@ -164,9 +162,8 @@ TEST(StringTest, SplitKV_SpacesNoTrim) {
   bool ok = webcc::SplitKV(str, '=', false, &key, &value);
 
   EXPECT_TRUE(ok);
-
-  EXPECT_EQ(" key ", key);
-  EXPECT_EQ("  value ", value);
+  EXPECT_EQ(key, " key ");
+  EXPECT_EQ(value, "  value ");
 }
 
 TEST(StringTest, SplitKV_NoKey) {
@@ -177,9 +174,8 @@ TEST(StringTest, SplitKV_NoKey) {
   bool ok = webcc::SplitKV(str, '=', true, &key, &value);
 
   EXPECT_TRUE(ok);
-
-  EXPECT_EQ("", key);
-  EXPECT_EQ("value", value);
+  EXPECT_EQ(key, "");
+  EXPECT_EQ(value, "value");
 }
 
 TEST(StringTest, SplitKV_NoValue) {
@@ -190,9 +186,8 @@ TEST(StringTest, SplitKV_NoValue) {
   bool ok = webcc::SplitKV(str, '=', true, &key, &value);
 
   EXPECT_TRUE(ok);
-
-  EXPECT_EQ("key", key);
-  EXPECT_EQ("", value);
+  EXPECT_EQ(key, "key");
+  EXPECT_EQ(value, "");
 }
 
 TEST(StringTest, SplitKV_NoKeyNoValue) {
@@ -203,7 +198,6 @@ TEST(StringTest, SplitKV_NoKeyNoValue) {
   bool ok = webcc::SplitKV(str, '=', true, &key, &value);
 
   EXPECT_TRUE(ok);
-
-  EXPECT_EQ("", key);
-  EXPECT_EQ("", value);
+  EXPECT_EQ(key, "");
+  EXPECT_EQ(value, "");
 }

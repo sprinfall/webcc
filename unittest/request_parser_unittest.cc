@@ -25,13 +25,13 @@ protected:
   }
 
   void CheckResult(const webcc::Request& request) {
-    EXPECT_EQ("GET", request.method());
-    EXPECT_EQ("httpbin.org", request.GetHeader("Host"));
-    EXPECT_EQ("application/json", request.GetHeader("Accept"));
-    EXPECT_EQ("Close", request.GetHeader("Connection"));
+    EXPECT_EQ(request.method(), "GET");
+    EXPECT_EQ(request.GetHeader("Host"), "httpbin.org");
+    EXPECT_EQ(request.GetHeader("Accept"), "application/json");
+    EXPECT_EQ(request.GetHeader("Connection"), "Close");
 
-    EXPECT_EQ("", request.data());
-    EXPECT_EQ(webcc::kInvalidLength, request.content_length());
+    EXPECT_EQ(request.data(), "");
+    EXPECT_EQ(request.content_length(), webcc::kInvalidLength);
   }
 
   std::string payload_;
@@ -45,7 +45,7 @@ TEST_F(GetRequestParserTest, ParseOnce) {
 
   bool ok = parser_.Parse(payload_.data(), payload_.size());
 
-  EXPECT_TRUE(ok);
+  ASSERT_TRUE(ok);
   EXPECT_TRUE(parser_.finished());
 
   CheckResult(request);
@@ -58,7 +58,7 @@ TEST_F(GetRequestParserTest, ParseByteWise) {
 
   for (std::size_t i = 0; i < payload_.size(); ++i) {
     bool ok = parser_.Parse(payload_.data() + i, 1);
-    EXPECT_TRUE(ok);
+    ASSERT_TRUE(ok);
   }
 
   EXPECT_TRUE(parser_.finished());
@@ -76,7 +76,7 @@ TEST_F(GetRequestParserTest, ParseLineWise) {
 
     if (j != std::string::npos) {
       bool ok = parser_.Parse(payload_.data() + i, j - i + 1);
-      EXPECT_TRUE(ok);
+      ASSERT_TRUE(ok);
     } else {
       break;
     }
@@ -98,7 +98,7 @@ TEST_F(GetRequestParserTest, ParseTwoRounds) {
 
   bool ok = parser_.Parse(payload_.data(), payload_.size());
 
-  EXPECT_TRUE(ok);
+  ASSERT_TRUE(ok);
   EXPECT_TRUE(parser_.finished());
 
   CheckResult(request1);
@@ -110,7 +110,7 @@ TEST_F(GetRequestParserTest, ParseTwoRounds) {
 
   ok = parser_.Parse(payload_.data(), payload_.size());
 
-  EXPECT_TRUE(ok);
+  ASSERT_TRUE(ok);
   EXPECT_TRUE(parser_.finished());
 
   CheckResult(request2);
@@ -142,17 +142,17 @@ protected:
   }
 
   void CheckResult(const webcc::Request& request) {
-    EXPECT_EQ("POST", request.method());
-    EXPECT_EQ("api.github.com", request.GetHeader("Host"));
-    EXPECT_EQ("application/json", request.GetHeader("Accept"));
-    EXPECT_EQ("Close", request.GetHeader("Connection"));
-    EXPECT_EQ("application/json; charset=utf-8",
-              request.GetHeader("Content-Type"));
-    EXPECT_EQ(std::to_string(data_.size()),
-              request.GetHeader("Content-Length"));
+    EXPECT_EQ(request.method(), "POST");
+    EXPECT_EQ(request.GetHeader("Host"), "api.github.com");
+    EXPECT_EQ(request.GetHeader("Accept"), "application/json");
+    EXPECT_EQ(request.GetHeader("Connection"), "Close");
+    EXPECT_EQ(request.GetHeader("Content-Type"),
+              "application/json; charset=utf-8");
+    EXPECT_EQ(request.GetHeader("Content-Length"),
+              std::to_string(data_.size()));
 
-    EXPECT_EQ(data_, request.data());
-    EXPECT_EQ(data_.size(), request.content_length());
+    EXPECT_EQ(request.data(), data_);
+    EXPECT_EQ(request.content_length(), data_.size());
   }
 
   std::string payload_;
@@ -166,7 +166,7 @@ TEST_F(PostRequestParserTest, ParseOnce) {
 
   bool ok = parser_.Parse(payload_.data(), payload_.size());
 
-  EXPECT_TRUE(ok);
+  ASSERT_TRUE(ok);
   EXPECT_TRUE(parser_.finished());
 
   CheckResult(request);
@@ -178,7 +178,7 @@ TEST_F(PostRequestParserTest, ParseByteWise) {
 
   for (std::size_t i = 0; i < payload_.size(); ++i) {
     bool ok = parser_.Parse(payload_.data() + i, 1);
-    EXPECT_TRUE(ok);
+    ASSERT_TRUE(ok);
   }
 
   EXPECT_TRUE(parser_.finished());
@@ -192,11 +192,9 @@ TEST_F(PostRequestParserTest, ParseTwoRounds) {
   webcc::Request request1;
   parser_.Init(&request1, ViewMatcher);
 
-  for (std::size_t i = 0; i < payload_.size(); ++i) {
-    bool ok = parser_.Parse(payload_.data() + i, 1);
-    EXPECT_TRUE(ok);
-  }
+  bool ok = parser_.Parse(payload_.data(), payload_.size());
 
+  ASSERT_TRUE(ok);
   EXPECT_TRUE(parser_.finished());
 
   CheckResult(request1);
@@ -206,11 +204,9 @@ TEST_F(PostRequestParserTest, ParseTwoRounds) {
   webcc::Request request2;
   parser_.Init(&request2, ViewMatcher);
 
-  for (std::size_t i = 0; i < payload_.size(); ++i) {
-    bool ok = parser_.Parse(payload_.data() + i, 1);
-    EXPECT_TRUE(ok);
-  }
+  ok = parser_.Parse(payload_.data(), payload_.size());
 
+  ASSERT_TRUE(ok);
   EXPECT_TRUE(parser_.finished());
 
   CheckResult(request2);
@@ -268,12 +264,11 @@ protected:
   }
 
   void CheckResult(const webcc::Request& request) {
-    EXPECT_EQ("POST", request.method());
-    EXPECT_EQ("localhost:8080", request.GetHeader("Host"));
-    EXPECT_EQ("*/*", request.GetHeader("Accept"));
-    EXPECT_EQ("Keep-Alive", request.GetHeader("Connection"));
-
-    EXPECT_EQ(2, request.form_parts().size());
+    EXPECT_EQ(request.method(), "POST");
+    EXPECT_EQ(request.GetHeader("Host"), "localhost:8080");
+    EXPECT_EQ(request.GetHeader("Accept"), "*/*");
+    EXPECT_EQ(request.GetHeader("Connection"), "Keep-Alive");
+    EXPECT_EQ(request.form_parts().size(), 2);
   }
 
   std::string payload_;
@@ -287,7 +282,7 @@ TEST_F(MultipartRequestParserTest, ParseOnce) {
 
   bool ok = parser_.Parse(payload_.data(), payload_.size());
 
-  EXPECT_TRUE(ok);
+  ASSERT_TRUE(ok);
   EXPECT_TRUE(parser_.finished());
 
   CheckResult(request);
@@ -299,7 +294,7 @@ TEST_F(MultipartRequestParserTest, ParseByteWise) {
 
   for (std::size_t i = 0; i < payload_.size(); ++i) {
     bool ok = parser_.Parse(payload_.data() + i, 1);
-    EXPECT_TRUE(ok);
+    ASSERT_TRUE(ok);
   }
 
   EXPECT_TRUE(parser_.finished());
@@ -315,7 +310,7 @@ TEST_F(MultipartRequestParserTest, ParseTwoRounds) {
 
   bool ok = parser_.Parse(payload_.data(), payload_.size());
 
-  EXPECT_TRUE(ok);
+  ASSERT_TRUE(ok);
   EXPECT_TRUE(parser_.finished());
 
   CheckResult(request1);

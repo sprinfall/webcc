@@ -9,9 +9,9 @@ TEST(ResponseBuilderTest, EmptyBody) {
   auto response = ResponseBuilder{}.OK()();
 
   bool existed = false;
-  const auto& value = response->GetHeader(headers::kContentLength, &existed);
+  const std::string& value =
+      response->GetHeader(headers::kContentLength, &existed);
 
   EXPECT_TRUE(existed);
-
-  EXPECT_EQ("0", value);
+  EXPECT_EQ(value, "0");
 }
