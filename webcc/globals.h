@@ -176,7 +176,7 @@ public:
   };
 
 public:
-  explicit Error(Code code = kOK, string_view message = "")
+  explicit Error(Code code = kOK, std::string_view message = "")
       : code_(code), message_(message) {
   }
 
@@ -193,9 +193,9 @@ public:
     return message_;
   }
 
-  void Set(Code code, string_view message) {
+  void Set(Code code, std::string_view message) {
     code_ = code;
-    message_ = ToString(message);
+    message_ = message;
   }
 
   bool timeout() const {

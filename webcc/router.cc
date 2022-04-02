@@ -8,25 +8,25 @@
 
 namespace webcc {
 
-bool Router::Route(string_view url, ViewPtr view,
-                   const std::vector<std::string>& methods) {
+bool Router::Route(std::string_view url, ViewPtr view,
+                   std::vector<std::string>&& methods) {
   assert(view);
 
-  // TODO: More error check
-
-  routes_.push_back({ ToString(url), {}, view, methods });
+  routes_.emplace_back(url, view,
+                       std::forward<std::vector<std::string>>(methods));
 
   return true;
 }
 
 bool Router::Route(const UrlRegex& regex_url, ViewPtr view,
-                   const std::vector<std::string>& methods) {
+                   std::vector<std::string>&& methods) {
   assert(view);
 
   // TODO: More error check
 
   try {
-    routes_.push_back({ "", regex_url(), view, methods });
+    routes_.emplace_back(regex_url(), view,
+                         std::forward<std::vector<std::string>>(methods));
 
   } catch (const std::regex_error& e) {
     LOG_ERRO("Not a valid regular expression: %s", e.what());

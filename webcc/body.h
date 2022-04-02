@@ -57,7 +57,7 @@ public:
   }
 
   // Dump to output stream for logging purpose.
-  virtual void Dump(std::ostream& os, const std::string& prefix) const {
+  virtual void Dump(std::ostream& os, std::string_view prefix) const {
   }
 };
 
@@ -74,6 +74,8 @@ public:
   StringBody(std::string&& data, bool compressed)
       : data_(std::move(data)), compressed_(compressed) {
   }
+
+  ~StringBody() override = default;
 
   std::size_t GetSize() const override {
     return data_.size();
@@ -99,7 +101,7 @@ public:
 
   Payload NextPayload(bool free_previous = false) override;
 
-  void Dump(std::ostream& os, const std::string& prefix) const override;
+  void Dump(std::ostream& os, std::string_view prefix) const override;
 
 private:
   std::string data_;
@@ -118,6 +120,8 @@ class FormBody : public Body {
 public:
   FormBody(const std::vector<FormPartPtr>& parts, const std::string& boundary);
 
+  ~FormBody() override = default;
+
   std::size_t GetSize() const override;
 
   const std::vector<FormPartPtr>& parts() const {
@@ -128,7 +132,7 @@ public:
 
   Payload NextPayload(bool free_previous = false) override;
 
-  void Dump(std::ostream& os, const std::string& prefix) const override;
+  void Dump(std::ostream& os, std::string_view prefix) const override;
 
 private:
   void AddBoundary(Payload* payload);
@@ -168,7 +172,7 @@ public:
 
   Payload NextPayload(bool free_previous = false) override;
 
-  void Dump(std::ostream& os, const std::string& prefix) const override;
+  void Dump(std::ostream& os, std::string_view prefix) const override;
 
   const sfs::path& path() const {
     return path_;

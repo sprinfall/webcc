@@ -59,8 +59,8 @@ bool ReadFile(const sfs::path& path, std::string* output) {
   return true;
 }
 
-void DumpByLine(const std::string& data, std::ostream& os, string_view prefix) {
-  std::vector<string_view> lines;
+void DumpByLine(const std::string& data, std::ostream& os, std::string_view prefix) {
+  std::vector<std::string_view> lines;
   Split(data, '\n', false, &lines);
 
   std::size_t size = 0;

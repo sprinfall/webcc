@@ -1,8 +1,6 @@
 #include "webcc/response_builder.h"
 
-#include "webcc/base64.h"
 #include "webcc/logger.h"
-#include "webcc/utility.h"
 
 #if WEBCC_ENABLE_GZIP
 #include "webcc/gzip.h"
@@ -52,18 +50,6 @@ ResponseBuilder& ResponseBuilder::File(const sfs::path& path,
     media_type_ = media_types::FromExtension(path.extension().string());
   }
 
-  return *this;
-}
-
-ResponseBuilder& ResponseBuilder::Header(string_view key, string_view value) {
-  headers_.push_back(ToString(key));
-  headers_.push_back(ToString(value));
-  return *this;
-}
-
-ResponseBuilder& ResponseBuilder::Date() {
-  headers_.push_back(headers::kDate);
-  headers_.push_back(utility::HttpDate());
   return *this;
 }
 

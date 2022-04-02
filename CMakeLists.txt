@@ -31,8 +31,6 @@ set(WEBCC_ENABLE_GZIP 0 CACHE STRING "Enable gzip compression (need Zlib)? (1:Ye
 
 set(WEBCC_LOG_LEVEL 2 CACHE STRING "Log level (0:VERB, 1:INFO, 2:USER, 3:WARN or 4:ERRO)")
 
-set(WEBCC_USE_STD_STRING_VIEW 1 CACHE STRING "Use std::string_view? (1:Yes, 0:No)")
-
 if(BUILD_UNITTEST)
     enable_testing()
 endif()
@@ -44,13 +42,7 @@ if(WIN32)
 endif()
 
 # C++ standard requirements.
-
-if(WEBCC_USE_STD_STRING_VIEW)
-    set(CMAKE_CXX_STANDARD 17)
-else()
-    set(CMAKE_CXX_STANDARD 11)
-endif()
-
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 

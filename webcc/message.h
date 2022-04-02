@@ -25,23 +25,23 @@ public:
     return start_line_;
   }
 
-  void set_start_line(string_view start_line) {
-    start_line_ = ToString(start_line);
+  void set_start_line(std::string_view start_line) {
+    start_line_ = start_line;
   }
 
   void SetHeader(Header&& header) {
     headers_.Set(std::move(header.first), std::move(header.second));
   }
 
-  void SetHeader(string_view key, string_view value) {
+  void SetHeader(std::string_view key, std::string_view value) {
     headers_.Set(key, value);
   }
 
-  const std::string& GetHeader(string_view key, bool* existed = nullptr) const {
+  const std::string& GetHeader(std::string_view key, bool* existed = nullptr) const {
     return headers_.Get(key, existed);
   }
 
-  bool HasHeader(string_view key) const {
+  bool HasHeader(std::string_view key) const {
     return headers_.Has(key);
   }
 
@@ -79,13 +79,13 @@ public:
 
   // Set the Content-Type header.
   // E.g. SetContentType("application/json; charset=utf-8")
-  void SetContentType(string_view content_type) {
+  void SetContentType(std::string_view content_type) {
     SetHeader(headers::kContentType, content_type);
   }
 
   // Set the Content-Type header.
   // E.g., SetContentType("application/json", "utf-8")
-  void SetContentType(string_view media_type, string_view charset);
+  void SetContentType(std::string_view media_type, std::string_view charset);
 
   // Make the message complete in order to be sent.
   virtual void Prepare() = 0;

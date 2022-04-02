@@ -3,27 +3,17 @@
 #include "webcc/base64.h"
 
 TEST(Base64Test, Encode) {
-  std::string encoded;
+  using webcc::base64::Encode;
 
-  encoded = webcc::Base64Encode("ban");
-  EXPECT_EQ(encoded, "YmFu");
-
-  encoded = webcc::Base64Encode("bana");
-  EXPECT_EQ(encoded, "YmFuYQ==");
-
-  encoded = webcc::Base64Encode("banan");
-  EXPECT_EQ(encoded, "YmFuYW4=");
+  EXPECT_EQ(Encode("ban"), "YmFu");
+  EXPECT_EQ(Encode("bana"), "YmFuYQ==");
+  EXPECT_EQ(Encode("banan"), "YmFuYW4=");
 }
 
 TEST(Base64Test, Decode) {
-  std::string decoded;
+  using webcc::base64::Decode;
 
-  decoded = webcc::Base64Decode("YmFu");
-  EXPECT_EQ(decoded, "ban");
-
-  decoded = webcc::Base64Decode("YmFuYQ==");
-  EXPECT_EQ(decoded, "bana");
-
-  decoded = webcc::Base64Decode("YmFuYW4=");
-  EXPECT_EQ(decoded, "banan");
+  EXPECT_EQ(Decode("YmFu"), "ban");
+  EXPECT_EQ(Decode("YmFuYQ=="), "bana");
+  EXPECT_EQ(Decode("YmFuYW4="), "banan");
 }

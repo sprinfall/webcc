@@ -89,10 +89,10 @@ void ClientBase::CloseSocket() {
   }
 }
 
-void ClientBase::AsyncResolve(string_view default_port) {
+void ClientBase::AsyncResolve(std::string_view default_port) {
   std::string port = request_->port();
   if (port.empty()) {
-    port = ToString(default_port);
+    port = default_port;
   }
 
   LOG_VERB("Resolve host (%s)", request_->host().c_str());

@@ -4,8 +4,10 @@
 #include <string>
 #include <vector>
 
+#include "webcc/base64.h"
 #include "webcc/request.h"
 #include "webcc/response.h"
+#include "webcc/utility.h"
 
 namespace webcc {
 
@@ -60,13 +62,13 @@ public:
     return *this;
   }
 
-  ResponseBuilder& MediaType(string_view media_type) {
-    media_type_ = ToString(media_type);
+  ResponseBuilder& MediaType(std::string_view media_type) {
+    media_type_ = media_type;
     return *this;
   }
 
-  ResponseBuilder& Charset(string_view charset) {
-    charset_ = ToString(charset);
+  ResponseBuilder& Charset(std::string_view charset) {
+    charset_ = charset;
     return *this;
   }
 
@@ -97,10 +99,18 @@ public:
   ResponseBuilder& File(const sfs::path& path, bool infer_media_type = true,
                         std::size_t chunk_size = 1024);
 
-  ResponseBuilder& Header(string_view key, string_view value);
+  ResponseBuilder& Header(std::string_view key, std::string_view value) {
+    headers_.emplace_back(key);
+    headers_.emplace_back(value);
+    return *this;
+  }
 
   // Add the Date header to the response.
-  ResponseBuilder& Date();
+  ResponseBuilder& Date() {
+    headers_.emplace_back(headers::kDate);
+    headers_.emplace_back(utility::HttpDate());
+    return *this;
+  }
 
 #if WEBCC_ENABLE_GZIP
   ResponseBuilder& Gzip(bool gzip = true) {

@@ -17,21 +17,21 @@ namespace webcc {
 class Url {
 public:
   // Encode URL different components.
-  static std::string EncodeHost(string_view utf8_str);
-  static std::string EncodePath(string_view utf8_str);
-  static std::string EncodeQuery(string_view utf8_str);
-  static std::string EncodeFull(string_view utf8_str);
+  static std::string EncodeHost(std::string_view utf8_str);
+  static std::string EncodePath(std::string_view utf8_str);
+  static std::string EncodeQuery(std::string_view utf8_str);
+  static std::string EncodeFull(std::string_view utf8_str);
 
-  static bool Decode(string_view encoded, std::string* raw);
+  static bool Decode(std::string_view encoded, std::string* raw);
 
   // Unsafe decode.
   // Return the original string on failure.
-  static std::string DecodeUnsafe(string_view encoded);
+  static std::string DecodeUnsafe(std::string_view encoded);
 
 public:
   Url() = default;
 
-  explicit Url(string_view str, bool encode = false);
+  explicit Url(std::string_view str, bool encode = false);
 
   const std::string& scheme() const {
     return scheme_;
@@ -53,18 +53,20 @@ public:
     return query_;
   }
 
-  void set_port(string_view port) {
-    port_ = ToString(port);
+  void set_port(std::string_view port) {
+    port_ = port;
   }
 
   // Append a piece of path.
-  void AppendPath(string_view piece, bool encode = false);
+  void AppendPath(std::string_view piece, bool encode = false);
 
   // Append a query parameter.
-  void AppendQuery(string_view key, string_view value, bool encode = false);
+  // NOTE: Don't use std::string_view!
+  void AppendQuery(const std::string& key, const std::string& value,
+                   bool encode = false);
 
 private:
-  void Parse(string_view str);
+  void Parse(std::string_view str);
 
   void Clear();
 
@@ -130,7 +132,7 @@ private:
 // Used by Server::Route().
 class UrlRegex {
 public:
-  explicit UrlRegex(string_view url) : url_(url) {
+  explicit UrlRegex(std::string_view url) : url_(url) {
   }
 
   std::regex operator()() const {

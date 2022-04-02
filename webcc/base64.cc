@@ -43,7 +43,9 @@
 
 namespace webcc {
 
-namespace base64 {
+namespace base64_internal {
+
+// clang-format off
 
 // The Base 64 Alphabet.
 static const char kAlphabet[] =
@@ -159,26 +161,31 @@ SizePair Decode(const char* src, std::size_t len, void* dst) {
           in - reinterpret_cast<const unsigned char*>(src)};
 }
 
-}  // namespace base64
+// clang-format on
 
-std::string Base64Encode(const std::uint8_t* data, std::size_t length) {
+}  // namespace base64_internal
+
+namespace base64 {
+
+std::string Encode(const std::uint8_t* data, std::size_t length) {
   std::string dst;
-  dst.resize(base64::EncodedSize(length));
-  dst.resize(base64::Encode(data, length, &dst[0]));
+  dst.resize(base64_internal::EncodedSize(length));
+  dst.resize(base64_internal::Encode(data, length, &dst[0]));
   return dst;
 }
 
-std::string Base64Encode(const std::string& input) {
-  return Base64Encode(reinterpret_cast<const std::uint8_t*>(input.data()),
-                      input.size());
+std::string Encode(const std::string_view& input) {
+  return Encode(reinterpret_cast<const std::uint8_t*>(input.data()),
+                input.size());
 }
 
-std::string Base64Decode(const std::string& input) {
+std::string Decode(const std::string_view& input) {
   std::string dst;
-  dst.resize(base64::DecodedSize(input.size()));
-  auto result = base64::Decode(input.data(), input.size(), &dst[0]);
+  dst.resize(base64_internal::DecodedSize(input.size()));
+  auto result = base64_internal::Decode(input.data(), input.size(), &dst[0]);
   dst.resize(result.first);
   return dst;
 }
 
+}  // namespace base64
 }  // namespace webcc

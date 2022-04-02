@@ -86,7 +86,7 @@ protected:
 
   void CloseSocket();
 
-  void AsyncResolve(string_view default_port);
+  void AsyncResolve(std::string_view default_port);
 
   void OnResolve(boost::system::error_code ec,
                  boost::asio::ip::tcp::resolver::results_type endpoints);

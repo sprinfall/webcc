@@ -70,7 +70,7 @@ Payload StringBody::NextPayload(bool free_previous) {
 // NOTE:
 // - The data will be truncated if it's too large to display.
 // - Binary content will not be dumped (TODO).
-void StringBody::Dump(std::ostream& os, const std::string& prefix) const {
+void StringBody::Dump(std::ostream& os, std::string_view prefix) const {
   if (!data_.empty()) {
     utility::DumpByLine(data_, os, prefix);
   }
@@ -96,7 +96,7 @@ std::size_t FormBody::GetSize() const {
   return size;
 }
 
-void FormBody::Dump(std::ostream& os, const std::string& prefix) const {
+void FormBody::Dump(std::ostream& os, std::string_view prefix) const {
   for (auto& part : parts_) {
     os << prefix << "--" << boundary_ << std::endl;
     part->Dump(os, prefix);
@@ -206,7 +206,7 @@ Payload FileBody::NextPayload(bool free_previous) {
   return {};
 }
 
-void FileBody::Dump(std::ostream& os, const std::string& prefix) const {
+void FileBody::Dump(std::ostream& os, std::string_view prefix) const {
   os << prefix << "<file: " << path_.u8string() << ">" << std::endl;
 }
 

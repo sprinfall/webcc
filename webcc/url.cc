@@ -30,7 +30,7 @@ bool HexToDecimal(char hex, int* decimal) {
 }
 
 // Encode all characters which should be encoded.
-std::string EncodeImpl(string_view raw,  // UTF8
+std::string EncodeImpl(std::string_view raw,  // UTF8
                        std::function<bool(int)> should_encode) {
   const char kHex[] = "0123456789ABCDEF";
 
@@ -127,29 +127,29 @@ inline bool IsQueryChar(int c) {
 
 // -----------------------------------------------------------------------------
 
-std::string Url::EncodeHost(string_view utf8_str) {
+std::string Url::EncodeHost(std::string_view utf8_str) {
   return EncodeImpl(utf8_str, [](int c) -> bool { return c > 127; });
 }
 
-std::string Url::EncodePath(string_view utf8_str) {
+std::string Url::EncodePath(std::string_view utf8_str) {
   return EncodeImpl(utf8_str, [](int c) -> bool {
     return !IsPathChar(c) || c == '%' || c == '+';
   });
 }
 
-std::string Url::EncodeQuery(string_view utf8_str) {
+std::string Url::EncodeQuery(std::string_view utf8_str) {
   return EncodeImpl(utf8_str, [](int c) -> bool {
     return !IsQueryChar(c) || c == '%' || c == '+';
   });
 }
 
-std::string Url::EncodeFull(string_view utf8_str) {
+std::string Url::EncodeFull(std::string_view utf8_str) {
   return EncodeImpl(utf8_str, [](int c) -> bool {
     return !IsUnreserved(c) && !IsReserved(c);
   });
 }
 
-bool Url::Decode(string_view encoded, std::string* raw) {
+bool Url::Decode(std::string_view encoded, std::string* raw) {
   for (auto iter = encoded.begin(); iter != encoded.end(); ++iter) {
     if (*iter == '%') {
       if (++iter == encoded.end()) {
@@ -185,17 +185,17 @@ bool Url::Decode(string_view encoded, std::string* raw) {
   return true;
 }
 
-std::string Url::DecodeUnsafe(string_view encoded) {
+std::string Url::DecodeUnsafe(std::string_view encoded) {
   std::string raw;
   if (Decode(encoded, &raw)) {
     return raw;
   }
-  return ToString(encoded);
+  return std::string{ encoded };
 }
 
 // -----------------------------------------------------------------------------
 
-Url::Url(string_view str, bool encode) {
+Url::Url(std::string_view str, bool encode) {
   if (encode) {
     Parse(Url::EncodeFull(str));
   } else {
@@ -203,7 +203,7 @@ Url::Url(string_view str, bool encode) {
   }
 }
 
-void Url::AppendPath(string_view piece, bool encode) {
+void Url::AppendPath(std::string_view piece, bool encode) {
   if (piece.empty() || piece == "/") {
     return;
   }
@@ -222,57 +222,57 @@ void Url::AppendPath(string_view piece, bool encode) {
   if (encode) {
     path_.append(Url::EncodePath(piece));
   } else {
-    path_.append(ToString(piece));
+    path_.append(piece);
   }
 }
 
-void Url::AppendQuery(string_view key, string_view value, bool encode) {
+void Url::AppendQuery(const std::string& key, const std::string& value,
+                      bool encode) {
   if (!query_.empty()) {
     query_ += "&";
   }
   if (encode) {
     query_ += Url::EncodeQuery(key) + "=" + Url::EncodeQuery(value);
   } else {
-    query_ += ToString(key) + "=" + ToString(value);
+    query_ += key + "=" + value;
   }
 }
 
-void Url::Parse(string_view str) {
-  string_view tmp = str;// ToString(str);
-  //boost::trim_left(tmp);
+void Url::Parse(std::string_view str) {
+  constexpr auto npos = std::string_view::npos;
 
-  constexpr auto npos = string_view::npos;
+  Trim(str);
 
   std::size_t p = npos;
 
-  p = tmp.find("://");
+  p = str.find("://");
   if (p != std::string::npos) {
-    scheme_ = tmp.substr(0, p);
-    tmp = tmp.substr(p + 3);
+    scheme_ = str.substr(0, p);
+    str = str.substr(p + 3);
   }
 
-  p = tmp.find('/');
+  p = str.find('/');
   if (p != std::string::npos) {
-    host_ = tmp.substr(0, p);
+    host_ = str.substr(0, p);
 
-    tmp = tmp.substr(p);
+    str = str.substr(p);
 
-    p = tmp.find('?');
+    p = str.find('?');
     if (p != std::string::npos) {
-      path_ = tmp.substr(0, p);
-      query_ = tmp.substr(p + 1);
+      path_ = str.substr(0, p);
+      query_ = str.substr(p + 1);
     } else {
-      path_ = tmp;
+      path_ = str;
     }
   } else {
     path_ = "";
 
-    p = tmp.find('?');
+    p = str.find('?');
     if (p != std::string::npos) {
-      host_ = tmp.substr(0, p);
-      query_ = tmp.substr(p + 1);
+      host_ = str.substr(0, p);
+      query_ = str.substr(p + 1);
     } else {
-      host_ = tmp;
+      host_ = str;
     }
   }
 
@@ -315,8 +315,8 @@ UrlQuery::UrlQuery(const std::string& encoded_str) {
         i = j + 1;
       }
 
-      string_view key;
-      string_view value;
+      std::string_view key;
+      std::string_view value;
       if (SplitKV(kv, '=', false, &key, &value)) {
         parameters_.push_back(
             { Url::DecodeUnsafe(key), Url::DecodeUnsafe(value) });

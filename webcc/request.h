@@ -23,8 +23,8 @@ public:
     return method_;
   }
 
-  void set_method(string_view method) {
-    method_ = ToString(method);
+  void set_method(std::string_view method) {
+    method_ = method;
   }
 
   const Url& url() const {

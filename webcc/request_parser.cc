@@ -36,7 +36,7 @@ bool RequestParser::OnHeadersEnd() {
 }
 
 bool RequestParser::ParseStartLine(const std::string& line) {
-  std::vector<string_view> parts;
+  std::vector<std::string_view> parts;
   Split(line, ' ', true, &parts);
 
   if (parts.size() != 3) {

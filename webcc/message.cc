@@ -71,14 +71,15 @@ bool Message::AcceptEncodingGzip() const {
   return GetHeader(headers::kAcceptEncoding).find("gzip") != std::string::npos;
 }
 
-void Message::SetContentType(string_view media_type, string_view charset) {
+void Message::SetContentType(std::string_view media_type,
+                             std::string_view charset) {
   if (!media_type.empty()) {
     if (charset.empty()) {
       SetHeader(headers::kContentType, media_type);
     } else {
-      std::string value = ToString(media_type);
+      std::string value{ media_type };
       value += "; charset=";
-      value += ToString(charset);
+      value += charset;
       SetHeader(headers::kContentType, value);
     }
   }

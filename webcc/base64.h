@@ -3,15 +3,18 @@
 
 #include <cstdint>
 #include <string>
+#include <string_view>
 
 namespace webcc {
+namespace base64 {
 
-std::string Base64Encode(const std::uint8_t* data, std::size_t length);
+std::string Encode(const std::uint8_t* data, std::size_t length);
 
-std::string Base64Encode(const std::string& input);
+std::string Encode(const std::string_view& input);
 
-std::string Base64Decode(const std::string& input);
+std::string Decode(const std::string_view& input);
 
+}  // namespace base64
 }  // namespace webcc
 
 #endif  // WEBCC_BASE64_H_

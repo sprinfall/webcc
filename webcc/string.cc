@@ -39,41 +39,48 @@ bool ToSizeT(const std::string& str, int base, std::size_t* size) {
   return true;
 }
 
-void Split(string_view input, char delim, bool compress_token,
-           std::vector<string_view>* output) {
-  std::size_t i = 0;
-  std::size_t p = 0;
+void Split(std::string_view input, char delim, bool compress_token,
+           std::vector<std::string_view>* output) {
+  std::size_t off = 0;
+  std::size_t pos = 0;
 
-  i = input.find(delim);
-
-  while (i != string_view::npos) {
-    output->emplace_back(input.substr(p, i - p));
-    p = i + 1;
-
-    if (compress_token) {
-      while (p < input.size() && input[p] == delim) {
-        ++p;
-      }
+  while (true) {
+    if (off == input.size()) {
+      output->emplace_back(std::string_view{});
+      break;
     }
 
-    i = input.find(delim, p);
-  }
+    pos = input.find(delim, off);
+    if (pos == std::string_view::npos) {
+      output->emplace_back(input.substr(off));
+      break;
+    }
 
-  output->emplace_back(input.substr(p, i - p));
+    output->emplace_back(input.substr(off, pos - off));
+
+    off = pos + 1;
+
+    if (compress_token) {
+      while (off < input.size() && input[off] == delim) {
+        ++off;
+      }
+    }
+  }
 }
 
-void Trim(string_view& sv, const char* spaces) {
+void Trim(std::string_view& sv, const char* spaces) {
   sv.remove_prefix(std::min(sv.find_first_not_of(spaces), sv.size()));
+
   std::size_t pos = sv.find_last_not_of(spaces);
-  if (pos != string_view::npos) {
+  if (pos != std::string_view::npos) {
     sv.remove_suffix(sv.size() - pos - 1);
   }
 }
 
-bool SplitKV(string_view input, char delim, bool trim_spaces, string_view* key,
-             string_view* value) {
+bool SplitKV(std::string_view input, char delim, bool trim_spaces,
+             std::string_view* key, std::string_view* value) {
   std::size_t pos = input.find(delim);
-  if (pos == string_view::npos) {
+  if (pos == std::string_view::npos) {
     return false;
   }
 
@@ -88,13 +95,13 @@ bool SplitKV(string_view input, char delim, bool trim_spaces, string_view* key,
   return true;
 }
 
-bool SplitKV(string_view input, char delim, bool trim_spaces, std::string* key,
-             std::string* value) {
-  string_view key_view;
-  string_view value_view;
-  if (SplitKV(input, delim, trim_spaces, &key_view, &value_view)) {
-    *key = ToString(key_view);
-    *value = ToString(value_view);
+bool SplitKV(std::string_view input, char delim, bool trim_spaces,
+             std::string* key, std::string* value) {
+  std::string_view key_sv;
+  std::string_view value_sv;
+  if (SplitKV(input, delim, trim_spaces, &key_sv, &value_sv)) {
+    *key = key_sv;
+    *value = value_sv;
     return true;
   }
   return false;

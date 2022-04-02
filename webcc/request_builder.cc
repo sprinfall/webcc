@@ -1,9 +1,7 @@
 #include "webcc/request_builder.h"
 
-#include "webcc/base64.h"
 #include "webcc/logger.h"
 #include "webcc/string.h"
-#include "webcc/utility.h"
 
 #if WEBCC_ENABLE_GZIP
 #include "webcc/gzip.h"
@@ -74,50 +72,6 @@ RequestBuilder& RequestBuilder::File(const sfs::path& path,
     media_type_ = media_types::FromExtension(path.extension().string());
   }
 
-  return *this;
-}
-
-RequestBuilder& RequestBuilder::FormFile(string_view name,
-                                         const sfs::path& path,
-                                         string_view media_type) {
-  assert(!name.empty());
-  return Form(FormPart::NewFile(name, path, media_type));
-}
-
-RequestBuilder& RequestBuilder::FormData(string_view name,
-                                         std::string&& data,
-                                         string_view media_type) {
-  assert(!name.empty());
-  return Form(FormPart::New(name, std::move(data), media_type));
-}
-
-RequestBuilder& RequestBuilder::Header(string_view key, string_view value) {
-  headers_.push_back(ToString(key));
-  headers_.push_back(ToString(value));
-  return *this;
-}
-
-RequestBuilder& RequestBuilder::Auth(string_view type,
-                                     string_view credentials) {
-  headers_.push_back(headers::kAuthorization);
-  headers_.push_back(ToString(type) + " " + ToString(credentials));
-  return *this;
-}
-
-RequestBuilder& RequestBuilder::AuthBasic(string_view login,
-                                          string_view password) {
-  auto credentials =
-      Base64Encode(ToString(login) + ":" + ToString(password));
-  return Auth("Basic", credentials);
-}
-
-RequestBuilder& RequestBuilder::AuthToken(string_view token) {
-  return Auth("Token", token);
-}
-
-RequestBuilder& RequestBuilder::Date() {
-  headers_.push_back(headers::kDate);
-  headers_.push_back(utility::HttpDate());
   return *this;
 }
 

@@ -12,26 +12,27 @@ namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-bool Headers::Set(string_view key, string_view value) {
+bool Headers::Set(std::string_view key, std::string_view value) {
   if (value.empty()) {
     return false;
   }
 
   auto it = Find(key);
   if (it != headers_.end()) {
-    it->second = ToString(value);
+    it->second = value;
   } else {
-    headers_.push_back({ ToString(key), ToString(value) });
+    headers_.emplace_back(key, value);
   }
 
   return true;
 }
 
-bool Headers::Has(string_view key) const {
+bool Headers::Has(std::string_view key) const {
   return const_cast<Headers*>(this)->Find(key) != headers_.end();
 }
 
-const std::string& Headers::Get(string_view key, bool* existed) const {
+// TODO: Return std::string_view ?
+const std::string& Headers::Get(std::string_view key, bool* existed) const {
   auto it = const_cast<Headers*>(this)->Find(key);
 
   if (existed != nullptr) {
@@ -46,7 +47,7 @@ const std::string& Headers::Get(string_view key, bool* existed) const {
   return s_no_value;
 }
 
-std::vector<Header>::iterator Headers::Find(string_view key) {
+std::vector<Header>::iterator Headers::Find(std::string_view key) {
   auto it = headers_.begin();
   for (; it != headers_.end(); ++it) {
     if (boost::iequals(it->first, key)) {
@@ -58,9 +59,9 @@ std::vector<Header>::iterator Headers::Find(string_view key) {
 
 // -----------------------------------------------------------------------------
 
-static bool ParseValue(const std::string& str, const char* expected_key,
-                       string_view* value) {
-  string_view key;
+static bool ParseValue(std::string_view str, const char* expected_key,
+                       std::string_view* value) {
+  std::string_view key;
   if (!SplitKV(str, '=', true, &key, value)) {
     return false;
   }
@@ -70,11 +71,11 @@ static bool ParseValue(const std::string& str, const char* expected_key,
   return !value->empty();
 }
 
-ContentType::ContentType(string_view str) {
+ContentType::ContentType(std::string_view str) {
   Init(str);
 }
 
-void ContentType::Parse(string_view str) {
+void ContentType::Parse(std::string_view str) {
   Reset();
   Init(str);
 }
@@ -97,33 +98,33 @@ bool ContentType::Valid() const {
   return true;
 }
 
-void ContentType::Init(string_view str) {
-  std::string other;
+void ContentType::Init(std::string_view str) {
+  std::string_view other;
 
   std::size_t pos = str.find(';');
-  if (pos == str.npos) {
-    media_type_ = ToString(str);
+  if (pos == std::string_view::npos) {
+    media_type_ = str;
   } else {
-    media_type_ = ToString(str.substr(0, pos));
-    other = ToString(str.substr(pos + 1));
+    media_type_ = str.substr(0, pos);
+    other = str.substr(pos + 1);
   }
 
   boost::trim(media_type_);
-  boost::trim(other);
+  Trim(other);
 
   if (media_type_ == "multipart/form-data") {
     multipart_ = true;
-    string_view boundary;
+    std::string_view boundary;
     if (ParseValue(other, "boundary", &boundary)) {
-      additional_ = ToString(boundary);
+      additional_ = boundary;
       LOG_INFO("Content-type multipart boundary: %s", additional_.c_str());
     } else {
       LOG_ERRO("Invalid 'multipart/form-data' content-type (no boundary)");
     }
   } else {
-    string_view charset;
+    std::string_view charset;
     if (ParseValue(other, "charset", &charset)) {
-      additional_ = ToString(charset);
+      additional_ = charset;
       LOG_INFO("Content-type charset: %s", additional_.c_str());
     }
   }
@@ -131,13 +132,8 @@ void ContentType::Init(string_view str) {
 
 // -----------------------------------------------------------------------------
 
-// TODO: Use string_view
-static inline void Unquote(std::string& str) {
-  boost::trim_if(str, boost::is_any_of("\""));
-}
-
-bool ContentDisposition::Init(string_view str) {
-  std::vector<string_view> parts;
+bool ContentDisposition::Init(std::string_view str) {
+  std::vector<std::string_view> parts;
   Split(str, ';', false, &parts);
 
   if (parts.empty()) {
@@ -148,19 +144,17 @@ bool ContentDisposition::Init(string_view str) {
     return false;
   }
 
-  string_view key;
-  string_view value;
+  std::string_view key;
+  std::string_view value;
   for (std::size_t i = 1; i < parts.size(); ++i) {
     if (!SplitKV(parts[i], '=', true, &key, &value)) {
       return false;
     }
 
     if (key == "name") {
-      name_ = ToString(value);
-      Unquote(name_);
+      name_ = Unquote(value);
     } else if (key == "filename") {
-      file_name_ = ToString(value);
-      Unquote(file_name_);
+      file_name_ = Unquote(value);
     }
   }
 
@@ -169,24 +163,24 @@ bool ContentDisposition::Init(string_view str) {
 
 // -----------------------------------------------------------------------------
 
-FormPartPtr FormPart::New(string_view name, std::string&& data,
-                          string_view media_type) {
+FormPartPtr FormPart::New(std::string_view name, std::string&& data,
+                          std::string_view media_type) {
   auto form_part = std::make_shared<FormPart>();
 
-  form_part->name_ = ToString(name);
+  form_part->name_ = name;
   form_part->data_ = std::move(data);
-  form_part->media_type_ = ToString(media_type);
+  form_part->media_type_ = media_type;
 
   return form_part;
 }
 
-FormPartPtr FormPart::NewFile(string_view name, const sfs::path& path,
-                              string_view media_type) {
+FormPartPtr FormPart::NewFile(std::string_view name, const sfs::path& path,
+                              std::string_view media_type) {
   auto form_part = std::make_shared<FormPart>();
 
-  form_part->name_ = ToString(name);
+  form_part->name_ = name;
   form_part->path_ = path;
-  form_part->media_type_ = ToString(media_type);
+  form_part->media_type_ = media_type;
 
   // Determine file name from file path.
   // TODO: encoding
@@ -276,7 +270,7 @@ std::size_t FormPart::GetDataSize() {
   return size;
 }
 
-void FormPart::Dump(std::ostream& os, string_view prefix) const {
+void FormPart::Dump(std::ostream& os, std::string_view prefix) const {
   for (auto& h : headers_.data()) {
     os << prefix << h.first << ": " << h.second << std::endl;
   }

@@ -4,8 +4,10 @@
 #include <string>
 #include <vector>
 
+#include "webcc/base64.h"
 #include "webcc/request.h"
 #include "webcc/url.h"
+#include "webcc/utility.h"
 
 // -----------------------------------------------------------------------------
 // Handy macros for creating a RequestBuilder.
@@ -41,41 +43,41 @@ public:
   // Build and return the request object.
   RequestPtr operator()();
 
-  RequestBuilder& Method(string_view method) {
-    method_ = ToString(method);
+  RequestBuilder& Method(std::string_view method) {
+    method_ = method;
     return *this;
   }
 
-  RequestBuilder& Get(string_view url, bool encode = false) {
+  RequestBuilder& Get(std::string_view url, bool encode = false) {
     return Method(methods::kGet).Url(url, encode);
   }
 
-  RequestBuilder& Head(string_view url, bool encode = false) {
+  RequestBuilder& Head(std::string_view url, bool encode = false) {
     return Method(methods::kHead).Url(url, encode);
   }
 
-  RequestBuilder& Post(string_view url, bool encode = false) {
+  RequestBuilder& Post(std::string_view url, bool encode = false) {
     return Method(methods::kPost).Url(url, encode);
   }
 
-  RequestBuilder& Put(string_view url, bool encode = false) {
+  RequestBuilder& Put(std::string_view url, bool encode = false) {
     return Method(methods::kPut).Url(url, encode);
   }
 
-  RequestBuilder& Delete(string_view url, bool encode = false) {
+  RequestBuilder& Delete(std::string_view url, bool encode = false) {
     return Method(methods::kDelete).Url(url, encode);
   }
 
-  RequestBuilder& Patch(string_view url, bool encode = false) {
+  RequestBuilder& Patch(std::string_view url, bool encode = false) {
     return Method(methods::kPatch).Url(url, encode);
   }
 
-  RequestBuilder& Url(string_view url, bool encode = false) {
+  RequestBuilder& Url(std::string_view url, bool encode = false) {
     url_ = webcc::Url{ url, encode };
     return *this;
   }
 
-  RequestBuilder& Port(string_view port) {
+  RequestBuilder& Port(std::string_view port) {
     url_.set_port(port);
     return *this;
   }
@@ -86,25 +88,26 @@ public:
   }
 
   // Append a piece to the path.
-  RequestBuilder& Path(string_view path, bool encode = false) {
+  RequestBuilder& Path(std::string_view path, bool encode = false) {
     url_.AppendPath(path, encode);
     return *this;
   }
 
   // Append a parameter to the query.
-  RequestBuilder& Query(string_view key, string_view value,
+  // NOTE: Don't use std::string_view!
+  RequestBuilder& Query(const std::string& key, const std::string& value,
                         bool encode = false) {
     url_.AppendQuery(key, value, encode);
     return *this;
   }
 
-  RequestBuilder& MediaType(string_view media_type) {
-    media_type_ = ToString(media_type);
+  RequestBuilder& MediaType(std::string_view media_type) {
+    media_type_ = media_type;
     return *this;
   }
 
-  RequestBuilder& Charset(string_view charset) {
-    charset_ = ToString(charset);
+  RequestBuilder& Charset(std::string_view charset) {
+    charset_ = charset;
     return *this;
   }
 
@@ -122,7 +125,7 @@ public:
 
   // Set (comma separated) content types to accept.
   // E.g., "application/json", "text/html, application/xhtml+xml".
-  RequestBuilder& Accept(string_view content_types) {
+  RequestBuilder& Accept(std::string_view content_types) {
     return Header(headers::kAccept, content_types);
   }
 
@@ -153,28 +156,52 @@ public:
   }
 
   // Add a form part of file.
-  RequestBuilder& FormFile(string_view name, const sfs::path& path,
-                           string_view media_type = "");
+  RequestBuilder& FormFile(std::string_view name, const sfs::path& path,
+                           std::string_view media_type = "") {
+    assert(!name.empty());
+    return Form(FormPart::NewFile(name, path, media_type));
+  }
 
   // Add a form part of string data.
-  RequestBuilder& FormData(string_view name, std::string&& data,
-                           string_view media_type = "");
+  RequestBuilder& FormData(std::string_view name, std::string&& data,
+                           std::string_view media_type = "") {
+    assert(!name.empty());
+    return Form(FormPart::New(name, std::move(data), media_type));
+  }
 
-  RequestBuilder& Header(string_view key, string_view value);
+  RequestBuilder& Header(std::string_view key, std::string_view value) {
+    headers_.emplace_back(key);
+    headers_.emplace_back(value);
+    return *this;
+  }
 
   RequestBuilder& KeepAlive(bool keep_alive = true) {
     keep_alive_ = keep_alive;
     return *this;
   }
 
-  RequestBuilder& Auth(string_view type, string_view credentials);
+  RequestBuilder& Auth(const std::string& type,
+                       const std::string& credentials) {
+    headers_.emplace_back(headers::kAuthorization);
+    headers_.emplace_back(type + " " + credentials);
+    return *this;
+  }
 
-  RequestBuilder& AuthBasic(string_view login, string_view password);
+  RequestBuilder& AuthBasic(const std::string& login,
+                            const std::string& password) {
+    return Auth("Basic", base64::Encode(login + ":" + password));
+  }
 
-  RequestBuilder& AuthToken(string_view token);
+  RequestBuilder& AuthToken(const std::string& token) {
+    return Auth("Token", token);
+  }
 
   // Add the Date header to the request.
-  RequestBuilder& Date();
+  RequestBuilder& Date() {
+    headers_.emplace_back(headers::kDate);
+    headers_.emplace_back(utility::HttpDate());
+    return *this;
+  }
 
 #if WEBCC_ENABLE_GZIP
 
