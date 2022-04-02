@@ -16,7 +16,7 @@ class Request;
 
 class RequestParser : public Parser {
 public:
-  RequestParser();
+  RequestParser() = default;
 
   ~RequestParser() override = default;
 
@@ -57,7 +57,6 @@ private:
     kHeadersParsed,
     kEnded,
   };
-
   Step step_ = Step::kStart;
 
   // The current form part being parsed.

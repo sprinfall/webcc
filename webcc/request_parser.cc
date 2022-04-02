@@ -11,9 +11,6 @@
 
 namespace webcc {
 
-RequestParser::RequestParser() : request_(nullptr) {
-}
-
 void RequestParser::Init(Request* request, ViewMatcher view_matcher) {
   assert(view_matcher);
 
@@ -21,6 +18,10 @@ void RequestParser::Init(Request* request, ViewMatcher view_matcher) {
 
   request_ = request;
   view_matcher_ = view_matcher;
+
+  step_ = Step::kStart;
+  part_.reset();
+  form_parts_.clear();
 }
 
 bool RequestParser::OnHeadersEnd() {

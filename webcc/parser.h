@@ -94,7 +94,7 @@ private:
 // HTTP request/response parser.
 class Parser {
 public:
-  Parser();
+  Parser() = default;
 
   Parser(const Parser&) = delete;
   Parser& operator=(const Parser&) = delete;
@@ -129,10 +129,8 @@ public:
   bool Parse(const char* data, std::size_t length);
 
 protected:
-  void Reset();
-
   // Parse headers from pending data.
-  // Return false only on syntax errors.`
+  // Return false only on syntax errors.
   bool ParseHeaders();
 
   // Called when headers just parsed.

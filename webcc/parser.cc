@@ -116,13 +116,23 @@ bool FileBodyHandler::Finish() {
 
 // -----------------------------------------------------------------------------
 
-Parser::Parser() {
-  Reset();
-}
-
 void Parser::Init(Message* message) {
-  Reset();
   message_ = message;
+
+  body_handler_.reset();
+  stream_ = false;
+
+  pending_data_.clear();
+  header_length_ = 0;
+
+  content_length_ = kInvalidLength;
+  content_type_.Reset();
+  start_line_parsed_ = false;
+  content_length_parsed_ = false;
+  header_ended_ = false;
+  chunked_ = false;
+  chunk_size_ = kInvalidLength;
+  finished_ = false;
 }
 
 bool Parser::Parse(const char* data, std::size_t length) {
@@ -164,24 +174,6 @@ bool Parser::Parse(const char* data, std::size_t length) {
 
   // The left data, if any, is still in the pending data.
   return ParseContent("", 0);
-}
-
-void Parser::Reset() {
-  message_ = nullptr;
-  body_handler_.reset();
-  stream_ = false;
-
-  pending_data_.clear();
-  header_length_ = 0;
-
-  content_length_ = kInvalidLength;
-  content_type_.Reset();
-  start_line_parsed_ = false;
-  content_length_parsed_ = false;
-  header_ended_ = false;
-  chunked_ = false;
-  chunk_size_ = kInvalidLength;
-  finished_ = false;
 }
 
 bool Parser::ParseHeaders() {

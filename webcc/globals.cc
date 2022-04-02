@@ -23,6 +23,7 @@ namespace media_types {
 std::string FromExtension(const std::string& ext) {
   std::string lext = boost::to_lower_copy(ext);
 
+  // clang-format off
   if (lext == ".htm")   { return "text/html"; }
   if (lext == ".html")  { return "text/html"; }
   if (lext == ".php")   { return "text/html"; }
@@ -44,6 +45,7 @@ std::string FromExtension(const std::string& ext) {
   if (lext == ".tif")   { return "image/tiff"; }
   if (lext == ".svg")   { return "image/svg+xml"; }
   if (lext == ".svgz")  { return "image/svg+xml"; }
+  // clang-format on
 
   return "application/text";
 }
