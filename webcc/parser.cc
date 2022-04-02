@@ -67,7 +67,7 @@ bool StringBodyHandler::Finish() {
 
 bool FileBodyHandler::OpenFile() {
   try {
-    temp_path_ = fs::temp_directory_path();
+    temp_path_ = sfs::temp_directory_path();
 
     // Generate a random string as file name.
     // A replacement of boost::filesystem::unique_path().
@@ -76,7 +76,7 @@ bool FileBodyHandler::OpenFile() {
     LOG_VERB("Generate a temp path for streaming: %s",
              temp_path_.string().c_str());
 
-  } catch (const fs::filesystem_error&) {
+  } catch (const sfs::filesystem_error&) {
     LOG_ERRO("Failed to generate temp path for streaming");
     return false;
   }

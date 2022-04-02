@@ -31,7 +31,6 @@ set(WEBCC_ENABLE_GZIP 0 CACHE STRING "Enable gzip compression (need Zlib)? (1:Ye
 
 set(WEBCC_LOG_LEVEL 2 CACHE STRING "Log level (0:VERB, 1:INFO, 2:USER, 3:WARN or 4:ERRO)")
 
-set(WEBCC_USE_STD_FILESYSTEM 1 CACHE STRING "Use std::filesystem? (1:Yes, 0:No)")
 set(WEBCC_USE_STD_STRING_VIEW 1 CACHE STRING "Use std::string_view? (1:Yes, 0:No)")
 
 if(BUILD_UNITTEST)
@@ -46,7 +45,7 @@ endif()
 
 # C++ standard requirements.
 
-if(WEBCC_USE_STD_FILESYSTEM OR WEBCC_USE_STD_STRING_VIEW)
+if(WEBCC_USE_STD_STRING_VIEW)
     set(CMAKE_CXX_STANDARD 17)
 else()
     set(CMAKE_CXX_STANDARD 11)
@@ -57,9 +56,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Boost
 set(BOOST_COMPONENTS system date_time)
-if(NOT WEBCC_USE_STD_FILESYSTEM)
-    set(BOOST_COMPONENTS ${BOOST_COMPONENTS} filesystem)
-endif()
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost 1.66.0 REQUIRED COMPONENTS ${BOOST_COMPONENTS})

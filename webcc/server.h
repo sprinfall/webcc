@@ -11,7 +11,6 @@
 
 #include "webcc/connection.h"
 #include "webcc/connection_pool.h"
-#include "webcc/fs.h"
 #include "webcc/queue.h"
 #include "webcc/router.h"
 #include "webcc/url.h"
@@ -21,7 +20,7 @@ namespace webcc {
 class Server : public Router {
 public:
   Server(boost::asio::ip::tcp protocol, std::uint16_t port,
-         const fs::path& doc_root = {});
+         const sfs::path& doc_root = {});
 
   Server(const Server&) = delete;
   Server& operator=(const Server&) = delete;
@@ -117,7 +116,7 @@ private:
   //   "/path\\sub/to/file" -> "to\file" (path\\sub is ignored)
   //   "/C:\\test/path" -> "path" (C:\\test is ignored)
   // Reference: Python http/server.py translate_path()
-  fs::path TranslatePath(const std::string& utf8_url_path);
+  sfs::path TranslatePath(const std::string& utf8_url_path);
 
 private:
   // tcp::v4() or tcp::v6()
@@ -127,7 +126,7 @@ private:
   std::uint16_t port_ = 0;
 
   // The directory with the static files to be served.
-  fs::path doc_root_;
+  sfs::path doc_root_;
 
   // The size of the buffer for reading request.
   std::size_t buffer_size_ = kBufferSize;

@@ -1,7 +1,6 @@
 #ifndef VIEWS_H_
 #define VIEWS_H_
 
-#include "webcc/fs.h"
 #include "webcc/view.h"
 
 // -----------------------------------------------------------------------------
@@ -24,7 +23,7 @@ private:
 // URL: /books/{id}
 class BookDetailView : public webcc::View {
 public:
-  explicit BookDetailView(webcc::fs::path photo_dir);
+  explicit BookDetailView(webcc::sfs::path photo_dir);
 
   webcc::ResponsePtr Handle(webcc::RequestPtr request) override;
 
@@ -39,7 +38,7 @@ private:
   webcc::ResponsePtr Delete(webcc::RequestPtr request);
 
 private:
-  webcc::fs::path photo_dir_;
+  webcc::sfs::path photo_dir_;
 };
 
 // -----------------------------------------------------------------------------
@@ -47,7 +46,7 @@ private:
 // URL: /books/{id}/photo
 class BookPhotoView : public webcc::View {
 public:
-  explicit BookPhotoView(webcc::fs::path photo_dir);
+  explicit BookPhotoView(webcc::sfs::path photo_dir);
 
   webcc::ResponsePtr Handle(webcc::RequestPtr request) override;
 
@@ -67,7 +66,7 @@ private:
   webcc::ResponsePtr Delete(webcc::RequestPtr request);
 
 private:
-  webcc::fs::path photo_dir_;
+  webcc::sfs::path photo_dir_;
 };
 
 #endif  // VIEWS_H_

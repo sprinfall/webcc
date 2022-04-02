@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 
-#include "webcc/fs.h"
 #include "webcc/request.h"
 #include "webcc/url.h"
 
@@ -144,7 +143,7 @@ public:
 
   // Use the file content as body.
   // NOTE: Error::kFileError might be thrown.
-  RequestBuilder& File(const fs::path& path, bool infer_media_type = true,
+  RequestBuilder& File(const sfs::path& path, bool infer_media_type = true,
                        std::size_t chunk_size = 1024);
 
   // Add a form part.
@@ -154,7 +153,7 @@ public:
   }
 
   // Add a form part of file.
-  RequestBuilder& FormFile(string_view name, const fs::path& path,
+  RequestBuilder& FormFile(string_view name, const sfs::path& path,
                            string_view media_type = "");
 
   // Add a form part of string data.

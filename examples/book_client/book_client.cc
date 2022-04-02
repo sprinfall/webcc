@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "boost/algorithm/string.hpp"
-
 #include "json/json.h"
 
 #include "book_json.h"
@@ -124,7 +123,7 @@ bool BookClient::Delete(const std::string& id) {
   }
 }
 
-bool BookClient::GetPhoto(const std::string& id, const webcc::fs::path& path) {
+bool BookClient::GetPhoto(const std::string& id, const sfs::path& path) {
   try {
     auto r = session_.Send(WEBCC_GET(url_).
                            Path("books").Path(id).Path("photo")(),
@@ -144,7 +143,7 @@ bool BookClient::GetPhoto(const std::string& id, const webcc::fs::path& path) {
   }
 }
 
-bool BookClient::SetPhoto(const std::string& id, const webcc::fs::path& path) {
+bool BookClient::SetPhoto(const std::string& id, const sfs::path& path) {
   try {
     if (!CheckPhoto(path)) {
       return false;
@@ -166,12 +165,12 @@ bool BookClient::SetPhoto(const std::string& id, const webcc::fs::path& path) {
   }
 }
 
-bool BookClient::CheckPhoto(const webcc::fs::path& photo) {
+bool BookClient::CheckPhoto(const sfs::path& photo) {
   if (photo.empty()) {
     return false;
   }
 
-  if (!webcc::fs::is_regular_file(photo) || !webcc::fs::exists(photo)) {
+  if (!sfs::is_regular_file(photo) || !sfs::exists(photo)) {
     return false;
   }
 

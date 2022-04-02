@@ -1,12 +1,12 @@
 #ifndef WEBCC_BODY_H_
 #define WEBCC_BODY_H_
 
+#include <fstream>
 #include <memory>
 #include <string>
 #include <utility>
 
 #include "webcc/common.h"
-#include "webcc/fs.h"
 
 namespace webcc {
 
@@ -151,12 +151,12 @@ private:
 class FileBody : public Body {
 public:
   // For messages sent out.
-  FileBody(const fs::path& path, std::size_t chunk_size);
+  FileBody(const sfs::path& path, std::size_t chunk_size);
 
   // For messages received.
   // If `auto_delete` is true, the file will be deleted on destructor unless it
   // is moved to another path (see Move()).
-  FileBody(const fs::path& path, bool auto_delete = false);
+  FileBody(const sfs::path& path, bool auto_delete = false);
 
   ~FileBody() override;
 
@@ -170,7 +170,7 @@ public:
 
   void Dump(std::ostream& os, const std::string& prefix) const override;
 
-  const fs::path& path() const {
+  const sfs::path& path() const {
     return path_;
   }
 
@@ -183,17 +183,17 @@ public:
   // If `new_path` resolves to an existing non-directory file, it is removed.
   // If `new_path` resolves to an existing directory, it is removed if empty
   // on ISO/IEC 9945 but is an error on Windows.
-  // See fs::rename() for more details.
-  bool Move(const fs::path& new_path);
+  // See sfs::rename() for more details.
+  bool Move(const sfs::path& new_path);
 
 private:
-  fs::path path_;
+  sfs::path path_;
   std::size_t chunk_size_;
   bool auto_delete_;
 
   std::size_t size_;  // File size in bytes
 
-  fs::ifstream ifstream_;
+  std::ifstream ifstream_;
   std::string chunk_;
 };
 

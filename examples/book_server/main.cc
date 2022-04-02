@@ -1,10 +1,12 @@
+#include <filesystem>
 #include <iostream>
 
-#include "webcc/fs.h"
 #include "webcc/logger.h"
 #include "webcc/server.h"
 
 #include "views.h"
+
+namespace sfs = std::filesystem;
 
 int main(int argc, char* argv[]) {
   if (argc < 3) {
@@ -18,16 +20,16 @@ int main(int argc, char* argv[]) {
 
   std::uint16_t port = static_cast<std::uint16_t>(std::atoi(argv[1]));
 
-  webcc::fs::path upload_dir = argv[2];
-  if (!webcc::fs::is_directory(upload_dir) || !webcc::fs::exists(upload_dir)) {
+  sfs::path upload_dir = argv[2];
+  if (!sfs::is_directory(upload_dir) || !sfs::exists(upload_dir)) {
     std::cerr << "Invalid upload dir!" << std::endl;
     return 1;
   }
 
   // Add a sub-dir for book photos.
-  webcc::fs::path photo_dir = upload_dir / "books";
-  if (!webcc::fs::exists(photo_dir)) {
-    webcc::fs::create_directory(photo_dir);
+  sfs::path photo_dir = upload_dir / "books";
+  if (!sfs::exists(photo_dir)) {
+    sfs::create_directory(photo_dir);
   }
 
   std::cout << "Book photos will be saved to: " << photo_dir << std::endl;

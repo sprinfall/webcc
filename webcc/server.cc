@@ -29,7 +29,7 @@ namespace webcc {
 // The same applies to the sockets.
 
 Server::Server(boost::asio::ip::tcp protocol, std::uint16_t port,
-               const fs::path& doc_root)
+               const sfs::path& doc_root)
     : protocol_(protocol),
       port_(port),
       doc_root_(doc_root),
@@ -111,18 +111,18 @@ bool Server::IsRunning() const {
 
 void Server::CheckDocRoot() {
   try {
-    if (!fs::exists(doc_root_) || !fs::is_directory(doc_root_)) {
+    if (!sfs::exists(doc_root_) || !sfs::is_directory(doc_root_)) {
       LOG_ERRO("Doc root is not an existing directory!");
       return;
     }
 
     if (doc_root_.is_relative()) {
-      doc_root_ = fs::absolute(doc_root_);
+      doc_root_ = sfs::absolute(doc_root_);
     }
 
-    doc_root_ = fs::canonical(doc_root_);
+    doc_root_ = sfs::canonical(doc_root_);
 
-  } catch (fs::filesystem_error& e) {
+  } catch (sfs::filesystem_error& e) {
     LOG_ERRO("Doc root error: %s", e.what());
     doc_root_.clear();
   }
@@ -351,12 +351,12 @@ bool Server::MatchViewOrStatic(const std::string& method,
     // a NotFound response on file errors.
     return true;
 #else
-    fs::path sub_path = TranslatePath(url_path);
+    sfs::path sub_path = TranslatePath(url_path);
     //LOG_INFO("Translated URL path: %s", sub_path.u8string().c_str());
-    fs::path path = doc_root_ / sub_path;
+    sfs::path path = doc_root_ / sub_path;
 
-    fs::error_code ec;
-    if (!fs::is_directory(path, ec) && fs::exists(path, ec)) {
+    std::error_code ec;
+    if (!sfs::is_directory(path, ec) && sfs::exists(path, ec)) {
       return true;
     }
 #endif
@@ -375,7 +375,7 @@ ResponsePtr Server::ServeStatic(RequestPtr request) {
   }
 
   std::string url_path = Url::DecodeUnsafe(request->url().path());
-  fs::path path = doc_root_ / TranslatePath(url_path);
+  sfs::path path = doc_root_ / TranslatePath(url_path);
 
   try {
     // NOTE: FileBody might throw Error::kFileError.
@@ -397,7 +397,7 @@ ResponsePtr Server::ServeStatic(RequestPtr request) {
   }
 }
 
-fs::path Server::TranslatePath(const std::string& utf8_url_path) {
+sfs::path Server::TranslatePath(const std::string& utf8_url_path) {
 #if (defined(_WIN32) || defined(_WIN64))
   std::wstring url_path = Utf8To16(utf8_url_path);
   std::vector<std::wstring> words;
@@ -409,7 +409,7 @@ fs::path Server::TranslatePath(const std::string& utf8_url_path) {
                boost::token_compress_on);
 #endif  // defined(_WIN32) || defined(_WIN64)
 
-  fs::path path;
+  sfs::path path;
   for (auto& word : words) {
     // Ignore . and ..
 #if (defined(_WIN32) || defined(_WIN64))
@@ -420,7 +420,7 @@ fs::path Server::TranslatePath(const std::string& utf8_url_path) {
       continue;
     }
 
-    fs::path p{ word };
+    sfs::path p{ word };
 
     // Ignore C:\\, C:, path\\sub, ...
     // parent_path() is similar to Python os.path.dirname().

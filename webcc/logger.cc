@@ -23,6 +23,8 @@
 
 namespace webcc {
 
+namespace sfs = std::filesystem;
+
 // -----------------------------------------------------------------------------
 
 static std::string g_main_thread_id;
@@ -33,7 +35,7 @@ static const char* kLevelNames[] = {
 
 // -----------------------------------------------------------------------------
 
-static FILE* FOpen(const fs::path& path, bool overwrite) {
+static FILE* FOpen(const sfs::path& path, bool overwrite) {
 #if (defined(_WIN32) || defined(_WIN64))
   return _wfopen(path.wstring().c_str(), overwrite ? L"w+" : L"a+");
 #else
@@ -50,7 +52,7 @@ struct Logger {
     }
   }
 
-  void Init(const fs::path& path, int _modes) {
+  void Init(const sfs::path& path, int _modes) {
     modes = _modes;
 
     // Create log file only if necessary.
@@ -152,14 +154,14 @@ static std::string GetThreadID() {
   return thread_id;
 }
 
-static fs::path InitLogPath(const fs::path& dir) {
+static sfs::path InitLogPath(const sfs::path& dir) {
   if (dir.empty()) {
-    return fs::current_path() / WEBCC_LOG_FILE_NAME;
+    return sfs::current_path() / WEBCC_LOG_FILE_NAME;
   }
 
-  fs::error_code ec;
-  if (!fs::exists(dir, ec) || !fs::is_directory(dir, ec)) {
-    if (!fs::create_directories(dir, ec) || ec) {
+  std::error_code ec;
+  if (!sfs::exists(dir, ec) || !sfs::is_directory(dir, ec)) {
+    if (!sfs::create_directories(dir, ec) || ec) {
       return {};
     }
   }
@@ -167,7 +169,7 @@ static fs::path InitLogPath(const fs::path& dir) {
   return (dir / WEBCC_LOG_FILE_NAME);
 }
 
-void LogInit(const fs::path& dir, int modes) {
+void LogInit(const sfs::path& dir, int modes) {
   // Suppose this is called from the main thread.
   g_main_thread_id = DoGetThreadID();
 

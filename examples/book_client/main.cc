@@ -1,9 +1,11 @@
+#include <filesystem>
 #include <iostream>
 
-#include "webcc/fs.h"
 #include "webcc/logger.h"
 
 #include "book_client.h"
+
+namespace sfs = std::filesystem;
 
 // -----------------------------------------------------------------------------
 
@@ -36,8 +38,8 @@ int main(int argc, char* argv[]) {
 
   std::string url = argv[1];
 
-  webcc::fs::path photo_dir = argv[2];
-  if (!webcc::fs::is_directory(photo_dir) || !webcc::fs::exists(photo_dir)) {
+  sfs::path photo_dir = argv[2];
+  if (!sfs::is_directory(photo_dir) || !sfs::exists(photo_dir)) {
     std::cerr << "Invalid photo dir!" << std::endl;
     return 1;
   }

@@ -180,7 +180,7 @@ FormPartPtr FormPart::New(string_view name, std::string&& data,
   return form_part;
 }
 
-FormPartPtr FormPart::NewFile(string_view name, const fs::path& path,
+FormPartPtr FormPart::NewFile(string_view name, const sfs::path& path,
                               string_view media_type) {
   auto form_part = std::make_shared<FormPart>();
 

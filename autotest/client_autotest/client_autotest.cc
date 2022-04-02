@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 
@@ -8,8 +9,9 @@
 #include "json/json.h"
 
 #include "webcc/client_session.h"
-#include "webcc/fs.h"
 #include "webcc/string.h"
+
+namespace sfs = std::filesystem;
 
 // -----------------------------------------------------------------------------
 
@@ -39,7 +41,7 @@ TEST(ClientTest, Head) {
                           Head("http://httpbin.org/get")
                           ());
 
-    EXPECT_EQ(webcc::Status::kOK, r->status());
+    EXPECT_EQ(webcc::status_codes::kOK, r->status());
     EXPECT_EQ("OK", r->reason());
 
     EXPECT_TRUE(r->HasHeader(webcc::headers::kContentLength));
@@ -64,7 +66,7 @@ TEST(ClientTest, Get) {
                           Header("Accept", "application/json")
                           ());
 
-    EXPECT_EQ(webcc::Status::kOK, r->status());
+    EXPECT_EQ(webcc::status_codes::kOK, r->status());
     EXPECT_EQ("OK", r->reason());
 
     Json::Value json = StringToJson(r->data());
@@ -95,7 +97,7 @@ TEST(ClientTest, Get_QueryEncode) {
                           Query("name", "Chunting Gu", true)
                           ());
 
-    EXPECT_EQ(webcc::Status::kOK, r->status());
+    EXPECT_EQ(webcc::status_codes::kOK, r->status());
     EXPECT_EQ("OK", r->reason());
 
     Json::Value json = StringToJson(r->data());
@@ -122,7 +124,7 @@ TEST(ClientTest, Get_SSL) {
                           Accept("application/json")
                           ());
 
-    EXPECT_EQ(webcc::Status::kOK, r->status());
+    EXPECT_EQ(webcc::status_codes::kOK, r->status());
     EXPECT_EQ("OK", r->reason());
 
     Json::Value json = StringToJson(r->data());
@@ -178,15 +180,15 @@ TEST(ClientTest, Get_Jpeg_Stream) {
     EXPECT_TRUE(!file_body->path().empty());
 
     // Backup the path of the temp file.
-    const webcc::fs::path ori_path = file_body->path();
+    const sfs::path ori_path = file_body->path();
 
-    const webcc::fs::path new_path("./wolf.jpeg");
+    const sfs::path new_path("./wolf.jpeg");
 
     bool moved = file_body->Move(new_path);
     EXPECT_TRUE(moved);
-    EXPECT_TRUE(webcc::fs::exists(new_path));
+    EXPECT_TRUE(sfs::exists(new_path));
     // The file in the original path should not exist any more.
-    EXPECT_TRUE(!webcc::fs::exists(ori_path));
+    EXPECT_TRUE(!sfs::exists(ori_path));
 
     // After move, the original path should be reset.
     EXPECT_TRUE(file_body->path().empty());
@@ -202,7 +204,7 @@ TEST(ClientTest, Get_Jpeg_Stream_NoMove) {
   webcc::ClientSession session;
 
   try {
-    webcc::fs::path ori_path;
+    sfs::path ori_path;
 
     {
       auto r = session.Send(webcc::RequestBuilder{}.
@@ -220,7 +222,7 @@ TEST(ClientTest, Get_Jpeg_Stream_NoMove) {
     }
 
     // The temp file should be deleted.
-    EXPECT_TRUE(!webcc::fs::exists(ori_path));
+    EXPECT_TRUE(!sfs::exists(ori_path));
 
   } catch (const webcc::Error& error) {
     std::cerr << error << std::endl;
@@ -283,7 +285,7 @@ TEST(ClientTest, Post) {
                           Post("http://httpbin.org/post").Body(data).Json()
                           ());
 
-    EXPECT_EQ(webcc::Status::kOK, r->status());
+    EXPECT_EQ(webcc::status_codes::kOK, r->status());
     EXPECT_EQ("OK", r->reason());
 
     Json::Value json = StringToJson(r->data());
@@ -295,23 +297,22 @@ TEST(ClientTest, Post) {
   }
 }
 
-static webcc::fs::path GenerateTempFile(const std::string& data) {
+static sfs::path GenerateTempFile(const std::string& data) {
   try {
-    webcc::fs::path path =
-        webcc::fs::temp_directory_path() / webcc::RandomString(10);
+    sfs::path path = sfs::temp_directory_path() / webcc::RandomAsciiString(10);
 
-    webcc::fs::ofstream ofs;
+    std::ofstream ofs;
     ofs.open(path, std::ios::binary);
     if (ofs.fail()) {
-      return webcc::fs::path{};
+      return sfs::path{};
     }
 
     ofs << data;
 
     return path;
 
-  } catch (const webcc::fs::filesystem_error&) {
-    return webcc::fs::path{};
+  } catch (const sfs::filesystem_error&) {
+    return sfs::path{};
   }
 }
 
@@ -330,7 +331,7 @@ TEST(ClientTest, Post_FileBody) {
                           Post("http://httpbin.org/post").File(path)
                           ());
 
-    EXPECT_EQ(webcc::Status::kOK, r->status());
+    EXPECT_EQ(webcc::status_codes::kOK, r->status());
     EXPECT_EQ("OK", r->reason());
 
     Json::Value json = StringToJson(r->data());
@@ -342,8 +343,8 @@ TEST(ClientTest, Post_FileBody) {
   }
 
   // Remove the temp file.
-  webcc::fs::error_code ec;
-  webcc::fs::remove(path, ec);
+  std::error_code ec;
+  sfs::remove(path, ec);
 }
 
 #if WEBCC_ENABLE_GZIP
@@ -385,7 +386,7 @@ TEST(ClientTest, Post_Gzip) {
                            Post("http://httpbin.org/post").Body(data).Gzip()
                            ());
 
-    EXPECT_EQ(webcc::Status::kOK, r2->status());
+    EXPECT_EQ(webcc::status_codes::kOK, r2->status());
     EXPECT_EQ("OK", r2->reason());
 
   } catch (const webcc::Error& error) {
@@ -449,7 +450,7 @@ TEST(ClientTest, UpperCaseUrlScheme) {
   try {
     auto r = session.Send(WEBCC_GET("HTTP://httpbin.org/get")());
 
-    EXPECT_EQ(webcc::Status::kOK, r->status());
+    EXPECT_EQ(webcc::status_codes::kOK, r->status());
 
   } catch (const webcc::Error& error) {
     std::cerr << error << std::endl;

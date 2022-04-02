@@ -1,5 +1,7 @@
 #include "views.h"
 
+#include <filesystem>
+
 #include "json/json.h"
 
 #include "webcc/response_builder.h"
@@ -7,6 +9,8 @@
 #include "book.h"
 #include "book_db.h"
 #include "book_json.h"
+
+namespace sfs = std::filesystem;
 
 // -----------------------------------------------------------------------------
 
@@ -53,7 +57,7 @@ webcc::ResponsePtr BookListView::Post(webcc::RequestPtr request) {
 
 // -----------------------------------------------------------------------------
 
-BookDetailView::BookDetailView(webcc::fs::path photo_dir)
+BookDetailView::BookDetailView(sfs::path photo_dir)
     : photo_dir_(std::move(photo_dir)) {
 }
 
@@ -121,8 +125,8 @@ webcc::ResponsePtr BookDetailView::Delete(webcc::RequestPtr request) {
 
   // Delete the photo from file system.
   if (!photo_name.empty()) {
-    webcc::fs::error_code ec;
-    webcc::fs::remove(photo_dir_ / photo_name, ec);
+    std::error_code ec;
+    sfs::remove(photo_dir_ / photo_name, ec);
   }
 
   return webcc::ResponseBuilder{}.OK()();
@@ -130,7 +134,7 @@ webcc::ResponsePtr BookDetailView::Delete(webcc::RequestPtr request) {
 
 // -----------------------------------------------------------------------------
 
-BookPhotoView::BookPhotoView(webcc::fs::path photo_dir)
+BookPhotoView::BookPhotoView(sfs::path photo_dir)
     : photo_dir_(std::move(photo_dir)) {
 }
 
@@ -160,8 +164,8 @@ webcc::ResponsePtr BookPhotoView::Get(webcc::RequestPtr request) {
     return webcc::ResponseBuilder{}.NotFound()();
   }
 
-  webcc::fs::path photo_path = photo_dir_ / book.photo;
-  if (!webcc::fs::exists(photo_path)) {
+  sfs::path photo_path = photo_dir_ / book.photo;
+  if (!sfs::exists(photo_path)) {
     return webcc::ResponseBuilder{}.NotFound()();
   }
 
@@ -215,8 +219,8 @@ webcc::ResponsePtr BookPhotoView::Delete(webcc::RequestPtr request) {
   }
 
   // Error handling is simplified.
-  webcc::fs::error_code ec;
-  webcc::fs::remove(photo_dir_ / book.photo, ec);
+  std::error_code ec;
+  sfs::remove(photo_dir_ / book.photo, ec);
 
   return webcc::ResponseBuilder{}.OK()();
 }

@@ -7,9 +7,8 @@
 #if WEBCC_ENABLE_LOG
 
 #include <cstring>  // for strrchr()
+#include <filesystem>
 #include <string>
-
-#include "webcc/fs.h"
 
 // Log levels.
 // VERB is similar to DEBUG commonly used by other projects.
@@ -45,7 +44,7 @@ const int LOG_FILE_FLUSH_OVERWRITE = LOG_FILE | LOG_FLUSH | LOG_OVERWRITE;
 
 // Initialize logger.
 // If |dir| is empty, log file will be generated in current directory.
-void LogInit(const fs::path& dir, int modes);
+void LogInit(const std::filesystem::path& dir, int modes);
 
 void Log(int level, const char* file, int line, const char* format, ...);
 

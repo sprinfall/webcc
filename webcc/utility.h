@@ -6,7 +6,6 @@
 
 #include "boost/asio/ip/tcp.hpp"
 
-#include "webcc/fs.h"
 #include "webcc/globals.h"
 
 namespace webcc {
@@ -25,10 +24,10 @@ std::string FormatHttpDate(const std::tm& gmt);
 
 // Tell the size in bytes of the given file.
 // Return kInvalidLength (-1) on failure.
-std::size_t TellSize(const fs::path& path);
+std::size_t TellSize(const sfs::path& path);
 
 // Read entire file into string.
-bool ReadFile(const fs::path& path, std::string* output);
+bool ReadFile(const sfs::path& path, std::string* output);
 
 // Dump the string data line by line to achieve more readability.
 // Also limit the maximum size of the data to be dumped.

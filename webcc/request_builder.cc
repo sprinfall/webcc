@@ -65,7 +65,7 @@ RequestBuilder& RequestBuilder::AcceptGzip(bool gzip) {
 
 #endif  // WEBCC_ENABLE_GZIP
 
-RequestBuilder& RequestBuilder::File(const fs::path& path,
+RequestBuilder& RequestBuilder::File(const sfs::path& path,
                                      bool infer_media_type,
                                      std::size_t chunk_size) {
   body_.reset(new FileBody{ path, chunk_size });
@@ -78,7 +78,7 @@ RequestBuilder& RequestBuilder::File(const fs::path& path,
 }
 
 RequestBuilder& RequestBuilder::FormFile(string_view name,
-                                         const fs::path& path,
+                                         const sfs::path& path,
                                          string_view media_type) {
   assert(!name.empty());
   return Form(FormPart::NewFile(name, path, media_type));

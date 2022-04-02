@@ -157,7 +157,7 @@ void FormBody::Free(std::size_t index) {
 
 // -----------------------------------------------------------------------------
 
-FileBody::FileBody(const fs::path& path, std::size_t chunk_size)
+FileBody::FileBody(const sfs::path& path, std::size_t chunk_size)
     : path_(path), chunk_size_(chunk_size), auto_delete_(false), size_(0) {
   size_ = utility::TellSize(path_);
   if (size_ == kInvalidLength) {
@@ -165,15 +165,15 @@ FileBody::FileBody(const fs::path& path, std::size_t chunk_size)
   }
 }
 
-FileBody::FileBody(const fs::path& path, bool auto_delete)
+FileBody::FileBody(const sfs::path& path, bool auto_delete)
     : path_(path), chunk_size_(0), auto_delete_(auto_delete), size_(0) {
   // Don't need to tell file size.
 }
 
 FileBody::~FileBody() {
   if (auto_delete_ && !path_.empty()) {
-    fs::error_code ec;
-    fs::remove(path_, ec);
+    std::error_code ec;
+    sfs::remove(path_, ec);
     if (ec) {
       LOG_ERRO("Failed to remove file (%s).", ec.message().c_str());
     }
@@ -210,7 +210,7 @@ void FileBody::Dump(std::ostream& os, const std::string& prefix) const {
   os << prefix << "<file: " << path_.u8string() << ">" << std::endl;
 }
 
-bool FileBody::Move(const fs::path& new_path) {
+bool FileBody::Move(const sfs::path& new_path) {
   if (path_ == new_path) {
     return false;
   }
@@ -219,8 +219,8 @@ bool FileBody::Move(const fs::path& new_path) {
     ifstream_.close();
   }
 
-  fs::error_code ec;
-  fs::rename(path_, new_path, ec);
+  std::error_code ec;
+  sfs::rename(path_, new_path, ec);
 
   if (ec) {
     LOG_ERRO("Failed to rename file (%s).", ec.message().c_str());

@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "webcc/client_session.h"
-#include "webcc/fs.h"
 #include "webcc/logger.h"
 
 int main(int argc, char* argv[]) {
@@ -26,7 +25,7 @@ int main(int argc, char* argv[]) {
 
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
-  const webcc::fs::path upload_dir(argv[1]);
+  const webcc::sfs::path upload_dir(argv[1]);
 
   std::string url;
   if (argc == 3) {
@@ -35,7 +34,7 @@ int main(int argc, char* argv[]) {
     url = "http://httpbin.org/post";
   }
 
-  if (!webcc::fs::is_directory(upload_dir) || !webcc::fs::exists(upload_dir)) {
+  if (!webcc::sfs::is_directory(upload_dir) || !webcc::sfs::exists(upload_dir)) {
     std::cerr << "Invalid upload dir!" << std::endl;
     return 1;
   }

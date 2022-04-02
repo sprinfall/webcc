@@ -33,18 +33,18 @@ std::string FormatHttpDate(const std::tm& gmt) {
   return date.str();
 }
 
-std::size_t TellSize(const fs::path& path) {
+std::size_t TellSize(const sfs::path& path) {
   // Flag "ate": seek to the end of stream immediately after open.
-  fs::ifstream stream{ path, std::ios::binary | std::ios::ate };
+  std::ifstream stream{ path, std::ios::binary | std::ios::ate };
   if (stream.fail()) {
     return kInvalidLength;
   }
   return static_cast<std::size_t>(stream.tellg());
 }
 
-bool ReadFile(const fs::path& path, std::string* output) {
+bool ReadFile(const sfs::path& path, std::string* output) {
   // Flag "ate": seek to the end of stream immediately after open.
-  fs::ifstream stream{ path, std::ios::binary | std::ios::ate };
+  std::ifstream stream{ path, std::ios::binary | std::ios::ate };
   if (stream.fail()) {
     return false;
   }

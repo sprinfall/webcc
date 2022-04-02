@@ -52,7 +52,6 @@ set(HEADERS
     common.h
     connection.h
     connection_pool.h
-    fs.h
     globals.h
     logger.h
     message.h

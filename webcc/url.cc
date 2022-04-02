@@ -238,10 +238,12 @@ void Url::AppendQuery(string_view key, string_view value, bool encode) {
 }
 
 void Url::Parse(string_view str) {
-  std::string tmp = ToString(str);
-  boost::trim_left(tmp);
+  string_view tmp = str;// ToString(str);
+  //boost::trim_left(tmp);
 
-  std::size_t p = std::string::npos;
+  constexpr auto npos = string_view::npos;
+
+  std::size_t p = npos;
 
   p = tmp.find("://");
   if (p != std::string::npos) {

@@ -4,14 +4,29 @@
 #include <string>
 #include <vector>
 
-#include "webcc/globals.h"  // for string_view
+#include "webcc/config.h"
+
+#if WEBCC_USE_STD_STRING_VIEW
+#include <string_view>
+#else
+#include "boost/utility/string_view.hpp"
+#endif  // WEBCC_USE_STD_STRING_VIEW
 
 namespace webcc {
 
-#if (defined(_WIN32) || defined(_WIN64))
-std::string Utf16To8(const std::wstring& utf16_string);
-std::wstring Utf8To16(const std::string& utf8_string);
+#if WEBCC_USE_STD_STRING_VIEW
+using string_view = std::string_view;
+#else
+using string_view = boost::string_view;
 #endif
+
+inline std::string ToString(string_view sv) {
+#if WEBCC_USE_STD_STRING_VIEW
+  return std::string{ sv };
+#else
+  return sv.to_string();
+#endif
+}
 
 // Generates randomly an ASCII string in the given length.
 std::string RandomAsciiString(std::size_t length);
@@ -36,6 +51,12 @@ bool SplitKV(string_view input, char delim, bool trim_spaces, string_view* key,
 // E.g., split "Connection: Keep-Alive".
 bool SplitKV(string_view input, char delim, bool trim_spaces,
              std::string* key, std::string* value);
+
+// TODO
+#if (defined(_WIN32) || defined(_WIN64))
+std::string Utf16To8(const std::wstring& utf16_string);
+std::wstring Utf8To16(const std::string& utf8_string);
+#endif
 
 }  // namespace webcc
 

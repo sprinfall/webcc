@@ -5,7 +5,6 @@
 #include <string>
 
 #include "webcc/common.h"
-#include "webcc/fs.h"
 #include "webcc/globals.h"
 
 namespace webcc {
@@ -85,8 +84,8 @@ public:
 
 private:
   std::size_t streamed_size_ = 0;
-  fs::ofstream ofstream_;
-  fs::path temp_path_;
+  std::ofstream ofstream_;
+  sfs::path temp_path_;
 };
 
 // -----------------------------------------------------------------------------

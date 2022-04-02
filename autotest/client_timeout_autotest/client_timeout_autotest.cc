@@ -70,7 +70,7 @@ TEST_F(ClientTimeoutTest, NoTimeout) {
                           Get("http://localhost/sleep/0").Port(kPort)
                           ());
 
-    EXPECT_EQ(webcc::Status::kOK, r->status());
+    EXPECT_EQ(webcc::status_codes::kOK, r->status());
     EXPECT_EQ("OK", r->reason());
 
     EXPECT_EQ(kData, r->data());

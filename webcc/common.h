@@ -6,7 +6,6 @@
 #include <utility>
 #include <vector>
 
-#include "webcc/fs.h"
 #include "webcc/globals.h"
 
 namespace webcc {
@@ -155,7 +154,7 @@ public:
   // Construct a file part.
   // The file name will be extracted from path.
   // The media type, if not provided, will be inferred from file extension.
-  static FormPartPtr NewFile(string_view name, const fs::path& path,
+  static FormPartPtr NewFile(string_view name, const sfs::path& path,
                              string_view media_type = "");
 
   // API: SERVER
@@ -226,7 +225,7 @@ private:
   std::string name_;
 
   // The path of the file to post.
-  fs::path path_;
+  sfs::path path_;
 
   // The original local file name.
   // E.g., "baby.jpg".

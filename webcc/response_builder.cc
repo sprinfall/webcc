@@ -43,7 +43,7 @@ ResponsePtr ResponseBuilder::operator()() {
   return response;
 }
 
-ResponseBuilder& ResponseBuilder::File(const fs::path& path,
+ResponseBuilder& ResponseBuilder::File(const sfs::path& path,
                                        bool infer_media_type,
                                        std::size_t chunk_size) {
   body_.reset(new FileBody{ path, chunk_size });

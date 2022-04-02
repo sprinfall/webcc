@@ -12,6 +12,16 @@ TEST(UrlTest, Basic) {
   EXPECT_EQ(url.query(), "");
 }
 
+TEST(UrlTest, Basic_TmpStr) {
+  webcc::Url url{ std::string{ "http://example.com/path" } };
+
+  EXPECT_EQ(url.scheme(), "http");
+  EXPECT_EQ(url.host(), "example.com");
+  EXPECT_EQ(url.port(), "");
+  EXPECT_EQ(url.path(), "/path");
+  EXPECT_EQ(url.query(), "");
+}
+
 TEST(UrlTest, NoPath) {
   webcc::Url url("http://example.com");
 

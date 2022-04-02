@@ -3,39 +3,20 @@
 
 #include <cassert>
 #include <exception>
+#include <filesystem>
 #include <functional>
 #include <iosfwd>
 #include <string>
 #include <vector>
 
-// for const_buffer, dynamic_string_buffer, etc.
-#include "boost/asio/buffer.hpp"
+#include "boost/asio/buffer.hpp"  // for const_buffer
 
 #include "webcc/config.h"
-
-#if WEBCC_USE_STD_STRING_VIEW
-#include <string_view>
-#else
-#include "boost/utility/string_view.hpp"
-#endif  // WEBCC_USE_STD_STRING_VIEW
+#include "webcc/string.h"
 
 namespace webcc {
 
-// -----------------------------------------------------------------------------
-
-#if WEBCC_USE_STD_STRING_VIEW
-using string_view = std::string_view;
-#else
-using string_view = boost::string_view;
-#endif  // WEBCC_USE_STD_STRING_VIEW
-
-inline std::string ToString(string_view sv) {
-#if WEBCC_USE_STD_STRING_VIEW
-  return std::string{ sv.begin(), sv.end() };
-#else
-  return sv.to_string();
-#endif  // WEBCC_USE_STD_STRING_VIEW
-}
+namespace sfs = std::filesystem;
 
 // -----------------------------------------------------------------------------
 
