@@ -4,8 +4,6 @@
 #include <iosfwd>
 #include <string>
 
-#include "boost/asio/ip/tcp.hpp"
-
 #include "webcc/globals.h"
 
 namespace webcc {
@@ -32,14 +30,6 @@ bool ReadFile(const sfs::path& path, std::string* output);
 // Dump the string data line by line to achieve more readability.
 // Also limit the maximum size of the data to be dumped.
 void DumpByLine(const std::string& data, std::ostream& os, std::string_view prefix);
-
-// Print TCP endpoint.
-// Usage: PrintEndpoint(std::cout, endpoint)
-void PrintEndpoint(std::ostream& ostream,
-                   const boost::asio::ip::tcp::endpoint& endpoint);
-
-// TCP endpoint to string.
-std::string EndpointToString(const boost::asio::ip::tcp::endpoint& endpoint);
 
 }  // namespace utility
 }  // namespace webcc

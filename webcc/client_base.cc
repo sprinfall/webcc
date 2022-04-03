@@ -1,5 +1,7 @@
 #include "webcc/client_base.h"
 
+#include <sstream>
+
 #include "boost/algorithm/string.hpp"
 
 #include "webcc/logger.h"
@@ -10,6 +12,22 @@ using boost::asio::ip::tcp;
 using namespace std::placeholders;
 
 namespace webcc {
+
+// -----------------------------------------------------------------------------
+
+// TCP endpoint to string.
+static std::string EndpointToString(const tcp::endpoint& endpoint) {
+  std::ostringstream ss;
+  ss << endpoint;
+  if (endpoint.protocol() == tcp::v4()) {
+    ss << ", v4";
+  } else if (endpoint.protocol() == tcp::v6()) {
+    ss << ", v6";
+  }
+  return ss.str();
+}
+
+// -----------------------------------------------------------------------------
 
 ClientBase::ClientBase(boost::asio::io_context& io_context)
     : io_context_(io_context),
@@ -117,7 +135,7 @@ void ClientBase::OnResolve(boost::system::error_code ec,
 #if 0
   LOG_USER("Resolved endpoints:");
   for (auto& endpoint : endpoints) {
-    LOG_USER("    - %s", utility::EndpointToString(endpoint).c_str());
+    LOG_USER("\t- %s", utility::EndpointToString(endpoint).c_str());
   }
 #endif
 

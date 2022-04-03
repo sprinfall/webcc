@@ -10,8 +10,6 @@
 #include "webcc/string.h"
 #include "webcc/version.h"
 
-using boost::asio::ip::tcp;
-
 namespace webcc {
 namespace utility {
 
@@ -59,7 +57,8 @@ bool ReadFile(const sfs::path& path, std::string* output) {
   return true;
 }
 
-void DumpByLine(const std::string& data, std::ostream& os, std::string_view prefix) {
+void DumpByLine(const std::string& data, std::ostream& os,
+                std::string_view prefix) {
   std::vector<std::string_view> lines;
   Split(data, '\n', false, &lines);
 
@@ -77,21 +76,6 @@ void DumpByLine(const std::string& data, std::ostream& os, std::string_view pref
       size += line.size();
     }
   }
-}
-
-void PrintEndpoint(std::ostream& ostream, const tcp::endpoint& endpoint) {
-  ostream << endpoint;
-  if (endpoint.protocol() == tcp::v4()) {
-    ostream << ", v4";
-  } else if (endpoint.protocol() == tcp::v6()) {
-    ostream << ", v6";
-  }
-}
-
-std::string EndpointToString(const tcp::endpoint& endpoint) {
-  std::ostringstream ss;
-  PrintEndpoint(ss, endpoint);
-  return ss.str();
 }
 
 }  // namespace utility
