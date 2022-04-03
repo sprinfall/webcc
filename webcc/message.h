@@ -37,12 +37,12 @@ public:
     headers_.Set(key, value);
   }
 
-  const std::string& GetHeader(std::string_view key, bool* existed = nullptr) const {
-    return headers_.Get(key, existed);
+  std::string_view GetHeader(std::string_view key) const {
+    return headers_.Get(key);
   }
 
-  bool HasHeader(std::string_view key) const {
-    return headers_.Has(key);
+  bool HeaderExist(std::string_view key) const {
+    return !headers_.Get(key).empty();
   }
 
   std::size_t content_length() const {
@@ -61,11 +61,14 @@ public:
 
   // Get the data from the (string) body.
   // Return empty string if the body is not a StringBody.
+  // TODO: Return string_view?
   const std::string& data() const;
 
   // Get the body as a FileBody.
   // Return null if the body is not a FileBody.
-  std::shared_ptr<FileBody> file_body() const;
+  std::shared_ptr<FileBody> file_body() const {
+    return std::dynamic_pointer_cast<FileBody>(body_);
+  }
 
   // Check the Connection header to see if it's "Keep-Alive".
   bool IsConnectionKeepAlive() const;
@@ -75,7 +78,10 @@ public:
   ContentEncoding GetContentEncoding() const;
 
   // Check the Accept-Encoding header to see if it contains "gzip".
-  bool AcceptEncodingGzip() const;
+  bool AcceptEncodingGzip() const {
+    return GetHeader(headers::kAcceptEncoding).find("gzip") !=
+           std::string_view::npos;
+  }
 
   // Set the Content-Type header.
   // E.g. SetContentType("application/json; charset=utf-8")
@@ -101,13 +107,13 @@ public:
   std::string Dump() const;
 
 protected:
-  BodyPtr body_;
+  std::string start_line_;
 
   Headers headers_;
 
-  std::string start_line_;
-
   std::size_t content_length_ = kInvalidLength;
+
+  BodyPtr body_;
 };
 
 }  // namespace webcc

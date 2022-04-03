@@ -80,7 +80,7 @@ private:
 
 // -----------------------------------------------------------------------------
 
-// For accessing URL query parameters.
+// URL query parameters.
 class UrlQuery {
 public:
   using Parameter = std::pair<std::string, std::string>;
@@ -88,7 +88,7 @@ public:
   UrlQuery() = default;
 
   // The query string should be key-value pairs separated by '&'.
-  explicit UrlQuery(const std::string& encoded_str);
+  explicit UrlQuery(std::string_view encoded_str);
 
   bool Empty() const {
     return parameters_.empty();
@@ -98,20 +98,38 @@ public:
     return parameters_.size();
   }
 
-  bool Has(const std::string& key) const {
+  bool Contain(std::string_view key) const {
     return Find(key) != parameters_.end();
   }
 
   // Get a value by key.
   // Return empty string if the key doesn't exist.
-  const std::string& Get(const std::string& key) const;
+  std::string_view Get(std::string_view key) const {
+    auto it = Find(key);
+    if (it != parameters_.end()) {
+      return it->second;
+    }
+    return std::string_view{};
+  }
 
   // Get a key-value pair by index.
-  const Parameter& Get(std::size_t index) const;
+  const Parameter& Get(std::size_t index) const {
+    assert(index < Size());
+    return parameters_[index];
+  }
 
-  void Add(const std::string& key, const std::string& value);
+  void Add(std::string_view key, std::string_view value) {
+    if (!Contain(key)) {
+      parameters_.emplace_back(key, value);
+    }
+  }
 
-  void Remove(const std::string& key);
+  void Remove(std::string_view key) {
+    auto it = Find(key);
+    if (it != parameters_.end()) {
+      parameters_.erase(it);
+    }
+  }
 
   // Return query string, encoded or not, joined with '&'.
   // E.g., "item=12731&color=blue&size=large".
@@ -120,7 +138,7 @@ public:
 private:
   using ConstIterator = std::vector<Parameter>::const_iterator;
 
-  ConstIterator Find(const std::string& key) const;
+  ConstIterator Find(std::string_view key) const;
 
 private:
   std::vector<Parameter> parameters_;

@@ -28,9 +28,8 @@ public:
     return headers_;
   }
 
+  // Return false if either `key` or `value` is empty.
   bool Set(std::string_view key, std::string_view value);
-
-  bool Has(std::string_view key) const;
 
   // Get header by index.
   const Header& Get(std::size_t index) const {
@@ -38,10 +37,15 @@ public:
     return headers_[index];
   }
 
-  // Get header value by key.
-  // If there's no such header with the given key, besides return empty, the
-  // optional `existed` parameter will be set to false.
-  const std::string& Get(std::string_view key, bool* existed = nullptr) const;
+  // Get header by key.
+  // Return empty if there's no such header with the given key
+  std::string_view Get(std::string_view key) const {
+    auto it = Find(key);
+    if (it != headers_.end()) {
+      return it->second;
+    }
+    return std::string_view{};
+  }
 
   void Clear() {
     headers_.clear();
@@ -49,6 +53,10 @@ public:
 
 private:
   std::vector<Header>::iterator Find(std::string_view key);
+
+  std::vector<Header>::const_iterator Find(std::string_view key) const {
+    return const_cast<Headers*>(this)->Find(key);
+  }
 
   std::vector<Header> headers_;
 };

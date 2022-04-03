@@ -12,8 +12,7 @@ bool Router::Route(std::string_view url, ViewPtr view,
                    std::vector<std::string>&& methods) {
   assert(view);
 
-  routes_.emplace_back(url, view,
-                       std::forward<std::vector<std::string>>(methods));
+  routes_.emplace_back(url, view, std::move(methods));
 
   return true;
 }
@@ -22,11 +21,8 @@ bool Router::Route(const UrlRegex& regex_url, ViewPtr view,
                    std::vector<std::string>&& methods) {
   assert(view);
 
-  // TODO: More error check
-
   try {
-    routes_.emplace_back(regex_url(), view,
-                         std::forward<std::vector<std::string>>(methods));
+    routes_.emplace_back(regex_url(), view, std::move(methods));
 
   } catch (const std::regex_error& e) {
     LOG_ERRO("Not a valid regular expression: %s", e.what());

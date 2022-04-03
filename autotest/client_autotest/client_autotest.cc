@@ -44,7 +44,7 @@ TEST(ClientTest, Head) {
     EXPECT_EQ(webcc::status_codes::kOK, r->status());
     EXPECT_EQ("OK", r->reason());
 
-    EXPECT_TRUE(r->HasHeader(webcc::headers::kContentLength));
+    EXPECT_TRUE(r->HeaderExist(webcc::headers::kContentLength));
 
     // The response of HTTP HEAD method has no body.
     EXPECT_EQ("", r->data());

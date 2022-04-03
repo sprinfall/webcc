@@ -2,16 +2,13 @@
 
 #include "webcc/response_builder.h"
 
-// Empty body should also have `Content-Length` header.
+// Empty body should also have a Content-Length header.
 TEST(ResponseBuilderTest, EmptyBody) {
   using namespace webcc;
 
   auto response = ResponseBuilder{}.OK()();
 
-  bool existed = false;
-  const std::string& value =
-      response->GetHeader(headers::kContentLength, &existed);
+  std::string_view value = response->GetHeader(headers::kContentLength);
 
-  EXPECT_TRUE(existed);
   EXPECT_EQ(value, "0");
 }

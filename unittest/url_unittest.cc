@@ -92,7 +92,6 @@ TEST(UrlTest, Full) {
   EXPECT_EQ(url.query(), "key=value");
 }
 
-
 TEST(UrlTest, IPv6) {
   webcc::Url url("http://[::1]:8080");
 
@@ -102,3 +101,5 @@ TEST(UrlTest, IPv6) {
   EXPECT_EQ(url.path(), "");
   EXPECT_EQ(url.query(), "");
 }
+
+// TODO: Add cases for UrlQuery

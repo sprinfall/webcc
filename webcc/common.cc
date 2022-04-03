@@ -13,7 +13,7 @@ namespace webcc {
 // -----------------------------------------------------------------------------
 
 bool Headers::Set(std::string_view key, std::string_view value) {
-  if (value.empty()) {
+  if (key.empty() || value.empty()) {
     return false;
   }
 
@@ -25,26 +25,6 @@ bool Headers::Set(std::string_view key, std::string_view value) {
   }
 
   return true;
-}
-
-bool Headers::Has(std::string_view key) const {
-  return const_cast<Headers*>(this)->Find(key) != headers_.end();
-}
-
-// TODO: Return std::string_view ?
-const std::string& Headers::Get(std::string_view key, bool* existed) const {
-  auto it = const_cast<Headers*>(this)->Find(key);
-
-  if (existed != nullptr) {
-    *existed = (it != headers_.end());
-  }
-
-  if (it != headers_.end()) {
-    return it->second;
-  }
-
-  static const std::string s_no_value;
-  return s_no_value;
 }
 
 std::vector<Header>::iterator Headers::Find(std::string_view key) {

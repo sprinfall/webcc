@@ -39,36 +39,25 @@ const std::string& Message::data() const {
   return string_body->data();
 }
 
-std::shared_ptr<FileBody> Message::file_body() const {
-  return std::dynamic_pointer_cast<FileBody>(body_);
-}
-
 bool Message::IsConnectionKeepAlive() const {
-  bool existed = false;
-  const auto& connection = GetHeader(headers::kConnection, &existed);
-
-  if (!existed) {
-    // Keep-Alive is by default for HTTP/1.1.
+  std::string_view value = GetHeader(headers::kConnection);
+  if (value.empty()) {
+    // The Connection header doesn't exist.
+    // Return true since keep-alive is by default for HTTP/1.1.
     return true;
   }
-
-  return boost::iequals(connection, "Keep-Alive");
+  return boost::iequals(value, "Keep-Alive");
 }
 
 ContentEncoding Message::GetContentEncoding() const {
-  const auto& encoding = GetHeader(headers::kContentEncoding);
-
-  if (encoding == "gzip") {
+  std::string_view value = GetHeader(headers::kContentEncoding);
+  if (value == "gzip") {
     return ContentEncoding::kGzip;
-  } else if (encoding == "deflate") {
+  } else if (value == "deflate") {
     return ContentEncoding::kDeflate;
   } else {
     return ContentEncoding::kUnknown;
   }
-}
-
-bool Message::AcceptEncodingGzip() const {
-  return GetHeader(headers::kAcceptEncoding).find("gzip") != std::string::npos;
 }
 
 void Message::SetContentType(std::string_view media_type,

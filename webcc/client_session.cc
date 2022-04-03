@@ -185,13 +185,13 @@ ResponsePtr ClientSession::Send(RequestPtr request, bool stream,
   }
 
   for (auto& h : headers_.data()) {
-    if (!request->HasHeader(h.first)) {
+    if (!request->HeaderExist(h.first)) {
       request->SetHeader(h.first, h.second);
     }
   }
 
-  if (!request->body()->IsEmpty() &&
-      !media_type_.empty() && !request->HasHeader(headers::kContentType)) {
+  if (!request->body()->IsEmpty() && !media_type_.empty() &&
+      !request->HeaderExist(headers::kContentType)) {
     request->SetContentType(media_type_, charset_);
   }
 
