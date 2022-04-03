@@ -110,6 +110,11 @@ bool Server::IsRunning() const {
 }
 
 void Server::CheckDocRoot() {
+  if (doc_root_.empty()) {
+    LOG_WARN("No doc root specified");
+    return;
+  }
+
   try {
     if (!sfs::exists(doc_root_) || !sfs::is_directory(doc_root_)) {
       LOG_ERRO("Doc root is not an existing directory!");
@@ -122,12 +127,12 @@ void Server::CheckDocRoot() {
 
     doc_root_ = sfs::canonical(doc_root_);
 
-  } catch (sfs::filesystem_error& e) {
-    LOG_ERRO("Doc root error: %s", e.what());
+    LOG_INFO("Doc root: %s", doc_root_.u8string().c_str());
+
+  } catch (const sfs::filesystem_error& e) {
+    LOG_ERRO("Invalid doc root: %s", e.what());
     doc_root_.clear();
   }
-
-  LOG_INFO("Doc root: %s", doc_root_.u8string().c_str());
 }
 
 void Server::AddSignals() {

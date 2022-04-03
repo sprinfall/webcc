@@ -25,7 +25,7 @@ public:
   Server(const Server&) = delete;
   Server& operator=(const Server&) = delete;
 
-  ~Server() = default;
+  ~Server() override = default;
 
   void set_buffer_size(std::size_t buffer_size) {
     if (buffer_size > 0) {
