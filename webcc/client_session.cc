@@ -25,14 +25,19 @@
 #include "webcc/ssl_client.h"
 #endif
 
+#if WEBCC_ENABLE_SSL
+namespace ssl = boost::asio::ssl;
+#endif
+
 namespace webcc {
+
+#if WEBCC_ENABLE_SSL
 
 // -----------------------------------------------------------------------------
 
-#if WEBCC_ENABLE_SSL
 #if (defined(_WIN32) || defined(_WIN64))
 
-// Let OpenSSL on Windows use the system certificate store
+// Let OpenSSL on Windows use the system certificate store.
 //   1. Load your certificate (in PCCERT_CONTEXT structure) from Windows Cert
 //      store using Crypto APIs.
 //   2. Get encrypted content of it in binary format as it is.
@@ -44,32 +49,46 @@ namespace webcc {
 //   5. Load above parsed X509 certificate into this trust store using
 //      X509_STORE_add_cert() method.
 //   6. You are done!
-// NOTES: Enum Windows store with "ROOT" (not "CA").
 // See: https://stackoverflow.com/a/11763389/6825348
 
 static bool UseSystemCertificateStore(SSL_CTX* ssl_ctx) {
+  LOG_INFO("Use Windows certificate store");
+
   // NOTE: Cannot use nullptr to replace NULL.
+  // Enum Windows store with "ROOT" (not "CA").
   HCERTSTORE cert_store = CertOpenSystemStoreW(NULL, L"ROOT");
   if (cert_store == nullptr) {
-    LOG_ERRO("Cannot open Windows system certificate store.");
+    LOG_ERRO("Cannot open Windows certificate store");
     return false;
   }
 
   X509_STORE* x509_store = SSL_CTX_get_cert_store(ssl_ctx);
   PCCERT_CONTEXT cert_context = nullptr;
+  int count = 0;
 
   while (cert_context = CertEnumCertificatesInStore(cert_store, cert_context)) {
     auto in = (const unsigned char**)&cert_context->pbCertEncoded;
     X509* x509 = d2i_X509(nullptr, in, cert_context->cbCertEncoded);
 
     if (x509 != nullptr) {
+      ++count;
+
+#if 0
+      // Log the issuer for debug purpose.
+      CERT_NAME_BLOB issuer_blob = cert_context->pCertInfo->Issuer;
+      std::string issuer((const char*)issuer_blob.pbData, issuer_blob.cbData);
+      LOG_INFO("Certificate issuer: %s", issuer.c_str());
+#endif
+
       if (X509_STORE_add_cert(x509_store, x509) == 0) {
-        LOG_ERRO("Cannot add Windows root certificate.");
+        LOG_ERRO("Add certificate error!");
       }
 
       X509_free(x509);
     }
   }
+
+  LOG_INFO("Certificate added: %d", count);
 
   CertFreeCertificateContext(cert_context);
   CertCloseStore(cert_store, 0);
@@ -77,26 +96,135 @@ static bool UseSystemCertificateStore(SSL_CTX* ssl_ctx) {
 }
 
 #endif  // defined(_WIN32) || defined(_WIN64)
-#endif  // WEBCC_ENABLE_SSL
 
 // -----------------------------------------------------------------------------
 
-ClientSession::ClientSession(std::size_t buffer_size)
-    : buffer_size_(buffer_size) {
-  InitHeaders();
+// NOTE:
+// Because SSL context needs to be shared among SSL sessions, the ssl::context
+// class is fully, internally thread safe. You can use an ssl::context object
+// in multiple SSL connections and from multiple threads however you want.
+// See: https://stackoverflow.com/a/33519766/6825348
 
-  Start();
-}
+class SslContextManager {
+public:
+  static SslContextManager* Instance() {
+    static SslContextManager s_instance;
+    return &s_instance;
+  }
 
-ClientSession::~ClientSession() {
-  Stop();
+  void AddContext(const std::string& key, SslContextPtr ssl_context) {
+    assert(ssl_context != nullptr);
+    std::lock_guard<std::mutex> lock{ mutex_ };
+    ssl_context_map_[key] = ssl_context;
+  }
+
+  bool AddContext(const std::string& key, const std::string& cert_file) {
+    std::lock_guard<std::mutex> lock{ mutex_ };
+
+    auto ssl_context =
+        std::make_shared<ssl::context>(ssl::context::sslv23_client);
+
+    boost::system::error_code ec;
+    ssl_context->load_verify_file(cert_file, ec);
+
+    if (ec) {
+      return false;
+    }
+
+    ssl_context_map_[key] = ssl_context;
+
+    return true;
+  }
+
+  // Add a certificate to the SSL context with the given key.
+  bool AddCertificate(const std::string& key,
+                      boost::asio::const_buffer cert_buffer) {
+    std::lock_guard<std::mutex> lock{ mutex_ };
+
+    SslContextPtr ssl_context;
+
+    auto iter = ssl_context_map_.find(key);
+    if (iter == ssl_context_map_.end()) {
+      ssl_context = std::make_shared<ssl::context>(ssl::context::sslv23_client);
+      ssl_context_map_[key] = ssl_context;
+    } else {
+      ssl_context = iter->second;
+    }
+
+    boost::system::error_code ec;
+    ssl_context->add_certificate_authority(cert_buffer, ec);
+    // -> X509_STORE_add_cert()
+
+    if (ec) {
+      return false;
+    }
+
+    return true;
+  }
+
+  SslContextPtr Get(const std::string& key) {
+    std::lock_guard<std::mutex> lock{ mutex_ };
+
+    auto iter = ssl_context_map_.find(key);
+    if (iter != ssl_context_map_.end()) {
+      return iter->second;
+    }
+
+    return GetDefault();
+  }
+
+protected:
+  SslContextManager() = default;
+
+  SslContextPtr GetDefault() {
+    if (default_ssl_context_ != nullptr) {
+      return default_ssl_context_;
+    }
+
+    default_ssl_context_.reset(new ssl::context{ ssl::context::sslv23_client });
+
+#if (defined(_WIN32) || defined(_WIN64))
+    UseSystemCertificateStore(default_ssl_context_->native_handle());
+#else
+    default_ssl_context_->set_default_verify_paths();
+#endif
+
+    return default_ssl_context_;
+  }
+
+private:
+  std::map<std::string, SslContextPtr> ssl_context_map_;
+  SslContextPtr default_ssl_context_;
+  std::mutex mutex_;
+};
+
+#define SSL_CONTEXT_MANAGER SslContextManager::Instance()
+
+#endif  // WEBCC_ENABLE_SSL
+
+// -----------------------------------------------------------------------------
+// static functions
 
 #if WEBCC_ENABLE_SSL
-  if (ssl_context_ != nullptr) {
-    delete ssl_context_;
-  }
-#endif  // WEBCC_ENABLE_SSL
+
+bool ClientSession::AddCertificate(const std::string& ssl_context_key,
+                                   boost::asio::const_buffer cert_buffer) {
+  return SSL_CONTEXT_MANAGER->AddCertificate(ssl_context_key, cert_buffer);
 }
+
+bool ClientSession::AddSslContext(const std::string& key,
+                                  const std::string& cert_file) {
+  return SSL_CONTEXT_MANAGER->AddContext(key, cert_file);
+}
+
+void ClientSession::AddSslContext(const std::string& key,
+                                  SslContextPtr ssl_context) {
+  return SSL_CONTEXT_MANAGER->AddContext(key, ssl_context);
+}
+
+#endif  // WEBCC_ENABLE_SSL
+
+// -----------------------------------------------------------------------------
 
 void ClientSession::Start() {
   if (started_) {
@@ -227,34 +355,13 @@ ClientPtr ClientSession::CreateClient(const std::string& url_scheme) {
 
 #if WEBCC_ENABLE_SSL
   if (boost::iequals(url_scheme, "https")) {
-    CreateSslContext();  // If it's not created yet
-    return std::make_shared<SslClient>(io_context_, *ssl_context_);
+    auto ssl_context = SSL_CONTEXT_MANAGER->Get(ssl_context_key_);
+    return std::make_shared<SslClient>(io_context_, *ssl_context);
   }
 #endif  // WEBCC_ENABLE_SSL
 
   return {};
 }
-
-#if WEBCC_ENABLE_SSL
-
-void ClientSession::CreateSslContext() {
-  if (ssl_context_ != nullptr) {
-    return;
-  }
-
-  namespace ssl = boost::asio::ssl;
-
-  ssl_context_ = new ssl::context{ ssl::context::sslv23_client };
-
-#if (defined(_WIN32) || defined(_WIN64))
-    UseSystemCertificateStore(ssl_context_->native_handle());
-#else
-    // Use the default paths for finding CA certificates.
-    ssl_context_->set_default_verify_paths();
-#endif
-}
-
-#endif  // WEBCC_ENABLE_SSL
 
 ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream,
                                   ProgressCallback callback) {

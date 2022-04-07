@@ -19,17 +19,50 @@
 
 namespace webcc {
 
+#if WEBCC_ENABLE_SSL
+using SslContextPtr = std::shared_ptr<boost::asio::ssl::context>;
+#endif
+
 // Client session provides connection-pooling, configuration and more.
 // If a client session is shared by multiple threads, the requests sent through
 // it will be serialized by using a mutex.
 class ClientSession {
 public:
-  explicit ClientSession(std::size_t buffer_size = 0);
+#if WEBCC_ENABLE_SSL
+
+  // Add a certificate to the SSL context with the given key.
+  // You can add multiple certificates to the same SSL context via this method.
+  // The certificate is represented as an asio::const_buffer instead of a file
+  // path, this is especially useful if your certificate file is embedded into
+  // the executable (e.g., the resource file in Qt applications).
+  static bool AddCertificate(const std::string& ssl_context_key,
+                             boost::asio::const_buffer cert_buffer);
+
+  // Add a SSL context by loading the certificate (chain) file.
+  static bool AddSslContext(const std::string& key,
+                            const std::string& cert_file);
+
+  // Add a SSL context created by the user.
+  static void AddSslContext(const std::string& key, SslContextPtr ssl_context);
+
+#endif  // WEBCC_ENABLE_SSL
+
+#if WEBCC_ENABLE_SSL
+  explicit ClientSession(std::string_view ssl_context_key = "default")
+      : ssl_context_key_(ssl_context_key) {
+#else
+  ClientSession() {
+#endif  // WEBCC_ENABLE_SSL
+    InitHeaders();
+    Start();
+  }
 
   ClientSession(const ClientSession&) = delete;
   ClientSession& operator=(const ClientSession&) = delete;
 
-  ~ClientSession();
+  ~ClientSession() {
+    Stop();
+  }
 
   // Start Asio loop in a thread.
   // You don't have to call Start() manually because it's called by the
@@ -74,11 +107,9 @@ public:
   void Accept(std::string_view content_types);
 
 #if WEBCC_ENABLE_GZIP
-
   // Accept Gzip compressed response data or not.
   void AcceptGzip(bool gzip = true);
-
-#endif  // WEBCC_ENABLE_GZIP
+#endif
 
   // Set authorization.
   // NOTE: Don't use std::string_view!
@@ -118,11 +149,6 @@ private:
   // Create a client object according to the URL scheme.
   ClientPtr CreateClient(const std::string& url_scheme);
 
-#if WEBCC_ENABLE_SSL
-  // Create SSL context if it's not created.
-  void CreateSslContext();
-#endif
-
   ResponsePtr DoSend(RequestPtr request, bool stream,
                      ProgressCallback callback);
 
@@ -137,8 +163,8 @@ private:
   std::unique_ptr<WorkGuard> work_guard_;
 
 #if WEBCC_ENABLE_SSL
-  // SSL context is lazily created on the first HTTPS request.
-  boost::asio::ssl::context* ssl_context_ = nullptr;
+  // The key to find the SSL context.
+  std::string ssl_context_key_;
 #endif
 
   // Is Asio loop running?
@@ -163,7 +189,7 @@ private:
 
   // The size of the buffer for reading response.
   // 0 means default value will be used.
-  std::size_t buffer_size_;
+  std::size_t buffer_size_ = 0u;
 
   // Persistent (keep-alive) client connections.
   ClientPool pool_;

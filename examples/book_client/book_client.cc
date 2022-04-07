@@ -7,8 +7,7 @@
 
 #include "book_json.h"
 
-BookClient::BookClient(const std::string& url, int timeout)
-    : url_(url), session_(timeout) {
+BookClient::BookClient(const std::string& url) : url_(url) {
   // Default Content-Type for requests with a body.
   session_.SetContentType("application/json", "utf-8");
 }

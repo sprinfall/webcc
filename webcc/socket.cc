@@ -3,6 +3,7 @@
 #include "boost/asio/connect.hpp"
 #include "boost/asio/read.hpp"
 #include "boost/asio/write.hpp"
+#include "boost/core/ignore_unused.hpp"
 
 #include "webcc/logger.h"
 
@@ -15,6 +16,8 @@ Socket::Socket(boost::asio::io_context& io_context) : socket_(io_context) {
 
 void Socket::AsyncConnect(const std::string& host, const Endpoints& endpoints,
                           ConnectHandler&& handler) {
+  boost::ignore_unused(host);
+
   boost::asio::async_connect(socket_, endpoints, std::move(handler));
 }
 

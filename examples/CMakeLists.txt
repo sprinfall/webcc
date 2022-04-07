@@ -35,6 +35,10 @@ if(WEBCC_ENABLE_SSL)
     add_executable(google_client google_client.cc)
     target_link_libraries(google_client ${EXAMPLE_LIBS})
     set_target_properties(google_client PROPERTIES FOLDER "Examples")
+
+    add_executable(ssl_certificate ssl_certificate.cc)
+    target_link_libraries(ssl_certificate ${EXAMPLE_LIBS})
+    set_target_properties(ssl_certificate PROPERTIES FOLDER "Examples")
 endif()
 
 if(WIN32)

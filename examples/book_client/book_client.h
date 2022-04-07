@@ -15,7 +15,7 @@ namespace sfs = std::filesystem;
 
 class BookClient {
 public:
-  explicit BookClient(const std::string& url, int timeout = 0);
+  explicit BookClient(const std::string& url);
 
   ~BookClient() = default;
 

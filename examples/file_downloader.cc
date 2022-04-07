@@ -14,12 +14,12 @@ int main(int argc, char* argv[]) {
   if (argc != 3) {
     std::cout << "Usage: file_downloader <url> <path>" << std::endl;
     std::cout << std::endl;
-    std::cout << "Examples:" << std::endl;
+    std::cout << "Example:" << std::endl;
+    std::cout << "  $ file_downloader http://httpbin.org/image/jpeg ./test.jpg"
+              << std::endl;
     std::cout
-        << "  $ ./file_downloader http://httpbin.org/image/jpeg ~/test.jpg"
-        << std::endl;
-    std::cout << "  $ ./file_downloader https://www.google.com/favicon.ico"
-              << " ~/test.ico" << std::endl;
+        << "  $ file_downloader https://www.google.com/favicon.ico ./test.ico"
+        << "" << std::endl;
     return 1;
   }
 

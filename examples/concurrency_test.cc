@@ -1,3 +1,5 @@
+// concurrency_test.cc
+
 #include <iostream>
 #include <string>
 #include <thread>
@@ -9,9 +11,8 @@
 int main(int argc, const char* argv[]) {
   if (argc < 3) {
     std::cerr << "Usage: concurrency_test <workers> <url>" << std::endl;
-    std::cerr << "E.g.," << std::endl;
-    std::cerr << "  $ concurrency_test 10 https://api.github.com/public/events"
-              << std::endl;
+    std::cerr << "Example:" << std::endl;
+    std::cerr << "  $ concurrency_test 10 http://httpbin.org/get" << std::endl;
     std::cerr << "  $ concurrency_test 10 http://localhost:8080/" << std::endl;
     return 1;
   }

@@ -31,6 +31,8 @@ private:
   void OnConnect(boost::system::error_code ec,
                  boost::asio::ip::tcp::endpoint endpoint);
 
+  std::string host_;
+
   ConnectHandler connect_handler_;
   boost::asio::ip::tcp::endpoint endpoint_;
 
