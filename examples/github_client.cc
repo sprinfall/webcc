@@ -128,14 +128,17 @@ int main() {
 
   webcc::ClientSession session;
 
+  session.SetHeader(webcc::headers::kConnection, "Close");
+
 #if WEBCC_ENABLE_GZIP
   session.AcceptGzip();
 #endif
 
-  ListEvents(session);
+  ListUserFollowers(session, "sprinfall");
 
-  //ListUserFollowers(session, "sprinfall");
   //ListAuthUserFollowers(session, "sprinfall@gmail.com", "<password>");
+
+  //ListEvents(session);
 
   return 0;
 }

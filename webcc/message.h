@@ -75,7 +75,7 @@ public:
     return std::dynamic_pointer_cast<FileBody>(body_);
   }
 
-  // Check the Connection header to see if it's "Keep-Alive".
+  // Check if this message requests to keep-alive.
   bool IsConnectionKeepAlive() const;
 
   // Determine content encoding (gzip, deflate or unknown) from

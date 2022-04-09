@@ -205,6 +205,10 @@ private:
 // -----------------------------------------------------------------------------
 // static functions
 
+static std::string ClientKeyFromUrl(const Url& url) {
+  return url.scheme() + "-" + url.host() + "-" + url.port();
+}
+
 #if WEBCC_ENABLE_SSL
 
 bool ClientSession::AddCertificate(const std::string& ssl_context_key,
@@ -227,9 +231,13 @@ void ClientSession::AddSslContext(const std::string& key,
 // -----------------------------------------------------------------------------
 
 void ClientSession::Start() {
+  std::lock_guard<std::mutex> lock{ mutex_ };
+
   if (started_) {
     return;
   }
+
+  LOG_INFO("Start loop...");
 
   started_ = true;
 
@@ -246,15 +254,31 @@ void ClientSession::Start() {
 }
 
 void ClientSession::Stop() {
+  std::lock_guard<std::mutex> lock{ mutex_ };
+
   if (!started_) {
     return;
   }
 
-  Cancel();
+  LOG_INFO("Stop loop...");
 
-  // NOTE(20220221): Don't call `io_context_.stop()` instead!
+  if (current_client_) {
+    auto key = ClientKeyFromUrl(current_client_->request()->url());
+    client_pool_.Remove(key);
+
+    // This will cause `client->Send()` to return with an error.
+    current_client_->Close();
+
+    LOG_INFO("Ongoing request canceled");
+  }
+
+  client_pool_.Clear();
+
+  // Reset the work guard to let the loop stop.
+  // Calling `io_context_.stop()` instead is wrong!
   work_guard_.reset();
 
+  // Wait for the thread to run the loop to finish.
   io_thread_->join();
 
   LOG_INFO("Loop stopped");
@@ -262,51 +286,21 @@ void ClientSession::Stop() {
   started_ = false;
 }
 
-void ClientSession::Accept(std::string_view content_types) {
-  if (!content_types.empty()) {
-    headers_.Set(headers::kAccept, content_types);
+bool ClientSession::Cancel() {
+  std::lock_guard<std::mutex> lock{ mutex_ };
+
+  if (current_client_) {
+    current_client_->Close();
+    LOG_INFO("Ongoing request canceled");
+    return true;
   }
+
+  return false;
 }
-
-#if WEBCC_ENABLE_GZIP
-
-// Content-Encoding Tokens:
-//   (https://en.wikipedia.org/wiki/HTTP_compression)
-//
-// * compress 每 UNIX "compress" program method (historic; deprecated in most
-//              applications and replaced by gzip or deflate);
-// * deflate  每 compression based on the deflate algorithm, a combination of
-//              the LZ77 algorithm and Huffman coding, wrapped inside the
-//              zlib data format;
-// * gzip     每 GNU zip format. Uses the deflate algorithm for compression,
-//              but the data format and the checksum algorithm differ from
-//              the "deflate" content-encoding. This method is the most
-//              broadly supported as of March 2011.
-// * identity 每 No transformation is used. This is the default value for
-//              content coding.
-//
-// A note about "deflate":
-// "gzip" is the gzip format, and "deflate" is the zlib format. They should
-// probably have called the second one "zlib" instead to avoid confusion with
-// the raw deflate compressed data format.
-// Simply put, "deflate" is not recommended for HTTP 1.1 encoding.
-// (https://www.zlib.net/zlib_faq.html#faq39)
-
-void ClientSession::AcceptGzip(bool gzip) {
-  if (gzip) {
-    headers_.Set(headers::kAcceptEncoding, "gzip, deflate");
-  } else {
-    headers_.Set(headers::kAcceptEncoding, "identity");
-  }
-}
-
-#endif  // WEBCC_ENABLE_GZIP
 
 ResponsePtr ClientSession::Send(RequestPtr request, bool stream,
                                 ProgressCallback callback) {
   assert(request);
-
-  std::lock_guard<std::mutex> lock{ mutex_ };
 
   if (!started_) {
     throw Error{ Error::kStateError, "Loop is not running" };
@@ -328,14 +322,6 @@ ResponsePtr ClientSession::Send(RequestPtr request, bool stream,
   return DoSend(request, stream, callback);
 }
 
-bool ClientSession::Cancel() {
-  if (client_) {
-    client_->Close();
-    return true;
-  }
-  return false;
-}
-
 void ClientSession::InitHeaders() {
   headers_.Set(headers::kUserAgent, utility::UserAgent());
 
@@ -345,10 +331,11 @@ void ClientSession::InitHeaders() {
   // Please overwrite with AcceptGzip().
   headers_.Set(headers::kAcceptEncoding, "identity");
 
-  headers_.Set(headers::kConnection, "Keep-Alive");
+  // Keep-alive by default.
+  KeepAlive(true);
 }
 
-ClientPtr ClientSession::CreateClient(const std::string& url_scheme) {
+BlockingClientPtr ClientSession::CreateClient(const std::string& url_scheme) {
   if (boost::iequals(url_scheme, "http")) {
     return std::make_shared<Client>(io_context_);
   }
@@ -365,12 +352,12 @@ ClientPtr ClientSession::CreateClient(const std::string& url_scheme) {
 
 ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream,
                                   ProgressCallback callback) {
-  const ClientPool::Key key{ request->url() };
+  const auto key = ClientKeyFromUrl(request->url());
 
   // Reuse a pooled connection.
   bool reuse = false;
 
-  ClientPtr client = pool_.Get(key);
+  BlockingClientPtr client = client_pool_.Get(key);
   
   if (!client) {
     client = CreateClient(request->url().scheme());
@@ -379,7 +366,7 @@ ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream,
     }
     reuse = false;
   } else {
-    LOG_VERB("Reuse an existing connection");
+    LOG_INFO("Reuse an existing connection");
     reuse = true;
   }
 
@@ -390,29 +377,32 @@ ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream,
   client->set_progress_callback(callback);
 
   // Save current client for cancel.
-  client_ = client;
+  mutex_.lock();
+  current_client_ = client;
+  mutex_.unlock();
 
-  Error error = client->Request(request, stream);
+  Error error = client->Send(request, stream);
 
-  client_.reset();
+  mutex_.lock();
+  current_client_.reset();
+  mutex_.unlock();
 
   if (error) {
-    // Remove the failed connection from pool.
     if (reuse) {
-      pool_.Remove(key);
+      // Remove the failed connection from pool.
+      client_pool_.Remove(key);
     }
+    LOG_ERRO("Error raised");
     throw error;
   }
 
-  // Update connection pool.
-
   if (reuse) {
     if (!client->connected()) {
-      pool_.Remove(key);
+      client_pool_.Remove(key);
     }
   } else {
     if (client->connected()) {
-      pool_.Add(key, client);
+      client_pool_.Add(key, client);
     }
   }
 

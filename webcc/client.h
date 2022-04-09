@@ -1,15 +1,15 @@
 #ifndef WEBCC_CLIENT_H_
 #define WEBCC_CLIENT_H_
 
-#include "webcc/client_base.h"
+#include "webcc/blocking_client_base.h"
 #include "webcc/socket.h"
 
 namespace webcc {
 
-class Client final : public ClientBase {
+class Client final : public BlockingClientBase {
 public:
   explicit Client(boost::asio::io_context& io_context)
-      : ClientBase(io_context) {
+      : BlockingClientBase(io_context) {
   }
 
   ~Client() = default;

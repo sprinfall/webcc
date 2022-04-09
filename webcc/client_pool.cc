@@ -4,20 +4,10 @@
 
 namespace webcc {
 
-ClientPool::~ClientPool() {
-  if (!clients_.empty()) {
-    LOG_INFO("Close socket for all (%u) connections in the pool",
-             clients_.size());
+BlockingClientPtr ClientPool::Get(const Key& key) const {
+  std::lock_guard<std::mutex> lock{ mutex_ };
 
-    for (auto& pair : clients_) {
-      pair.second->Close();
-    }
-  }
-}
-
-ClientPtr ClientPool::Get(const Key& key) const {
   auto it = clients_.find(key);
-
   if (it != clients_.end()) {
     return it->second;
   } else {
@@ -25,18 +15,32 @@ ClientPtr ClientPool::Get(const Key& key) const {
   }
 }
 
-void ClientPool::Add(const Key& key, ClientPtr client) {
-  clients_[key] = client;
+void ClientPool::Add(const Key& key, BlockingClientPtr client) {
+  std::lock_guard<std::mutex> lock{ mutex_ };
 
-  LOG_INFO("Connection added to pool (%s, %s, %s)",
-           key.scheme.c_str(), key.host.c_str(), key.port.c_str());
+  clients_[key] = client;
+  LOG_INFO("Connection added to pool (%s)", key.c_str());
 }
 
 void ClientPool::Remove(const Key& key) {
-  clients_.erase(key);
+  std::lock_guard<std::mutex> lock{ mutex_ };
 
-  LOG_INFO("Connection removed from pool (%s, %s, %s)",
-           key.scheme.c_str(), key.host.c_str(), key.port.c_str());
+  if (clients_.erase(key) == 1) {
+    LOG_INFO("Connection removed from pool (%s)", key.c_str());
+  }
+}
+
+void ClientPool::Clear() {
+  std::lock_guard<std::mutex> lock{ mutex_ };
+
+  if (!clients_.empty()) {
+    LOG_INFO("Close socket for all (%u) connections in the pool",
+             clients_.size());
+    for (auto& pair : clients_) {
+      pair.second->Close();
+    }
+    clients_.clear();
+  }
 }
 
 }  // namespace webcc

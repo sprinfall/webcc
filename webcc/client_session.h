@@ -64,15 +64,6 @@ public:
     Stop();
   }
 
-  // Start Asio loop in a thread.
-  // You don't have to call Start() manually because it's called by the
-  // constructor.
-  void Start();
-
-  // Stop Asio loop.
-  // You can call Start() to resume the loop.
-  void Stop();
-
   void set_connect_timeout(int timeout) {
     if (timeout > 0) {
       connect_timeout_ = timeout;
@@ -93,6 +84,11 @@ public:
     headers_.Set(key, value);
   }
 
+  // Turn off the keep-alive connection which is enabled by default.
+  void KeepAlive(bool keep_alive) {
+    headers_.Set(headers::kConnection, keep_alive ? "Keep-Alive" : "Close");
+  }
+
   // Set Content-Type header, e.g., ("application/json", "utf-8").
   // Only applied when:
   //   - the request to send has no Content-Type header, and
@@ -104,12 +100,18 @@ public:
   }
 
   // Set content types to accept.
-  void Accept(std::string_view content_types);
+  void Accept(std::string_view content_types) {
+    if (!content_types.empty()) {
+      headers_.Set(headers::kAccept, content_types);
+    }
+  }
 
 #if WEBCC_ENABLE_GZIP
   // Accept Gzip compressed response data or not.
-  void AcceptGzip(bool gzip = true);
-#endif
+  void AcceptGzip(bool gzip = true) {
+    headers_.Set(headers::kAcceptEncoding, gzip ? "gzip, deflate" : "identity");
+  }
+#endif  // WEBCC_ENABLE_GZIP
 
   // Set authorization.
   // NOTE: Don't use std::string_view!
@@ -129,6 +131,20 @@ public:
     return Auth("Token", token);
   }
 
+  // Start Asio loop in a thread.
+  // You don't have to call Start() manually because it's called by the
+  // constructor.
+  void Start();
+
+  // Stop Asio loop.
+  // You can call Start() to resume the loop.
+  void Stop();
+
+  // Cancel any in-progress connecting, writing or reading.
+  // Return if any client object has been closed.
+  // It could be used to exit the program as soon as possible.
+  bool Cancel();
+
   // Send a request.
   // Please use RequestBuilder to build the request.
   // If `stream` is true, the response data will be written into a temp file,
@@ -138,16 +154,11 @@ public:
   ResponsePtr Send(RequestPtr request, bool stream = false,
                    ProgressCallback callback = {});
 
-  // Cancel any in-progress connecting, writing or reading.
-  // Return if any client object has been closed.
-  // It could be used to exit the program as soon as possible.
-  bool Cancel();
-
 private:
   void InitHeaders();
 
   // Create a client object according to the URL scheme.
-  ClientPtr CreateClient(const std::string& url_scheme);
+  BlockingClientPtr CreateClient(const std::string& url_scheme);
 
   ResponsePtr DoSend(RequestPtr request, bool stream,
                      ProgressCallback callback);
@@ -169,6 +180,9 @@ private:
 
   // Is Asio loop running?
   bool started_ = false;
+
+  // The mutex to guard the session state (start, stop, cancel, etc.).
+  std::mutex mutex_;
 
   // The media (or MIME) type of Content-Type header.
   // E.g., "application/json".
@@ -192,13 +206,10 @@ private:
   std::size_t buffer_size_ = 0u;
 
   // Persistent (keep-alive) client connections.
-  ClientPool pool_;
+  ClientPool client_pool_;
 
-  // Current requested client.
-  ClientPtr client_;
-
-  // The mutex to serialize the requests.
-  std::mutex mutex_;
+  // Current requesting client.
+  BlockingClientPtr current_client_;
 };
 
 }  // namespace webcc

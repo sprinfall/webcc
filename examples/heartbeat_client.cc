@@ -35,12 +35,12 @@ public:
 
     session_.Start();
 
+    std::cout << "Heartbeat started" << std::endl;
+
     thread_.reset(new std::thread{ &Heartbeat::Routine, this });
 
     running_ = true;
     stop_ = false;
-
-    std::cout << "Heartbeat started" << std::endl;
   }
 
   void Stop() {
@@ -97,6 +97,7 @@ private:
     try {
       session_.Send(WEBCC_GET(kUrl)());
     } catch (const webcc::Error& error) {
+      std::cerr << "Error: " << error.what() << std::endl;
       return error;
     }
     return webcc::Error{};
@@ -138,7 +139,7 @@ private:
 };
 
 int main() {
-  WEBCC_LOG_INIT(".", webcc::LOG_FILE_FLUSH_OVERWRITE);
+  WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
   Heartbeat heartbeat;
 

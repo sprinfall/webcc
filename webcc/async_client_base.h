@@ -1,9 +1,7 @@
-#ifndef WEBCC_CLIENT_BASE_H_
-#define WEBCC_CLIENT_BASE_H_
+#ifndef WEBCC_ASYNC_CLIENT_BASE_H_
+#define WEBCC_ASYNC_CLIENT_BASE_H_
 
-#include <condition_variable>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <vector>
 
@@ -19,14 +17,15 @@
 
 namespace webcc {
 
-class ClientBase {
+// Asynchronous HTTP client base class.
+class AsyncClientBase : public std::enable_shared_from_this<AsyncClientBase> {
 public:
-  explicit ClientBase(boost::asio::io_context& io_context);
+  explicit AsyncClientBase(boost::asio::io_context& io_context);
 
-  ClientBase(const ClientBase&) = delete;
-  ClientBase& operator=(const ClientBase&) = delete;
+  AsyncClientBase(const AsyncClientBase&) = delete;
+  AsyncClientBase& operator=(const AsyncClientBase&) = delete;
 
-  ~ClientBase() = default;
+  virtual ~AsyncClientBase() = default;
 
   void set_buffer_size(std::size_t buffer_size) {
     if (buffer_size > 0) {
@@ -54,9 +53,6 @@ public:
     progress_callback_ = callback;
   }
 
-  // Connect, send request, wait until response is received.
-  Error Request(RequestPtr request, bool stream = false);
-
   // Close the connection.
   // The async operation on the socket will be canceled.
   void Close();
@@ -65,8 +61,16 @@ public:
     return connected_;
   }
 
+  RequestPtr request() const {
+    return request_;
+  }
+
   ResponsePtr response() const {
     return response_;
+  }
+
+  Error error() const {
+    return error_;
   }
 
   // Reset response object.
@@ -78,11 +82,18 @@ public:
   }
 
 protected:
-  // Create Socket or SslSocket.
+  // Create Socket/SslSocket.
   virtual void CreateSocket() = 0;
 
   // Resolve host.
   virtual void Resolve() = 0;
+
+  // The current request has ended.
+  virtual void RequestEnd() = 0;
+
+  // Send a request to the server.
+  // Check `error()` for any error.
+  void AsyncSend(RequestPtr request, bool stream = false);
 
   void CloseSocket();
 
@@ -109,22 +120,15 @@ protected:
   void OnDeadlineTimer(boost::system::error_code ec);
   void StopDeadlineTimer();
 
-  void FinishRequest();
-
 protected:
   boost::asio::io_context& io_context_;
+  boost::asio::ip::tcp::resolver resolver_;
 
   std::unique_ptr<SocketBase> socket_;
 
-  boost::asio::ip::tcp::resolver resolver_;
-
-  bool request_finished_ = true;
-  std::condition_variable request_cv_;
-  std::mutex request_mutex_;
-
   RequestPtr request_;
-
   ResponsePtr response_;
+
   ResponseParser response_parser_;
 
   // The length already read.
@@ -158,8 +162,6 @@ protected:
   Error error_;
 };
 
-using ClientPtr = std::shared_ptr<ClientBase>;
-
 }  // namespace webcc
 
-#endif  // WEBCC_CLIENT_BASE_H_
+#endif  // WEBCC_ASYNC_CLIENT_BASE_H_

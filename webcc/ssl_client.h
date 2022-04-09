@@ -3,7 +3,7 @@
 
 #include "boost/asio/ssl/context.hpp"
 
-#include "webcc/client_base.h"
+#include "webcc/blocking_client_base.h"
 #include "webcc/ssl_socket.h"
 
 #if !WEBCC_ENABLE_SSL
@@ -12,11 +12,11 @@
 
 namespace webcc {
 
-class SslClient final : public ClientBase {
+class SslClient final : public BlockingClientBase {
 public:
   SslClient(boost::asio::io_context& io_context,
             boost::asio::ssl::context& ssl_context)
-      : ClientBase(io_context), ssl_context_(ssl_context) {
+      : BlockingClientBase(io_context), ssl_context_(ssl_context) {
   }
 
   ~SslClient() = default;

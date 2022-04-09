@@ -16,9 +16,10 @@ configure_file(
 include(GNUInstallDirs)
 
 set(SOURCES
+    async_client_base.cc
+    blocking_client_base.cc
     base64.cc
     body.cc
-    client_base.cc
     client_pool.cc
     client_session.cc
     common.cc
@@ -43,9 +44,10 @@ set(SOURCES
     )
 
 set(HEADERS
+    async_client_base.h
+    blocking_client_base.h
     base64.h
     body.h
-    client_base.h
     client.h
     client_pool.h
     client_session.h
