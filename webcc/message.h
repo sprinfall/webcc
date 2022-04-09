@@ -12,6 +12,11 @@
 
 namespace webcc {
 
+namespace log_prefix {
+const char* const kIncoming = "    < ";
+const char* const kOutgoing = "    > ";
+}
+
 class Message {
 public:
   Message();
@@ -101,10 +106,10 @@ public:
   Payload GetPayload() const;
 
   // Dump to output stream for logging purpose.
-  void Dump(std::ostream& os) const;
+  void Dump(std::ostream& os, std::string_view prefix = "") const;
 
   // Dump to string for logging purpose.
-  std::string Dump() const;
+  std::string Dump(std::string_view prefix = "") const;
 
 protected:
   std::string start_line_;

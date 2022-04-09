@@ -137,7 +137,7 @@ void Connection::OnRead(boost::system::error_code ec, std::size_t length) {
     return;
   }
 
-  LOG_VERB("Request:\n%s", request_->Dump().c_str());
+  LOG_VERB("Request:\n%s", request_->Dump(log_prefix::kIncoming).c_str());
 
   // Enqueue this connection once the request has been read.
   // Some worker thread will handle the request later.
@@ -149,7 +149,7 @@ void Connection::AsyncWrite() {
   LOG_USER("[%u] AsyncWrite()", (unsigned int)this);
 #endif
 
-  LOG_VERB("Response:\n%s", response_->Dump().c_str());
+  LOG_VERB("Response:\n%s", response_->Dump(log_prefix::kOutgoing).c_str());
 
   boost::asio::async_write(
       socket_, response_->GetPayload(),

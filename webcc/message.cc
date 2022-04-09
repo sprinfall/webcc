@@ -94,23 +94,21 @@ Payload Message::GetPayload() const {
   return payload;
 }
 
-void Message::Dump(std::ostream& os) const {
-  static const char* const s_prefix = "    > ";
-
-  os << s_prefix << start_line_ << std::endl;
+void Message::Dump(std::ostream& os, std::string_view prefix) const {
+  os << prefix << start_line_ << std::endl;
 
   for (const Header& h : headers_.data()) {
-    os << s_prefix << h.first << ": " << h.second << std::endl;
+    os << prefix << h.first << ": " << h.second << std::endl;
   }
 
-  os << s_prefix << std::endl;
+  os << prefix << std::endl;
 
-  body_->Dump(os, s_prefix);
+  body_->Dump(os, prefix);
 }
 
-std::string Message::Dump() const {
+std::string Message::Dump(std::string_view prefix) const {
   std::ostringstream ss;
-  Dump(ss);
+  Dump(ss, prefix);
   return ss.str();
 }
 

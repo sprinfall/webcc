@@ -172,7 +172,7 @@ void ClientBase::OnConnect(boost::system::error_code ec,
 }
 
 void ClientBase::AsyncWrite() {
-  LOG_VERB("Request:\n%s", request_->Dump().c_str());
+  LOG_VERB("Request:\n%s", request_->Dump(log_prefix::kOutgoing).c_str());
 
   socket_->AsyncWrite(request_->GetPayload(),
                       std::bind(&ClientBase::OnWrite, this, _1, _2));
@@ -273,7 +273,7 @@ void ClientBase::OnRead(boost::system::error_code ec, std::size_t length) {
   }
 
   if (response_parser_.finished()) {
-    LOG_VERB("Response:\n%s", response_->Dump().c_str());
+    LOG_VERB("Response:\n%s", response_->Dump(log_prefix::kIncoming).c_str());
 
     if (response_->IsConnectionKeepAlive()) {
       LOG_INFO("Keep the socket connection alive");
