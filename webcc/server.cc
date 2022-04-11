@@ -197,7 +197,7 @@ bool Server::Listen(std::uint16_t port) {
 
 void Server::AsyncAccept() {
 #if WEBCC_STUDY_SERVER_THREADING
-  LOG_USER("AsyncAccept");
+  LOG_USER("Async accept");
 #endif
 
   acceptor_.async_accept(
@@ -215,8 +215,7 @@ void Server::AsyncAccept() {
         if (!ec) {
           LOG_INFO("Accepted a connection");
 
-          auto view_matcher = std::bind(&Server::MatchViewOrStatic, this, _1,
-                                        _2, _3);
+          auto view_matcher = std::bind(&Server::MatchView, this, _1, _2, _3);
 
           auto connection = std::make_shared<Connection>(
               std::move(socket), &pool_, &queue_, std::move(view_matcher),
@@ -323,7 +322,7 @@ void Server::Handle(ConnectionPtr connection) {
         connection->SendResponse(response);
       }
     } else {
-      connection->SendResponse(status_codes::kBadRequest);
+      connection->SendResponse(status_codes::kNotFound);
     }
 
     return;
@@ -343,39 +342,12 @@ void Server::Handle(ConnectionPtr connection) {
   }
 }
 
-bool Server::MatchViewOrStatic(const std::string& method,
-                               const std::string& url_path, bool* stream) {
-  if (Router::MatchView(method, url_path, stream)) {
-    return true;
-  }
-
-  if (method == methods::kGet && !doc_root_.empty()) {
-#if 1
-    // NOTE(20220216):
-    // Don't check file exists or not. ServeStatic() will handle it and return
-    // a NotFound response on file errors.
-    return true;
-#else
-    sfs::path sub_path = TranslatePath(url_path);
-    //LOG_INFO("Translated URL path: %s", sub_path.u8string().c_str());
-    sfs::path path = doc_root_ / sub_path;
-
-    std::error_code ec;
-    if (!sfs::is_directory(path, ec) && sfs::exists(path, ec)) {
-      return true;
-    }
-#endif
-  }
-
-  return false;
-}
-
 ResponsePtr Server::ServeStatic(RequestPtr request) {
   assert(request->method() == methods::kGet);
 
   if (doc_root_.empty()) {
     // Shouldn't be here!
-    LOG_ERRO("The doc root was not specified");
+    LOG_WARN("The doc root was not specified");
     return {};
   }
 
@@ -383,6 +355,11 @@ ResponsePtr Server::ServeStatic(RequestPtr request) {
   sfs::path path = doc_root_ / TranslatePath(url_path);
 
   try {
+    if (!sfs::exists(path) || !sfs::is_regular_file(path)) {
+      LOG_WARN("The file doesn't exist: %s", url_path.c_str());
+      return {};
+    }
+
     // NOTE: FileBody might throw Error::kFileError.
     auto body = std::make_shared<FileBody>(path, file_chunk_size_);
 

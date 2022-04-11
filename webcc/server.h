@@ -93,15 +93,6 @@ private:
   // request comes, this connection will be put back to the queue again.
   virtual void Handle(ConnectionPtr connection);
 
-  // Match the view by HTTP method and URL path.
-  // Return if a view or static file is matched or not.
-  // The `url_path` has already been decoded.
-  // The `url_path` is UTF8 encoded by itself, and this is taken into account
-  // when match the static files.
-  // If the view asks for data streaming, `stream` will be set to true.
-  bool MatchViewOrStatic(const std::string& method, const std::string& url_path,
-                         bool* stream);
-
   // Serve static files from the doc root.
   ResponsePtr ServeStatic(RequestPtr request);
 

@@ -1,10 +1,15 @@
+// examples/hello_world_server.cc
+// A simple HTTP server which simply returns "Hello, World!" to the client.
+// This example is also used as the test server for some client examples (e.g.,
+// heartbeat_client).
+
 #include "webcc/logger.h"
 #include "webcc/response_builder.h"
 #include "webcc/server.h"
 
 class HelloView : public webcc::View {
 public:
-  HelloView(int sleep_seconds) : sleep_seconds_(sleep_seconds) {
+  explicit HelloView(int sleep_seconds) : sleep_seconds_(sleep_seconds) {
   }
 
   webcc::ResponsePtr Handle(webcc::RequestPtr request) override {

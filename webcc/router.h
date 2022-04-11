@@ -44,11 +44,13 @@ public:
              std::vector<std::string>&& methods = { "GET" });
 
   // Find the view by HTTP method and URL path.
+  // The `url_path` has already been decoded and is UTF8 encoded by itself.
   ViewPtr FindView(const std::string& method, const std::string& url_path,
                    UrlArgs* args);
 
   // Match the view by HTTP method and URL path.
   // Return if a view is matched or not.
+  // The `url_path` has already been decoded and is UTF8 encoded by itself.
   // If the view asks for data streaming, `stream` will be set to true.
   bool MatchView(const std::string& method, const std::string& url_path,
                  bool* stream);

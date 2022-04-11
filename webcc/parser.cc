@@ -158,9 +158,9 @@ bool Parser::Parse(const char* data, std::size_t length) {
 
   header_length_ -= pending_data_.size();
 
+  // Leave sub-classes a chance to do some check before reading the body.
+  // E.g., RequestParser determines data streaming or not from here.
   if (!OnHeadersEnd()) {
-    // Only request parser can reach here when no view matches the request.
-    // Data streaming or not is also determined for request parser.
     return false;
   }
 
