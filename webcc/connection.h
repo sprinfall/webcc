@@ -78,8 +78,8 @@ private:
   // The connection queue.
   Queue<ConnectionPtr>* queue_;
 
-  // A function for matching view once the headers of a request has been
-  // received.
+  // The functor for the request parser to match views after receive the headers
+  // of a request.
   ViewMatcher view_matcher_;
 
   // The buffer for incoming data.

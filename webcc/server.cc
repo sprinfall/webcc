@@ -197,7 +197,7 @@ bool Server::Listen(std::uint16_t port) {
 
 void Server::AsyncAccept() {
 #if WEBCC_STUDY_SERVER_THREADING
-  LOG_USER("Async accept");
+  LOG_USER("AsyncAccept()");
 #endif
 
   acceptor_.async_accept(

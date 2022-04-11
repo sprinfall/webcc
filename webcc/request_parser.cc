@@ -28,7 +28,9 @@ bool RequestParser::OnHeadersEnd() {
   // Decode the URL path before match.
   std::string url_path = Url::DecodeUnsafe(request_->url().path());
   if (view_matcher_(request_->method(), url_path, &stream_)) {
-    LOG_INFO("The URL path matches a view which askes for data streaming");
+    if (stream_) {
+      LOG_INFO("The URL path matches a view which askes for data streaming");
+    }
   }  // else: Do nothing!
 
   // Always return true, even if no view matches the URL path, so that the

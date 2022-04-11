@@ -17,15 +17,16 @@ void ConnectionPool::Start(ConnectionPtr c) {
 }
 
 void ConnectionPool::Close(ConnectionPtr c) {
-  LOG_VERB("Close connection");
+  // NOTE:
+  // The connection might have already been closed by Clear().
 
-  {
-    // Lock the container only.
-    std::lock_guard<std::mutex> lock{ mutex_ };
-    connections_.erase(c);
-  }
+  std::lock_guard<std::mutex> lock{ mutex_ };
 
-  c->Close();
+  // Check the return value of erase() to see if it still exists or not.
+  if (connections_.erase(c) == 1) {
+    LOG_VERB("Close connection");
+    c->Close();
+  }  // else: Already closed by Clear()
 }
 
 void ConnectionPool::Clear() {
