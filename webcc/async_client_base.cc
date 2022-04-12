@@ -2,8 +2,9 @@
 
 #include <sstream>
 
+#include "boost/asio/connect.hpp"
+
 #include "webcc/logger.h"
-#include "webcc/socket.h"
 
 using boost::asio::ip::tcp;
 using namespace std::placeholders;
@@ -26,17 +27,39 @@ static std::string EndpointToString(const tcp::endpoint& endpoint) {
 
 // -----------------------------------------------------------------------------
 
-AsyncClientBase::AsyncClientBase(boost::asio::io_context& io_context)
+AsyncClientBase::AsyncClientBase(boost::asio::io_context& io_context,
+                                 std::string_view default_port)
     : io_context_(io_context),
+      default_port_(default_port),
       resolver_(io_context),
       deadline_timer_(io_context) {
 }
 
-void AsyncClientBase::Close() {
-  CloseSocket();
+void AsyncClientBase::CloseSocket() {
+  boost::system::error_code ec;
 
-  // Don't call FinishRequest() from here! It will be called in the handler
-  // OnXxx with `error::operation_aborted`.
+  if (connected_) {
+    connected_ = false;
+
+    LOG_INFO("Shutdown and close socket...");
+
+    GetSocket().shutdown(tcp::socket::shutdown_both, ec);
+    if (ec) {
+      LOG_WARN("Socket shutdown error (%s)", ec.message().c_str());
+      ec.clear();
+    }
+  } else {
+    LOG_INFO("Close socket...");
+
+    // TODO: resolver_.cancel() ?
+  }
+
+  GetSocket().close(ec);
+  if (ec) {
+    LOG_WARN("Socket close error (%s)", ec.message().c_str());
+  }
+
+  LOG_INFO("Socket closed");
 }
 
 void AsyncClientBase::AsyncSend(RequestPtr request, bool stream) {
@@ -69,36 +92,16 @@ void AsyncClientBase::AsyncSend(RequestPtr request, bool stream) {
   }
 
   if (!connected_) {
-    CreateSocket();
-    Resolve();
+    AsyncResolve();
   } else {
     AsyncWrite();
   }
 }
 
-void AsyncClientBase::CloseSocket() {
-  if (connected_) {
-    connected_ = false;
-    if (socket_) {
-      LOG_INFO("Shutdown and close socket...");
-      socket_->Shutdown();
-      socket_->Close();
-      LOG_INFO("Socket closed");
-    }
-  } else {
-    // TODO: resolver_.cancel() ?
-    if (socket_) {
-      LOG_INFO("Close socket...");
-      socket_->Close();
-      LOG_INFO("Socket closed");
-    }
-  }
-}
-
-void AsyncClientBase::AsyncResolve(std::string_view default_port) {
-  std::string port = request_->port();
+void AsyncClientBase::AsyncResolve() {
+  std::string_view port = request_->port();
   if (port.empty()) {
-    port = default_port;
+    port = default_port_;
   }
 
   LOG_INFO("Resolve host... (%s)", request_->host().c_str());
@@ -131,8 +134,8 @@ void AsyncClientBase::OnResolve(boost::system::error_code ec,
 
   LOG_INFO("Connect socket...");
 
-  socket_->AsyncConnect(
-      request_->host(), endpoints,
+  boost::asio::async_connect(
+      GetSocket(), endpoints,
       std::bind(&AsyncClientBase::OnConnect, shared_from_this(), _1, _2));
 }
 
@@ -147,7 +150,6 @@ void AsyncClientBase::OnConnect(boost::system::error_code ec,
     } else {
       LOG_ERRO("Connect error (%s)", ec.message().c_str());
       // No need to close socket since no async operation is on it.
-      //   socket_->Close();
     }
 
     error_.Set(Error::kConnectError, "Socket connect error");
@@ -156,19 +158,17 @@ void AsyncClientBase::OnConnect(boost::system::error_code ec,
   }
 
   LOG_INFO("Socket connected");
-
   connected_ = true;
 
-  AsyncWrite();
+  OnConnected();
 }
 
 void AsyncClientBase::AsyncWrite() {
   LOG_VERB("Request:\n%s", request_->Dump(log_prefix::kOutgoing).c_str());
   LOG_INFO("Send request...");
 
-  socket_->AsyncWrite(
-      request_->GetPayload(),
-      std::bind(&AsyncClientBase::OnWrite, shared_from_this(), _1, _2));
+  AsyncWrite(request_->GetPayload(),
+             std::bind(&AsyncClientBase::OnWrite, shared_from_this(), _1, _2));
 }
 
 void AsyncClientBase::OnWrite(boost::system::error_code ec,
@@ -187,8 +187,8 @@ void AsyncClientBase::AsyncWriteBody() {
   auto p = request_->body()->NextPayload(true);
 
   if (!p.empty()) {
-    socket_->AsyncWrite(p, std::bind(&AsyncClientBase::OnWriteBody,
-                                     shared_from_this(), _1, _2));
+    AsyncWrite(p, std::bind(&AsyncClientBase::OnWriteBody, shared_from_this(),
+                            _1, _2));
   } else {
     LOG_INFO("Request sent");
 
@@ -225,9 +225,9 @@ void AsyncClientBase::HandleWriteError(boost::system::error_code ec) {
 }
 
 void AsyncClientBase::AsyncRead() {
-  socket_->AsyncReadSome(
-      std::bind(&AsyncClientBase::OnRead, shared_from_this(), _1, _2),
-      &buffer_);
+  AsyncReadSome(
+      boost::asio::buffer(buffer_),
+      std::bind(&AsyncClientBase::OnRead, shared_from_this(), _1, _2));
 }
 
 void AsyncClientBase::OnRead(boost::system::error_code ec, std::size_t length) {

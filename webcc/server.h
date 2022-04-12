@@ -75,6 +75,7 @@ private:
 
   // Accept connections asynchronously.
   void AsyncAccept();
+  void OnAccept(ConnectionPtr connection, boost::system::error_code ec);
 
   // Stop acceptor and worker threads, close all pending connections, and
   // finally stop the event loop.

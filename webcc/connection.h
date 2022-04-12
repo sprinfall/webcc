@@ -20,6 +20,9 @@
 
 namespace webcc {
 
+using SocketType = boost::asio::basic_socket<boost::asio::ip::tcp,
+                                             boost::asio::any_io_executor>;
+
 class Connection;
 class ConnectionPool;
 class Server;
@@ -28,7 +31,7 @@ using ConnectionPtr = std::shared_ptr<Connection>;
 
 class Connection : public std::enable_shared_from_this<Connection> {
 public:
-  Connection(boost::asio::ip::tcp::socket socket, ConnectionPool* pool,
+  Connection(boost::asio::io_context& io_context, ConnectionPool* pool,
              Queue<ConnectionPtr>* queue, ViewMatcher&& view_matcher,
              std::size_t buffer_size);
 
@@ -36,6 +39,10 @@ public:
   Connection& operator=(const Connection&) = delete;
 
   ~Connection() = default;
+
+  SocketType& socket() {
+    return socket_;
+  }
 
   RequestPtr request() const {
     return request_;

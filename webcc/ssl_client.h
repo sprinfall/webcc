@@ -2,9 +2,9 @@
 #define WEBCC_SSL_CLIENT_H_
 
 #include "boost/asio/ssl/context.hpp"
+#include "boost/asio/ssl/stream.hpp"
 
 #include "webcc/blocking_client_base.h"
-#include "webcc/ssl_socket.h"
 
 #if !WEBCC_ENABLE_SSL
 #error SSL must be enabled!
@@ -12,26 +12,37 @@
 
 namespace webcc {
 
+using SslStream = boost::asio::ssl::stream<boost::asio::ip::tcp::socket>;
+
 class SslClient final : public BlockingClientBase {
 public:
   SslClient(boost::asio::io_context& io_context,
             boost::asio::ssl::context& ssl_context)
-      : BlockingClientBase(io_context), ssl_context_(ssl_context) {
+      : BlockingClientBase(io_context, "443"),
+        ssl_stream_(io_context, ssl_context) {
   }
 
-  ~SslClient() = default;
+  ~SslClient() override = default;
 
 protected:
-  void CreateSocket() override {
-    socket_.reset(new SslSocket{ io_context_, ssl_context_ });
+  SocketType& GetSocket() override {
+    return ssl_stream_.lowest_layer();
   }
 
-  void Resolve() override {
-    AsyncResolve("443");
-  }
+  void OnConnected() override;
+
+  void AsyncWrite(const std::vector<boost::asio::const_buffer>& buffers,
+                  RWHandler&& handler) override;
+
+  void AsyncReadSome(boost::asio::mutable_buffer buffer,
+                     RWHandler&& handler) override;
+
+  void CloseSocket() override;
 
 private:
-  boost::asio::ssl::context& ssl_context_;
+  void OnHandshake(boost::system::error_code ec);
+
+  SslStream ssl_stream_;
 };
 
 }  // namespace webcc

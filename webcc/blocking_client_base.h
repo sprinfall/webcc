@@ -8,11 +8,11 @@
 
 namespace webcc {
 
-// Blocking HTTP client base class.
 class BlockingClientBase : public AsyncClientBase {
 public:
-  explicit BlockingClientBase(boost::asio::io_context& io_context)
-      : AsyncClientBase(io_context) {
+  BlockingClientBase(boost::asio::io_context& io_context,
+                     std::string_view default_port)
+      : AsyncClientBase(io_context, default_port) {
   }
 
   ~BlockingClientBase() override = default;

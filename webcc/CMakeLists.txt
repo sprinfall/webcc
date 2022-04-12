@@ -20,6 +20,7 @@ set(SOURCES
     blocking_client_base.cc
     base64.cc
     body.cc
+    client.cc
     client_pool.cc
     client_session.cc
     common.cc
@@ -37,7 +38,6 @@ set(SOURCES
     response_parser.cc
     router.cc
     server.cc
-    socket.cc
     string.cc
     url.cc
     utility.cc
@@ -67,8 +67,6 @@ set(HEADERS
     response_parser.h
     router.h
     server.h
-    socket_base.h
-    socket.h
     string.h
     url.h
     utility.h
@@ -77,8 +75,8 @@ set(HEADERS
     )
 
 if(WEBCC_ENABLE_SSL)
-    set(SOURCES ${SOURCES} ssl_socket.cc)
-    set(HEADERS ${HEADERS} ssl_socket.h ssl_client.h)
+    set(SOURCES ${SOURCES} ssl_client.cc)
+    set(HEADERS ${HEADERS} ssl_client.h)
 endif()
 
 if(WEBCC_ENABLE_GZIP)

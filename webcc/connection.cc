@@ -13,11 +13,14 @@ using namespace std::placeholders;
 
 namespace webcc {
 
-Connection::Connection(tcp::socket socket, ConnectionPool* pool,
-                       Queue<ConnectionPtr>* queue, ViewMatcher&& view_matcher,
-                       std::size_t buffer_size)
-    : socket_(std::move(socket)), pool_(pool), queue_(queue),
-      view_matcher_(std::move(view_matcher)), buffer_(buffer_size) {
+Connection::Connection(boost::asio::io_context& io_context,
+                       ConnectionPool* pool, Queue<ConnectionPtr>* queue,
+                       ViewMatcher&& view_matcher, std::size_t buffer_size)
+    : socket_(io_context),
+      pool_(pool),
+      queue_(queue),
+      view_matcher_(std::move(view_matcher)),
+      buffer_(buffer_size) {
 }
 
 void Connection::Start() {

@@ -200,32 +200,32 @@ void Server::AsyncAccept() {
   LOG_USER("AsyncAccept()");
 #endif
 
-  acceptor_.async_accept(
-      [this](boost::system::error_code ec, tcp::socket socket) {
+  auto view_matcher = std::bind(&Server::MatchView, this, _1, _2, _3);
+
+  auto connection = std::make_shared<Connection>(
+      io_context_, &pool_, &queue_, std::move(view_matcher), buffer_size_);
+
+  acceptor_.async_accept(connection->socket(),
+                         std::bind(&Server::OnAccept, this, connection, _1));
+}
+
+void Server::OnAccept(ConnectionPtr connection, boost::system::error_code ec) {
 #if WEBCC_STUDY_SERVER_THREADING
-        LOG_USER("Accept handler");
+  LOG_USER("OnAccept()");
 #endif
 
-        // Check whether the server was stopped by a signal before this
-        // completion handler had a chance to run.
-        if (!acceptor_.is_open()) {
-          return;
-        }
+  // Check whether the server was stopped by a signal before this completion
+  // handler had a chance to run.
+  if (!acceptor_.is_open()) {
+    return;
+  }
 
-        if (!ec) {
-          LOG_INFO("Accepted a connection");
+  if (!ec) {
+    LOG_INFO("Accepted a connection");
+    pool_.Start(connection);
+  }
 
-          auto view_matcher = std::bind(&Server::MatchView, this, _1, _2, _3);
-
-          auto connection = std::make_shared<Connection>(
-              std::move(socket), &pool_, &queue_, std::move(view_matcher),
-              buffer_size_);
-
-          pool_.Start(connection);
-        }
-
-        AsyncAccept();
-      });
+  AsyncAccept();
 }
 
 void Server::DoStop() {

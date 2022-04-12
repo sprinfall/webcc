@@ -1,6 +1,8 @@
 #ifndef WEBCC_ASYNC_CLIENT_BASE_H_
 #define WEBCC_ASYNC_CLIENT_BASE_H_
 
+// Asynchronous HTTP client base class.
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -13,14 +15,16 @@
 #include "webcc/request.h"
 #include "webcc/response.h"
 #include "webcc/response_parser.h"
-#include "webcc/socket_base.h"
 
 namespace webcc {
 
-// Asynchronous HTTP client base class.
+using SocketType = boost::asio::basic_socket<boost::asio::ip::tcp,
+                                             boost::asio::any_io_executor>;
+
 class AsyncClientBase : public std::enable_shared_from_this<AsyncClientBase> {
 public:
-  explicit AsyncClientBase(boost::asio::io_context& io_context);
+  AsyncClientBase(boost::asio::io_context& io_context,
+                  std::string_view default_port);
 
   AsyncClientBase(const AsyncClientBase&) = delete;
   AsyncClientBase& operator=(const AsyncClientBase&) = delete;
@@ -55,7 +59,9 @@ public:
 
   // Close the connection.
   // The async operation on the socket will be canceled.
-  void Close();
+  void Close() {
+    CloseSocket();
+  }
 
   bool connected() const {
     return connected_;
@@ -82,22 +88,33 @@ public:
   }
 
 protected:
-  // Create Socket/SslSocket.
-  virtual void CreateSocket() = 0;
+  // Read/write handler
+  using RWHandler = std::function<void(boost::system::error_code, std::size_t)>;
 
-  // Resolve host.
-  virtual void Resolve() = 0;
+  // Get underlying socket.
+  virtual SocketType& GetSocket() = 0;
+
+  virtual void OnConnected() {
+    AsyncWrite();
+  }
 
   // The current request has ended.
   virtual void RequestEnd() = 0;
+
+  virtual void AsyncWrite(const std::vector<boost::asio::const_buffer>& buffers,
+                          RWHandler&& handler) = 0;
+
+  virtual void AsyncReadSome(boost::asio::mutable_buffer buffer,
+                             RWHandler&& handler) = 0;
+
+  // Shutdown and close socket.
+  virtual void CloseSocket();
 
   // Send a request to the server.
   // Check `error()` for any error.
   void AsyncSend(RequestPtr request, bool stream = false);
 
-  void CloseSocket();
-
-  void AsyncResolve(std::string_view default_port);
+  void AsyncResolve();
 
   void OnResolve(boost::system::error_code ec,
                  boost::asio::ip::tcp::resolver::results_type endpoints);
@@ -122,13 +139,16 @@ protected:
 
 protected:
   boost::asio::io_context& io_context_;
+
+  // The default port used to resolve when the URL doesn't have one.
+  // E.g., "80" for HTTP and "443" for HTTPS.
+  const std::string default_port_;
+
   boost::asio::ip::tcp::resolver resolver_;
 
-  std::unique_ptr<SocketBase> socket_;
-
   RequestPtr request_;
-  ResponsePtr response_;
 
+  ResponsePtr response_;
   ResponseParser response_parser_;
 
   // The length already read.
