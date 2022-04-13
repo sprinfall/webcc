@@ -184,7 +184,7 @@ protected:
     default_ssl_context_.reset(new ssl::context{ ssl::context::sslv23_client });
 
 #if (defined(_WIN32) || defined(_WIN64))
-    UseSystemCertificateStore(default_ssl_context_->native_handle());
+    //UseSystemCertificateStore(default_ssl_context_->native_handle());
 #else
     default_ssl_context_->set_default_verify_paths();
 #endif

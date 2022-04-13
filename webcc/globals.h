@@ -168,6 +168,7 @@ public:
     kSyntaxError,
     kResolveError,
     kConnectError,
+    kHandshakeError,
     kSocketReadError,
     kSocketWriteError,
     kParseError,
