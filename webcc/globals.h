@@ -20,6 +20,8 @@ namespace sfs = std::filesystem;
 
 // -----------------------------------------------------------------------------
 
+using byte_t = std::uint8_t;
+
 // Regex sub-matches of the URL (usually resource ID's).
 // Could also be considered as arguments, so named as UrlArgs.
 using UrlArgs = std::vector<std::string>;
@@ -90,6 +92,7 @@ namespace status_codes {
 // The full list is available here:
 //   https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 
+constexpr int kSwitchingProtocols = 101;
 constexpr int kOK = 200;
 constexpr int kCreated = 201;
 constexpr int kAccepted = 202;

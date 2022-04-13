@@ -33,6 +33,8 @@ public:
 
   explicit Url(std::string_view str, bool encode = false);
 
+  ~Url() = default;
+
   const std::string& scheme() const {
     return scheme_;
   }
@@ -55,6 +57,10 @@ public:
 
   void set_port(std::string_view port) {
     port_ = port;
+  }
+
+  void ClearPath() {
+    path_.clear();
   }
 
   // Append a piece of path.

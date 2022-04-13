@@ -46,7 +46,8 @@ bool Message::IsConnectionKeepAlive() const {
     // Return true since keep-alive is by default for HTTP/1.1.
     return true;
   }
-  return boost::iequals(value, "Keep-Alive");
+  // Not only "Keep-Alive", but also "Upgrade" (WebSocket handshake).
+  return !boost::iequals(value, "Close");
 }
 
 ContentEncoding Message::GetContentEncoding() const {

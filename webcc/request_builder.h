@@ -77,6 +77,16 @@ public:
     return *this;
   }
 
+  RequestBuilder& Url(const webcc::Url& url) {
+    url_ = url;
+    return *this;
+  }
+
+  RequestBuilder& Url(webcc::Url&& url) {
+    url_ = std::move(url);
+    return *this;
+  }
+
   RequestBuilder& Port(std::string_view port) {
     url_.set_port(port);
     return *this;

@@ -42,6 +42,9 @@ set(SOURCES
     string.cc
     url.cc
     utility.cc
+    ws_client.cc
+    ws_frame.cc
+    ws_parser.cc
     )
 
 set(HEADERS
@@ -74,6 +77,9 @@ set(HEADERS
     utility.h
     version.h
     view.h
+    ws_client.h
+    ws_frame.h
+    ws_parser.h
     )
 
 if(WEBCC_ENABLE_GZIP)

@@ -19,6 +19,7 @@ set(SIMPLE_EXAMPLES
     form_client
     form_server
     form_urlencoded_client
+    websocket_client
     )
 
 foreach(example ${SIMPLE_EXAMPLES})

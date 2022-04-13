@@ -10,6 +10,8 @@ set(UT_SRCS
     router_unittest.cc
     string_unittest.cc
     url_unittest.cc
+    ws_frame_unittest.cc
+    ws_parser_unittest.cc
     )
 
 # Common libraries to link.
