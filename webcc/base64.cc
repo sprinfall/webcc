@@ -167,24 +167,19 @@ SizePair Decode(const char* src, std::size_t len, void* dst) {
 
 namespace base64 {
 
-std::string Encode(const std::uint8_t* data, std::size_t length) {
-  std::string dst;
-  dst.resize(base64_internal::EncodedSize(length));
-  dst.resize(base64_internal::Encode(data, length, &dst[0]));
-  return dst;
+std::string Encode(const void* input, std::size_t size) {
+  std::string output;
+  output.resize(base64_internal::EncodedSize(size));
+  output.resize(base64_internal::Encode(input, size, &output[0]));
+  return output;
 }
 
-std::string Encode(const std::string_view& input) {
-  return Encode(reinterpret_cast<const std::uint8_t*>(input.data()),
-                input.size());
-}
-
-std::string Decode(const std::string_view& input) {
-  std::string dst;
-  dst.resize(base64_internal::DecodedSize(input.size()));
-  auto result = base64_internal::Decode(input.data(), input.size(), &dst[0]);
-  dst.resize(result.first);
-  return dst;
+std::string Decode(std::string_view input) {
+  std::string output;
+  output.resize(base64_internal::DecodedSize(input.size()));
+  auto result = base64_internal::Decode(input.data(), input.size(), &output[0]);
+  output.resize(result.first);
+  return output;
 }
 
 }  // namespace base64
