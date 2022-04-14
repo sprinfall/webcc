@@ -4,7 +4,7 @@
 
 namespace webcc {
 
-//------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 namespace ws {
 
@@ -43,15 +43,16 @@ std::uint32_t NewMaskingKey() {
   return masking_key;
 }
 
-void MaskTransform(byte_t* payload, std::size_t size, const byte_t* key) {
+void MaskTransform(byte_t* payload, std::size_t size,
+                   const byte_t* masking_key) {
   for (std::size_t i = 0; i < size; ++i) {
-    payload[i] ^= key[i % 4];
+    payload[i] ^= masking_key[i % 4];
   }
 }
 
 }  // namespace ws
 
-//------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 WSFrame::WSFrame(const WSFrame& rhs)
     : header_(rhs.header_),
@@ -211,13 +212,14 @@ std::size_t WSFrame::AppendPayload(const byte_t* data, std::size_t size) {
 }
 
 void WSFrame::Dump(std::ostream& os) const {
-  os << "fin: " << (int)fin() << std::endl;
-  os << "rsv1~3: " << (int)rsv1() << "," << (int)rsv2() << "," << (int)rsv3()
+  os << "fin: " << static_cast<int>(fin()) << std::endl;
+  os << "rsv1~3: " << static_cast<int>(rsv1()) << ","
+     << static_cast<int>(rsv2()) << "," << static_cast<int>(rsv3())
      << std::endl;
-  os << "opcode: " << (int)opcode() << " (" << ws::OpCodeName(opcode()) << ")"
-     << std::endl;
+  os << "opcode: " << static_cast<int>(opcode()) << " ("
+     << ws::OpCodeName(opcode()) << ")" << std::endl;
 
-  os << "mask: " << (int)mask() << std::endl;
+  os << "mask: " << static_cast<int>(mask()) << std::endl;
 
   os << "payload length: " << payload_len_ << std::endl;
 }

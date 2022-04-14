@@ -1,8 +1,11 @@
 #include "webcc/ws_client.h"
 
+#include "openssl/sha.h"
+
 #include "boost/asio/read.hpp"
 #include "boost/asio/write.hpp"
 
+#include "webcc/base64.h"
 #include "webcc/logger.h"
 #include "webcc/request_builder.h"
 
@@ -12,7 +15,7 @@ namespace webcc {
 
 WSClient::WSClient(boost::asio::io_context& io_context)
     : AsyncClientBase(io_context, "80"), socket_(io_context) {
-  buffer_.resize(buffer_size_);  // TODO
+  buffer_.resize(buffer_size_);
 }
 
 void WSClient::Connect(const Url& url, ConnectHandler&& connect_handler) {
@@ -40,16 +43,33 @@ void WSClient::AsyncReadSome(boost::asio::mutable_buffer buffer,
 void WSClient::RequestEnd() {
   do {
     if (error_) {
-      LOG_ERRO("Handshake error");
+      LOG_ERRO("WebSocket handshake error");
       break;
     }
 
     if (response_->status() != status_codes::kSwitchingProtocols) {
       LOG_ERRO("Handshake response status error (%d)", response_->status());
       error_.Set(Error::kSyntaxError,  // TODO: Define a new error code
-                 "Websocket handshake: unexpected status code");
+                 "WebSocket handshake: unexpected status code");
       break;
     }
+
+    // Verify the Sec-WebSocket-Accept header.
+
+    // Generate the expected base64 encoded SHA1 hash.
+    std::string key = std::string(request_->GetHeader("Sec-WebSocket-Key"));
+    key += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+    unsigned char digest[20];
+    SHA1((const unsigned char*)&key[0], key.size(), digest);
+    std::string base64_sha1_hash = base64::Encode(&digest[0], 20);
+
+    std::string_view accept = response_->GetHeader("Sec-WebSocket-Accept");
+    if (accept != base64_sha1_hash) {
+      error_.Set(Error::kSyntaxError,
+                 "WebSocket handshake: invalid Sec-WebSocket-Accept header");
+      break;
+    }
+
   } while (false);
 
   if (connect_handler_) {
@@ -89,7 +109,7 @@ void WSClient::HandleFrameIn(WSFramePtr in_frame) {
 
   switch (opcode) {
     case ws::opcodes::kPing: {
-      //  Send a Pong frame in response.
+      // Send a Pong in response.
       // Reuse the incoming frame instead of creating a new one.
       in_frame->set_opcode(ws::opcodes::kPong);
       in_frame->AddMask(ws::NewMaskingKey());
@@ -125,16 +145,15 @@ void WSClient::AsyncHandshake() {
   handshake_url.ClearPath();
   handshake_url.AppendPath("chat");
 
-  RequestBuilder request_builder;
-  request_builder.Method(methods::kGet).Url(std::move(handshake_url));
-  request_builder.Header("Upgrade", "websocket");
-  request_builder.Header("Connection", "Upgrade");
-  request_builder.Header("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
-  request_builder.Header("Sec-WebSocket-Protocol", "chat, superchat");
-  request_builder.Header("Sec-WebSocket-Version", "13");
+  RequestBuilder builder;
+  builder.Method(methods::kGet).Url(std::move(handshake_url));
+  builder.Header("Upgrade", "websocket");
+  builder.Header("Connection", "Upgrade");
+  builder.Header("Sec-WebSocket-Key", base64::Encode(RandomAsciiString(16)));
+  builder.Header("Sec-WebSocket-Protocol", "chat, superchat");
+  builder.Header("Sec-WebSocket-Version", "13");
 
-  auto request = request_builder();
-
+  auto request = builder();
   request->Prepare();
 
   AsyncSend(request, false);

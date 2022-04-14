@@ -3,6 +3,8 @@
 #include "webcc/logger.h"
 #include "webcc/ws_client.h"
 
+namespace wws = webcc::ws;
+
 void ConnectHandler(webcc::WSClientPtr ws_client, webcc::Error error) {
   if (error) {
     std::cerr << "Connect error: " << error.what() << std::endl;
@@ -12,18 +14,16 @@ void ConnectHandler(webcc::WSClientPtr ws_client, webcc::Error error) {
   std::cout << "Send 'Hello'" << std::endl;
 
   auto frame = std::make_shared<webcc::WSFrame>();
-  frame->Build(true, "Hello", webcc::ws::NewMaskingKey());
+  frame->Build(true, "Hello", wws::NewMaskingKey());
 
   ws_client->Send(frame);
 }
 
 void ReceiveHandler(webcc::WSClientPtr ws_client, webcc::WSFramePtr frame) {
-  if (frame->opcode() == webcc::ws::opcodes::kTextFrame) {
+  if (frame->opcode() == wws::opcodes::kTextFrame) {
     // Close connection
     auto frame = std::make_shared<webcc::WSFrame>();
-    frame->Build(webcc::ws::opcodes::kConnectionClose,
-                 webcc::ws::NewMaskingKey());
-
+    frame->Build(wws::opcodes::kConnectionClose, wws::NewMaskingKey());
     ws_client->Send(frame);
   }
 }

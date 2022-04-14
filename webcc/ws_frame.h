@@ -13,17 +13,17 @@
 
 namespace webcc {
 
+// -----------------------------------------------------------------------------
+
 namespace ws {
 
 namespace opcodes {
-
 constexpr byte_t kContinuationFrame = 0x0;
 constexpr byte_t kTextFrame = 0x1;
 constexpr byte_t kBinaryFrame = 0x2;
 constexpr byte_t kConnectionClose = 0x8;
 constexpr byte_t kPing = 0x9;
 constexpr byte_t kPong = 0xA;
-
 }  // namespace opcodes
 
 // The number of bits for different kinds of payload length.
@@ -32,20 +32,25 @@ enum class PayloadLenBits { k7, k16, k63 };
 // Max length when the payload length is 63 bits.
 constexpr std::uint64_t kMaxLength63 = 0x7FFFFFFFFFFFFFFF;  // (1 << 63) - 1
 
-// Generates a new masking key.
+// Generate a new masking key.
 std::uint32_t NewMaskingKey();
 
-void MaskTransform(byte_t* payload, std::size_t size, const byte_t* key);
+// Transform the payload with the masking key.
+void MaskTransform(byte_t* payload, std::size_t size,
+                   const byte_t* masking_key);
 
-}  // namespace ws
-
-inline byte_t set_high_bit(byte_t byte, bool on) {
+// Set the high bit of a byte on or off.
+inline byte_t SetHighBit(byte_t byte, bool on) {
   if (on) {
     return byte | 0x80;
   } else {
     return byte & 0x7F;
   }
 }
+
+}  // namespace ws
+
+// -----------------------------------------------------------------------------
 
 class WSFrame {
 public:
@@ -76,7 +81,7 @@ public:
   }
 
   void set_fin(bool fin) {
-    header_[0] = set_high_bit(header_[0], fin);
+    header_[0] = ws::SetHighBit(header_[0], fin);
   }
 
   byte_t rsv1() const {
@@ -106,7 +111,7 @@ public:
   }
 
   void set_masked(bool masked) {
-    header_[1] = set_high_bit(header_[1], masked);
+    header_[1] = ws::SetHighBit(header_[1], masked);
   }
 
   const byte_t* masking_key() const {
