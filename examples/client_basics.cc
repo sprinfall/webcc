@@ -34,14 +34,10 @@ int main() {
     assert(r->status() == webcc::status_codes::kOK);
     assert(!r->data().empty());
 
-#if WEBCC_ENABLE_SSL
-
     r = session.Send(WEBCC_GET("https://httpbin.org/get")());
 
     assert(r->status() == webcc::status_codes::kOK);
     assert(!r->data().empty());
-
-#endif  // WEBCC_ENABLE_SSL
 
   } catch (const webcc::Error& error) {
     std::cerr << error << std::endl;

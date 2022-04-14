@@ -6,10 +6,6 @@
 
 #include "webcc/blocking_client_base.h"
 
-#if !WEBCC_ENABLE_SSL
-#error SSL must be enabled!
-#endif
-
 namespace webcc {
 
 using SslStream = boost::asio::ssl::stream<boost::asio::ip::tcp::socket>;

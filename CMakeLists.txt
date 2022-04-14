@@ -26,7 +26,6 @@ option(BUILD_EXAMPLES "Build examples?" ON)
 option(BUILD_QT_EXAMPLES "Build Qt application examples?" OFF)
 
 set(WEBCC_ENABLE_LOG 1 CACHE STRING "Enable logging? (1:Yes, 0:No)")
-set(WEBCC_ENABLE_SSL 0 CACHE STRING "Enable SSL/HTTPS (need OpenSSL)? (1:Yes, 0:No)")
 set(WEBCC_ENABLE_GZIP 0 CACHE STRING "Enable gzip compression (need Zlib)? (1:Yes, 0:No)")
 
 set(WEBCC_LOG_LEVEL 2 CACHE STRING "Log level (0:VERB, 1:INFO, 2:USER, 3:WARN or 4:ERRO)")
@@ -57,16 +56,14 @@ if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
-if(WEBCC_ENABLE_SSL)
-    # Commented on 20190529.
-    # The static libs have linkage issues with VS2015 on Win10.
-    #   set(OPENSSL_USE_STATIC_LIBS ON)
-    #   set(OPENSSL_MSVC_STATIC_RT ON)
-    find_package(OpenSSL)
-    if(OPENSSL_FOUND)
-        include_directories(${OPENSSL_INCLUDE_DIR})
-        message(STATUS "OpenSSL libs: " ${OPENSSL_LIBRARIES})
-    endif()
+# Commented on 20190529.
+# The static libs have linkage issues with VS2015 on Win10.
+#   set(OPENSSL_USE_STATIC_LIBS ON)
+#   set(OPENSSL_MSVC_STATIC_RT ON)
+find_package(OpenSSL)
+if(OPENSSL_FOUND)
+    include_directories(${OPENSSL_INCLUDE_DIR})
+    message(STATUS "OpenSSL libs: " ${OPENSSL_LIBRARIES})
 endif()
 
 if(WEBCC_ENABLE_GZIP)

@@ -38,6 +38,7 @@ set(SOURCES
     response_parser.cc
     router.cc
     server.cc
+    ssl_client.cc
     string.cc
     url.cc
     utility.cc
@@ -67,17 +68,13 @@ set(HEADERS
     response_parser.h
     router.h
     server.h
+    ssl_client.h
     string.h
     url.h
     utility.h
     version.h
     view.h
     )
-
-if(WEBCC_ENABLE_SSL)
-    set(SOURCES ${SOURCES} ssl_client.cc)
-    set(HEADERS ${HEADERS} ssl_client.h)
-endif()
 
 if(WEBCC_ENABLE_GZIP)
     set(SOURCES ${SOURCES} "gzip.cc")
@@ -109,11 +106,9 @@ if(WEBCC_ENABLE_GZIP)
 endif()
 
 # OpenSSL
-if(WEBCC_ENABLE_SSL)
-    target_link_libraries(${TARGET} ${OPENSSL_LIBRARIES})
-    if(WIN32)
-        target_link_libraries(${TARGET} crypt32)
-    endif()
+target_link_libraries(${TARGET} ${OPENSSL_LIBRARIES})
+if(WIN32)
+    target_link_libraries(${TARGET} crypt32)
 endif()
 
 # Install lib and header files.

@@ -112,7 +112,6 @@ TEST(ClientTest, Get_QueryEncode) {
   }
 }
 
-#if WEBCC_ENABLE_SSL
 TEST(ClientTest, Get_SSL) {
   webcc::ClientSession session;
 
@@ -145,7 +144,6 @@ TEST(ClientTest, Get_SSL) {
     std::cerr << error << std::endl;
   }
 }
-#endif  // WEBCC_ENABLE_SSL
 
 // Get a JPEG image (without streaming).
 TEST(ClientTest, Get_Jpeg_NoStream) {
@@ -369,7 +367,7 @@ TEST(ClientTest, Post_Gzip_SmallData) {
 }
 #endif  // WEBCC_ENABLE_GZIP
 
-#if (WEBCC_ENABLE_GZIP && WEBCC_ENABLE_SSL)
+#if WEBCC_ENABLE_GZIP
 // NOTE: Most servers don't support compressed requests!
 TEST(ClientTest, Post_Gzip) {
   webcc::ClientSession session;
@@ -393,7 +391,7 @@ TEST(ClientTest, Post_Gzip) {
     std::cerr << error << std::endl;
   }
 }
-#endif  // (WEBCC_ENABLE_GZIP && WEBCC_ENABLE_SSL)
+#endif  // WEBCC_ENABLE_GZIP
 
 // -----------------------------------------------------------------------------
 

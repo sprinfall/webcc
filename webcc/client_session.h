@@ -8,28 +8,21 @@
 #include <vector>
 
 #include "boost/asio/io_context.hpp"
+#include "boost/asio/ssl/context.hpp"
 
 #include "webcc/client_pool.h"
 #include "webcc/request_builder.h"
 #include "webcc/response.h"
 
-#if WEBCC_ENABLE_SSL
-#include "boost/asio/ssl/context.hpp"
-#endif
-
 namespace webcc {
 
-#if WEBCC_ENABLE_SSL
 using SslContextPtr = std::shared_ptr<boost::asio::ssl::context>;
-#endif
 
 // Client session provides connection-pooling, configuration and more.
 // If a client session is shared by multiple threads, the requests sent through
 // it will be serialized by using a mutex.
 class ClientSession {
 public:
-#if WEBCC_ENABLE_SSL
-
   // Add a certificate to the SSL context with the given key.
   // You can add multiple certificates to the same SSL context via this method.
   // The certificate is represented as an asio::const_buffer instead of a file
@@ -45,14 +38,8 @@ public:
   // Add a SSL context created by the user.
   static void AddSslContext(const std::string& key, SslContextPtr ssl_context);
 
-#endif  // WEBCC_ENABLE_SSL
-
-#if WEBCC_ENABLE_SSL
   explicit ClientSession(std::string_view ssl_context_key = "default")
       : ssl_context_key_(ssl_context_key) {
-#else
-  ClientSession() {
-#endif  // WEBCC_ENABLE_SSL
     InitHeaders();
     Start();
   }
@@ -173,10 +160,8 @@ private:
   using WorkGuard = boost::asio::executor_work_guard<ExecutorType>;
   std::unique_ptr<WorkGuard> work_guard_;
 
-#if WEBCC_ENABLE_SSL
   // The key to find the SSL context.
   std::string ssl_context_key_;
-#endif
 
   // Is Asio loop running?
   bool started_ = false;

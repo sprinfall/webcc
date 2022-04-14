@@ -2,7 +2,6 @@
 
 #include <cassert>
 
-#if WEBCC_ENABLE_SSL
 #if (defined(_WIN32) || defined(_WIN64))
 
 #include <cryptuiapi.h>
@@ -12,26 +11,18 @@
 #include "openssl/x509.h"
 
 #endif  // defined(_WIN32) || defined(_WIN64)
-#endif  // WEBCC_ENABLE_SSL
 
 #include "boost/algorithm/string.hpp"
 
 #include "webcc/base64.h"
 #include "webcc/logger.h"
+#include "webcc/ssl_client.h"
 #include "webcc/url.h"
 #include "webcc/utility.h"
  
-#if WEBCC_ENABLE_SSL
-#include "webcc/ssl_client.h"
-#endif
-
-#if WEBCC_ENABLE_SSL
 namespace ssl = boost::asio::ssl;
-#endif
 
 namespace webcc {
-
-#if WEBCC_ENABLE_SSL
 
 // -----------------------------------------------------------------------------
 
@@ -184,7 +175,7 @@ protected:
     default_ssl_context_.reset(new ssl::context{ ssl::context::sslv23_client });
 
 #if (defined(_WIN32) || defined(_WIN64))
-    //UseSystemCertificateStore(default_ssl_context_->native_handle());
+    UseSystemCertificateStore(default_ssl_context_->native_handle());
 #else
     default_ssl_context_->set_default_verify_paths();
 #endif
@@ -200,16 +191,12 @@ private:
 
 #define SSL_CONTEXT_MANAGER SslContextManager::Instance()
 
-#endif  // WEBCC_ENABLE_SSL
-
 // -----------------------------------------------------------------------------
 // static functions
 
 static std::string ClientKeyFromUrl(const Url& url) {
   return url.scheme() + "-" + url.host() + "-" + url.port();
 }
-
-#if WEBCC_ENABLE_SSL
 
 bool ClientSession::AddCertificate(const std::string& ssl_context_key,
                                    boost::asio::const_buffer cert_buffer) {
@@ -225,8 +212,6 @@ void ClientSession::AddSslContext(const std::string& key,
                                   SslContextPtr ssl_context) {
   return SSL_CONTEXT_MANAGER->AddContext(key, ssl_context);
 }
-
-#endif  // WEBCC_ENABLE_SSL
 
 // -----------------------------------------------------------------------------
 
@@ -340,12 +325,10 @@ BlockingClientPtr ClientSession::CreateClient(const std::string& url_scheme) {
     return std::make_shared<Client>(io_context_);
   }
 
-#if WEBCC_ENABLE_SSL
   if (boost::iequals(url_scheme, "https")) {
     auto ssl_context = SSL_CONTEXT_MANAGER->Get(ssl_context_key_);
     return std::make_shared<SslClient>(io_context_, *ssl_context);
   }
-#endif  // WEBCC_ENABLE_SSL
 
   return {};
 }
