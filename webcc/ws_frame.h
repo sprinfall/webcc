@@ -9,6 +9,8 @@
 #include <memory>
 #include <string>
 
+#include "boost/endian/conversion.hpp"
+
 #include "webcc/globals.h"
 
 namespace webcc {
@@ -16,6 +18,12 @@ namespace webcc {
 // -----------------------------------------------------------------------------
 
 namespace ws {
+
+namespace status_codes {
+
+constexpr std::uint16_t kNormalClosure = 1000;
+
+}  // namespace status_codes
 
 namespace opcodes {
 constexpr byte_t kContinuationFrame = 0x0;
@@ -48,7 +56,35 @@ inline byte_t SetHighBit(byte_t byte, bool on) {
   }
 }
 
+// C++ replacements for ntohl, htonl, htons and ntohs.
+
+template <typename T>
+inline T NetworkToHost(T value) {
+  return boost::endian::big_to_native(value);
+}
+
+template <typename T>
+inline T HostToNetwork(T value) {
+  return boost::endian::native_to_big(value);
+}
+
+template <typename T>
+T NetworkToHost(const byte_t* bytes) {
+  T value = 0;
+  std::memcpy(&value, bytes, sizeof T);
+  return boost::endian::big_to_native(value);
+}
+
+template <typename T>
+void HostToNetwork(T value, byte_t* bytes) {
+  boost::endian::native_to_big_inplace(value);
+  std::memcpy(bytes, &value, sizeof T);
+}
+
 }  // namespace ws
+
+class WSFrame;
+std::ostream& operator<<(std::ostream& os, const WSFrame& frame);
 
 // -----------------------------------------------------------------------------
 
@@ -56,17 +92,25 @@ class WSFrame {
 public:
   WSFrame() = default;
 
-  WSFrame(const byte_t* bytes, std::size_t size, bool auto_unmask = true) {
-    Init(bytes, size, auto_unmask);
-  }
-
-  // TODO: move
-  WSFrame(const WSFrame& rhs);
-
-  // TODO: move
-  WSFrame& operator=(const WSFrame& rhs);
+  WSFrame(const WSFrame&) = default;
+  WSFrame& operator=(const WSFrame&) = default;
+  WSFrame(WSFrame&&) = default;
+  WSFrame& operator=(WSFrame&&) = default;
 
   ~WSFrame() = default;
+
+  bool Parse(const byte_t* bytes, std::size_t size, bool auto_unmask = true);
+
+  bool ParseHeader(const byte_t* bytes, std::size_t size);
+
+  void Build(bool fin, byte_t opcode, const byte_t* data, std::size_t size,
+             const std::uint32_t* masking_key = nullptr);
+
+  void Build(bool fin, std::string_view text, std::uint32_t masking_key);
+  void Build(bool fin, std::string_view text);
+
+  void Build(byte_t opcode);
+  void Build(byte_t opcode, std::uint32_t masking_key);
 
   bool empty() const {
     return header_.empty();
@@ -151,19 +195,8 @@ public:
   void UnmaskPayload();
 
   void AddMask(std::uint32_t masking_key);
-  void RemoveMask();
 
   std::string GetPayloadText() const;
-
-  // TODO:
-  void Build(bool fin, std::string_view text, std::uint32_t masking_key);
-  void Build(bool fin, std::string_view text);
-  void Build(byte_t opcode);
-  void Build(byte_t opcode, std::uint32_t masking_key);
-
-  // Try to parse frame header from the given bytes.
-  // Return whether the header is completely parsed or not.
-  bool ParseHeader(const byte_t* data, std::size_t size);
 
   // Append payload data.
   // Return the number of appended bytes.
@@ -179,18 +212,10 @@ public:
     return Payload{ buffer(header_), buffer(payload_) };
   }
 
-  // Dump to output stream for logging purpose.
-  void Dump(std::ostream& os) const;
-
-  // Dump to string for logging purpose.
-  std::string Dump() const;
+  // Convert to string for logging purpose.
+  std::string Stringify() const;
 
 private:
-  bool Init(const byte_t* bytes, std::size_t size, bool auto_unmask);
-
-  void Build(bool fin, const byte_t* data, std::size_t size,
-             const std::uint32_t* masking_key = nullptr);
-
   std::vector<byte_t> header_;
 
   ws::PayloadLenBits payload_len_bits_ = ws::PayloadLenBits::k7;

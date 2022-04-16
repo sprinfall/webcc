@@ -4,6 +4,7 @@
 
 #include "boost/asio/read.hpp"
 #include "boost/asio/write.hpp"
+#include "boost/endian/conversion.hpp"
 
 #include "webcc/base64.h"
 #include "webcc/logger.h"
@@ -26,7 +27,37 @@ void WSClient::Connect(const Url& url, ConnectHandler&& connect_handler) {
 }
 
 void WSClient::Send(WSFramePtr frame) {
+  LOG_VERB("Send frame:\n%s", frame->Stringify().c_str());
+
   AsyncWriteFrame(frame);
+}
+
+void WSClient::SendPing() {
+  auto frame = std::make_shared<WSFrame>();
+  frame->Build(ws::opcodes::kPing, ws::NewMaskingKey());
+  Send(frame);
+}
+
+void WSClient::SendPong() {
+  auto frame = std::make_shared<WSFrame>();
+  frame->Build(ws::opcodes::kPong, ws::NewMaskingKey());
+  Send(frame);
+}
+
+void WSClient::SendClose(std::uint16_t code) {
+  auto frame = std::make_shared<WSFrame>();
+
+  std::uint32_t masking_key = ws::NewMaskingKey();
+
+  if (code > 0) {
+    byte_t data[2];
+    ws::HostToNetwork(code, data);
+    frame->Build(true, ws::opcodes::kConnectionClose, data, 2, &masking_key);
+  } else {
+    frame->Build(ws::opcodes::kConnectionClose, masking_key);
+  }
+
+  Send(frame);
 }
 
 void WSClient::AsyncWrite(const std::vector<boost::asio::const_buffer>& buffers,
@@ -49,7 +80,7 @@ void WSClient::RequestEnd() {
 
     if (response_->status() != status_codes::kSwitchingProtocols) {
       LOG_ERRO("Handshake response status error (%d)", response_->status());
-      error_.Set(Error::kSyntaxError,  // TODO: Define a new error code
+      error_.Set(Error::kHandshakeError,
                  "WebSocket handshake: unexpected status code");
       break;
     }
@@ -65,7 +96,7 @@ void WSClient::RequestEnd() {
 
     std::string_view accept = response_->GetHeader("Sec-WebSocket-Accept");
     if (accept != base64_sha1_hash) {
-      error_.Set(Error::kSyntaxError,
+      error_.Set(Error::kHandshakeError,
                  "WebSocket handshake: invalid Sec-WebSocket-Accept header");
       break;
     }
@@ -86,7 +117,6 @@ void WSClient::RequestEnd() {
   AsyncReadFrame();
 }
 
-// TODO: Use `in_frame_` directly?
 void WSClient::HandleFrameIn(WSFramePtr in_frame) {
   if (receive_handler_) {
     receive_handler_(shared_from_this(), in_frame);
@@ -97,45 +127,43 @@ void WSClient::HandleFrameIn(WSFramePtr in_frame) {
 
     // Send a Close frame. (TODO: Close directly? check RFC)
     // TODO: Status code
-    auto close_frame = std::make_shared<WSFrame>();
-    close_frame->Build(ws::opcodes::kConnectionClose, ws::NewMaskingKey());
-
-    AsyncWriteFrame(close_frame);
+    SendClose();
 
     return;
   }
 
-  const byte_t opcode = in_frame->opcode();
+  // TODO
+  if (!in_frame->IsPayloadFull()) {
+    SendClose();
+    return;
+  }
 
-  switch (opcode) {
-    case ws::opcodes::kPing: {
+  switch (in_frame->opcode()) {
+    case ws::opcodes::kPing:
       // Send a Pong in response.
-      // Reuse the incoming frame instead of creating a new one.
-      in_frame->set_opcode(ws::opcodes::kPong);
-      in_frame->AddMask(ws::NewMaskingKey());
-      AsyncWriteFrame(in_frame);
-
+      SendPong();
       break;
-    }
 
     case ws::opcodes::kConnectionClose: {
       close_frame_received_ = true;
 
       if (close_frame_sent_) {
         // Close the underlying TCP connection.
-        Close();
+        CloseSocket();
       } else {
         // Send a Close frame in response.
-        // TODO: Parse status code
-        in_frame->AddMask(ws::NewMaskingKey());
-        AsyncWriteFrame(in_frame);
+        std::uint16_t code = 0;
+        if (in_frame->payload_len() >= 2) {
+          code = ws::NetworkToHost<std::uint16_t>(in_frame->payload());
+          LOG_INFO("Close status code: %u", code);
+        }
+        SendClose(code);
       }
 
       break;
     }
 
     default:
-      // TODO
       break;
   }
 }
@@ -188,7 +216,7 @@ void WSClient::OnReadFrame(boost::system::error_code ec, std::size_t size) {
     }
 
     if (parser_.finished()) {
-      LOG_VERB("Frame received:\n%s", in_frame_->Dump().c_str());
+      LOG_VERB("Frame received:\n%s", in_frame_->Stringify().c_str());
 
       HandleFrameIn(in_frame_);
 
@@ -230,7 +258,7 @@ void WSClient::OnWriteFrame(boost::system::error_code ec, std::size_t length) {
     return;
   }
 
-  LOG_VERB("Frame sent:\n%s", out_frame_->Dump().c_str());
+  LOG_VERB("Frame sent:\n%s", out_frame_->Stringify().c_str());
 
   if (out_frame_->opcode() == ws::opcodes::kConnectionClose) {
     close_frame_sent_ = true;

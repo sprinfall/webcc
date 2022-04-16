@@ -54,101 +54,58 @@ void MaskTransform(byte_t* payload, std::size_t size,
 
 // -----------------------------------------------------------------------------
 
-WSFrame::WSFrame(const WSFrame& rhs)
-    : header_(rhs.header_),
-      payload_len_bits_(rhs.payload_len_bits_),
-      payload_len_(rhs.payload_len_),
-      payload_(rhs.payload_),
-      payload_masked_(rhs.payload_masked_) {
+std::ostream& operator<<(std::ostream& os, const WSFrame& frame) {
+  os << "fin: " << static_cast<int>(frame.fin()) << std::endl;
+  os << "rsv1~3: " << static_cast<int>(frame.rsv1()) << ","
+     << static_cast<int>(frame.rsv2()) << "," << static_cast<int>(frame.rsv3())
+     << std::endl;
+  os << "opcode: " << static_cast<int>(frame.opcode()) << " ("
+     << ws::OpCodeName(frame.opcode()) << ")" << std::endl;
+  os << "mask: " << static_cast<int>(frame.mask()) << std::endl;
+
+  os << "payload length: " << frame.payload_len() << std::endl;
+
+  return os;
 }
 
-WSFrame& WSFrame::operator=(const WSFrame& rhs) {
-  if (&rhs != this) {
-    header_ = rhs.header_;
-    payload_len_bits_ = rhs.payload_len_bits_;
-    payload_len_ = rhs.payload_len_;
-    payload_ = rhs.payload_;
-    payload_masked_ = rhs.payload_masked_;
+// -----------------------------------------------------------------------------
+
+bool WSFrame::Parse(const byte_t* bytes, std::size_t size, bool auto_unmask) {
+  if (!ParseHeader(bytes, size)) {
+    return false;
   }
-  return *this;
-}
-
-void WSFrame::MaskPayload() {
-  if (!payload_masked_) {
-    if (!payload_.empty()) {
-      ws::MaskTransform(&payload_[0], payload_.size(), masking_key());
-    }
-    payload_masked_ = true;
+  
+  if ((payload_len_ + header_.size()) != size) {
+    return false;
   }
-}
 
-void WSFrame::UnmaskPayload() {
-  if (payload_masked_) {
-    if (!payload_.empty()) {
-      ws::MaskTransform(&payload_[0], payload_.size(), masking_key());
-    }
-    payload_masked_ = false;
-  }
-}
+  bytes += header_.size();
 
-void WSFrame::AddMask(std::uint32_t masking_key) {
-  if (masked()) {
+#if 1
+  payload_.resize(payload_len_);
+  std::memcpy(&payload_[0], bytes, payload_len_);
+#else
+  payload_.clear();
+  payload_.insert(payload_.end(), bytes, bytes + payload_len_);
+#endif
+
+  if (masked() && auto_unmask) {
     UnmaskPayload();
-    std::memcpy(&header_[masking_key_off()], &masking_key, 4);
-    MaskPayload();
-  } else {
-    header_.insert(header_.end(), 4, 0);
-    set_masked(true);
-    std::memcpy(&header_[masking_key_off()], &masking_key, 4);
-    MaskPayload();
-  }
-}
-
-void WSFrame::RemoveMask() {
-  if (!masked()) {
-    return;
   }
 
-  // TODO
+  return true;
 }
 
-std::string WSFrame::GetPayloadText() const {
-  std::string payload;
-  payload.resize(payload_len_);
-  std::memcpy(&payload[0], payload_.data(), payload_len_);
-  return payload;
-}
-
-void WSFrame::Build(bool fin, std::string_view text,
-                    std::uint32_t masking_key) {
-  const byte_t* data = reinterpret_cast<const byte_t*>(text.data());
-  Build(fin, data, text.size(), &masking_key);
-}
-
-void WSFrame::Build(bool fin, std::string_view text) {
-  const byte_t* data = reinterpret_cast<const byte_t*>(text.data());
-  Build(fin, data, text.size(), nullptr);
-}
-
-void WSFrame::Build(byte_t opcode) {
-  Build(true, nullptr, 0, nullptr);
-}
-
-void WSFrame::Build(byte_t opcode, std::uint32_t masking_key) {
-  Build(true, nullptr, 0, &masking_key);
-}
-
-bool WSFrame::ParseHeader(const byte_t* data, std::size_t size) {
+bool WSFrame::ParseHeader(const byte_t* bytes, std::size_t size) {
   if (size < 2) {
     return false;
   }
 
   std::size_t header_size = 2;
 
-  std::uint8_t byte1 = data[1];
+  std::uint8_t byte1 = bytes[1];
   std::uint8_t payload_len7 = byte1 & 0x7F;
 
-  // TODO: Handle payload_len7 == 0
   if (payload_len7 < 126) {
     payload_len_bits_ = ws::PayloadLenBits::k7;
     payload_len_ = payload_len7;
@@ -161,9 +118,7 @@ bool WSFrame::ParseHeader(const byte_t* data, std::size_t size) {
       return false;
     }
 
-    std::uint16_t len16 = 0;
-    std::memcpy(&len16, &data[2], 2);  // TODO: Byte order
-    payload_len_ = len16;
+    payload_len_ = ws::NetworkToHost<std::uint16_t>(&bytes[2]);
 
   } else if (payload_len7 == 127) {
     payload_len_bits_ = ws::PayloadLenBits::k63;
@@ -173,17 +128,14 @@ bool WSFrame::ParseHeader(const byte_t* data, std::size_t size) {
       return false;
     }
 
-    std::uint64_t len64 = 0;
-    std::memcpy(&len64, &data[2], 8);  // TODO: Byte order
+    payload_len_ = ws::NetworkToHost<std::uint64_t>(&bytes[2]);
 
-    if (len64 > ws::kMaxLength63) {
+    if (payload_len_ > ws::kMaxLength63) {
       // TODO: Error handling
     }
-
-    payload_len_ = len64;
   }
 
-  const bool masked = (data[1] >> 7) == 1;
+  const bool masked = (bytes[1] >> 7) == 1;
 
   if (masked) {
     payload_masked_ = true;
@@ -194,60 +146,19 @@ bool WSFrame::ParseHeader(const byte_t* data, std::size_t size) {
     }
   }
 
+#if 1
   header_.resize(header_size);
-  std::memcpy(&header_[0], data, header_size);
-
+  std::memcpy(&header_[0], bytes, header_size);
+#else
+  header_.clear();
+  header_.insert(header_.end(), bytes, bytes + header_size);
+#endif
+ 
   return true;
 }
 
-std::size_t WSFrame::AppendPayload(const byte_t* data, std::size_t size) {
-  if (IsPayloadFull()) {
-    return 0;
-  }
-
-  std::size_t append_size = std::min(payload_len_ - payload_.size(), size);
-  payload_.insert(payload_.end(), data, data + append_size);
-
-  return append_size;
-}
-
-void WSFrame::Dump(std::ostream& os) const {
-  os << "fin: " << static_cast<int>(fin()) << std::endl;
-  os << "rsv1~3: " << static_cast<int>(rsv1()) << ","
-     << static_cast<int>(rsv2()) << "," << static_cast<int>(rsv3())
-     << std::endl;
-  os << "opcode: " << static_cast<int>(opcode()) << " ("
-     << ws::OpCodeName(opcode()) << ")" << std::endl;
-
-  os << "mask: " << static_cast<int>(mask()) << std::endl;
-
-  os << "payload length: " << payload_len_ << std::endl;
-}
-
-std::string WSFrame::Dump() const {
-  std::ostringstream ss;
-  Dump(ss);
-  return ss.str();
-}
-
-bool WSFrame::Init(const byte_t* bytes, std::size_t size, bool auto_unmask) {
-  if (!ParseHeader(bytes, size)) {
-    return false;
-  }
-
-  payload_len_ = size - header_.size();
-  payload_.resize(payload_len_);
-  std::memcpy(&payload_[0], bytes + header_.size(), payload_len_);
-
-  if (masked() && auto_unmask) {
-    UnmaskPayload();
-  }
-
-  return true;
-}
-
-void WSFrame::Build(bool fin, const byte_t* data, std::size_t size,
-                    const std::uint32_t* masking_key) {
+void WSFrame::Build(bool fin, byte_t opcode, const byte_t* data,
+                    std::size_t size, const std::uint32_t* masking_key) {
   assert(empty());
 
   payload_len_ = size;
@@ -285,29 +196,24 @@ void WSFrame::Build(bool fin, const byte_t* data, std::size_t size,
   std::size_t off = 2;  // start
 
   set_fin(fin);
-  set_opcode(ws::opcodes::kTextFrame);
+  set_opcode(opcode);
 
   if (payload_len_bits_ == ws::PayloadLenBits::k7) {
     header_[1] = static_cast<byte_t>(payload_len_);
 
   } else if (payload_len_bits_ == ws::PayloadLenBits::k16) {
     header_[1] = byte_t(126);
-
-    std::uint16_t len = static_cast<std::uint16_t>(payload_len_);
-    std::memcpy(&header_[2], &len, 2);
-
+    ws::HostToNetwork(static_cast<std::uint16_t>(payload_len_), &header_[2]);
     off += 2;
 
   } else if (payload_len_bits_ == ws::PayloadLenBits::k63) {
     header_[1] = byte_t(127);
-
-    std::uint64_t len = static_cast<std::uint64_t>(payload_len_);
-    std::memcpy(&header_[2], &len, 8);
-
+    ws::HostToNetwork(static_cast<std::uint64_t>(payload_len_), &header_[2]);
     off += 8;
   }
 
   if (masking_key != nullptr) {
+    // No need to consider byte order.
     std::memcpy(&header_[off], masking_key, 4);
     off += 4;
     set_masked(true);
@@ -323,6 +229,80 @@ void WSFrame::Build(bool fin, const byte_t* data, std::size_t size,
   if (masking_key != nullptr) {
     MaskPayload();
   }
+}
+
+void WSFrame::Build(bool fin, std::string_view text,
+                    std::uint32_t masking_key) {
+  const byte_t* data = reinterpret_cast<const byte_t*>(text.data());
+  Build(fin, ws::opcodes::kTextFrame, data, text.size(), &masking_key);
+}
+
+void WSFrame::Build(bool fin, std::string_view text) {
+  const byte_t* data = reinterpret_cast<const byte_t*>(text.data());
+  Build(fin, ws::opcodes::kTextFrame, data, text.size(), nullptr);
+}
+
+void WSFrame::Build(byte_t opcode) {
+  Build(true, opcode, nullptr, 0, nullptr);
+}
+
+void WSFrame::Build(byte_t opcode, std::uint32_t masking_key) {
+  Build(true, opcode, nullptr, 0, &masking_key);
+}
+
+void WSFrame::MaskPayload() {
+  if (!payload_masked_) {
+    if (!payload_.empty()) {
+      ws::MaskTransform(&payload_[0], payload_.size(), masking_key());
+    }
+    payload_masked_ = true;
+  }
+}
+
+void WSFrame::UnmaskPayload() {
+  if (payload_masked_) {
+    if (!payload_.empty()) {
+      ws::MaskTransform(&payload_[0], payload_.size(), masking_key());
+    }
+    payload_masked_ = false;
+  }
+}
+
+void WSFrame::AddMask(std::uint32_t masking_key) {
+  if (masked()) {
+    UnmaskPayload();
+    std::memcpy(&header_[masking_key_off()], &masking_key, 4);
+    MaskPayload();
+  } else {
+    header_.insert(header_.end(), 4, 0);
+    set_masked(true);
+    std::memcpy(&header_[masking_key_off()], &masking_key, 4);
+    MaskPayload();
+  }
+}
+
+std::string WSFrame::GetPayloadText() const {
+  std::string payload;
+  payload.resize(payload_len_);
+  std::memcpy(&payload[0], payload_.data(), payload_len_);
+  return payload;
+}
+
+std::size_t WSFrame::AppendPayload(const byte_t* data, std::size_t size) {
+  if (IsPayloadFull()) {
+    return 0;
+  }
+
+  std::size_t append_size = std::min(payload_len_ - payload_.size(), size);
+  payload_.insert(payload_.end(), data, data + append_size);
+
+  return append_size;
+}
+
+std::string WSFrame::Stringify() const {
+  std::ostringstream ss;
+  ss << *this;
+  return ss.str();
 }
 
 }  // namespace webcc

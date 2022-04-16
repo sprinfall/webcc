@@ -15,13 +15,15 @@ using WSClientPtr = std::shared_ptr<WSClient>;
 
 class WSClient : public AsyncClientBase {
 public:
-  using ConnectHandler = std::function<void(WSClientPtr, Error)>;
-  using SendHandler = std::function<void(WSClientPtr, Error)>;
+  using ConnectHandler = std::function<void(WSClientPtr, const Error&)>;
+  using SendHandler = std::function<void(WSClientPtr, const Error&)>;
   using ReceiveHandler = std::function<void(WSClientPtr, WSFramePtr)>;
 
-  explicit WSClient(boost::asio::io_context& io_context);
-
   ~WSClient() override = default;
+
+  static WSClientPtr Make(boost::asio::io_context& io_context) {
+    return std::shared_ptr<WSClient>{ new WSClient{ io_context } };
+  }
 
   WSClientPtr shared_from_this() {
     return std::dynamic_pointer_cast<WSClient>(
@@ -36,7 +38,14 @@ public:
 
   void Send(WSFramePtr frame);
 
+  void SendPing();
+  void SendPong();
+
+  void SendClose(std::uint16_t code = 0);
+
 protected:
+  explicit WSClient(boost::asio::io_context& io_context);
+
   SocketType& GetSocket() override {
     return socket_;
   }
@@ -55,7 +64,6 @@ private:
   void AsyncReadFrame();
   void OnReadFrame(boost::system::error_code ec, std::size_t size);
 
-  // TODO: rn
   void HandleFrameIn(WSFramePtr in_frame);
 
   void AsyncWriteFrame(WSFramePtr frame);

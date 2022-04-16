@@ -3,30 +3,30 @@
 #include "webcc/logger.h"
 #include "webcc/ws_client.h"
 
-namespace wws = webcc::ws;
+struct ConnectHandler {
+  void operator()(webcc::WSClientPtr ws_client, const webcc::Error& error) {
+    if (error) {
+      std::cerr << "Connect error: " << error.what() << std::endl;
+      return;
+    }
 
-void ConnectHandler(webcc::WSClientPtr ws_client, webcc::Error error) {
-  if (error) {
-    std::cerr << "Connect error: " << error.what() << std::endl;
-    return;
-  }
+    std::cout << "Send 'Hello'" << std::endl;
 
-  std::cout << "Send 'Hello'" << std::endl;
-
-  auto frame = std::make_shared<webcc::WSFrame>();
-  frame->Build(true, "Hello", wws::NewMaskingKey());
-
-  ws_client->Send(frame);
-}
-
-void ReceiveHandler(webcc::WSClientPtr ws_client, webcc::WSFramePtr frame) {
-  if (frame->opcode() == wws::opcodes::kTextFrame) {
-    // Close connection
     auto frame = std::make_shared<webcc::WSFrame>();
-    frame->Build(wws::opcodes::kConnectionClose, wws::NewMaskingKey());
+    frame->Build(true, "Hello", webcc::ws::NewMaskingKey());
+
     ws_client->Send(frame);
   }
-}
+};
+
+struct ReceiveHandler {
+  void operator()(webcc::WSClientPtr ws_client, webcc::WSFramePtr frame) {
+    if (frame->opcode() == webcc::ws::opcodes::kTextFrame) {
+      // Close connection
+      ws_client->SendClose(webcc::ws::status_codes::kNormalClosure);
+    }
+  }
+};
 
 int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
@@ -35,10 +35,10 @@ int main() {
 
   webcc::Url url{ "ws://localhost:8080" };
 
-  auto ws_client = std::make_shared<webcc::WSClient>(io_context);
+  auto ws_client = webcc::WSClient::Make(io_context);
 
-  ws_client->set_receive_handler(ReceiveHandler);
-  ws_client->Connect(url, ConnectHandler);
+  ws_client->set_receive_handler(ReceiveHandler{});
+  ws_client->Connect(url, ConnectHandler{});
 
   io_context.run();
 

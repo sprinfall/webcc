@@ -41,11 +41,6 @@ bool WSParser::ParseHeader() {
     return true;
   }
 
-  // TODO: Error handling on empty payload?
-  if (frame_->payload_len() == 0) {
-    return false;
-  }
-
   // Remove the data which has just been parsed.
   buffer_.erase(buffer_.begin(), buffer_.begin() + frame_->header_len());
 
