@@ -1,7 +1,5 @@
 #include "webcc/logger.h"
 
-#if WEBCC_ENABLE_LOG
-
 #include <cassert>
 #include <chrono>
 #include <cstdarg>
@@ -271,5 +269,3 @@ void Log(int level, const char* file, int line, const char* format, ...) {
 }
 
 }  // namespace webcc
-
-#endif  // WEBCC_ENABLE_LOG

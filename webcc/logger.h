@@ -4,8 +4,6 @@
 // This file was generated from "config.h.in" by CMake.
 #include "webcc/config.h"
 
-#if WEBCC_ENABLE_LOG
-
 #include <cstring>  // for strrchr()
 #include <filesystem>
 #include <string>
@@ -19,6 +17,7 @@
 #define WEBCC_USER 2
 #define WEBCC_WARN 3
 #define WEBCC_ERRO 4
+#define WEBCC_NONE 5
 
 // Default log level.
 #ifndef WEBCC_LOG_LEVEL
@@ -49,9 +48,6 @@ void LogInit(const std::filesystem::path& dir, int modes);
 void Log(int level, const char* file, int line, const char* format, ...);
 
 }  // namespace webcc
-
-// Initialize the logger with a level.
-#define WEBCC_LOG_INIT(dir, modes) webcc::LogInit(dir, modes);
 
 // Definition of _WIN32 & _WIN64:
 //   https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=vs-2015
@@ -87,7 +83,7 @@ void Log(int level, const char* file, int line, const char* format, ...);
 #define LOG_USER(format, ...) \
   webcc::Log(WEBCC_USER, __FILENAME__, __LINE__, format, ##__VA_ARGS__);
 #else
-#define LOG_INFO(format, ...)
+#define LOG_USER(format, ...)
 #endif
 
 #if WEBCC_LOG_LEVEL <= WEBCC_WARN
@@ -104,16 +100,10 @@ void Log(int level, const char* file, int line, const char* format, ...);
 #define LOG_ERRO(format, ...)
 #endif
 
-#else  // WEBCC_ENABLE_LOG == 0
-
+#if WEBCC_LOG_LEVEL < WEBCC_NONE
+#define WEBCC_LOG_INIT(dir, modes) webcc::LogInit(dir, modes);
+#else
 #define WEBCC_LOG_INIT(dir, modes)
-
-#define LOG_VERB(format, ...)
-#define LOG_INFO(format, ...)
-#define LOG_USER(format, ...)
-#define LOG_WARN(format, ...)
-#define LOG_ERRO(format, ...)
-
-#endif  // WEBCC_ENABLE_LOG
+#endif
 
 #endif  // WEBCC_LOGGER_H_

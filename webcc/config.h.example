@@ -3,24 +3,10 @@
 
 // Compile configurations.
 
-// Set 1/0 to enable/disable logging.
-#define WEBCC_ENABLE_LOG 1
-
-#if WEBCC_ENABLE_LOG
-// 0:VERB, 1:INFO, 2:USER, 3:WARN or 4:ERRO
+// 0:VERB, 1:INFO, 2:USER, 3:WARN, 4:ERRO, >=5:NONE
 #define WEBCC_LOG_LEVEL 2
-#endif
-
-// Set 1/0 to enable/disable SSL/HTTPS.
-#define WEBCC_ENABLE_SSL 0
 
 // Set 1/0 to enable/disable GZIP compression.
 #define WEBCC_ENABLE_GZIP 0
-
-// Set 1 to use std::filesystem or 0 to use boost::filesystem.
-#define WEBCC_USE_STD_FILESYSTEM 1
-
-// Set 1 to use std::string_view or 0 to use boost::string_view.
-#define WEBCC_USE_STD_STRING_VIEW 1
 
 #endif  // WEBCC_CONFIG_H_

@@ -25,10 +25,12 @@ option(BUILD_UNITTEST "Build unit test?" OFF)
 option(BUILD_EXAMPLES "Build examples?" ON)
 option(BUILD_QT_EXAMPLES "Build Qt application examples?" OFF)
 
-set(WEBCC_ENABLE_LOG 1 CACHE STRING "Enable logging? (1:Yes, 0:No)")
-set(WEBCC_ENABLE_GZIP 0 CACHE STRING "Enable gzip compression (need Zlib)? (1:Yes, 0:No)")
-
-set(WEBCC_LOG_LEVEL 2 CACHE STRING "Log level (0:VERB, 1:INFO, 2:USER, 3:WARN or 4:ERRO)")
+set(WEBCC_LOG_LEVEL 2
+    CACHE STRING "Log level (0:VERB, 1:INFO, 2:USER, 3:WARN, 4:ERRO, >=5:NONE)"
+    )
+set(WEBCC_ENABLE_GZIP 0
+    CACHE STRING "Enable gzip compression (need Zlib)? (1:Yes, 0:No)"
+    )
 
 if(BUILD_UNITTEST)
     enable_testing()
