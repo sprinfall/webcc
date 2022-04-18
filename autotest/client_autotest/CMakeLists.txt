@@ -3,12 +3,7 @@ set(SRCS
     main.cc
     )
 
-# Common libraries to link.
-set(LIBS
-    webcc
-    jsoncpp
-    GTest::GTest
-    )
+set(LIBS webcc jsoncpp GTest::GTest)
 
 if(UNIX)
     # Add `-ldl` for Linux to avoid "undefined reference to `dlopen'".

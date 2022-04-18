@@ -12,11 +12,7 @@ set(UT_SRCS
     url_unittest.cc
     )
 
-# Common libraries to link.
-set(UT_LIBS
-    webcc
-    GTest::GTest
-    GTest::Main)
+set(UT_LIBS webcc GTest::GTest GTest::Main)
 
 if(UNIX)
     # Add `-ldl` for Linux to avoid "undefined reference to `dlopen'".

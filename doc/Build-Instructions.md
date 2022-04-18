@@ -8,13 +8,13 @@
 
 ### Dependencies
 
-* [Boost 1.66+](https://www.boost.org/) (asio, system, date_time, filesystem)
-* [OpenSSL](https://www.openssl.org/) (for HTTPS, optional)
+* [Boost 1.66+](https://www.boost.org/) (asio, system, date_time)
+* [OpenSSL](https://www.openssl.org/) (for HTTPS)
 * [Zlib](https://www.zlib.net/) (for GZIP compression, optional)
 * [Googletest](https://github.com/google/googletest) (for automation and unit tests, optional)
 * [CMake](https://cmake.org/)
 
-OpenSSL and Zlib are **optional** since they could be disabled. See the build options below.
+Zlib is **optional** since GZIP compression could be disabled. See the build options below.
 
 Googletest is also **optional** unless you want to build the automation and unit tests.
 
@@ -23,27 +23,22 @@ Googletest is also **optional** unless you want to build the automation and unit
 The following CMake options determine how you build the projects. They are quite self-explanatory.
 
 ```cmake
-option(BUILD_AUTOTEST "Build automation test?" OFF)
-option(BUILD_UNITTEST "Build unit test?" OFF)
-option(BUILD_EXAMPLES "Build examples?" OFF)
-option(BUILD_QT_EXAMPLES "Build Qt application examples?" OFF)
+option(WEBCC_BUILD_UNITTEST "Build unit test?" OFF)
+option(WEBCC_BUILD_AUTOTEST "Build automation test?" OFF)
+option(WEBCC_BUILD_EXAMPLES "Build examples?" ON)
+option(WEBCC_BUILD_QT_EXAMPLES "Build Qt application examples?" OFF)
 
-set(WEBCC_ENABLE_LOG   1 CACHE STRING "Enable logging? (1:Yes, 0:No)")
-set(WEBCC_ENABLE_SSL   0 CACHE STRING "Enable SSL/HTTPS (need OpenSSL)? (1:Yes, 0:No)")
-set(WEBCC_ENABLE_GZIP  0 CACHE STRING "Enable gzip compression (need Zlib)? (1:Yes, 0:No)")
-
-set(WEBCC_LOG_LEVEL    2 CACHE STRING "Log level (0:VERB, 1:INFO, 2:USER, 3:WARN or 4:ERRO)")
+set(WEBCC_LOG_LEVEL 2 CACHE STRING "Log level (0:VERB, 1:INFO, 2:USER, 3:WARN, 4:ERRO, 5:NONE")
+set(WEBCC_ENABLE_GZIP 0 CACHE STRING "Enable gzip compression (need Zlib)? (1:Yes, 0:No)")
 ```
 
-Automation test is based on a real server: [httpbin.org](http://httpbin.org/).
+Automation test is based on a real server: [httpbin.org](http://httpbin.org/) (it seems not accessible at times).
 
 ### Integration
 
 Webcc doesn't support CMake Install right now.
 
-I suggest to integrate it to your project simply by source code. Just copy the webcc sub-folder into your project and add the related CMake options.
-
-Please take a look at this example: [https://github.com/sprinfall/webcc-integration](https://github.com/sprinfall/webcc-integration).
+I suggest to integrate it to your project simply by source code. Just copy the webcc sub-folder into your project and add the related CMake options. Please refer to: [https://github.com/sprinfall/webcc-integration](https://github.com/sprinfall/webcc-integration).
 
 ## Build on Ubuntu
 
@@ -90,7 +85,7 @@ $ ./bootstrap.sh
 Build and install:
 
 ```
-$ sudo ./b2 --with-system --with-date_time --with-filesystem variant=debug link=static threading=multi install
+$ sudo ./b2 --with-system --with-date_time variant=debug link=static threading=multi install
 ```
 
 **Notes:**
@@ -135,13 +130,11 @@ Generate Makefiles with the following command:
 
 ```
 $ cmake -G"Unix Makefiles" \
-    -DBUILD_AUTOTEST=OFF \
-    -DBUILD_UNITTEST=OFF \
-    -DBUILD_EXAMPLES=ON \
-    -DBUILD_QT_EXAMPLES=OFF \
-    -DWEBCC_ENABLE_LOG=1 \
+    -DWEBCC_BUILD_UNITTEST=OFF \
+    -DWEBCC_BUILD_AUTOTEST=OFF \
+    -DWEBCC_BUILD_EXAMPLES=ON \
+    -DWEBCC_BUILD_QT_EXAMPLES=OFF \
     -DWEBCC_LOG_LEVEL=0 \
-    -DWEBCC_ENABLE_SSL=1 \
     -DWEBCC_ENABLE_GZIP=1 \
     ..
 ```
@@ -175,12 +168,12 @@ In the prompt, `cd` to the Boost root directory. Run `bootstrap.bat` to generate
 Run `b2.exe` to start the build:
 
 ```
-$ b2 --with-system --with-date_time --with-filesystem variant=debug variant=release link=static threading=multi address-model=64 stage
+$ b2 --with-system --with-date_time variant=debug variant=release link=static threading=multi address-model=64 stage
 ```
 
 *NOTE: Given `address-model=64` `b2.exe` will not build any x86 libraries.*
 
-As you can see, we only need to build `system`, `date_time` and `filesystem`. Asio itself is a header-only library.
+As you can see, we only need to build `system` and `date_time`. Asio itself is a header-only library.
 
 We don't install Boost to any other place (e.g., `C:\Boost`). We just `stage` it where it is.
 
@@ -188,18 +181,13 @@ In order for CMake to find Boost, please add an environment variable named `Boos
 
 ### OpenSSL
 
-Download from [here](http://slproweb.com/products/Win32OpenSSL.html).
-
-The following installers (the suffix "g" might change according to revision) are recommended for development:
-
-- Win64 OpenSSL v1.1.1g
-- Win32 OpenSSL v1.1.1g
+Click [here](http://slproweb.com/products/Win32OpenSSL.html) to download the OpenSSL installer `Win64 OpenSSL v1.1.1g` (the suffix "g" might change according to revision).
 
 During the installation, you will be asked to copy OpenSSL DLLs (`libcrypto-1_1-x64.dll` and `libssl-1_1-x64.dll`) to "The Windows system directory" or "The OpenSSL libraries (/bin) directory". If you choose the later, remember to add the path (e.g., `C:\Program Files\OpenSSL-Win64\bin`) to the `PATH` environment variable.
 
 ![OpenSSL Installation](screenshots/win_openssl_install.png)
 
-OpenSSL can also be statically linked (see `C:\Program Files\OpenSSL-Win64\lib\VC\static`), but it's not recommended. Because the static libraries might not match the version of your VS.
+OpenSSL can also be statically linked (see `C:\Program Files\OpenSSL-Win64\lib\VC\static`), but it's not recommended. Because the static libraries might not match the version of your Visual Studio.
 
 The only drawback of dynamic link is that you must distribute the OpenSSL DLLs together with your program.
 
@@ -207,17 +195,17 @@ The only drawback of dynamic link is that you must distribute the OpenSSL DLLs t
 
 Download Zlib from https://www.zlib.net/.
 
-Use CMake to generate VS solution. Click _**Configure**_ button.
+Use CMake to generate the Visual Studio solution. Click _**Configure**_ button.
 
 By default, `CMAKE_INSTALL_PREFIX` points to a folder like `C:/Program Files (x86)/zlib` which is not what we want.
 
-Change `CMAKE_INSTALL_PREFIX` to a folder where you would like to install all the third party libraries. E.g., `D:/lib/cmake_install_2019_64` (NOTE: you must use "/" instead of "\\" as path seperator!).
+Change `CMAKE_INSTALL_PREFIX` to a folder where you would like to install all the third party libraries. E.g., `D:/lib/cmake_install_2019_64` (Note: you must use "/" instead of "\\" as the path seperator!).
 
 Remove all the `INSTALL_XXX_DIR` entries. Click _**Configure**_ button again. Now the `INSTALL_XXX_DIR` entries point to the folder defined by `CMAKE_INSTALL_PREFIX`.
 
-Leave all other options untouched, click _**Generate**_ button to generate the VS solution.
+Leave all other options untouched, click _**Generate**_ button to generate the Visual Studio solution.
 
-Launch the VS solution and build `INSTALL` project for both Debug and Release.
+Launch the Visual Studio solution and build the `INSTALL` project for both Debug and Release configurations.
 
 Zlib should now have been installed to the given folder.
 
@@ -227,17 +215,17 @@ In order for CMake to find Zlib during the configuration of Webcc, please add an
 
 Download the latest release of [Googletest](https://github.com/google/googletest/releases).
 
-Use CMake to generate VS solution:
+Use CMake to generate the Visual Studio solution:
 
 ![Googletest Installation](screenshots/win_cmake_config_gtest.png)
 
 Please note the highlighted configurations.
 
-The `CMAKE_INSTALL_PREFIX` has been changed to `D:/lib/cmake_install_2019_64` (NOTE: please use "/" instead of "\\" as path seperators!). This path should be added to an environment variable named `CMAKE_PREFIX_PATH`. Then, CMake can find this installed Googletest during the configuration of Webcc.
+The `CMAKE_INSTALL_PREFIX` has been changed to `D:/lib/cmake_install_2019_64` (Note: please use "/" instead of "\\" as the path seperator!). This path should be added to an environment variable named `CMAKE_PREFIX_PATH`.
 
 ![CMAKE_PREFIX_PATH](screenshots/win_cmake_prefix_path.png)
 
-After build Googletest in VS, install it by building `INSTALL` project from the whole solution.
+After build Googletest in Visual Studio, install it by building `INSTALL` project from the whole solution.
 
 ### Webcc
 
@@ -245,16 +233,10 @@ Open CMake, set **Where is the source code** to Webcc root directory (e.g., `D:/
 
 Check _**Grouped**_ and _**Advanced**_ two check boxes.
 
-Click _**Configure**_ button, select the generator and platform (`win32` or `x64`) from the popup dialog.
+Click _**Configure**_ button, select the generator and platform (e.g., `x64`) from the popup dialog.
 
-![CMake generator](screenshots/win_cmake_generator.png)
+In the center of CMake, you can see a lot of configure options which are grouped. Change them according to your need. E.g., set `WEBCC_ENABLE_GZIP` to `1` to enable the gzip compression.
 
-In the center of CMake, you can see a lot of configure options which are grouped. Change them according to your need. E.g., set `WEBCC_ENABLE_SSL` to `1` to enable OpenSSL.
+Click _**Configure**_ button again. If everything is OK, click _**Generate**_ button to generate the Visual Studio solution.
 
-Click _**Configure**_ button again. OpenSSL should be found.
-
-![CMake config OpenSSL](screenshots/win_cmake_config_openssl.png)
-
-Click _**Configure**_ button again. If everything is OK, click _**Generate**_ button to generate the VS solution.
-
-Click _**Open Project**_ button to open VS.
+Click _**Open Project**_ button to open Visual Studio and you're ready to build.

@@ -38,7 +38,7 @@ Boost Beast 没有一个开箱即用的 HTTP Server，微软 cpprest 的 API 设
 - 跨平台: Windows，Linux 及 MacOS
 - 简单好用的客户端 API，借鉴了 Python 的 [requests](https://2.python-requests.org/en/master/) 程序库
 - 支持 IPv6
-- 支持 SSL/HTTPS，依赖 OpenSSL（可选）
+- 支持 SSL/HTTPS，依赖 OpenSSL
 - 支持 GZip 压缩，依赖 Zlib（可选）
 - 持久连接 (Keep-Alive)
 - 数据串流 (Streaming)
@@ -71,9 +71,8 @@ int main() {
 
   try {
     // 发起一个 HTTP GET 请求
-    auto r = session.Send(webcc::RequestBuilder{}.
-                          Get("http://httpbin.org/get")
-                          ());
+    auto r =
+        session.Send(webcc::RequestBuilder{}.Get("http://httpbin.org/get")());
 
     // 输出响应数据
     std::cout << r->data() << std::endl;
@@ -94,19 +93,18 @@ int main() {
 通过 `Query()` 可以方便地指定 URL 查询参数：
 
 ```cpp
-session.Send(webcc::RequestBuilder{}.
-             Get("http://httpbin.org/get").
-             Query("key1", "value1").Query("key2", "value2")
-             ());
+session.Send(webcc::RequestBuilder{}
+                 .Get("http://httpbin.org/get")
+                 .Query("key1", "value1")
+                 .Query("key2", "value2")());
 ```
 
 要添加额外的头部也很简单：
 
 ```cpp
-session.Send(webcc::RequestBuilder{}.
-             Get("http://httpbin.org/get").
-             Header("Accept", "application/json")
-             ());
+session.Send(webcc::RequestBuilder{}
+                 .Get("http://httpbin.org/get")
+                 .Header("Accept", "application/json")());
 ```
 
 ### HTTPS
@@ -124,9 +122,8 @@ session.Send(webcc::RequestBuilder{}.Get("https://httpbin.org/get")());
 列出 GitHub 公开事件 (public events) 也不是什么难题：
 
 ```cpp
-auto r = session.Send(webcc::RequestBuilder{}.
-                      Get("https://api.github.com/events")
-                      ());
+auto r = session.Send(
+    webcc::RequestBuilder{}.Get("https://api.github.com/events")());
 ```
 
 然后，你可以把 `r->data()` 解析成 JSON 对象，随便用个什么 JSON 程序库。
@@ -140,19 +137,17 @@ auto r = session.Send(webcc::RequestBuilder{}.
 为了列出一个授权的 (authorized) GitHub 用户的“粉丝” (followers)，要么使用 **Basic 认证**：
 
 ```cpp
-session.Send(webcc::RequestBuilder{}.
-             Get("https://api.github.com/user/followers").
-             AuthBasic(login, password)  // 应该替换成具体的账号、密码
-             ());
+session.Send(webcc::RequestBuilder{}
+                 .Get("https://api.github.com/user/followers")
+                 .AuthBasic(login, password)());
 ```
 
 要么使用 **Token 认证**：
 
 ```cpp
-session.Send(webcc::RequestBuilder{}.
-             Get("https://api.github.com/user/followers").
-             AuthToken(token)  // 应该替换成具体合法的 token
-             ());
+session.Send(webcc::RequestBuilder{}
+                 .Get("https://api.github.com/user/followers")
+                 .AuthToken(token)());
 ```
 
 ### Keep-Alive
@@ -160,10 +155,9 @@ session.Send(webcc::RequestBuilder{}.
 尽管 **持久连接** (Keep-Alive) 这个功能不错，你也可以手动关掉它：
 
 ```cpp
-auto r = session.Send(webcc::RequestBuilder{}.
-                      Get("http://httpbin.org/get").
-                      KeepAlive(false)  // 不要 Keep-Alive
-                      ());
+// No Keep-Alive
+auto r = session.Send(
+    webcc::RequestBuilder{}.Get("http://httpbin.org/get").KeepAlive(false)());
 ```
 
 其他 HTTP 请求的 API 跟 GET 并无太多差别。
@@ -173,10 +167,11 @@ auto r = session.Send(webcc::RequestBuilder{}.
 POST 请求需要一个“体” (body)，就 REST API 来说通常是一个 JSON 字符串。让我们 POST 一个 UTF-8 编码的 JSON 字符串：
 
 ```cpp
-session.Send(webcc::RequestBuilder{}.
-             Post("http://httpbin.org/post").
-             Body("{'name'='Adam', 'age'=20}").Json().Utf8()
-             ());
+session.Send(webcc::RequestBuilder{}
+                 .Post("http://httpbin.org/post")
+                 .Body("{'name'='Adam', 'age'=20}")
+                 .Json()
+                 .Utf8()());
 ```
 
 除了 JSON 字符串，POST 请求的体可以为任何内容。它可以是一个文件的二进制内容，见：[上传文件](#上传文件)。它也可以是一个 URL 编码的字符串：
@@ -191,10 +186,9 @@ query.Add("key1", "value1");
 query.Add("key2", "value2");
 // ...
 
-auto r = session.Send(webcc::RequestBuilder{}.
-                      Post("http://httpbin.org/post").
-                      Body(query.ToString())
-                      ());
+auto r = session.Send(webcc::RequestBuilder{}
+                          .Post("http://httpbin.org/post")
+                          .Body(query.ToString())());
 ```
 
 更多细节请参见：[examples/form_urlencoded_client.cc](examples/form_urlencoded_client.cc)。
@@ -204,9 +198,9 @@ auto r = session.Send(webcc::RequestBuilder{}.
 Webcc 可以把大型的响应数据串流到临时文件，串流在下载文件时特别有用。
 
 ```cpp
-auto r = session.Send(webcc::RequestBuilder{}.
-                      Get("http://httpbin.org/image/jpeg")
-                      (), true);  // stream = true
+// stream = true
+auto r = session.Send(
+    webcc::RequestBuilder{}.Get("http://httpbin.org/image/jpeg")(), true);
 
 // 把串流的文件移到目标位置
 r->file_body()->Move("./wolf.jpeg");
@@ -217,10 +211,8 @@ r->file_body()->Move("./wolf.jpeg");
 不光下载，上传也可以串流：
 
 ```cpp
-auto r = session.Send(webcc::RequestBuilder{}.
-                      Post("http://httpbin.org/post").
-                      File(path)  // 应该替换成具体的文件路径
-                      ());
+auto r = session.Send(
+    webcc::RequestBuilder{}.Post("http://httpbin.org/post").File(path)());
 ```
 
 这个文件在 POST 时，不会一次加载到内存，而是读一块数据发一块数据，直到发送完。
@@ -229,7 +221,9 @@ auto r = session.Send(webcc::RequestBuilder{}.
 
 ### 多线程调用
 
-一个 `ClientSession` 对象同时只能给一个线程使用，不可以在多个线程间共享。
+一个 `ClientSession` 对象通常只能给一个线程用来发送请求，其 `Send()` 函数不可以在多个线程间并行调用。
+
+但是，它的几个状态切换的函数，`Start()`，`Stop()` 和 `Cancel()`，是线程安全的，比如，`Send()` 在线程 A 里调用，`Stop()` 可以在线程 B 里调用。具体可参考 [examples/heartbeat_client](examples/heartbeat_client.cc)。
 
 多线程调用示例:
 
@@ -242,9 +236,9 @@ void ThreadedClient() {
       webcc::ClientSession session;
 
       try {
-        auto r = session.Send(webcc::RequestBuilder{}.
-                              Get("http://httpbin.org/get")
-                              ());
+        auto r = session.Send(
+            webcc::RequestBuilder{}.Get("http://httpbin.org/get")());
+
         std::cout << r->data() << std::endl;
 
       } catch (const webcc::Error&) {
@@ -485,7 +479,5 @@ webcc::Server server{ boost::asio::ip::tcp::v6(), 8080 };
 只需指定一个 IPv6 地址：
 
 ```cpp
-auto r = session.Send(webcc::RequestBuilder{}.
-                      Get("http://[::1]:8080/books").
-                      ());
+session.Send(webcc::RequestBuilder{}.Get("http://[::1]:8080/books")());
 ```

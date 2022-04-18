@@ -20,10 +20,10 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${BUILD_DIR}/bin/release)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${BUILD_DIR}/bin/release)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BUILD_DIR}/bin/release)
 
-option(BUILD_AUTOTEST "Build automation test?" OFF)
-option(BUILD_UNITTEST "Build unit test?" OFF)
-option(BUILD_EXAMPLES "Build examples?" ON)
-option(BUILD_QT_EXAMPLES "Build Qt application examples?" OFF)
+option(WEBCC_BUILD_UNITTEST "Build unit test?" OFF)
+option(WEBCC_BUILD_AUTOTEST "Build automation test?" OFF)
+option(WEBCC_BUILD_EXAMPLES "Build examples?" ON)
+option(WEBCC_BUILD_QT_EXAMPLES "Build Qt application examples?" OFF)
 
 set(WEBCC_LOG_LEVEL 2
     CACHE STRING "Log level (0:VERB, 1:INFO, 2:USER, 3:WARN, 4:ERRO, >=5:NONE)"
@@ -32,7 +32,7 @@ set(WEBCC_ENABLE_GZIP 0
     CACHE STRING "Enable gzip compression (need Zlib)? (1:Yes, 0:No)"
     )
 
-if(BUILD_UNITTEST)
+if(WEBCC_BUILD_UNITTEST)
     enable_testing()
 endif()
 
@@ -48,10 +48,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Boost
-set(BOOST_COMPONENTS system date_time)
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.66.0 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
+find_package(Boost 1.66.0 REQUIRED COMPONENTS system date_time)
 if(Boost_FOUND)
     message(STATUS "Boost version: ${Boost_VERSION}")
     message(STATUS "Boost libraries: ${Boost_LIBRARIES}")
@@ -92,15 +91,14 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_subdirectory(webcc)
 
-if(BUILD_AUTOTEST OR BUILD_EXAMPLES)
+if(WEBCC_BUILD_AUTOTEST OR WEBCC_BUILD_EXAMPLES)
     # For including jsoncpp as "json/json.h".
     include_directories(${THIRD_PARTY_DIR}/src/jsoncpp)
-
     add_subdirectory(${THIRD_PARTY_DIR}/src/jsoncpp)
 endif()
 
 # GTest
-if(BUILD_AUTOTEST OR BUILD_UNITTEST)
+if(WEBCC_BUILD_AUTOTEST OR WEBCC_BUILD_UNITTEST)
     find_package(GTest REQUIRED)
     if(GTEST_FOUND)
         add_definitions(-DGTEST_LANG_CXX11=1)
@@ -108,14 +106,14 @@ if(BUILD_AUTOTEST OR BUILD_UNITTEST)
     endif()
 endif()
 
-if(BUILD_AUTOTEST)
+if(WEBCC_BUILD_AUTOTEST)
     add_subdirectory(autotest)
 endif()
 
-if(BUILD_UNITTEST)
+if(WEBCC_BUILD_UNITTEST)
     add_subdirectory(unittest)
 endif()
 
-if(BUILD_EXAMPLES)
+if(WEBCC_BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()

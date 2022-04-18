@@ -36,7 +36,7 @@ Git repo: https://github.com/sprinfall/webcc. Please check this one instead of t
 - Cross-platform: Windows, Linux and MacOS
 - Easy-to-use client API inspired by Python [requests](https://github.com/psf/requests)
 - IPv6 support
-- SSL/HTTPS support with OpenSSL (optional)
+- SSL/HTTPS support with OpenSSL
 - GZip compression support with Zlib (optional)
 - Persistent (Keep-Alive) connections
 - Data streaming
@@ -70,9 +70,8 @@ int main() {
   // Catch exceptions for error handling.
   try {
     // Send a HTTP GET request.
-    auto r = session.Send(webcc::RequestBuilder{}.
-                          Get("http://httpbin.org/get")
-                          ());
+    auto r =
+        session.Send(webcc::RequestBuilder{}.Get("http://httpbin.org/get")());
 
     // Print the response data.
     std::cout << r->data() << std::endl;
@@ -92,19 +91,18 @@ As you can see, a helper class named `RequestBuilder` is used to chain the param
 URL query parameters can be easily added through `Query()` method:
 
 ```cpp
-session.Send(webcc::RequestBuilder{}.
-             Get("http://httpbin.org/get").
-             Query("key1", "value1").Query("key2", "value2")
-             ());
+session.Send(webcc::RequestBuilder{}
+                 .Get("http://httpbin.org/get")
+                 .Query("key1", "value1")
+                 .Query("key2", "value2")());
 ```
 
 Adding additional headers is also easy:
 
 ```cpp
-session.Send(webcc::RequestBuilder{}.
-             Get("http://httpbin.org/get").
-             Header("Accept", "application/json")
-             ());
+session.Send(webcc::RequestBuilder{}
+                 .Get("http://httpbin.org/get")
+                 .Header("Accept", "application/json")());
 ```
 
 ### HTTPS
@@ -122,9 +120,8 @@ session.Send(webcc::RequestBuilder{}.Get("https://httpbin.org/get")());
 Listing GitHub public events is not a big deal:
 
 ```cpp
-auto r = session.Send(webcc::RequestBuilder{}.
-                      Get("https://api.github.com/events")
-                      ());
+auto r = session.Send(
+    webcc::RequestBuilder{}.Get("https://api.github.com/events")());
 ```
 
 You can then parse `r->data()` to JSON object with your favorite JSON library. My choice for the examples is [jsoncpp](https://github.com/open-source-parsers/jsoncpp). But Webcc itself doesn't understand JSON nor require one. It's up to you to choose the most appropriate JSON library.
@@ -145,10 +142,9 @@ session.Send(webcc::RequestBuilder{}.
 Or **Token Authorization**:
 
 ```cpp
-session.Send(webcc::RequestBuilder{}.
-             Get("https://api.github.com/user/followers").
-             AuthToken(<token>)
-             ());
+session.Send(webcc::RequestBuilder{}
+                 .Get("https://api.github.com/user/followers")
+                 .AuthToken(token)());
 ```
 
 ### Keep-Alive
@@ -156,10 +152,8 @@ session.Send(webcc::RequestBuilder{}.
 Though **Keep-Alive** (i.e., Persistent Connection) is a good feature and enabled by default, you can turn it off:
 
 ```cpp
-auto r = session.Send(webcc::RequestBuilder{}.
-                      Get("http://httpbin.org/get").
-                      KeepAlive(false)  // No Keep-Alive
-                      ());
+auto r = session.Send(
+    webcc::RequestBuilder{}.Get("http://httpbin.org/get").KeepAlive(false)());
 ```
 
 The API for other HTTP requests is no different from GET.
@@ -169,10 +163,11 @@ The API for other HTTP requests is no different from GET.
 A POST request needs a body which is normally a JSON string for REST API. Let's post a small UTF-8 encoded JSON string:
 
 ```cpp
-session.Send(webcc::RequestBuilder{}.
-             Post("http://httpbin.org/post").
-             Body("{'name'='Adam', 'age'=20}").Json().Utf8()
-             ());
+session.Send(webcc::RequestBuilder{}
+                 .Post("http://httpbin.org/post")
+                 .Body("{'name'='Adam', 'age'=20}")
+                 .Json()
+                 .Utf8()());
 ```
 
 The body of a POST request could be any content other than JSON string.
@@ -192,10 +187,9 @@ query.Add("key1", "value1");
 query.Add("key2", "value2");
 // ...
 
-auto r = session.Send(webcc::RequestBuilder{}.
-                      Post("http://httpbin.org/post").
-                      Body(query.ToString())
-                      ());
+auto r = session.Send(webcc::RequestBuilder{}
+                          .Post("http://httpbin.org/post")
+                          .Body(query.ToString())());
 ```
 
 Please see [examples/form_urlencoded_client.cc](examples/form_urlencoded_client.cc) for more details.
@@ -205,9 +199,9 @@ Please see [examples/form_urlencoded_client.cc](examples/form_urlencoded_client.
 Webcc has the ability to stream large response data to a file. This is especially useful when downloading files.
 
 ```cpp
-auto r = session.Send(webcc::RequestBuilder{}.
-                      Get("http://httpbin.org/image/jpeg")
-                      (), /*stream=*/true);
+// stream = true
+auto r = session.Send(
+    webcc::RequestBuilder{}.Get("http://httpbin.org/image/jpeg")(), true);
 
 // Move the streamed file to your destination.
 r->file_body()->Move("./wolf.jpeg");
@@ -218,10 +212,8 @@ r->file_body()->Move("./wolf.jpeg");
 Streaming is also available for uploading:
 
 ```cpp
-auto r = session.Send(webcc::RequestBuilder{}.
-                      Post("http://httpbin.org/post").
-                      File(local/file/path)
-                      ());
+auto r = session.Send(
+    webcc::RequestBuilder{}.Post("http://httpbin.org/post").File(path)());
 ```
 
 The file will not be loaded into the memory all at once, instead, it will be read and sent piece by piece.
@@ -230,7 +222,9 @@ Please note that `Content-Length` header will still be set to the true size of t
 
 ### Client API and Threads
 
-A `ClientSession` shouldn't be shared by multiple threads. Please create a new session for each thread.
+A `ClientSession` shouldn't be used by multiple threads to send requests.
+
+The state functions, `Start()`, `Stop()` and `Cancel()`, are thread safe. E.g., you can call `Send()` in thread A and call `Stop()` in thread B. Please see [examples/heartbeat_client](examples/heartbeat_client.cc) for more details.
 
 Example:
 
@@ -243,9 +237,9 @@ void ThreadedClient() {
       webcc::ClientSession session;
 
       try {
-        auto r = session.Send(webcc::RequestBuilder{}.
-                              Get("http://httpbin.org/get")
-                              ());
+        auto r = session.Send(
+            webcc::RequestBuilder{}.Get("http://httpbin.org/get")());
+
         std::cout << r->data() << std::endl;
 
       } catch (const webcc::Error&) {
@@ -479,7 +473,5 @@ webcc::Server server{ boost::asio::ip::tcp::v6(), 8080 };
 Only need to specify an IPv6 address:
 
 ```cpp
-auto r = session.Send(webcc::RequestBuilder{}.
-                      Get("http://[::1]:8080/books").
-                      ());
+session.Send(webcc::RequestBuilder{}.Get("http://[::1]:8080/books")());
 ```
