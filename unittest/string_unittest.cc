@@ -9,7 +9,8 @@ TEST(StringTest, RandomAsciiString) {
 
   std::string str = webcc::RandomAsciiString(10);
   EXPECT_EQ(str.size(), 10);
-  EXPECT_TRUE(std::all_of(str.begin(), str.end(), std::isalnum));
+  EXPECT_TRUE(std::all_of(str.begin(), str.end(),
+                          [](char c) { return std::isalnum(c); }));
 
   std::string str1 = webcc::RandomAsciiString(20);
   std::string str2 = webcc::RandomAsciiString(20);
