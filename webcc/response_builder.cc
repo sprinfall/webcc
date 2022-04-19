@@ -17,7 +17,7 @@ ResponsePtr ResponseBuilder::operator()() {
     response->SetHeader(std::move(headers_[i - 1]), std::move(headers_[i]));
   }
 
-  if (body_) {
+  if (body_ != nullptr) {
     response->SetContentType(media_type_, charset_);
 
 #if WEBCC_ENABLE_GZIP

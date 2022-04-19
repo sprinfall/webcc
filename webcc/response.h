@@ -27,7 +27,7 @@ public:
     return reason_;
   }
 
-  void set_reason(const std::string& reason) {
+  void set_reason(std::string_view reason) {
     reason_ = reason;
   }
 

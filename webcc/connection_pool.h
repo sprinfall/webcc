@@ -17,11 +17,11 @@ public:
 
   // Add the connection and start to read the request from it.
   // Called when a new connection has just been accepted.
-  void Start(ConnectionPtr c);
+  void Start(ConnectionPtr connection);
 
   // Close the connection.
   // Called when the response of the connection has been sent back.
-  void Close(ConnectionPtr c);
+  void Close(ConnectionPtr connection);
 
   // Close all pending connections.
   // Called when the server is about to stop.

@@ -10,7 +10,7 @@ namespace webcc {
 
 bool Router::Route(std::string_view url, ViewPtr view,
                    std::vector<std::string>&& methods) {
-  assert(view);
+  assert(view != nullptr);
 
   routes_.emplace_back(url, view, std::move(methods));
 
@@ -19,7 +19,7 @@ bool Router::Route(std::string_view url, ViewPtr view,
 
 bool Router::Route(const UrlRegex& regex_url, ViewPtr view,
                    std::vector<std::string>&& methods) {
-  assert(view);
+  assert(view != nullptr);
 
   try {
     routes_.emplace_back(regex_url(), view, std::move(methods));
@@ -44,14 +44,12 @@ ViewPtr Router::FindView(const std::string& method, const std::string& url_path,
 
     if (route.url.empty()) {
       std::smatch match;
-
       if (std::regex_match(url_path, match, route.url_regex)) {
         // Any sub-matches?
         // Start from 1 because match[0] is the whole string itself.
-        for (size_t i = 1; i < match.size(); ++i) {
+        for (std::size_t i = 1; i < match.size(); ++i) {
           args->push_back(match[i].str());
         }
-
         return route.view;
       }
     } else {
@@ -61,7 +59,7 @@ ViewPtr Router::FindView(const std::string& method, const std::string& url_path,
     }
   }
 
-  return ViewPtr();
+  return {};
 }
 
 bool Router::MatchView(const std::string& method, const std::string& url_path,

@@ -251,10 +251,10 @@ void Server::DoStop() {
 void Server::WorkerRoutine() {
   LOG_INFO("Worker is running");
 
-  for (;;) {
-    auto connection = queue_.PopOrWait();
+  while (true) {
+    ConnectionPtr connection = queue_.PopOrWait();
 
-    if (!connection) {
+    if (connection == nullptr) {
       LOG_INFO("Worker is going to stop");
 
       // For stopping next worker.
@@ -306,20 +306,20 @@ void Server::Handle(ConnectionPtr connection) {
   LOG_INFO("Request URL path: %s", url_path.c_str());
 
   UrlArgs args;
-  auto view = FindView(request->method(), url_path, &args);
+  ViewPtr view = FindView(request->method(), url_path, &args);
 
-  if (!view) {
+  if (view == nullptr) {
     //LOG_WARN("No view matches the request: %s %s", request->method().c_str(),
     //         url_path.c_str());
 
     if (request->method() == methods::kGet) {
       // Try to serve static files for GET request.
-      auto response = ServeStatic(request);
-      if (!response) {
+      ResponsePtr response = ServeStatic(request);
+      if (response != nullptr) {
+        connection->SendResponse(response);
+      } else {
         // Static file not found.
         connection->SendResponse(status_codes::kNotFound);
-      } else {
-        connection->SendResponse(response);
       }
     } else {
       connection->SendResponse(status_codes::kNotFound);
@@ -335,7 +335,7 @@ void Server::Handle(ConnectionPtr connection) {
   ResponsePtr response = view->Handle(request);
 
   // Send the response back.
-  if (response) {
+  if (response  != nullptr) {
     connection->SendResponse(response);
   } else {
     connection->SendResponse(status_codes::kBadRequest);

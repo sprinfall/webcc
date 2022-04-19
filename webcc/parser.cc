@@ -126,7 +126,7 @@ void Parser::Init(Message* message) {
   header_length_ = 0;
 
   content_length_ = kInvalidLength;
-  content_type_.Reset();
+  content_type_.Clear();
   start_line_parsed_ = false;
   content_length_parsed_ = false;
   header_ended_ = false;
@@ -166,7 +166,7 @@ bool Parser::Parse(const char* data, std::size_t length) {
 
   CreateBodyHandler();
 
-  if (!body_handler_) {
+  if (body_handler_ == nullptr) {
     // The only reason to reach here is that it was failed to generate the temp
     // file for streaming. Normally, it shouldn't happen.
     return false;
@@ -229,13 +229,11 @@ void Parser::CreateBodyHandler() {
 
 bool Parser::GetNextLine(std::size_t off, std::string* line, bool erase) {
   std::size_t pos = pending_data_.find(kCRLF, off);
-
   if (pos == std::string::npos) {
     return false;
   }
 
   std::size_t count = pos - off;
-
   if (count > 0) {
     *line = pending_data_.substr(off, count);
   }  // else: empty line

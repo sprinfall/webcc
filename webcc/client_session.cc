@@ -247,7 +247,7 @@ void ClientSession::Stop() {
 
   LOG_INFO("Stop loop...");
 
-  if (current_client_) {
+  if (current_client_ != nullptr) {
     auto key = ClientKeyFromUrl(current_client_->request()->url());
     client_pool_.Remove(key);
 
@@ -274,7 +274,7 @@ void ClientSession::Stop() {
 bool ClientSession::Cancel() {
   std::lock_guard<std::mutex> lock{ mutex_ };
 
-  if (current_client_) {
+  if (current_client_ != nullptr) {
     current_client_->Close();
     LOG_INFO("Ongoing request canceled");
     return true;
@@ -285,7 +285,7 @@ bool ClientSession::Cancel() {
 
 ResponsePtr ClientSession::Send(RequestPtr request, bool stream,
                                 ProgressCallback callback) {
-  assert(request);
+  assert(request != nullptr);
 
   if (!started_) {
     throw Error{ Error::kStateError, "Loop is not running" };
@@ -335,16 +335,16 @@ BlockingClientPtr ClientSession::CreateClient(const std::string& url_scheme) {
 
 ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream,
                                   ProgressCallback callback) {
-  const auto key = ClientKeyFromUrl(request->url());
+  const std::string key = ClientKeyFromUrl(request->url());
 
   // Reuse a pooled connection.
   bool reuse = false;
 
   BlockingClientPtr client = client_pool_.Get(key);
   
-  if (!client) {
+  if (client == nullptr) {
     client = CreateClient(request->url().scheme());
-    if (!client) {
+    if (client == nullptr) {
       throw Error{ Error::kSyntaxError, "Invalid URL scheme" };
     }
     reuse = false;

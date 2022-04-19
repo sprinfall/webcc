@@ -4,28 +4,28 @@
 
 namespace webcc {
 
-void ConnectionPool::Start(ConnectionPtr c) {
+void ConnectionPool::Start(ConnectionPtr connection) {
   LOG_VERB("Start connection");
 
   {
     // Lock the container only.
     std::lock_guard<std::mutex> lock{ mutex_ };
-    connections_.insert(c);
+    connections_.insert(connection);
   }
 
-  c->Start();
+  connection->Start();
 }
 
-void ConnectionPool::Close(ConnectionPtr c) {
+void ConnectionPool::Close(ConnectionPtr connection) {
   // NOTE:
   // The connection might have already been closed by Clear().
 
   std::lock_guard<std::mutex> lock{ mutex_ };
 
   // Check the return value of erase() to see if it still exists or not.
-  if (connections_.erase(c) == 1) {
+  if (connections_.erase(connection) == 1) {
     LOG_VERB("Close connection");
-    c->Close();
+    connection->Close();
   }  // else: Already closed by Clear()
 }
 

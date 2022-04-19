@@ -7,14 +7,13 @@ namespace webcc {
 Error BlockingClientBase::Send(RequestPtr request, bool stream) {
   LOG_INFO("Blocking request begin");
 
-  request_finished_ = false;  // reset
+  request_finished_ = false;
 
   AsyncClientBase::AsyncSend(request, stream);
 
-  // Wait for the request to be ended.
-  // See RequestEnd().
-  std::unique_lock<std::mutex> response_lock{ request_mutex_ };
-  request_cv_.wait(response_lock, [=] { return request_finished_; });
+  // Wait for the request to be ended (see RequestEnd()).
+  std::unique_lock<std::mutex> lock{ request_mutex_ };
+  request_cv_.wait(lock, [=] { return request_finished_; });
 
   LOG_INFO("Blocking request end");
 

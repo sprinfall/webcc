@@ -199,6 +199,12 @@ public:
     message_ = message;
   }
 
+  void Clear() {
+    code_ = kOK;
+    message_.clear();
+    timeout_ = false;
+  }
+
   bool timeout() const {
     return timeout_;
   }
@@ -207,12 +213,12 @@ public:
     timeout_ = timeout;
   }
 
-  operator bool() const {
-    return code_ != kOK;
-  }
-
   bool IsOK() const {
     return code_ == kOK;
+  }
+
+  operator bool() const {
+    return code_ != kOK;
   }
 
 private:

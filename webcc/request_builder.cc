@@ -25,7 +25,7 @@ RequestPtr RequestBuilder::operator()() {
     request->SetHeader(headers::kConnection, "Close");
   }  // else: Do nothing!
 
-  if (body_) {
+  if (body_ != nullptr) {
     request->SetContentType(media_type_, charset_);
 
 #if WEBCC_ENABLE_GZIP

@@ -108,7 +108,7 @@ public:
 
   // If the headers part has been parsed or not.
   bool header_ended() const {
-  return header_ended_;
+    return header_ended_;
   }
 
   // Get the length of the headers part.

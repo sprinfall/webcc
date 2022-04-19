@@ -3,16 +3,14 @@
 namespace webcc {
 
 bool Request::IsForm() const {
-  return !!std::dynamic_pointer_cast<FormBody>(body_);
+  return std::dynamic_pointer_cast<FormBody>(body_) != nullptr;
 }
 
 const std::vector<FormPartPtr>& Request::form_parts() const {
-  auto form_body = std::dynamic_pointer_cast<FormBody>(body_);
-
-  if (!form_body) {
+  FormBodyPtr form_body = std::dynamic_pointer_cast<FormBody>(body_);
+  if (form_body == nullptr) {
     throw Error{ Error::kDataError, "Not a form body" };
   }
-
   return form_body->parts();
 }
 

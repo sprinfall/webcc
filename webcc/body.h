@@ -113,6 +113,8 @@ private:
   std::size_t index_ = 0;
 };
 
+using StringBodyPtr = std::shared_ptr<StringBody>;
+
 // -----------------------------------------------------------------------------
 
 // Multi-part form body for request.
@@ -147,6 +149,8 @@ private:
   // Index for iterating the payload.
   std::size_t index_ = 0;
 };
+
+using FormBodyPtr = std::shared_ptr<FormBody>;
 
 // -----------------------------------------------------------------------------
 
@@ -200,6 +204,8 @@ private:
   std::ifstream ifstream_;
   std::string chunk_;
 };
+
+using FileBodyPtr = std::shared_ptr<FileBody>;
 
 }  // namespace webcc
 

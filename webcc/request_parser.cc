@@ -12,7 +12,7 @@
 namespace webcc {
 
 void RequestParser::Init(Request* request, ViewMatcher view_matcher) {
-  assert(view_matcher);
+  assert(view_matcher != nullptr);
 
   Parser::Init(request);
 
@@ -93,7 +93,7 @@ bool RequestParser::ParseMultipartContent(const char* data,
     }
 
     if (step_ == Step::kBoundaryParsed) {
-      if (!part_) {
+      if (part_ == nullptr) {
         part_.reset(new FormPart{});
       }
       bool need_more_data = false;
@@ -271,7 +271,7 @@ bool RequestParser::IsBoundary(const std::string& str, std::size_t off,
     }
   }
 
-  return strncmp(boundary.c_str(), &str[off + 2], boundary.size()) == 0;
+  return std::strncmp(boundary.c_str(), &str[off + 2], boundary.size()) == 0;
 }
 
 }  // namespace webcc

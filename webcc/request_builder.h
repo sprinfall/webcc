@@ -180,6 +180,7 @@ public:
     return *this;
   }
 
+  // NOTE: Don't use std::string_view!
   RequestBuilder& Auth(const std::string& type,
                        const std::string& credentials) {
     headers_.emplace_back(headers::kAuthorization);
@@ -187,11 +188,13 @@ public:
     return *this;
   }
 
+  // NOTE: Don't use std::string_view!
   RequestBuilder& AuthBasic(const std::string& login,
                             const std::string& password) {
     return Auth("Basic", base64::Encode(login + ":" + password));
   }
 
+  // NOTE: Don't use std::string_view!
   RequestBuilder& AuthToken(const std::string& token) {
     return Auth("Token", token);
   }

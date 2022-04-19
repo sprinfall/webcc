@@ -32,8 +32,8 @@ void Message::SetBody(BodyPtr body, bool set_length) {
 const std::string& Message::data() const {
   static const std::string kEmptyData;
 
-  auto string_body = std::dynamic_pointer_cast<StringBody>(body_);
-  if (!string_body) {
+  StringBodyPtr string_body = std::dynamic_pointer_cast<StringBody>(body_);
+  if (string_body == nullptr) {
     return kEmptyData;
   }
   return string_body->data();

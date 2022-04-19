@@ -23,8 +23,8 @@ public:
   void Init(Request* request, ViewMatcher view_matcher);
 
 private:
-  // Override to match the URL against views and check if the matched view
-  // asks for data streaming.
+  // Override to match the URL against views and check if the matched view asks
+  // for data streaming.
   bool OnHeadersEnd() override;
 
   bool ParseStartLine(const std::string& line) override;

@@ -14,7 +14,7 @@ class Request : public Message {
 public:
   Request() = default;
 
-  explicit Request(const std::string& method) : method_(method) {
+  explicit Request(std::string_view method) : method_(method) {
   }
 
   ~Request() override = default;
@@ -59,8 +59,8 @@ public:
     return address_;
   }
 
-  void set_address(std::string&& address) {
-    address_ = std::move(address);
+  void set_address(std::string_view address) {
+    address_ = address;
   }
 
   // Check if the body is a multi-part form data.

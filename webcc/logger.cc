@@ -178,24 +178,21 @@ void LogInit(const sfs::path& dir, int modes) {
   }
 }
 
+// TODO: Use a fixed static buffer to avoid string reallocations.
 static std::string GetTimestamp() {
-  using system_clock = std::chrono::system_clock;
-  using milliseconds = std::chrono::milliseconds;
+  using system_clock_t = std::chrono::system_clock;
+  using milliseconds_t = std::chrono::milliseconds;
 
-  auto now = system_clock::now();
-  std::time_t t = system_clock::to_time_t(now);
+  auto now = system_clock_t::now();
+  std::time_t t = system_clock_t::to_time_t(now);
 
   std::ostringstream ss;
   ss << std::put_time(std::localtime(&t), "%Y-%m-%d %H:%M:%S");
+  ss << ".";
 
-  milliseconds milli_seconds =
-      std::chrono::duration_cast<milliseconds>(now.time_since_epoch());
-  std::string micro_seconds_str = std::to_string(milli_seconds.count() % 1000);
-  while (micro_seconds_str.size() < 3) {
-    micro_seconds_str = "0" + micro_seconds_str;
-  }
-
-  ss << "." << micro_seconds_str;
+  auto milliseconds =
+      std::chrono::duration_cast<milliseconds_t>(now.time_since_epoch());
+  ss << std::setfill('0') << std::setw(3) << (milliseconds.count() % 1000);
 
   return ss.str();
 }

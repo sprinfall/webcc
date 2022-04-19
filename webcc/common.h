@@ -73,7 +73,7 @@ public:
 
   void Parse(std::string_view str);
 
-  void Reset();
+  void Clear();
 
   bool Valid() const;
 

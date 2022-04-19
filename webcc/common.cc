@@ -17,9 +17,9 @@ bool Headers::Set(std::string_view key, std::string_view value) {
     return false;
   }
 
-  auto it = Find(key);
-  if (it != headers_.end()) {
-    it->second = value;
+  auto iter = Find(key);
+  if (iter != headers_.end()) {
+    iter->second = value;
   } else {
     headers_.emplace_back(key, value);
   }
@@ -28,13 +28,13 @@ bool Headers::Set(std::string_view key, std::string_view value) {
 }
 
 std::vector<Header>::iterator Headers::Find(std::string_view key) {
-  auto it = headers_.begin();
-  for (; it != headers_.end(); ++it) {
-    if (boost::iequals(it->first, key)) {
+  auto iter = headers_.begin();
+  for (; iter != headers_.end(); ++iter) {
+    if (boost::iequals(iter->first, key)) {
       break;
     }
   }
-  return it;
+  return iter;
 }
 
 // -----------------------------------------------------------------------------
@@ -56,11 +56,11 @@ ContentType::ContentType(std::string_view str) {
 }
 
 void ContentType::Parse(std::string_view str) {
-  Reset();
+  Clear();
   Init(str);
 }
 
-void ContentType::Reset() {
+void ContentType::Clear() {
   media_type_.clear();
   additional_.clear();
   multipart_ = false;
@@ -70,11 +70,9 @@ bool ContentType::Valid() const {
   if (media_type_.empty()) {
     return false;
   }
-
   if (multipart_) {
     return !boundary().empty();
   }
-
   return true;
 }
 
@@ -222,17 +220,18 @@ std::size_t FormPart::GetSize() {
     SetHeaders();
   }
 
+  constexpr std::size_t CRLF_SIZE = sizeof(literal_buffers::CRLF);
+
   for (const Header& h : headers_.data()) {
     size += h.first.size();
     size += sizeof(literal_buffers::HEADER_SEPARATOR);
     size += h.second.size();
-    size += sizeof(literal_buffers::CRLF);
+    size += CRLF_SIZE;
   }
-  size += sizeof(literal_buffers::CRLF);
 
+  size += CRLF_SIZE;
   size += GetDataSize();
-
-  size += sizeof(literal_buffers::CRLF);
+  size += CRLF_SIZE;
 
   return size;
 }
@@ -242,7 +241,7 @@ std::size_t FormPart::GetDataSize() {
     return data_.size();
   }
 
-  auto size = utility::TellSize(path_);
+  std::size_t size = utility::TellSize(path_);
   if (size == kInvalidLength) {
     throw Error{ Error::kFileError, "Cannot read the file" };
   }
@@ -251,7 +250,7 @@ std::size_t FormPart::GetDataSize() {
 }
 
 void FormPart::Dump(std::ostream& os, std::string_view prefix) const {
-  for (auto& h : headers_.data()) {
+  for (const Header& h : headers_.data()) {
     os << prefix << h.first << ": " << h.second << std::endl;
   }
 

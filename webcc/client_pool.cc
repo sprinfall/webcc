@@ -7,9 +7,9 @@ namespace webcc {
 BlockingClientPtr ClientPool::Get(const Key& key) const {
   std::lock_guard<std::mutex> lock{ mutex_ };
 
-  auto it = clients_.find(key);
-  if (it != clients_.end()) {
-    return it->second;
+  auto iter = clients_.find(key);
+  if (iter != clients_.end()) {
+    return iter->second;
   } else {
     return {};
   }

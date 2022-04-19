@@ -62,7 +62,7 @@ void Connection::Close() {
 }
 
 void Connection::SendResponse(ResponsePtr response, bool no_keep_alive) {
-  assert(response);
+  assert(response != nullptr);
 
   response_ = response;
 

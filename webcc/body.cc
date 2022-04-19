@@ -62,9 +62,9 @@ Payload StringBody::NextPayload(bool free_previous) {
 
   if (index_ == 0) {
     index_ = 1;
-    return { boost::asio::buffer(data_) };
+    return Payload{ boost::asio::buffer(data_) };
   }
-  return {};
+  return Payload{};
 }
 
 // NOTE:
@@ -86,7 +86,7 @@ FormBody::FormBody(const std::vector<FormPartPtr>& parts,
 std::size_t FormBody::GetSize() const {
   std::size_t size = 0;
 
-  for (auto& part : parts_) {
+  for (const FormPartPtr& part : parts_) {
     size += boundary_.size() + 4;  // 4: -- and CRLF
     size += part->GetSize();
   }
@@ -97,7 +97,7 @@ std::size_t FormBody::GetSize() const {
 }
 
 void FormBody::Dump(std::ostream& os, std::string_view prefix) const {
-  for (auto& part : parts_) {
+  for (const FormPartPtr& part : parts_) {
     os << prefix << "--" << boundary_ << std::endl;
     part->Dump(os, prefix);
   }
@@ -200,10 +200,10 @@ Payload FileBody::NextPayload(bool free_previous) {
   boost::ignore_unused(free_previous);
 
   if (ifstream_.read(&chunk_[0], chunk_.size()).gcount() > 0) {
-    return { boost::asio::buffer(
+    return Payload{ boost::asio::buffer(
         chunk_.data(), static_cast<std::size_t>(ifstream_.gcount())) };
   }
-  return {};
+  return Payload{};
 }
 
 void FileBody::Dump(std::ostream& os, std::string_view prefix) const {

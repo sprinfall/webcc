@@ -50,7 +50,6 @@ void AsyncClientBase::CloseSocket() {
     }
   } else {
     LOG_INFO("Close socket...");
-
     // TODO: resolver_.cancel() ?
   }
 
@@ -63,13 +62,10 @@ void AsyncClientBase::CloseSocket() {
 }
 
 void AsyncClientBase::AsyncSend(RequestPtr request, bool stream) {
-  error_ = Error{};
-
+  error_.Clear();
   request_ = request;
-
   response_.reset(new Response{});
   response_parser_.Init(response_.get(), stream);
-
   length_read_ = 0;
 
   if (buffer_.size() != buffer_size_) {
@@ -184,11 +180,11 @@ void AsyncClientBase::OnWrite(boost::system::error_code ec,
 }
 
 void AsyncClientBase::AsyncWriteBody() {
-  auto p = request_->body()->NextPayload(true);
+  auto payload = request_->body()->NextPayload(true);
 
-  if (!p.empty()) {
-    AsyncWrite(p, std::bind(&AsyncClientBase::OnWriteBody, shared_from_this(),
-                            _1, _2));
+  if (!payload.empty()) {
+    AsyncWrite(payload, std::bind(&AsyncClientBase::OnWriteBody,
+                                  shared_from_this(), _1, _2));
   } else {
     LOG_INFO("Request sent");
 
@@ -261,7 +257,7 @@ void AsyncClientBase::OnRead(boost::system::error_code ec, std::size_t length) {
   }
 
   // Inform progress callback if it's specified.
-  if (progress_callback_) {
+  if (progress_callback_ != nullptr) {
     if (response_parser_.header_ended()) {
       // NOTE: Need to get rid of the header length.
       progress_callback_(length_read_ - response_parser_.header_length(),
