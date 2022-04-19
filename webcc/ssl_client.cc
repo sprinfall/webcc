@@ -74,7 +74,7 @@ void SslClient::CloseSocket() {
 void SslClient::OnHandshake(boost::system::error_code ec) {
   if (ec) {
     LOG_ERRO("Handshake error (%s)", ec.message().c_str());
-    error_.Set(Error::kHandshakeError, "Handshake error");
+    error_.Set(error_codes::kHandshakeError, "Handshake error");
     RequestEnd();
     return;
   }

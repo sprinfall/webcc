@@ -288,7 +288,7 @@ ResponsePtr ClientSession::Send(RequestPtr request, bool stream,
   assert(request != nullptr);
 
   if (!started_) {
-    throw Error{ Error::kStateError, "Loop is not running" };
+    throw Error{ error_codes::kStateError, "Loop is not running" };
   }
 
   for (auto& h : headers_.data()) {
@@ -345,7 +345,7 @@ ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream,
   if (client == nullptr) {
     client = CreateClient(request->url().scheme());
     if (client == nullptr) {
-      throw Error{ Error::kSyntaxError, "Invalid URL scheme" };
+      throw Error{ error_codes::kSyntaxError, "Invalid URL scheme" };
     }
     reuse = false;
   } else {

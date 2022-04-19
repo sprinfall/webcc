@@ -145,7 +145,7 @@ public:
   }
 
   // Use the file content as body.
-  // NOTE: Error::kFileError might be thrown.
+  // NOTE: error_codes::kFileError might be thrown.
   RequestBuilder& File(const sfs::path& path, bool infer_media_type = true,
                        std::size_t chunk_size = 1024);
 

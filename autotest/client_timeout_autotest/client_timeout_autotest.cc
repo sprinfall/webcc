@@ -66,14 +66,11 @@ TEST_F(ClientTimeoutTest, NoTimeout) {
   // Default timeout is 30s.
 
   try {
-    auto r = session.Send(webcc::RequestBuilder{}.
-                          Get("http://localhost/sleep/0").Port(kPort)
-                          ());
+    auto r = session.Send(WEBCC_GET("http://localhost/sleep/0").Port(kPort)());
 
-    EXPECT_EQ(webcc::status_codes::kOK, r->status());
-    EXPECT_EQ("OK", r->reason());
-
-    EXPECT_EQ(kData, r->data());
+    EXPECT_EQ(r->status(), webcc::status_codes::kOK);
+    EXPECT_EQ(r->reason(), "OK");
+    EXPECT_EQ(r->data(), kData);
 
   } catch (const webcc::Error& error) {
     std::cerr << error << std::endl;
@@ -90,15 +87,13 @@ TEST_F(ClientTimeoutTest, Timeout) {
   bool timeout = false;
 
   try {
-    r = session.Send(webcc::RequestBuilder{}.
-                     Get("http://localhost/sleep/3").Port(kPort)
-                     ());
+    r = session.Send(WEBCC_GET("http://localhost/sleep/3").Port(kPort)());
 
   } catch (const webcc::Error& error) {
     timeout = error.timeout();
   }
 
-  EXPECT_TRUE(!r);
+  EXPECT_TRUE(r == nullptr);
   EXPECT_TRUE(timeout);
 }
 
@@ -117,7 +112,7 @@ TEST_F(ClientTimeoutTest, SessionCancel) {
 
   // Send a request and ask the server to sleep 5 seconds before reply.
   try {
-    auto r = session.Send(WEBCC_GET("http://localhost/sleep/5").Port(kPort)());
+    session.Send(WEBCC_GET("http://localhost/sleep/5").Port(kPort)());
   } catch (const webcc::Error&) {
   }
 

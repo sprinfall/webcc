@@ -169,7 +169,7 @@ webcc::ResponsePtr BookPhotoView::Get(webcc::RequestPtr request) {
     return webcc::ResponseBuilder{}.NotFound()();
   }
 
-  // File() might throw Error::kFileError.
+  // File() might throw error_codes::kFileError.
   // TODO: Avoid exception handling.
   try {
     return webcc::ResponseBuilder{}.OK().File(photo_path)();

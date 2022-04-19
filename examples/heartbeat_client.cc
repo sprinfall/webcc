@@ -74,14 +74,14 @@ private:
 
       webcc::Error error = Request();
 
-      if (error.code() == webcc::Error::kStateError) {
+      if (error.code() == webcc::error_codes::kStateError) {
         std::cout << "Asio loop is not running!" << std::endl;
         break;
       }
 
       std::cout << "Heartbeat check end" << std::endl;
 
-      bool available = error.IsOK();
+      bool available = !error.failed();
 
       if (available ^ service_available_) {
         std::cout << "Service available: " << available << std::endl;

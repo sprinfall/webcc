@@ -179,7 +179,7 @@ void FormPart::Prepare(Payload* payload) {
 
   if (data_.empty() && !path_.empty()) {
     if (!utility::ReadFile(path_, &data_)) {
-      throw Error{ Error::kFileError, "Cannot read the file" };
+      throw Error{ error_codes::kFileError, "Cannot read the file" };
     }
   }
 
@@ -243,7 +243,7 @@ std::size_t FormPart::GetDataSize() {
 
   std::size_t size = utility::TellSize(path_);
   if (size == kInvalidLength) {
-    throw Error{ Error::kFileError, "Cannot read the file" };
+    throw Error{ error_codes::kFileError, "Cannot read the file" };
   }
 
   return size;

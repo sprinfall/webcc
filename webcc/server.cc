@@ -360,7 +360,7 @@ ResponsePtr Server::ServeStatic(RequestPtr request) {
       return {};
     }
 
-    // NOTE: FileBody might throw Error::kFileError.
+    // NOTE: FileBody might throw error_codes::kFileError.
     auto body = std::make_shared<FileBody>(path, file_chunk_size_);
 
     auto response = std::make_shared<Response>(status_codes::kOK);

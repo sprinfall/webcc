@@ -158,26 +158,27 @@ enum class ContentEncoding {
 
 // -----------------------------------------------------------------------------
 
+namespace error_codes {
+
+constexpr int kUnknownError = -1;
+constexpr int kOK = 0;
+constexpr int kStateError = 1;
+constexpr int kSyntaxError = 2;
+constexpr int kResolveError = 3;
+constexpr int kConnectError = 4;
+constexpr int kHandshakeError = 5;
+constexpr int kSocketReadError = 6;
+constexpr int kSocketWriteError = 7;
+constexpr int kParseError = 8;
+constexpr int kFileError = 9;
+constexpr int kDataError = 10;
+
+}  // namespace error_codes
+
 // Error or exception (for client only).
 class Error : public std::exception {
 public:
-  enum Code {
-    kUnknownError = -1,
-    kOK = 0,
-    kStateError,
-    kSyntaxError,
-    kResolveError,
-    kConnectError,
-    kHandshakeError,
-    kSocketReadError,
-    kSocketWriteError,
-    kParseError,
-    kFileError,
-    kDataError,
-  };
-
-public:
-  explicit Error(Code code = kOK, std::string_view message = "")
+  explicit Error(int code = error_codes::kOK, std::string_view message = "")
       : code_(code), message_(message) {
   }
 
@@ -186,7 +187,7 @@ public:
     return message_.c_str();
   }
 
-  Code code() const {
+  int code() const {
     return code_;
   }
 
@@ -194,13 +195,13 @@ public:
     return message_;
   }
 
-  void Set(Code code, std::string_view message) {
+  void Set(int code, std::string_view message) {
     code_ = code;
     message_ = message;
   }
 
   void Clear() {
-    code_ = kOK;
+    code_ = error_codes::kOK;
     message_.clear();
     timeout_ = false;
   }
@@ -213,16 +214,16 @@ public:
     timeout_ = timeout;
   }
 
-  bool IsOK() const {
-    return code_ == kOK;
+  bool failed() const {
+    return code_ != error_codes::kOK;
   }
 
   operator bool() const {
-    return code_ != kOK;
+    return failed();
   }
 
 private:
-  Code code_;
+  int code_;
   std::string message_;
   bool timeout_ = false;
 };

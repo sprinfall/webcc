@@ -161,7 +161,7 @@ FileBody::FileBody(const sfs::path& path, std::size_t chunk_size)
     : path_(path), chunk_size_(chunk_size), auto_delete_(false), size_(0) {
   size_ = utility::TellSize(path_);
   if (size_ == kInvalidLength) {
-    throw Error{ Error::kFileError, "Cannot read the file" };
+    throw Error{ error_codes::kFileError, "Cannot read the file" };
   }
 }
 
@@ -192,7 +192,7 @@ void FileBody::InitPayload() {
   ifstream_.open(path_, std::ios::binary);
 
   if (ifstream_.fail()) {
-    throw Error{ Error::kFileError, "Cannot read the file" };
+    throw Error{ error_codes::kFileError, "Cannot read the file" };
   }
 }
 

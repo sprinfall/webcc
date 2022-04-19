@@ -112,7 +112,7 @@ void AsyncClientBase::OnResolve(boost::system::error_code ec,
                                 tcp::resolver::results_type endpoints) {
   if (ec) {
     LOG_ERRO("Host resolve error (%s)", ec.message().c_str());
-    error_.Set(Error::kResolveError, "Host resolve error");
+    error_.Set(error_codes::kResolveError, "Host resolve error");
     RequestEnd();
     return;
   }
@@ -148,7 +148,7 @@ void AsyncClientBase::OnConnect(boost::system::error_code ec,
       // No need to close socket since no async operation is on it.
     }
 
-    error_.Set(Error::kConnectError, "Socket connect error");
+    error_.Set(error_codes::kConnectError, "Socket connect error");
     RequestEnd();
     return;
   }
@@ -216,7 +216,7 @@ void AsyncClientBase::HandleWriteError(boost::system::error_code ec) {
     CloseSocket();
   }
 
-  error_.Set(Error::kSocketWriteError, "Socket write error");
+  error_.Set(error_codes::kSocketWriteError, "Socket write error");
   RequestEnd();
 }
 
@@ -238,7 +238,7 @@ void AsyncClientBase::OnRead(boost::system::error_code ec, std::size_t length) {
       CloseSocket();
     }
 
-    error_.Set(Error::kSocketReadError, "Socket read error");
+    error_.Set(error_codes::kSocketReadError, "Socket read error");
     RequestEnd();
     return;
   }
@@ -251,7 +251,7 @@ void AsyncClientBase::OnRead(boost::system::error_code ec, std::size_t length) {
   if (!response_parser_.Parse(buffer_.data(), length)) {
     LOG_ERRO("Response parse error");
     CloseSocket();
-    error_.Set(Error::kParseError, "Response parse error");
+    error_.Set(error_codes::kParseError, "Response parse error");
     RequestEnd();
     return;
   }

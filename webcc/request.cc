@@ -9,7 +9,7 @@ bool Request::IsForm() const {
 const std::vector<FormPartPtr>& Request::form_parts() const {
   FormBodyPtr form_body = std::dynamic_pointer_cast<FormBody>(body_);
   if (form_body == nullptr) {
-    throw Error{ Error::kDataError, "Not a form body" };
+    throw Error{ error_codes::kDataError, "Not a form body" };
   }
   return form_body->parts();
 }
@@ -20,7 +20,7 @@ void Request::Prepare() {
   }
 
   if (url_.host().empty()) {
-    throw Error{ Error::kSyntaxError, "Host is missing" };
+    throw Error{ error_codes::kSyntaxError, "Host is missing" };
   }
 
   std::string target = url_.path();

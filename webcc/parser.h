@@ -64,7 +64,7 @@ private:
 
 class FileBodyHandler : public BodyHandler {
 public:
-  // NOTE: Might throw Error::kFileError.
+  // NOTE: Might throw error_codes::kFileError.
   explicit FileBodyHandler(Message* message) : BodyHandler(message) {
   }
 
