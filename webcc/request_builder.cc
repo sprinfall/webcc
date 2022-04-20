@@ -1,7 +1,7 @@
 #include "webcc/request_builder.h"
 
 #include "webcc/logger.h"
-#include "webcc/string.h"
+#include "webcc/string.h"  // for RandomAsciiString
 
 #if WEBCC_ENABLE_GZIP
 #include "webcc/gzip.h"
@@ -43,7 +43,7 @@ RequestPtr RequestBuilder::operator()() {
     body_ = std::make_shared<FormBody>(form_parts_, boundary);
   }
 
-  if (body_) {
+  if (body_ != nullptr) {
     request->SetBody(body_, true);
   }
 
@@ -62,17 +62,5 @@ RequestBuilder& RequestBuilder::AcceptGzip(bool gzip) {
 }
 
 #endif  // WEBCC_ENABLE_GZIP
-
-RequestBuilder& RequestBuilder::File(const sfs::path& path,
-                                     bool infer_media_type,
-                                     std::size_t chunk_size) {
-  body_.reset(new FileBody{ path, chunk_size });
-
-  if (infer_media_type) {
-    media_type_ = media_types::FromExtension(path.extension().string());
-  }
-
-  return *this;
-}
 
 }  // namespace webcc

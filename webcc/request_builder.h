@@ -1,13 +1,10 @@
 #ifndef WEBCC_REQUEST_BUILDER_H_
 #define WEBCC_REQUEST_BUILDER_H_
 
-#include <string>
-#include <vector>
-
 #include "webcc/base64.h"
+#include "webcc/message_builder.h"
 #include "webcc/request.h"
 #include "webcc/url.h"
-#include "webcc/utility.h"
 
 // -----------------------------------------------------------------------------
 // Handy macros for creating a RequestBuilder.
@@ -33,14 +30,14 @@
 
 namespace webcc {
 
-class RequestBuilder {
+class RequestBuilder : public MessageBuilder<RequestBuilder> {
 public:
-  RequestBuilder() = default;
+  RequestBuilder() : MessageBuilder<RequestBuilder>(this) {
+  }
+ 
+  ~RequestBuilder() override = default;
 
-  RequestBuilder(const RequestBuilder&) = delete;
-  RequestBuilder& operator=(const RequestBuilder&) = delete;
-
-  // Build and return the request object.
+  // Build
   RequestPtr operator()();
 
   RequestBuilder& Method(std::string_view method) {
@@ -101,28 +98,6 @@ public:
     return *this;
   }
 
-  RequestBuilder& MediaType(std::string_view media_type) {
-    media_type_ = media_type;
-    return *this;
-  }
-
-  RequestBuilder& Charset(std::string_view charset) {
-    charset_ = charset;
-    return *this;
-  }
-
-  // Set Media Type to "application/json".
-  RequestBuilder& Json() {
-    media_type_ = media_types::kApplicationJson;
-    return *this;
-  }
-
-  // Set Charset to "utf-8".
-  RequestBuilder& Utf8() {
-    charset_ = charsets::kUtf8;
-    return *this;
-  }
-
   // Set (comma separated) content types to accept.
   // E.g., "application/json", "text/html, application/xhtml+xml".
   RequestBuilder& Accept(std::string_view content_types) {
@@ -133,21 +108,6 @@ public:
   // Accept Gzip compressed response data or not.
   RequestBuilder& AcceptGzip(bool gzip = true);
 #endif
-
-  RequestBuilder& Body(const std::string& data) {
-    body_.reset(new StringBody{ data, false });
-    return *this;
-  }
-
-  RequestBuilder& Body(std::string&& data) {
-    body_.reset(new StringBody{ std::move(data), false });
-    return *this;
-  }
-
-  // Use the file content as body.
-  // NOTE: error_codes::kFileError might be thrown.
-  RequestBuilder& File(const sfs::path& path, bool infer_media_type = true,
-                       std::size_t chunk_size = 1024);
 
   // Add a form part.
   RequestBuilder& Form(FormPartPtr part) {
@@ -169,17 +129,6 @@ public:
     return Form(FormPart::New(name, std::move(data), media_type));
   }
 
-  RequestBuilder& Header(std::string_view key, std::string_view value) {
-    headers_.emplace_back(key);
-    headers_.emplace_back(value);
-    return *this;
-  }
-
-  RequestBuilder& KeepAlive(bool keep_alive = true) {
-    keep_alive_ = keep_alive;
-    return *this;
-  }
-
   // NOTE: Don't use std::string_view!
   RequestBuilder& Auth(const std::string& type,
                        const std::string& credentials) {
@@ -199,57 +148,14 @@ public:
     return Auth("Token", token);
   }
 
-  // Add the Date header to the request.
-  RequestBuilder& Date() {
-    headers_.emplace_back(headers::kDate);
-    headers_.emplace_back(utility::HttpDate());
-    return *this;
-  }
-
-#if WEBCC_ENABLE_GZIP
-
-  // Compress the body data (only for string body).
-  // NOTE:
-  // Most servers don't support compressed requests.
-  // Even the requests module from Python doesn't have a built-in support.
-  // See: https://github.com/kennethreitz/requests/issues/1753
-  RequestBuilder& Gzip(bool gzip = true) {
-    gzip_ = gzip;
-    return *this;
-  }
-
-#endif  // WEBCC_ENABLE_GZIP
-
 private:
   std::string method_;
 
   // Namespace is added to avoid the conflict with Url() method.
   webcc::Url url_;
 
-  // Request body.
-  BodyPtr body_;
-
-  // The media (or MIME) type of the Content-Type header.
-  // E.g., "application/json".
-  std::string media_type_;
-
-  // The charset of the Content-Type header.
-  // E.g., "utf-8".
-  std::string charset_;
-
   // Files to upload for a POST request.
   std::vector<FormPartPtr> form_parts_;
-
-  // Additional headers with the following sequence:
-  //   { key1, value1, key2, value2, ... }
-  std::vector<std::string> headers_;
-
-  // Persistent connection.
-  bool keep_alive_ = true;
-
-#if WEBCC_ENABLE_GZIP
-  bool gzip_ = false;
-#endif  // WEBCC_ENABLE_GZIP
 };
 
 }  // namespace webcc

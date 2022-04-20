@@ -17,13 +17,18 @@ ResponsePtr ResponseBuilder::operator()() {
     response->SetHeader(std::move(headers_[i - 1]), std::move(headers_[i]));
   }
 
+  // If no keep-alive, explicitly set Connection header to "Close".
+  if (!keep_alive_) {
+    response->SetHeader(headers::kConnection, "Close");
+  }  // else: Do nothing!
+
   if (body_ != nullptr) {
     response->SetContentType(media_type_, charset_);
 
 #if WEBCC_ENABLE_GZIP
     if (gzip_) {
       // Don't try to compress the response if the request doesn't accept gzip.
-      if (request_ && request_->AcceptEncodingGzip()) {
+      if (request_ != nullptr && request_->AcceptEncodingGzip()) {
         if (body_->Compress()) {
           response->SetHeader(headers::kContentEncoding, "gzip");
         }
@@ -39,18 +44,6 @@ ResponsePtr ResponseBuilder::operator()() {
   response->SetBody(body_, true);
 
   return response;
-}
-
-ResponseBuilder& ResponseBuilder::File(const sfs::path& path,
-                                       bool infer_media_type,
-                                       std::size_t chunk_size) {
-  body_.reset(new FileBody{ path, chunk_size });
-
-  if (infer_media_type) {
-    media_type_ = media_types::FromExtension(path.extension().string());
-  }
-
-  return *this;
 }
 
 }  // namespace webcc

@@ -58,6 +58,7 @@ set(HEADERS
     globals.h
     logger.h
     message.h
+    message_builder.h
     parser.h
     queue.h
     request.h

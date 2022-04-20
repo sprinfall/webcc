@@ -1,31 +1,29 @@
 #ifndef WEBCC_RESPONSE_BUILDER_H_
 #define WEBCC_RESPONSE_BUILDER_H_
 
-#include <string>
-#include <vector>
-
-#include "webcc/base64.h"
+#include "webcc/message_builder.h"
 #include "webcc/request.h"
 #include "webcc/response.h"
-#include "webcc/utility.h"
 
 namespace webcc {
 
-class ResponseBuilder {
+class ResponseBuilder : public MessageBuilder<ResponseBuilder> {
 public:
-  ResponseBuilder() = default;
-
-  // NOTE:
-  // Currently, `request` is necessary only when Gzip is enabled and the client
+  // Note that `request` is necessary only when Gzip is enabled and the client
   // does want to accept Gzip compressed response.
-  explicit ResponseBuilder(RequestPtr request) : request_(request) {
+  ResponseBuilder(RequestPtr request = {})
+      : MessageBuilder<ResponseBuilder>(this), request_(request) {
   }
 
-  ResponseBuilder(const ResponseBuilder&) = delete;
-  ResponseBuilder& operator=(const ResponseBuilder&) = delete;
+  ~ResponseBuilder() override = default;
 
   // Build
   ResponsePtr operator()();
+
+  ResponseBuilder& Code(int code) {
+    code_ = code;
+    return *this;
+  }
 
   // Some shortcuts for different status codes:
 
@@ -57,90 +55,10 @@ public:
     return Code(status_codes::kServiceUnavailable);
   }
 
-  ResponseBuilder& Code(int code) {
-    code_ = code;
-    return *this;
-  }
-
-  ResponseBuilder& MediaType(std::string_view media_type) {
-    media_type_ = media_type;
-    return *this;
-  }
-
-  ResponseBuilder& Charset(std::string_view charset) {
-    charset_ = charset;
-    return *this;
-  }
-
-  // Set Media Type to "application/json".
-  ResponseBuilder& Json() {
-    media_type_ = media_types::kApplicationJson;
-    return *this;
-  }
-
-  // Set Charset to "utf-8".
-  ResponseBuilder& Utf8() {
-    charset_ = charsets::kUtf8;
-    return *this;
-  }
-
-  ResponseBuilder& Body(const std::string& data) {
-    body_.reset(new StringBody{ data, false });
-    return *this;
-  }
-
-  ResponseBuilder& Body(std::string&& data) {
-    body_.reset(new StringBody{ std::move(data), false });
-    return *this;
-  }
-
-  // Use the file content as body.
-  // NOTE: error_codes::kFileError might be thrown.
-  ResponseBuilder& File(const sfs::path& path, bool infer_media_type = true,
-                        std::size_t chunk_size = 1024);
-
-  ResponseBuilder& Header(std::string_view key, std::string_view value) {
-    headers_.emplace_back(key);
-    headers_.emplace_back(value);
-    return *this;
-  }
-
-  // Add the Date header to the response.
-  ResponseBuilder& Date() {
-    headers_.emplace_back(headers::kDate);
-    headers_.emplace_back(utility::HttpDate());
-    return *this;
-  }
-
-#if WEBCC_ENABLE_GZIP
-  ResponseBuilder& Gzip(bool gzip = true) {
-    gzip_ = gzip;
-    return *this;
-  }
-#endif  // WEBCC_ENABLE_GZIP
-
 private:
-  RequestPtr request_;
+  RequestPtr request_;  // Optional
 
-  // Status code.
   int code_ = status_codes::kOK;
-
-  // Response body.
-  BodyPtr body_;
-
-  // Media type of the body (e.g., "application/json").
-  std::string media_type_;
-
-  // Character set of the body (e.g., "utf-8").
-  std::string charset_;
-
-#if WEBCC_ENABLE_GZIP
-  // Compress the body data (only for string body).
-  bool gzip_ = false;
-#endif
-
-  // Additional headers.
-  std::vector<std::string> headers_;
 };
 
 }  // namespace webcc

@@ -3,7 +3,7 @@
 #include "webcc/url.h"
 
 TEST(UrlTest, Basic) {
-  webcc::Url url("http://example.com/path");
+  webcc::Url url{ "http://example.com/path" };
 
   EXPECT_EQ(url.scheme(), "http");
   EXPECT_EQ(url.host(), "example.com");
@@ -23,7 +23,7 @@ TEST(UrlTest, Basic_TmpStr) {
 }
 
 TEST(UrlTest, NoPath) {
-  webcc::Url url("http://example.com");
+  webcc::Url url{ "http://example.com" };
 
   EXPECT_EQ(url.scheme(), "http");
   EXPECT_EQ(url.host(), "example.com");
@@ -33,7 +33,7 @@ TEST(UrlTest, NoPath) {
 }
 
 TEST(UrlTest, NoPath2) {
-  webcc::Url url("http://example.com/");
+  webcc::Url url{ "http://example.com/" };
 
   EXPECT_EQ(url.scheme(), "http");
   EXPECT_EQ(url.host(), "example.com");
@@ -43,7 +43,7 @@ TEST(UrlTest, NoPath2) {
 }
 
 TEST(UrlTest, NoPath3) {
-  webcc::Url url("http://example.com?key=value");
+  webcc::Url url{ "http://example.com?key=value" };
 
   EXPECT_EQ(url.scheme(), "http");
   EXPECT_EQ(url.host(), "example.com");
@@ -53,7 +53,7 @@ TEST(UrlTest, NoPath3) {
 }
 
 TEST(UrlTest, NoPath4) {
-  webcc::Url url("http://example.com/?key=value");
+  webcc::Url url{ "http://example.com/?key=value" };
 
   EXPECT_EQ(url.scheme(), "http");
   EXPECT_EQ(url.host(), "example.com");
@@ -63,7 +63,7 @@ TEST(UrlTest, NoPath4) {
 }
 
 TEST(UrlTest, NoScheme) {
-  webcc::Url url("/path/to");
+  webcc::Url url{ "/path/to" };
 
   EXPECT_EQ(url.scheme(), "");
   EXPECT_EQ(url.host(), "");
@@ -73,7 +73,7 @@ TEST(UrlTest, NoScheme) {
 }
 
 TEST(UrlTest, NoScheme2) {
-  webcc::Url url("/path/to?key=value");
+  webcc::Url url{ "/path/to?key=value" };
 
   EXPECT_EQ(url.scheme(), "");
   EXPECT_EQ(url.host(), "");
@@ -83,7 +83,7 @@ TEST(UrlTest, NoScheme2) {
 }
 
 TEST(UrlTest, Full) {
-  webcc::Url url("https://localhost:3000/path/to?key=value");
+  webcc::Url url{ "https://localhost:3000/path/to?key=value" };
 
   EXPECT_EQ(url.scheme(), "https");
   EXPECT_EQ(url.host(), "localhost");
@@ -93,7 +93,7 @@ TEST(UrlTest, Full) {
 }
 
 TEST(UrlTest, IPv6) {
-  webcc::Url url("http://[::1]:8080");
+  webcc::Url url{ "http://[::1]:8080" };
 
   EXPECT_EQ(url.scheme(), "http");
   EXPECT_EQ(url.host(), "[::1]");
@@ -101,5 +101,3 @@ TEST(UrlTest, IPv6) {
   EXPECT_EQ(url.path(), "");
   EXPECT_EQ(url.query(), "");
 }
-
-// TODO: Add cases for UrlQuery
