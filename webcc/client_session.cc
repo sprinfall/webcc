@@ -13,10 +13,10 @@
 #endif  // defined(_WIN32) || defined(_WIN64)
 
 #include "boost/algorithm/string.hpp"
+#include "boost/asio/ssl.hpp"
 
 #include "webcc/base64.h"
 #include "webcc/logger.h"
-#include "webcc/ssl_client.h"
 #include "webcc/url.h"
 #include "webcc/utility.h"
  
@@ -103,13 +103,15 @@ public:
     return &s_instance;
   }
 
-  void AddContext(const std::string& key, SslContextPtr ssl_context) {
+  void AddContext(const std::string& key, SslContextPtr ssl_context,
+                  SslVerify ssl_verify) {
     assert(ssl_context != nullptr);
     std::lock_guard<std::mutex> lock{ mutex_ };
-    ssl_context_map_[key] = ssl_context;
+    ssl_context_map_[key] = std::make_pair(ssl_context, ssl_verify);
   }
 
-  bool AddContext(const std::string& key, const std::string& cert_file) {
+  bool AddContext(const std::string& key, const std::string& cert_file,
+                  SslVerify ssl_verify) {
     std::lock_guard<std::mutex> lock{ mutex_ };
 
     auto ssl_context =
@@ -122,14 +124,15 @@ public:
       return false;
     }
 
-    ssl_context_map_[key] = ssl_context;
+    ssl_context_map_[key] = std::make_pair(ssl_context, ssl_verify);
 
     return true;
   }
 
   // Add a certificate to the SSL context with the given key.
   bool AddCertificate(const std::string& key,
-                      boost::asio::const_buffer cert_buffer) {
+                      boost::asio::const_buffer cert_buffer,
+                      SslVerify ssl_verify) {
     std::lock_guard<std::mutex> lock{ mutex_ };
 
     SslContextPtr ssl_context;
@@ -137,9 +140,9 @@ public:
     auto iter = ssl_context_map_.find(key);
     if (iter == ssl_context_map_.end()) {
       ssl_context = std::make_shared<ssl::context>(ssl::context::sslv23_client);
-      ssl_context_map_[key] = ssl_context;
+      ssl_context_map_[key] = std::make_pair(ssl_context, ssl_verify);
     } else {
-      ssl_context = iter->second;
+      ssl_context = iter->second.first;
     }
 
     boost::system::error_code ec;
@@ -153,7 +156,7 @@ public:
     return true;
   }
 
-  SslContextPtr Get(const std::string& key) {
+  std::pair<SslContextPtr, SslVerify> Get(const std::string& key) {
     std::lock_guard<std::mutex> lock{ mutex_ };
 
     auto iter = ssl_context_map_.find(key);
@@ -167,25 +170,29 @@ public:
 protected:
   SslContextManager() = default;
 
-  SslContextPtr GetDefault() {
-    if (default_ssl_context_ != nullptr) {
-      return default_ssl_context_;
+  std::pair<SslContextPtr, SslVerify> GetDefault() {
+    if (default_.first != nullptr) {
+      return default_;
     }
 
-    default_ssl_context_.reset(new ssl::context{ ssl::context::sslv23_client });
+    default_.first.reset(new ssl::context{ ssl::context::sslv23_client });
+    default_.second = SslVerify::kHostName;
 
 #if (defined(_WIN32) || defined(_WIN64))
-    UseSystemCertificateStore(default_ssl_context_->native_handle());
+    UseSystemCertificateStore(default_.first->native_handle());
 #else
-    default_ssl_context_->set_default_verify_paths();
+    default_.first->set_default_verify_paths();
 #endif
 
-    return default_ssl_context_;
+    return default_;
   }
 
 private:
-  std::map<std::string, SslContextPtr> ssl_context_map_;
-  SslContextPtr default_ssl_context_;
+  using Pair = std::pair<SslContextPtr, SslVerify>;
+
+  std::map<std::string, Pair> ssl_context_map_;
+  Pair default_;
+
   std::mutex mutex_;
 };
 
@@ -199,18 +206,22 @@ static std::string ClientKeyFromUrl(const Url& url) {
 }
 
 bool ClientSession::AddCertificate(const std::string& ssl_context_key,
-                                   boost::asio::const_buffer cert_buffer) {
-  return SSL_CONTEXT_MANAGER->AddCertificate(ssl_context_key, cert_buffer);
+                                   boost::asio::const_buffer cert_buffer,
+                                   SslVerify ssl_verify) {
+  return SSL_CONTEXT_MANAGER->AddCertificate(ssl_context_key, cert_buffer,
+                                             ssl_verify);
 }
 
 bool ClientSession::AddSslContext(const std::string& key,
-                                  const std::string& cert_file) {
-  return SSL_CONTEXT_MANAGER->AddContext(key, cert_file);
+                                  const std::string& cert_file,
+                                  SslVerify ssl_verify) {
+  return SSL_CONTEXT_MANAGER->AddContext(key, cert_file, ssl_verify);
 }
 
 void ClientSession::AddSslContext(const std::string& key,
-                                  SslContextPtr ssl_context) {
-  return SSL_CONTEXT_MANAGER->AddContext(key, ssl_context);
+                                  SslContextPtr ssl_context,
+                                  SslVerify ssl_verify) {
+  return SSL_CONTEXT_MANAGER->AddContext(key, ssl_context, ssl_verify);
 }
 
 // -----------------------------------------------------------------------------
@@ -326,8 +337,8 @@ BlockingClientPtr ClientSession::CreateClient(const std::string& url_scheme) {
   }
 
   if (boost::iequals(url_scheme, "https")) {
-    auto ssl_context = SSL_CONTEXT_MANAGER->Get(ssl_context_key_);
-    return std::make_shared<SslClient>(io_context_, *ssl_context);
+    auto pair = SSL_CONTEXT_MANAGER->Get(ssl_context_key_);
+    return std::make_shared<SslClient>(io_context_, *pair.first, pair.second);
   }
 
   return {};

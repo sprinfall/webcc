@@ -12,6 +12,8 @@ set(SIMPLE_EXAMPLES
     concurrency_test
     client_basics
     heartbeat_client
+    google_client
+    github_client
     hello_world_server
     static_file_server
     file_downloader
@@ -19,7 +21,14 @@ set(SIMPLE_EXAMPLES
     form_client
     form_server
     form_urlencoded_client
+    ssl_hello_client
+    ssl_hello_server
+    ssl_certificate
     )
+
+if(WIN32)
+    list(APPEND SIMPLE_EXAMPLES url_unicode)
+endif()
 
 foreach(example ${SIMPLE_EXAMPLES})
     add_executable(${example} ${example}.cc)
@@ -27,23 +36,7 @@ foreach(example ${SIMPLE_EXAMPLES})
     set_target_properties(${example} PROPERTIES FOLDER "Examples")
 endforeach()
 
-add_executable(github_client github_client.cc)
-target_link_libraries(github_client ${EXAMPLE_LIBS} jsoncpp)
-set_target_properties(github_client PROPERTIES FOLDER "Examples")
-
-add_executable(google_client google_client.cc)
-target_link_libraries(google_client ${EXAMPLE_LIBS})
-set_target_properties(google_client PROPERTIES FOLDER "Examples")
-
-add_executable(ssl_certificate ssl_certificate.cc)
-target_link_libraries(ssl_certificate ${EXAMPLE_LIBS})
-set_target_properties(ssl_certificate PROPERTIES FOLDER "Examples")
-
-if(WIN32)
-    add_executable(url_unicode url_unicode.cc)
-    target_link_libraries(url_unicode ${EXAMPLE_LIBS})
-    set_target_properties(url_unicode PROPERTIES FOLDER "Examples")
-endif()
+target_link_libraries(github_client jsoncpp)
 
 add_subdirectory(book_server)
 add_subdirectory(book_client)

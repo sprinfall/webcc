@@ -25,6 +25,7 @@ set(SOURCES
     client_session.cc
     common.cc
     connection.cc
+    connection_base.cc
     connection_pool.cc
     globals.cc
     logger.cc
@@ -39,6 +40,8 @@ set(SOURCES
     router.cc
     server.cc
     ssl_client.cc
+    ssl_connection.cc
+    ssl_server.cc
     string.cc
     url.cc
     utility.cc
@@ -54,6 +57,7 @@ set(HEADERS
     client_session.h
     common.h
     connection.h
+    connection_base.h
     connection_pool.h
     globals.h
     logger.h
@@ -70,6 +74,8 @@ set(HEADERS
     router.h
     server.h
     ssl_client.h
+    ssl_connection.h
+    ssl_server.h
     string.h
     url.h
     utility.h
@@ -89,7 +95,7 @@ set(TARGET webcc)
 
 add_library(${TARGET} STATIC ${SOURCES} ${HEADERS})
 
-# Link to pthread for Linux. 
+# Link to pthread for Linux.
 # See: https://stackoverflow.com/a/29871891
 if(UNIX)
     set(THREADS_PREFER_PTHREAD_FLAG ON)

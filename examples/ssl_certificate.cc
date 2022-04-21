@@ -8,8 +8,6 @@
 #include "webcc/client_session.h"
 #include "webcc/logger.h"
 
-using webcc::ClientSession;
-
 int main(int argc, const char* argv[]) {
   if (argc < 2) {
     std::cerr << "Usage: ssl_certificate <cert_file>" << std::endl;
@@ -32,7 +30,7 @@ int main(int argc, const char* argv[]) {
 #endif
 
 #if USE_FILEPATH_OR_BUFFER
-  if (!ClientSession::AddSslContext(ssl_context_key, cert_file)) {
+  if (!webcc::ClientSession::AddSslContext(ssl_context_key, cert_file)) {
     std::cerr << "Failed to add the certificate!" << std::endl;
     return 1;
   }

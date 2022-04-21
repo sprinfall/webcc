@@ -26,26 +26,24 @@ void SslClient::AsyncReadSome(boost::asio::mutable_buffer buffer,
 void SslClient::OnConnected() {
   const std::string& host = request_->host();
 
-  // Set SNI (server name indication) host name.
-  // Many hosts need this to handshake successfully (e.g., google.com).
-  // Inspired by Boost.Beast.
-  if (!SSL_set_tlsext_host_name(ssl_stream_.native_handle(), host.c_str())) {
-    // TODO: Call ERR_get_error() to get error.
-    LOG_ERRO("Failed to set SNI host name for SSL");
-  }
-
   // Modes `ssl::verify_fail_if_no_peer_cert` and `ssl::verify_client_once` are
-  // for server only. `ssl::verify_none` is not secure.
+  // for server only while mode `ssl::verify_none` is not secure.
   // See: https://stackoverflow.com/a/12621528
   ssl_stream_.set_verify_mode(ssl::verify_peer);
 
-  // ssl::host_name_verification has been added since Boost 1.73 to replace
-  // ssl::rfc2818_verification.
-#if BOOST_VERSION < 107300
-  ssl_stream_.set_verify_callback(ssl::rfc2818_verification(host));
-#else
-  ssl_stream_.set_verify_callback(ssl::host_name_verification(host));
-#endif
+  if (ssl_verify_ == SslVerify::kHostName) {
+    // Set SNI (server name indication) host name.
+    // Many hosts need this to handshake successfully (e.g., google.com).
+    // Inspired by Boost.Beast.
+    if (!SSL_set_tlsext_host_name(ssl_stream_.native_handle(), host.c_str())) {
+      LOG_ERRO("Failed to set SNI host name for SSL");
+    }
+
+    ssl_stream_.set_verify_callback(ssl::host_name_verification{ host });
+
+  } else {
+    // Don't set a verify callback.
+  }
 
   auto self = std::dynamic_pointer_cast<SslClient>(shared_from_this());
 
@@ -78,6 +76,8 @@ void SslClient::OnHandshake(boost::system::error_code ec) {
     RequestEnd();
     return;
   }
+
+  LOG_INFO("Handshake OK");
 
   BlockingClientBase::AsyncWrite();
 }

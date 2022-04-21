@@ -1,6 +1,5 @@
 #include "webcc/client.h"
 
-#include "boost/asio/read.hpp"
 #include "boost/asio/write.hpp"
 
 #include "webcc/logger.h"

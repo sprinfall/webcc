@@ -109,6 +109,13 @@ bool Server::IsRunning() const {
   return running_ && !io_context_.stopped();
 }
 
+ConnectionPtr Server::NewConnection() {
+  auto view_matcher = std::bind(&Server::MatchView, this, _1, _2, _3);
+
+  return std::make_shared<Connection>(io_context_, &pool_, &queue_,
+                                      std::move(view_matcher), buffer_size_);
+}
+
 void Server::CheckDocRoot() {
   if (doc_root_.empty()) {
     LOG_WARN("No doc root specified");
@@ -200,12 +207,9 @@ void Server::AsyncAccept() {
   LOG_USER("AsyncAccept()");
 #endif
 
-  auto view_matcher = std::bind(&Server::MatchView, this, _1, _2, _3);
+  auto connection = NewConnection();
 
-  auto connection = std::make_shared<Connection>(
-      io_context_, &pool_, &queue_, std::move(view_matcher), buffer_size_);
-
-  acceptor_.async_accept(connection->socket(),
+  acceptor_.async_accept(connection->GetSocket(),
                          std::bind(&Server::OnAccept, this, connection, _1));
 }
 

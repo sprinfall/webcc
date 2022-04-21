@@ -59,7 +59,10 @@ public:
   // Is the server running?
   bool IsRunning() const;
 
-private:
+protected:
+  // Create a new connection.
+  virtual ConnectionPtr NewConnection();
+
   // Check if doc root is valid.
   // Absolute it if necessary.
   void CheckDocRoot();
@@ -110,7 +113,7 @@ private:
   // Reference: Python http/server.py translate_path()
   sfs::path TranslatePath(const std::string& utf8_url_path);
 
-private:
+protected:
   // tcp::v4() or tcp::v6()
   boost::asio::ip::tcp protocol_;
 

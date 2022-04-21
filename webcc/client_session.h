@@ -13,6 +13,7 @@
 #include "webcc/client_pool.h"
 #include "webcc/request_builder.h"
 #include "webcc/response.h"
+#include "webcc/ssl_client.h"  // for enum class SslVerify
 
 namespace webcc {
 
@@ -29,14 +30,17 @@ public:
   // path, this is especially useful if your certificate file is embedded into
   // the executable (e.g., the resource file in Qt applications).
   static bool AddCertificate(const std::string& ssl_context_key,
-                             boost::asio::const_buffer cert_buffer);
+                             boost::asio::const_buffer cert_buffer,
+                             SslVerify ssl_verify = SslVerify::kHostName);
 
   // Add a SSL context by loading the certificate (chain) file.
   static bool AddSslContext(const std::string& key,
-                            const std::string& cert_file);
+                            const std::string& cert_file,
+                            SslVerify ssl_verify = SslVerify::kHostName);
 
   // Add a SSL context created by the user.
-  static void AddSslContext(const std::string& key, SslContextPtr ssl_context);
+  static void AddSslContext(const std::string& key, SslContextPtr ssl_context,
+                            SslVerify ssl_verify = SslVerify::kHostName);
 
   explicit ClientSession(std::string_view ssl_context_key = "default")
       : ssl_context_key_(ssl_context_key) {
