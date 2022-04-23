@@ -31,6 +31,10 @@ public:
     return url_;
   }
 
+  void set_url(const Url& url) {
+    url_ = url;
+  }
+
   void set_url(Url&& url) {
     url_ = std::move(url);
   }

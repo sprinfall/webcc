@@ -14,7 +14,7 @@ ResponsePtr ResponseBuilder::operator()() {
   auto response = std::make_shared<Response>(code_);
 
   for (std::size_t i = 1; i < headers_.size(); i += 2) {
-    response->SetHeader(std::move(headers_[i - 1]), std::move(headers_[i]));
+    response->SetHeader(headers_[i - 1], headers_[i]);
   }
 
   // If no keep-alive, explicitly set Connection header to "Close".

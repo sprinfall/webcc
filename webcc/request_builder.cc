@@ -14,7 +14,7 @@ RequestPtr RequestBuilder::operator()() {
 
   auto request = std::make_shared<Request>(method_);
 
-  request->set_url(std::move(url_));
+  request->set_url(url_);
 
   for (std::size_t i = 1; i < headers_.size(); i += 2) {
     request->SetHeader(headers_[i - 1], headers_[i]);
