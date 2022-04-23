@@ -50,7 +50,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Boost
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.66.0 REQUIRED COMPONENTS system date_time)
+find_package(Boost 1.74.0 REQUIRED COMPONENTS date_time)
 if(Boost_FOUND)
     message(STATUS "Boost version: ${Boost_VERSION}")
     message(STATUS "Boost libraries: ${Boost_LIBRARIES}")

@@ -8,10 +8,10 @@
 
 ### 编译依赖
 
-* [Boost 1.66+](https://www.boost.org/)（asio, system, date_time）
+* [Boost 1.74+](https://www.boost.org/) （Asio 等）
 * [OpenSSL](https://www.openssl.org/) （为了支持 HTTPS）
-* [Zlib](https://www.zlib.net/) （为了支持 GZIP 压缩，可选）
-* [Googletest](https://github.com/google/googletest)（为了自动化测试和单元测试，可选）
+* [Zlib](https://www.zlib.net/) （为了支持 GZIP 压缩，**可选**）
+* [Googletest](https://github.com/google/googletest) （为了自动化测试和单元测试，**可选**）
 * [CMake](https://cmake.org/)
 
 Zlib 是 **可选的**，因为 GZIP 压缩可以被禁掉，详见下面的编译选项说明。
@@ -46,7 +46,7 @@ set(WEBCC_ENABLE_GZIP 0 CACHE STRING "是否开启 GZIP 压缩？（1：是，0�
 
 ## Build on Ubuntu
 
-*注意：基于 Ubuntu 18.04 LTS*
+*注意：基于 Ubuntu 20.04 LTS*
 
 如果还没有安装过 `build-essential`（包含 C++ 编译器等），请先执行下面这条命令：
 
@@ -56,9 +56,7 @@ $ sudo apt install build-essential
 
 ### CMake
 
-拿 Ubuntu 18.04 来说，直接通过 apt 安装的 CMake 版本仅为 3.10，并不能满足我们的需求。Boost 1.66 就需要 CMake 3.11 以上，更不用说 Boost 1.74 了。
-
-请参考 [https://apt.kitware.com/](https://apt.kitware.com/) 来安装较新版本的 CMake。
+直接通过 apt 安装的 CMake 版本可能相对较低，并不能满足我们的需求。请参考 [https://apt.kitware.com/](https://apt.kitware.com/) 来安装较新版本的 CMake。
 
 ### OpenSSL
 
@@ -175,12 +173,14 @@ $ make -j4
 然后，使用 `b2` 进行编译：
 
 ```
-$ b2 --with-system --with-date_time variant=debug variant=release link=static threading=multi address-model=64 stage
+$ b2 --with-date_time variant=debug variant=release link=static threading=multi address-model=64 stage
 ```
 
-*注意：指定 `address-model=64` 的话，`b2` 就不再编译 32 (x86) 位版本的库了，这样可以节省时间。*
+指定 `address-model=64`，`b2` 就不再编译 32 (x86) 位版本的库了，这样可以节省时间。
 
-如你所见，我们只编译 `system` 和 `date_time`，Asio 本身只有头文件，不需要编译。
+如果你安装了多个版本的 Visual Studio，最好通过选项 `toolset` 来指定具体使用哪个版本以免 `b2` 感到混淆。比如，指定 `toolset=msvc-142` 即使用 Visual Studio 2019。
+
+如你所见，我们只编译了 `date_time`，Asio 本身只有头文件，不需要编译。（注意：最近我在使用 Boost 1.79 时，发现连 `date_time` 也不需要了。）
 
 我们也不安装 Boost 到某个其他目录（比如缺省的 `C:\Boost`），只是简单的在原地 `stage` 。
 

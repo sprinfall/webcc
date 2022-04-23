@@ -5,8 +5,6 @@
 #include <string_view>
 #include <vector>
 
-#include "webcc/config.h"
-
 namespace webcc {
 
 // Generates randomly an ASCII string in the given length.

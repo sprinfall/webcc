@@ -8,10 +8,10 @@
 
 ### Dependencies
 
-* [Boost 1.66+](https://www.boost.org/) (asio, system, date_time)
+* [Boost 1.74+](https://www.boost.org/) (for Asio)
 * [OpenSSL](https://www.openssl.org/) (for HTTPS)
-* [Zlib](https://www.zlib.net/) (for GZIP compression, optional)
-* [Googletest](https://github.com/google/googletest) (for automation and unit tests, optional)
+* [Zlib](https://www.zlib.net/) (for GZIP compression, **optional**)
+* [Googletest](https://github.com/google/googletest) (for automation and unit tests, **optional**)
 * [CMake](https://cmake.org/)
 
 Zlib is **optional** since GZIP compression could be disabled. See the build options below.
@@ -42,7 +42,7 @@ I suggest to integrate it to your project simply by source code. Just copy the w
 
 ## Build on Ubuntu
 
-*NOTE: Based on Ubuntu 18.04 LTS*
+*NOTE: Based on Ubuntu 20.04 LTS*
 
 Please install `build-essential` which includes the C++ compiler and more:
 
@@ -163,19 +163,23 @@ Download the `.7z` or `.zip` from [here](https://www.boost.org/users/download/#l
 
 Open `x64 Native Tools Command Prompt for VS 2019` from Windows start menu (suppose you are only interested in a x64 build).
 
-In the prompt, `cd` to the Boost root directory. Run `bootstrap.bat` to generate `b2.exe`:
+In the prompt, `cd` to the Boost root directory. Run `bootstrap.bat` to generate `b2`:
 
-Run `b2.exe` to start the build:
+Run `b2` to start the build:
 
 ```
-$ b2 --with-system --with-date_time variant=debug variant=release link=static threading=multi address-model=64 stage
+$ b2 --with-date_time variant=debug variant=release link=static threading=multi address-model=64 stage
 ```
 
-*NOTE: Given `address-model=64` `b2.exe` will not build any x86 libraries.*
+Given `address-model=64`, `b2` will not build any x86 libraries.
 
-As you can see, we only need to build `system` and `date_time`. Asio itself is a header-only library.
+If you have installed multiple versions of Visual Studio, you'd better add `toolset` option to `b2`, e.g., `toolset=msvc-142` for using Visual Studio 2019.
 
-We don't install Boost to any other place (e.g., `C:\Boost`). We just `stage` it where it is.
+As you can see, we only need to build `date_time`. Asio itself is a header-only library.
+
+**NOTE:** Even `date_time` is not needed any more since Boost 1.79.
+
+We don't install Boost to any other place (e.g., `C:\Boost`), just `stage` it where it is.
 
 In order for CMake to find Boost, please add an environment variable named `Boost_ROOT` pointing to the root directory of Boost.
 
