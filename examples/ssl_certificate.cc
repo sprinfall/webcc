@@ -45,7 +45,7 @@ int main(int argc, const char* argv[]) {
 #endif
 
 #if OVERWRITE_DEFAULT
-  webcc::ClientSession session{ /*"default"*/ };
+  webcc::ClientSession session;
 #else
   webcc::ClientSession session{ ssl_context_key };
 #endif

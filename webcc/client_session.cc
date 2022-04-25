@@ -14,6 +14,7 @@
 
 #include "boost/algorithm/string.hpp"
 #include "boost/asio/ssl.hpp"
+#include "boost/container/flat_map.hpp"
 
 #include "webcc/base64.h"
 #include "webcc/logger.h"
@@ -190,7 +191,8 @@ protected:
 private:
   using Pair = std::pair<SslContextPtr, SslVerify>;
 
-  std::map<std::string, Pair> ssl_context_map_;
+  boost::container::flat_map<std::string, Pair> ssl_context_map_;
+
   Pair default_;
 
   std::mutex mutex_;
