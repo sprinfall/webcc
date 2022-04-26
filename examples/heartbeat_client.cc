@@ -15,7 +15,7 @@
 #include "webcc/client_session.h"
 #include "webcc/logger.h"
 
-// Just use `examples/hello_world_server` as the server.
+// Just use `examples/hello_server` as the server.
 static const std::string kUrl = "http://localhost:8080/hello";
 
 class Heartbeat {

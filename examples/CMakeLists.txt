@@ -14,7 +14,7 @@ set(SIMPLE_EXAMPLES
     heartbeat_client
     google_client
     github_client
-    hello_world_server
+    hello_server
     static_file_server
     file_downloader
     server_states

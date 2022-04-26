@@ -9,7 +9,7 @@
 
 int main(int argc, const char* argv[]) {
   if (argc < 2) {
-    std::cerr << "Usage: ssl_hello_client <cert_file>" << std::endl;
+    std::cout << "Usage: ssl_hello_client <cert_file>" << std::endl;
     return 1;
   }
 

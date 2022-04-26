@@ -55,8 +55,7 @@ void PrettyPrintJsonString(const std::string& str) {
 // List public events.
 void ListEvents(webcc::ClientSession& session) {
   try {
-    auto r = session.Send(webcc::RequestBuilder{}.Get(kUrlRoot).Path("events")
-                          ());
+    auto r = session.Send(WEBCC_GET(kUrlRoot).Path("events")());
 
     PRINT_JSON_STRING(r->data());
 
@@ -70,9 +69,8 @@ void ListEvents(webcc::ClientSession& session) {
 //   ListUserFollowers(session, "<user>")
 void ListUserFollowers(webcc::ClientSession& session, const std::string& user) {
   try {
-    auto r = session.Send(webcc::RequestBuilder{}.Get(kUrlRoot).
-                          Path("users").Path(user).Path("followers")
-                          ());
+    auto r = session.Send(
+        WEBCC_GET(kUrlRoot).Path("users").Path(user).Path("followers")());
 
     PRINT_JSON_STRING(r->data());
 
@@ -88,9 +86,9 @@ void ListAuthUserFollowers(webcc::ClientSession& session,
                            const std::string& login,
                            const std::string& password) {
   try {
-    auto r = session.Send(webcc::RequestBuilder{}.Get(kUrlRoot).
-                          Path("user/followers").AuthBasic(login, password)
-                          ());
+    auto r = session.Send(WEBCC_GET(kUrlRoot)
+                              .Path("user/followers")
+                              .AuthBasic(login, password)());
 
     PRINT_JSON_STRING(r->data());
 
@@ -109,10 +107,12 @@ void CreateAuthorization(webcc::ClientSession& session,
       "  'scopes': ['public_repo', 'repo', 'repo:status', 'user']\n"
       "}";
 
-    auto r = session.Send(webcc::RequestBuilder{}.Post(kUrlRoot).
-                          Path("authorizations").AuthBasic(login, password).
-                          Body(std::move(data)).Json().Utf8()
-                          ());
+    auto r = session.Send(WEBCC_POST(kUrlRoot)
+                              .Path("authorizations")
+                              .AuthBasic(login, password)
+                              .Body(std::move(data))
+                              .Json()
+                              .Utf8()());
 
     std::cout << r->data() << std::endl;
 
@@ -127,8 +127,7 @@ int main() {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
   webcc::ClientSession session;
-
-  session.SetHeader(webcc::headers::kConnection, "Close");
+  session.KeepAlive(false);
 
 #if WEBCC_ENABLE_GZIP
   session.AcceptGzip();

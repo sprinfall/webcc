@@ -12,6 +12,21 @@ using namespace std::placeholders;
 using boost::asio::ip::tcp;
 namespace ssl = boost::asio::ssl;
 
+void SslClient::Close() {
+  boost::system::error_code ec;
+  GetSocket().cancel(ec);
+
+  // Shutdown SSL
+  ssl_stream_.shutdown(ec);
+  if (ec) {
+    // See: https://stackoverflow.com/a/25703699
+    LOG_WARN("SSL shutdown error (%s)", ec.message().c_str());
+    ec.clear();
+  }
+
+  BlockingClientBase::Close();
+}
+
 void SslClient::AsyncWrite(
     const std::vector<boost::asio::const_buffer>& buffers,
     RWHandler&& handler) {
@@ -49,24 +64,6 @@ void SslClient::OnConnected() {
 
   ssl_stream_.async_handshake(ssl::stream_base::client,
                               std::bind(&SslClient::OnHandshake, self, _1));
-}
-
-void SslClient::CloseSocket() {
-  boost::system::error_code ec;
-  GetSocket().cancel(ec);
-
-  // Shutdown SSL
-  // TODO: Use async_shutdown()?
-  ssl_stream_.shutdown(ec);
-
-  if (ec) {
-    // TODO: boost::asio::error::eof
-    // See: https://stackoverflow.com/a/25703699
-    LOG_WARN("SSL shutdown error (%s)", ec.message().c_str());
-    ec.clear();
-  }
-
-  BlockingClientBase::CloseSocket();
 }
 
 void SslClient::OnHandshake(boost::system::error_code ec) {

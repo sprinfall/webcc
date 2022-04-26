@@ -43,8 +43,8 @@ private:
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {
-    std::cout << "usage: form_server <port>" << std::endl;
-    std::cout << "example:" << std::endl;
+    std::cout << "Usage: form_server <port>" << std::endl;
+    std::cout << "Example:" << std::endl;
     std::cout << "  $ form_server 8080" << std::endl;
     return 1;
   }

@@ -16,6 +16,20 @@ void SslConnection::Start() {
                               std::bind(&SslConnection::OnHandshake, this, _1));
 }
 
+void SslConnection::Close() {
+  boost::system::error_code ec;
+  GetSocket().cancel(ec);
+
+  // Shutdown SSL
+  ssl_stream_.shutdown(ec);
+  if (ec) {
+    LOG_WARN("SSL shutdown error (%s)", ec.message().c_str());
+    ec.clear();
+  }
+
+  ConnectionBase::Close();
+}
+
 void SslConnection::AsyncWrite(
     const std::vector<boost::asio::const_buffer>& buffers,
     RWHandler&& handler) {

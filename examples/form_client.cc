@@ -1,23 +1,24 @@
 // A client posting multipart form data.
 
+#include <fstream>
 #include <iostream>
 
 #include "webcc/client_session.h"
 #include "webcc/logger.h"
 
+namespace sfs = std::filesystem;
+
 int main(int argc, char* argv[]) {
   if (argc < 2) {
     std::cout << "Usage: form_client <upload_dir> [url]" << std::endl;
-    std::cout << std::endl;
-    std::cout << "Default url: http://httpbin.org/post" << std::endl;
-    std::cout << std::endl;
-    std::cout << "Examples:" << std::endl;
-    std::cout << "(Post to httpbin.org)" << std::endl;
-    std::cout << "  $ ./form_client path/to/webcc/data/upload" << std::endl;
-    std::cout << "  $ ./form_client path/to/webcc/data/upload "
+    std::cout << "  (default url: http://httpbin.org/post)" << std::endl;
+    std::cout << "Example:" << std::endl;
+    std::cout << "  (Post to httpbin.org)" << std::endl;
+    std::cout << "  $ form_client <webcc_root>/data/upload" << std::endl;
+    std::cout << "  $ form_client <webcc_root>/data/upload "
               << "http://httpbin.org/post" << std::endl;
-    std::cout << "(Post to the example 'form_server')" << std::endl;
-    std::cout << "  $ ./form_client path/to/webcc/data/upload "
+    std::cout << "  (Post to 'form_server' example)" << std::endl;
+    std::cout << "  $ form_client <webcc_root>/data/upload "
                  "http://localhost:8080/upload"
               << std::endl;
     return 1;
@@ -25,7 +26,7 @@ int main(int argc, char* argv[]) {
 
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
-  const webcc::sfs::path upload_dir(argv[1]);
+  const sfs::path upload_dir{ argv[1] };
 
   std::string url;
   if (argc == 3) {
@@ -34,7 +35,7 @@ int main(int argc, char* argv[]) {
     url = "http://httpbin.org/post";
   }
 
-  if (!webcc::sfs::is_directory(upload_dir) || !webcc::sfs::exists(upload_dir)) {
+  if (!sfs::is_directory(upload_dir) || !sfs::exists(upload_dir)) {
     std::cerr << "Invalid upload dir!" << std::endl;
     return 1;
   }

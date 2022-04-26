@@ -10,9 +10,11 @@
 
 int main(int argc, const char* argv[]) {
   if (argc < 2) {
-    std::cerr << "Usage: ssl_certificate <cert_file>" << std::endl;
-    std::cerr << "Example:" << std::endl;
-    std::cerr << "  $ ssl_certificate path/to/httpbin-org-chain.pem" << std::endl;
+    std::cout << "Usage: ssl_certificate <cert_file>" << std::endl;
+    std::cout << "Example:" << std::endl;
+    std::cout
+        << "  $ ssl_certificate <webcc_root>/data/cert/httpbin-org-chain.pem"
+        << std::endl;
     return 1;
   }
 

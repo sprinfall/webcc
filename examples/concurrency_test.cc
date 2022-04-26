@@ -10,10 +10,10 @@
 
 int main(int argc, const char* argv[]) {
   if (argc < 3) {
-    std::cerr << "Usage: concurrency_test <workers> <url>" << std::endl;
-    std::cerr << "Example:" << std::endl;
-    std::cerr << "  $ concurrency_test 10 http://httpbin.org/get" << std::endl;
-    std::cerr << "  $ concurrency_test 10 http://localhost:8080/" << std::endl;
+    std::cout << "Usage: concurrency_test <workers> <url>" << std::endl;
+    std::cout << "Example:" << std::endl;
+    std::cout << "  $ concurrency_test 10 http://httpbin.org/get" << std::endl;
+    std::cout << "  $ concurrency_test 10 http://localhost:8080/" << std::endl;
     return 1;
   }
 

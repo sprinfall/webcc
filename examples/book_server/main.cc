@@ -10,9 +10,7 @@ namespace sfs = std::filesystem;
 
 int main(int argc, char* argv[]) {
   if (argc < 3) {
-    std::cout << "usage: book_server <port> <upload_dir>" << std::endl;
-    std::cout << "e.g.," << std::endl;
-    std::cout << "  $ book_server 8080 D:/upload" << std::endl;
+    std::cout << "Usage: book_server <port> <upload_dir>" << std::endl;
     return 1;
   }
 

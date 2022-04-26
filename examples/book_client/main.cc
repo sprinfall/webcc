@@ -29,9 +29,10 @@ void PrintBookList(const std::list<Book>& books) {
 
 int main(int argc, char* argv[]) {
   if (argc < 3) {
-    std::cout << "usage: book_client <url> <photo_dir>" << std::endl;
-    std::cout << "e.g.," << std::endl;
-    std::cout << "  $ book_client http://localhost:8080 path/to/photo_dir"
+    std::cout << "Usage: book_client <url> <photo_dir>" << std::endl;
+    std::cout << "Example:" << std::endl;
+    std::cout << "  $ book_client http://localhost:8080 "
+                 "<webcc_root>/examples/book_client/photo"
               << std::endl;
     return 1;
   }

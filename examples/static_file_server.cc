@@ -1,3 +1,4 @@
+// examples/static_file_server.cc
 // A general HTTP server serving static files.
 
 #include <iostream>
@@ -8,12 +9,14 @@
 
 int main(int argc, char* argv[]) {
   if (argc < 3) {
-    std::cout << "usage: file_server <port> <doc_root> [chunk_size]"
+    std::cout << "Usage: static_file_server <port> <doc_root> [chunk_size]"
               << std::endl;
     std::cout << std::endl;
-    std::cout << "examples:" << std::endl;
-    std::cout << "  $ file_server 8080 D:/www" << std::endl;
-    std::cout << "  $ file_server 8080 D:/www 10000" << std::endl;
+    std::cout << "Example:" << std::endl;
+    std::cout << "  $ static_file_server 8080 <webcc_root>/data/www"
+              << std::endl;
+    std::cout << "  $ static_file_server 8080 <webcc_root>/data/www 10000"
+              << std::endl;
     return 1;
   }
 

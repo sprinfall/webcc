@@ -57,11 +57,9 @@ public:
     progress_callback_ = callback;
   }
 
-  // Close the connection.
+  // Close the connection (shutdown and close socket).
   // The async operation on the socket will be canceled.
-  void Close() {
-    CloseSocket();
-  }
+  virtual void Close();
 
   bool connected() const {
     return connected_;
@@ -106,9 +104,6 @@ protected:
 
   virtual void AsyncReadSome(boost::asio::mutable_buffer buffer,
                              RWHandler&& handler) = 0;
-
-  // Shutdown and close socket.
-  virtual void CloseSocket();
 
   // Send a request to the server.
   // Check `error()` for any error.

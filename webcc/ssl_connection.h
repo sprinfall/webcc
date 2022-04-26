@@ -25,8 +25,11 @@ public:
     return ssl_stream_.lowest_layer();
   }
 
-  // Handshake then read and process the client request.
+  // Override to firstly handshake before read the client request.
   void Start() override;
+
+  // Override to firstly shutdown SSL.
+  void Close() override;
 
 protected:
   void AsyncWrite(const std::vector<boost::asio::const_buffer>& buffers,

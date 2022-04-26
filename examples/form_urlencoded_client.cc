@@ -9,7 +9,6 @@ int main(int argc, char* argv[]) {
   WEBCC_LOG_INIT("", webcc::LOG_CONSOLE);
 
   webcc::ClientSession session;
-
   session.SetContentType("application/x-www-form-urlencoded", "utf8");
 
   std::string url = "http://httpbin.org/post";
@@ -21,8 +20,7 @@ int main(int argc, char* argv[]) {
     query.Add("key2", "value2");
     // ...
 
-    auto r = session.Send(
-        webcc::RequestBuilder{}.Post(url).Body(query.ToString())());
+    auto r = session.Send(WEBCC_POST(url).Body(query.ToString())());
 
     std::cout << r->data() << std::endl;
 

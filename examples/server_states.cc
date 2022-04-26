@@ -1,3 +1,6 @@
+// examples/server_states.cc
+// Start, run, stop and restart a server.
+
 #include "webcc/logger.h"
 #include "webcc/response_builder.h"
 #include "webcc/server.h"

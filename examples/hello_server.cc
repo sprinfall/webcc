@@ -1,4 +1,4 @@
-// examples/hello_world_server.cc
+// examples/hello_server.cc
 // A simple HTTP server which returns "Hello, World!" to the client.
 // This example is also used as the test server for some client examples (e.g.,
 // heartbeat_client).

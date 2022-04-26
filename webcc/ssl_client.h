@@ -25,6 +25,8 @@ public:
 
   ~SslClient() override = default;
 
+  void Close() override;
+
 protected:
   SocketType& GetSocket() override {
     return ssl_stream_.lowest_layer();
@@ -37,8 +39,6 @@ protected:
 
   void AsyncReadSome(boost::asio::mutable_buffer buffer,
                      RWHandler&& handler) override;
-
-  void CloseSocket() override;
 
 private:
   void OnHandshake(boost::system::error_code ec);
