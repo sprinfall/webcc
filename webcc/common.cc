@@ -4,11 +4,14 @@
 
 #include "boost/algorithm/string.hpp"
 
+#include "webcc/internal/globals.h"
 #include "webcc/logger.h"
 #include "webcc/string.h"
 #include "webcc/utility.h"
 
 namespace webcc {
+
+namespace literal_buffers = internal::literal_buffers;
 
 // -----------------------------------------------------------------------------
 
@@ -242,7 +245,7 @@ std::size_t FormPart::GetDataSize() {
   }
 
   std::size_t size = utility::TellSize(path_);
-  if (size == kInvalidLength) {
+  if (size == kInvalidSize) {
     throw Error{ error_codes::kFileError, "Cannot read the file" };
   }
 

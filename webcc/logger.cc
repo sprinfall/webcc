@@ -10,14 +10,14 @@
 #include <string>
 #include <thread>
 
-#if (defined(_WIN32) || defined(_WIN64))
+#ifdef _WIN32
 #include <Windows.h>
 #else
 // For getting thread ID.
 #include <unistd.h>
 #include <sys/syscall.h>  // For SYS_xxx definitions
 #include <sys/types.h>
-#endif  // defined(_WIN32) || defined(_WIN64)
+#endif  // _WIN32
 
 namespace webcc {
 
@@ -34,11 +34,11 @@ static const char* kLevelNames[] = {
 // -----------------------------------------------------------------------------
 
 static FILE* FOpen(const sfs::path& path, bool overwrite) {
-#if (defined(_WIN32) || defined(_WIN64))
+#ifdef _WIN32
   return _wfopen(path.wstring().c_str(), overwrite ? L"w+" : L"a+");
 #else
   return fopen(path.string().c_str(), overwrite ? "w+" : "a+");
-#endif  // defined(_WIN32) || defined(_WIN64)
+#endif  // _WIN32
 }
 
 struct Logger {
@@ -74,7 +74,7 @@ static Logger g_logger;
 // Thanks to Loguru!
 
 static const bool g_terminal_has_color = []() {
-#if (defined(_WIN32) || defined(_WIN64))
+#ifdef _WIN32
 #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
 #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
 #endif
@@ -103,7 +103,7 @@ static const bool g_terminal_has_color = []() {
 #endif
 }();
 
-#if (defined(_WIN32) || defined(_WIN64))
+#ifdef _WIN32
 #define VTSEQ(ID) ("\x1b[1;" #ID "m")
 #else
 #define VTSEQ(ID) ("\x1b[" #ID "m")
@@ -134,7 +134,7 @@ static const bool g_terminal_has_color = []() {
 // on Linux, e.g., 140219133990656. syscall(SYS_gettid) is much prefered because
 // it's shorter and the same as `ps -T -p <pid>` output.
 static std::string DoGetThreadID() {
-#if (defined(_WIN32) || defined(_WIN64))
+#ifdef _WIN32
   auto thread_id = std::this_thread::get_id();
   std::ostringstream ss;
   ss << thread_id;

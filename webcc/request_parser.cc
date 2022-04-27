@@ -4,6 +4,7 @@
 
 #include "boost/algorithm/string.hpp"
 
+#include "webcc/internal/globals.h"
 #include "webcc/logger.h"
 #include "webcc/request.h"
 #include "webcc/string.h"
@@ -14,7 +15,7 @@ namespace webcc {
 void RequestParser::Init(Request* request, ViewMatcher view_matcher) {
   assert(view_matcher != nullptr);
 
-  Parser::Init(request);
+  MessageParser::Init(request);
 
   request_ = request;
   view_matcher_ = view_matcher;
@@ -58,7 +59,7 @@ bool RequestParser::ParseContent(const char* data, std::size_t length) {
   if (content_type_.multipart()) {
     return ParseMultipartContent(data, length);
   } else {
-    return Parser::ParseContent(data, length);
+    return MessageParser::ParseContent(data, length);
   }
 }
 
@@ -66,8 +67,8 @@ bool RequestParser::ParseMultipartContent(const char* data,
                                           std::size_t length) {
   pending_data_.append(data, length);
 
-  if (!content_length_parsed_ || content_length_ == kInvalidLength) {
-    // Invalid content length (syntax error).
+  if (!content_length_parsed_ || content_length_ == kInvalidSize) {
+    // Invalid Content-Length header (syntax error).
     return false;
   }
 
@@ -113,11 +114,11 @@ bool RequestParser::ParseMultipartContent(const char* data,
     }
 
     if (step_ == Step::kHeadersParsed) {
+      // TODO: Remember last CRLF position.
+
       std::size_t off = 0;
       std::size_t count = 0;
       bool ended = false;
-
-      // TODO: Remember last CRLF position.
       if (!GetNextBoundaryLine(&off, &count, &ended)) {
         break;
       }
@@ -222,25 +223,25 @@ bool RequestParser::ParsePartHeaders(bool* need_more_data) {
   return true;
 }
 
-bool RequestParser::GetNextBoundaryLine(std::size_t* b_off, std::size_t* b_len,
-                                        bool* ended) {
+bool RequestParser::GetNextBoundaryLine(std::size_t* b_off,
+                                        std::size_t* b_count, bool* ended) {
   std::size_t off = 0;
 
   while (true) {
-    std::size_t pos = pending_data_.find(kCRLF, off);
+    std::size_t pos = pending_data_.find(internal::kCRLF, off);
     if (pos == std::string::npos) {
       break;
     }
 
-    std::size_t len = pos - off;
-    if (len == 0) {
+    std::size_t count = pos - off;
+    if (count == 0) {
       off = pos + 2;
       continue;  // Empty line
     }
 
-    if (IsBoundary(pending_data_, off, len, ended)) {
+    if (IsBoundary(pending_data_, off, count, ended)) {
       *b_off = off;
-      *b_len = len;
+      *b_count = count;
       return true;
     }
 

@@ -30,7 +30,7 @@ set(SOURCES
     globals.cc
     logger.cc
     message.cc
-    parser.cc
+    message_parser.cc
     request.cc
     request_builder.cc
     request_parser.cc
@@ -63,7 +63,7 @@ set(HEADERS
     logger.h
     message.h
     message_builder.h
-    parser.h
+    message_parser.h
     queue.h
     request.h
     request_builder.h
@@ -83,17 +83,26 @@ set(HEADERS
     view.h
     )
 
+set(INTERNAL_SOURCES
+    internal/globals.h
+    )
+
 if(WEBCC_ENABLE_GZIP)
-    set(SOURCES ${SOURCES} "gzip.cc")
-    set(HEADERS ${HEADERS} "gzip.h")
+    list(APPEND SOURCES "gzip.cc")
+    list(APPEND HEADERS "gzip.h")
 endif()
+
+set(ALL_SOURCES ${SOURCES} ${HEADERS} ${INTERNAL_SOURCES})
 
 set(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Add a postfix to the debug library")
 mark_as_advanced(CMAKE_DEBUG_POSTFIX)
 
 set(TARGET webcc)
 
-add_library(${TARGET} STATIC ${SOURCES} ${HEADERS})
+add_library(${TARGET} STATIC ${ALL_SOURCES})
+
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "Sources" FILES
+    ${ALL_SOURCES})
 
 # Link to pthread for Linux.
 # See: https://stackoverflow.com/a/29871891

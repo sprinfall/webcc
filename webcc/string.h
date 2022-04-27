@@ -37,11 +37,15 @@ bool SplitKV(std::string_view input, char delim, bool trim_spaces,
 bool SplitKV(std::string_view input, char delim, bool trim_spaces,
              std::string* key, std::string* value);
 
-// TODO
-#if (defined(_WIN32) || defined(_WIN64))
-std::string Utf16To8(const std::wstring& utf16_string);
-std::wstring Utf8To16(const std::string& utf8_string);
-#endif
+#ifdef _WIN32
+namespace windows_only {
+
+bool WstrToUtf8(std::wstring_view wstr, std::string* utf8);
+
+bool Utf8ToWstr(std::string_view utf8, std::wstring* wstr);
+
+}  // namespace windows_only
+#endif  // _WIN32
 
 }  // namespace webcc
 

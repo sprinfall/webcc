@@ -5,12 +5,11 @@
 
 #include "webcc/logger.h"
 
-namespace webcc {
-
 using namespace std::placeholders;
-
 using boost::asio::ip::tcp;
 namespace ssl = boost::asio::ssl;
+
+namespace webcc {
 
 void SslClient::Close() {
   boost::system::error_code ec;

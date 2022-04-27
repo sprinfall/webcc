@@ -2,15 +2,13 @@
 
 #include <cassert>
 
-#if (defined(_WIN32) || defined(_WIN64))
-
+#ifdef _WIN32
 #include <cryptuiapi.h>
 #include <wincrypt.h>
 #include <windows.h>
 
 #include "openssl/x509.h"
-
-#endif  // defined(_WIN32) || defined(_WIN64)
+#endif  // _WIN32
 
 #include "boost/algorithm/string.hpp"
 #include "boost/asio/ssl.hpp"
@@ -27,7 +25,7 @@ namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-#if (defined(_WIN32) || defined(_WIN64))
+#ifdef _WIN32
 
 // Let OpenSSL on Windows use the system certificate store.
 //   1. Load your certificate (in PCCERT_CONTEXT structure) from Windows Cert
@@ -87,7 +85,7 @@ static bool UseSystemCertificateStore(SSL_CTX* ssl_ctx) {
   return true;
 }
 
-#endif  // defined(_WIN32) || defined(_WIN64)
+#endif  // _WIN32
 
 // -----------------------------------------------------------------------------
 
@@ -179,7 +177,7 @@ protected:
     default_.first.reset(new ssl::context{ ssl::context::sslv23_client });
     default_.second = SslVerify::kHostName;
 
-#if (defined(_WIN32) || defined(_WIN64))
+#ifdef _WIN32
     UseSystemCertificateStore(default_.first->native_handle());
 #else
     default_.first->set_default_verify_paths();

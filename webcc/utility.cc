@@ -35,7 +35,7 @@ std::size_t TellSize(const sfs::path& path) {
   // Flag "ate": seek to the end of stream immediately after open.
   std::ifstream stream{ path, std::ios::binary | std::ios::ate };
   if (stream.fail()) {
-    return kInvalidLength;
+    return kInvalidSize;
   }
   return static_cast<std::size_t>(stream.tellg());
 }

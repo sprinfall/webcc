@@ -384,8 +384,12 @@ ResponsePtr Server::ServeStatic(RequestPtr request) {
 }
 
 sfs::path Server::TranslatePath(const std::string& utf8_url_path) {
-#if (defined(_WIN32) || defined(_WIN64))
-  std::wstring url_path = Utf8To16(utf8_url_path);
+#ifdef _WIN32
+  std::wstring url_path;
+  if (!windows_only::Utf8ToWstr(utf8_url_path, &url_path)) {
+    return {};  // TODO
+  }
+
   std::vector<std::wstring> words;
   boost::split(words, url_path, boost::is_any_of(L"/"),
                boost::token_compress_on);
@@ -393,12 +397,13 @@ sfs::path Server::TranslatePath(const std::string& utf8_url_path) {
   std::vector<std::string> words;
   boost::split(words, utf8_url_path, boost::is_any_of("/"),
                boost::token_compress_on);
-#endif  // defined(_WIN32) || defined(_WIN64)
+#endif  // _WIN32
 
   sfs::path path;
+
   for (auto& word : words) {
     // Ignore . and ..
-#if (defined(_WIN32) || defined(_WIN64))
+#ifdef _WIN32
     if (word == L"." || word == L"..") {
 #else
     if (word == "." || word == "..") {

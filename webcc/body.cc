@@ -2,6 +2,7 @@
 
 #include "boost/core/ignore_unused.hpp"
 
+#include "webcc/internal/globals.h"
 #include "webcc/logger.h"
 #include "webcc/utility.h"
 
@@ -10,6 +11,8 @@
 #endif
 
 namespace webcc {
+
+namespace literal_buffers = internal::literal_buffers;
 
 // -----------------------------------------------------------------------------
 
@@ -160,7 +163,7 @@ void FormBody::Free(std::size_t index) {
 FileBody::FileBody(const sfs::path& path, std::size_t chunk_size)
     : path_(path), chunk_size_(chunk_size), auto_delete_(false), size_(0) {
   size_ = utility::TellSize(path_);
-  if (size_ == kInvalidLength) {
+  if (size_ == kInvalidSize) {
     throw Error{ error_codes::kFileError, "Cannot read the file" };
   }
 }

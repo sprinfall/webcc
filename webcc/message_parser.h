@@ -1,5 +1,5 @@
-#ifndef WEBCC_PARSER_H_
-#define WEBCC_PARSER_H_
+#ifndef WEBCC_MESSAGE_PARSER_H_
+#define WEBCC_MESSAGE_PARSER_H_
 
 #include <fstream>
 #include <string>
@@ -23,7 +23,7 @@ public:
 
   virtual ~BodyHandler() = default;
 
-  virtual void AddContent(const char* data, std::size_t count) = 0;
+  virtual void AddContent(const char* data, std::size_t length) = 0;
 
   virtual void AddContent(const std::string& data) = 0;
 
@@ -47,7 +47,7 @@ public:
 
   ~StringBodyHandler() override = default;
 
-  void AddContent(const char* data, std::size_t count) override;
+  void AddContent(const char* data, std::size_t length) override;
   void AddContent(const std::string& data) override;
 
   std::size_t GetContentLength() const override {
@@ -64,7 +64,6 @@ private:
 
 class FileBodyHandler : public BodyHandler {
 public:
-  // NOTE: Might throw error_codes::kFileError.
   explicit FileBodyHandler(Message* message) : BodyHandler(message) {
   }
 
@@ -73,7 +72,7 @@ public:
   // Open a temp file for data streaming.
   bool OpenFile();
 
-  void AddContent(const char* data, std::size_t count) override;
+  void AddContent(const char* data, std::size_t length) override;
   void AddContent(const std::string& data) override;
 
   std::size_t GetContentLength() const override {
@@ -90,15 +89,14 @@ private:
 
 // -----------------------------------------------------------------------------
 
-// HTTP request/response parser.
-class Parser {
+class MessageParser {
 public:
-  Parser() = default;
+  MessageParser() = default;
 
-  Parser(const Parser&) = delete;
-  Parser& operator=(const Parser&) = delete;
+  MessageParser(const MessageParser&) = delete;
+  MessageParser& operator=(const MessageParser&) = delete;
 
-  virtual ~Parser() = default;
+  virtual ~MessageParser() = default;
 
   void Init(Message* message);
 
@@ -111,14 +109,14 @@ public:
     return header_ended_;
   }
 
-  // Get the length of the headers part.
+  // The length of the headers part.
   // Available after the headers have been parsed (see header_ended()).
   std::size_t header_length() const {
     return header_length_;
   }
 
   // The content length parsed from the Content-Length header.
-  // Return kInvalidLength if the content is chunked.
+  // Return kInvalidSize if the content is chunked.
   std::size_t content_length() const {
     return content_length_;
   }
@@ -148,7 +146,6 @@ protected:
 
   bool ParseHeaderLine(const std::string& line);
 
-  // Parse the given length of data.
   virtual bool ParseContent(const char* data, std::size_t length);
 
   bool ParseFixedContent(const char* data, std::size_t length);
@@ -170,23 +167,23 @@ protected:
   // Data streaming or not.
   bool stream_ = false;
 
-  // Data waiting to be parsed.
+  // The data to be parsed.
   std::string pending_data_;
 
   // The length of the headers part.
   std::size_t header_length_ = 0;
 
   // Temporary data and helper flags for parsing.
-  std::size_t content_length_ = kInvalidLength;
+  std::size_t content_length_ = kInvalidSize;
   ContentType content_type_;
   bool start_line_parsed_ = false;
   bool content_length_parsed_ = false;
   bool header_ended_ = false;
   bool chunked_ = false;
-  std::size_t chunk_size_ = kInvalidLength;
+  std::size_t chunk_size_ = kInvalidSize;
   bool finished_ = false;
 };
 
 }  // namespace webcc
 
-#endif  // WEBCC_PARSER_H_
+#endif  // WEBCC_MESSAGE_PARSER_H_

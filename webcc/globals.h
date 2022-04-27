@@ -4,8 +4,8 @@
 #include <cassert>
 #include <exception>
 #include <filesystem>
-#include <functional>
 #include <iosfwd>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -26,43 +26,25 @@ using UrlArgs = std::vector<std::string>;
 
 using Payload = std::vector<boost::asio::const_buffer>;
 
-using ProgressCallback =
-    std::function<void(std::size_t length, std::size_t total_length)>;
-
 // -----------------------------------------------------------------------------
 
-const char* const kCRLF = "\r\n";
-
-const std::size_t kInvalidLength = -1;
+constexpr std::size_t kInvalidSize = std::numeric_limits<std::size_t>::max();
 
 // Default timeout for reading response.
-const int kMaxReadSeconds = 30;
+constexpr int kMaxReadSeconds = 30;
 
 // Max size of the HTTP body to dump/log.
 // If the HTTP, e.g., response, has a very large content, it will be truncated
 // when dumped/logged.
-const std::size_t kMaxDumpSize = 2048;
+constexpr std::size_t kMaxDumpSize = 2048;
 
 // Default buffer size for socket reading.
-const std::size_t kBufferSize = 1024;
+constexpr std::size_t kBufferSize = 1024;
 
 // Why 1400? See the following page:
 // https://www.itworld.com/article/2693941/why-it-doesn-t-make-sense-to-
 // gzip-all-content-from-your-web-server.html
-const std::size_t kGzipThreshold = 1400;
-
-// -----------------------------------------------------------------------------
-
-namespace literal_buffers {
-
-// Buffers for composing payload.
-// Literal strings can't be used because they have an extra '\0'.
-
-extern const char HEADER_SEPARATOR[2];
-extern const char CRLF[2];
-extern const char DOUBLE_DASHES[2];
-
-}  // namespace literal_buffers
+constexpr std::size_t kGzipThreshold = 1400;
 
 // -----------------------------------------------------------------------------
 

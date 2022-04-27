@@ -40,7 +40,7 @@ static void SplitStatusLine(const std::string& line,
 // -----------------------------------------------------------------------------
 
 void ResponseParser::Init(Response* response, bool stream) {
-  Parser::Init(response);
+  MessageParser::Init(response);
 
   response_ = response;
   stream_ = stream;
@@ -79,7 +79,7 @@ bool ResponseParser::ParseContent(const char* data, std::size_t length) {
     Finish();
     return true;
   }
-  return Parser::ParseContent(data, length);
+  return MessageParser::ParseContent(data, length);
 }
 
 }  // namespace webcc

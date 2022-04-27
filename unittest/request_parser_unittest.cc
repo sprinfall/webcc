@@ -31,7 +31,7 @@ protected:
     EXPECT_EQ(request.GetHeader("Connection"), "Close");
 
     EXPECT_EQ(request.data(), "");
-    EXPECT_EQ(request.content_length(), webcc::kInvalidLength);
+    EXPECT_EQ(request.content_length(), webcc::kInvalidSize);
   }
 
   std::string payload_;

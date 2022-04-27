@@ -4,6 +4,7 @@
 
 #include "boost/asio/connect.hpp"
 
+#include "webcc/internal/globals.h"
 #include "webcc/logger.h"
 
 using boost::asio::ip::tcp;
@@ -160,7 +161,8 @@ void AsyncClientBase::OnConnect(boost::system::error_code ec,
 }
 
 void AsyncClientBase::AsyncWrite() {
-  LOG_VERB("Request:\n%s", request_->Dump(log_prefix::kOutgoing).c_str());
+  LOG_VERB("Request:\n%s",
+           request_->Dump(internal::log_prefix::kOutgoing).c_str());
   LOG_INFO("Send request...");
 
   AsyncWrite(request_->GetPayload(),
@@ -168,7 +170,7 @@ void AsyncClientBase::AsyncWrite() {
 }
 
 void AsyncClientBase::OnWrite(boost::system::error_code ec,
-                              std::size_t length) {
+                              std::size_t /*length*/) {
   if (ec) {
     HandleWriteError(ec);
     return;
@@ -243,9 +245,8 @@ void AsyncClientBase::OnRead(boost::system::error_code ec, std::size_t length) {
     return;
   }
 
-  length_read_ += length;
-
   LOG_INFO("Read length: %u", length);
+  length_read_ += length;
 
   // Parse the piece of data just read.
   if (!response_parser_.Parse(buffer_.data(), length)) {
@@ -266,7 +267,8 @@ void AsyncClientBase::OnRead(boost::system::error_code ec, std::size_t length) {
   }
 
   if (response_parser_.finished()) {
-    LOG_VERB("Response:\n%s", response_->Dump(log_prefix::kIncoming).c_str());
+    LOG_VERB("Response:\n%s",
+             response_->Dump(internal::log_prefix::kIncoming).c_str());
 
     if (response_->IsConnectionKeepAlive()) {
       LOG_INFO("Keep the socket connection alive");

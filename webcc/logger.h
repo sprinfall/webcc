@@ -49,9 +49,7 @@ void Log(int level, const char* file, int line, const char* format, ...);
 
 }  // namespace webcc
 
-// Definition of _WIN32 & _WIN64:
-//   https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=vs-2015
-#if (defined(_WIN32) || defined(_WIN64))
+#ifdef _WIN32
 
 // See: https://stackoverflow.com/a/8488201
 // ISSUE: The last path separator of __FILE__ in a header file becomes "/"
@@ -63,7 +61,7 @@ void Log(int level, const char* file, int line, const char* format, ...);
 
 #define __FILENAME__ std::strrchr("/" __FILE__, '/') + 1
 
-#endif  // defined(_WIN32) || defined(_WIN64)
+#endif  // _WIN32
 
 #if WEBCC_LOG_LEVEL <= WEBCC_VERB
 #define LOG_VERB(format, ...) \

@@ -1,7 +1,8 @@
-#include "webcc/parser.h"
+#include "webcc/message_parser.h"
 
 #include "boost/algorithm/string.hpp"
 
+#include "webcc/internal/globals.h"
 #include "webcc/logger.h"
 #include "webcc/message.h"
 #include "webcc/string.h"
@@ -91,9 +92,9 @@ bool FileBodyHandler::OpenFile() {
   return true;
 }
 
-void FileBodyHandler::AddContent(const char* data, std::size_t count) {
-  ofstream_.write(data, count);
-  streamed_size_ += count;
+void FileBodyHandler::AddContent(const char* data, std::size_t length) {
+  ofstream_.write(data, length);
+  streamed_size_ += length;
 }
 
 void FileBodyHandler::AddContent(const std::string& data) {
@@ -116,7 +117,7 @@ bool FileBodyHandler::Finish() {
 
 // -----------------------------------------------------------------------------
 
-void Parser::Init(Message* message) {
+void MessageParser::Init(Message* message) {
   message_ = message;
 
   body_handler_.reset();
@@ -125,17 +126,17 @@ void Parser::Init(Message* message) {
   pending_data_.clear();
   header_length_ = 0;
 
-  content_length_ = kInvalidLength;
+  content_length_ = kInvalidSize;
   content_type_.Clear();
   start_line_parsed_ = false;
   content_length_parsed_ = false;
   header_ended_ = false;
   chunked_ = false;
-  chunk_size_ = kInvalidLength;
+  chunk_size_ = kInvalidSize;
   finished_ = false;
 }
 
-bool Parser::Parse(const char* data, std::size_t length) {
+bool MessageParser::Parse(const char* data, std::size_t length) {
   if (header_ended_) {
     return ParseContent(data, length);
   }
@@ -176,7 +177,7 @@ bool Parser::Parse(const char* data, std::size_t length) {
   return ParseContent("", 0);
 }
 
-bool Parser::ParseHeaders() {
+bool MessageParser::ParseHeaders() {
   std::size_t off = 0;
 
   while (true) {
@@ -213,7 +214,7 @@ bool Parser::ParseHeaders() {
   return true;
 }
 
-void Parser::CreateBodyHandler() {
+void MessageParser::CreateBodyHandler() {
   if (stream_) {
     auto file_body_handler = new FileBodyHandler{ message_ };
     if (!file_body_handler->OpenFile()) {
@@ -227,8 +228,9 @@ void Parser::CreateBodyHandler() {
   }
 }
 
-bool Parser::GetNextLine(std::size_t off, std::string* line, bool erase) {
-  std::size_t pos = pending_data_.find(kCRLF, off);
+bool MessageParser::GetNextLine(std::size_t off, std::string* line,
+                                bool erase) {
+  std::size_t pos = pending_data_.find(internal::kCRLF, off);
   if (pos == std::string::npos) {
     return false;
   }
@@ -245,7 +247,7 @@ bool Parser::GetNextLine(std::size_t off, std::string* line, bool erase) {
   return true;
 }
 
-bool Parser::ParseHeaderLine(const std::string& line) {
+bool MessageParser::ParseHeaderLine(const std::string& line) {
   Header header;
   if (!SplitKV(line, ':', true, &header.first, &header.second)) {
     LOG_ERRO("Invalid header: %s", line.c_str());
@@ -255,7 +257,7 @@ bool Parser::ParseHeaderLine(const std::string& line) {
   if (boost::iequals(header.first, headers::kContentLength)) {
     content_length_parsed_ = true;
 
-    std::size_t content_length = kInvalidLength;
+    std::size_t content_length = kInvalidSize;
     if (!ToSizeT(header.second, 10, &content_length)) {
       LOG_ERRO("Invalid content length: %s", header.second.c_str());
       return false;
@@ -282,7 +284,7 @@ bool Parser::ParseHeaderLine(const std::string& line) {
   return true;
 }
 
-bool Parser::ParseContent(const char* data, std::size_t length) {
+bool MessageParser::ParseContent(const char* data, std::size_t length) {
   if (chunked_) {
     return ParseChunkedContent(data, length);
   } else {
@@ -290,15 +292,15 @@ bool Parser::ParseContent(const char* data, std::size_t length) {
   }
 }
 
-bool Parser::ParseFixedContent(const char* data, std::size_t length) {
+bool MessageParser::ParseFixedContent(const char* data, std::size_t length) {
   if (!content_length_parsed_) {
     // No Content-Length, no content.
     Finish();
     return true;
   }
 
-  if (content_length_ == kInvalidLength) {
-    // Invalid content length (syntax error).
+  if (content_length_ == kInvalidSize) {
+    // Invalid Content-Length header (syntax error).
     return false;
   }
 
@@ -319,7 +321,7 @@ bool Parser::ParseFixedContent(const char* data, std::size_t length) {
   return true;
 }
 
-bool Parser::ParseChunkedContent(const char* data, std::size_t length) {
+bool MessageParser::ParseChunkedContent(const char* data, std::size_t length) {
   pending_data_.append(data, length);
 
   while (true) {
@@ -329,7 +331,7 @@ bool Parser::ParseChunkedContent(const char* data, std::size_t length) {
     }
 
     // Read chunk-size if necessary.
-    if (chunk_size_ == kInvalidLength) {
+    if (chunk_size_ == kInvalidSize) {
       std::string line;
       if (!GetNextLine(0, &line, true)) {
         // Need more data from next read.
@@ -359,7 +361,7 @@ bool Parser::ParseChunkedContent(const char* data, std::size_t length) {
       pending_data_.erase(0, chunk_size_ + 2);
 
       // Reset chunk-size (NOT to 0).
-      chunk_size_ = kInvalidLength;
+      chunk_size_ = kInvalidSize;
 
       // Continue (explicitly) to parse next chunk.
       continue;
@@ -386,7 +388,7 @@ bool Parser::ParseChunkedContent(const char* data, std::size_t length) {
   return true;
 }
 
-bool Parser::ParseChunkSize(const std::string& line) {
+bool MessageParser::ParseChunkSize(const std::string& line) {
   LOG_VERB("Chunk size line: [%s]", line.c_str());
 
   std::string hex_str;  // e.g., "cf0" (3312)
@@ -405,15 +407,15 @@ bool Parser::ParseChunkSize(const std::string& line) {
   return true;
 }
 
-bool Parser::IsFixedContentFull() const {
-  assert(content_length_ != kInvalidLength);
+bool MessageParser::IsFixedContentFull() const {
+  assert(content_length_ != kInvalidSize);
   return body_handler_->GetContentLength() >= content_length_;
 }
 
-bool Parser::Finish() {
+bool MessageParser::Finish() {
   finished_ = true;
 
-  // Could be `kInvalidLength` (chunked).
+  // Could be `kInvalidSize` (chunked).
   // Could be `0` (empty body and "Content-Length : 0").
   message_->set_content_length(content_length_);
 

@@ -1,6 +1,6 @@
 #include "webcc/string.h"
 
-#if (defined(_WIN32) || defined(_WIN64))
+#ifdef _WIN32
 #define NOMINMAX
 #include <Windows.h>
 #endif
@@ -107,60 +107,83 @@ bool SplitKV(std::string_view input, char delim, bool trim_spaces,
   return false;
 }
 
-#if (defined(_WIN32) || defined(_WIN64))
+#ifdef _WIN32
+
+namespace windows_only {
 
 // Wrapper for Windows API MultiByteToWideChar.
-static std::wstring MB2WC(const std::string& input, unsigned int code_page) {
-  if (input.empty()) {
-    return L"";
+static bool MB2WC(std::string_view input, unsigned int code_page,
+                  std::wstring* output) {
+  const int input_size = static_cast<int>(input.size());
+  if (input_size == 0) {
+    return false;
   }
 
-  int length = ::MultiByteToWideChar(code_page, 0, &input[0],
-                                     static_cast<int>(input.size()), NULL, 0);
+  DWORD flags = MB_PRECOMPOSED | MB_ERR_INVALID_CHARS;
 
-  std::wstring output(length, '\0');
+  int size = ::MultiByteToWideChar(code_page, flags, input.data(), input_size,
+                                   NULL, 0);
 
-  ::MultiByteToWideChar(code_page, 0, &input[0], static_cast<int>(input.size()),
-                        &output[0], static_cast<int>(output.size()));
+  if (size == 0) {
+    return false;
+  }
 
-  return output;
+  output->resize(size);
+
+  if (::MultiByteToWideChar(code_page, flags, input.data(), input_size,
+                            output->data(), size) == 0) {
+    return false;
+  }
+
+  return true;
 }
 
 // Wrapper for Windows API WideCharToMultiByte.
-static std::string WC2MB(const std::wstring& input, unsigned int code_page) {
-  if (input.empty()) {
-    return "";
+static bool WC2MB(std::wstring_view input, unsigned int code_page,
+                  std::string* output) {
+  const int input_size = static_cast<int>(input.size());
+  if (input_size == 0) {
+    return false;
   }
 
   // There do have other code pages which require the flags to be 0, e.g.,
   // 50220, 50211, and so on. But they are not included in our charset
-  // dictionary. So, only consider 65001 (UTF-8) and 54936 (GB18030).
+  // dictionary. So, only consider CP_UTF8 (65001) and 54936 (GB18030).
   DWORD flags = 0;
-  if (code_page != 65001 && code_page != 54936) {
-    flags = WC_NO_BEST_FIT_CHARS | WC_COMPOSITECHECK | WC_DEFAULTCHAR;
+  if (code_page != CP_UTF8 && code_page != 54936) {
+    // WC_ERR_INVALID_CHARS:
+    // Only applies when CodePage is specified as CP_UTF8 or 54936. It cannot be
+    // used with other code page values. 
+    flags = WC_ERR_INVALID_CHARS;
   }
 
-  int length = ::WideCharToMultiByte(code_page, flags, &input[0],
-                                     static_cast<int>(input.size()), NULL, 0,
-                                     NULL, NULL);
+  int size = ::WideCharToMultiByte(code_page, flags, input.data(), input_size,
+                                   NULL, 0, NULL, NULL);
 
-  std::string output(length, '\0');
+  if (size == 0) {
+    return false;
+  }
 
-  ::WideCharToMultiByte(code_page, flags, &input[0],
-                        static_cast<int>(input.size()), &output[0],
-                        static_cast<int>(output.size()), NULL, NULL);
+  output->resize(size);
 
-  return output;
+  if (::WideCharToMultiByte(code_page, flags, input.data(), input_size,
+                            output->data(), size, NULL, NULL) == 0) {
+    return false;
+  }
+
+  return true;
 }
 
-std::string Utf16To8(const std::wstring& utf16_string) {
-  return WC2MB(utf16_string, CP_UTF8);
+bool WstrToUtf8(std::wstring_view wstr, std::string* utf8) {
+  return WC2MB(wstr, CP_UTF8, utf8);
 }
 
-std::wstring Utf8To16(const std::string& utf8_string) {
-  return MB2WC(utf8_string, CP_UTF8);
+bool Utf8ToWstr(std::string_view utf8, std::wstring* wstr) {
+  return MB2WC(utf8, CP_UTF8, wstr);
 }
 
-#endif  // defined(_WIN32) || defined(_WIN64)
+}  // namespace windows_only
+
+#endif  // _WIN32
 
 }  // namespace webcc

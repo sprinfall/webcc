@@ -4,6 +4,7 @@
 
 #include "boost/algorithm/string.hpp"
 
+#include "webcc/internal/globals.h"
 #include "webcc/logger.h"
 #include "webcc/utility.h"
 
@@ -76,6 +77,7 @@ void Message::SetContentType(std::string_view media_type,
 
 Payload Message::GetPayload() const {
   using boost::asio::buffer;
+  namespace literal_buffers = internal::literal_buffers;
 
   Payload payload;
 

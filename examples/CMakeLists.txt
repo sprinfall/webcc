@@ -26,10 +26,6 @@ set(SIMPLE_EXAMPLES
     ssl_certificate
     )
 
-if(WIN32)
-    list(APPEND SIMPLE_EXAMPLES url_unicode)
-endif()
-
 foreach(example ${SIMPLE_EXAMPLES})
     add_executable(${example} ${example}.cc)
     target_link_libraries(${example} ${EXAMPLE_LIBS})

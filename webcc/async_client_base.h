@@ -21,6 +21,9 @@ namespace webcc {
 using SocketType = boost::asio::basic_socket<boost::asio::ip::tcp,
                                              boost::asio::any_io_executor>;
 
+using ProgressCallback =
+    std::function<void(std::size_t current, std::size_t total)>;
+
 class AsyncClientBase : public std::enable_shared_from_this<AsyncClientBase> {
 public:
   AsyncClientBase(boost::asio::io_context& io_context,
@@ -146,9 +149,6 @@ protected:
   ResponsePtr response_;
   ResponseParser response_parser_;
 
-  // The length already read.
-  std::size_t length_read_ = 0;
-
   // The buffer for reading response.
   std::vector<char> buffer_;
 
@@ -169,6 +169,9 @@ protected:
 
   // Socket connected or not.
   bool connected_ = false;
+
+  // The length already read.
+  std::size_t length_read_ = 0;
 
   // Progress callback (optional).
   ProgressCallback progress_callback_;

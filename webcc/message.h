@@ -12,11 +12,6 @@
 
 namespace webcc {
 
-namespace log_prefix {
-const char* const kIncoming = "    < ";
-const char* const kOutgoing = "    > ";
-}
-
 class Message {
 public:
   Message();
@@ -116,7 +111,7 @@ protected:
 
   Headers headers_;
 
-  std::size_t content_length_ = kInvalidLength;
+  std::size_t content_length_ = kInvalidSize;
 
   BodyPtr body_;
 };

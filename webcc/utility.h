@@ -21,7 +21,7 @@ std::string HttpDate();
 std::string FormatHttpDate(const std::tm& gmt);
 
 // Tell the size in bytes of the given file.
-// Return kInvalidLength (-1) on failure.
+// Return kInvalidSize on failure.
 std::size_t TellSize(const sfs::path& path);
 
 // Read entire file into string.

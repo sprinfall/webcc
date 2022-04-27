@@ -3,6 +3,7 @@
 #include "boost/asio/write.hpp"
 
 #include "webcc/connection_pool.h"
+#include "webcc/internal/globals.h"
 #include "webcc/logger.h"
 #include "webcc/utility.h"  // for utility::HttpDate()
 
@@ -135,7 +136,8 @@ void ConnectionBase::OnRead(boost::system::error_code ec, std::size_t length) {
     return;
   }
 
-  LOG_VERB("Request:\n%s", request_->Dump(log_prefix::kIncoming).c_str());
+  LOG_VERB("Request:\n%s",
+           request_->Dump(internal::log_prefix::kIncoming).c_str());
 
   // Enqueue this connection once the request has been read.
   // Some worker thread will handle the request later.
@@ -147,14 +149,15 @@ void ConnectionBase::AsyncWrite() {
   LOG_USER("[%u] AsyncWrite()", (unsigned int)this);
 #endif
 
-  LOG_VERB("Response:\n%s", response_->Dump(log_prefix::kOutgoing).c_str());
+  LOG_VERB("Response:\n%s",
+           response_->Dump(internal::log_prefix::kOutgoing).c_str());
 
   AsyncWrite(response_->GetPayload(), std::bind(&ConnectionBase::OnWriteHeaders,
                                                 shared_from_this(), _1, _2));
 }
 
 void ConnectionBase::OnWriteHeaders(boost::system::error_code ec,
-                                std::size_t length) {
+                                    std::size_t /*length*/) {
 #if WEBCC_STUDY_SERVER_THREADING
   LOG_USER("[%u] OnWriteHeaders()", (unsigned int)this);
 #endif
@@ -180,7 +183,8 @@ void ConnectionBase::AsyncWriteBody() {
   }
 }
 
-void ConnectionBase::OnWriteBody(boost::system::error_code ec, std::size_t length) {
+void ConnectionBase::OnWriteBody(boost::system::error_code ec,
+                                 std::size_t /*length*/) {
 #if WEBCC_STUDY_SERVER_THREADING
   LOG_USER("[%u] OnWriteBody()", (unsigned int)this);
 #endif

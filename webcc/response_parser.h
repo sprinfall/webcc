@@ -3,13 +3,13 @@
 
 #include <string>
 
-#include "webcc/parser.h"
+#include "webcc/message_parser.h"
 
 namespace webcc {
 
 class Response;
 
-class ResponseParser : public Parser {
+class ResponseParser : public MessageParser {
 public:
   ResponseParser() = default;
   ~ResponseParser() override = default;

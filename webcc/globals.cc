@@ -8,16 +8,6 @@ namespace webcc {
 
 // -----------------------------------------------------------------------------
 
-namespace literal_buffers {
-
-const char HEADER_SEPARATOR[2] = { ':', ' ' };
-const char CRLF[2] = { '\r', '\n' };
-const char DOUBLE_DASHES[2] = { '-', '-' };
-
-}  // namespace literal_buffers
-
-// -----------------------------------------------------------------------------
-
 namespace media_types {
 
 std::string FromExtension(const std::string& ext) {
