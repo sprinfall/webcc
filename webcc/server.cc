@@ -312,37 +312,36 @@ void Server::Handle(ConnectionPtr connection) {
   UrlArgs args;
   ViewPtr view = FindView(request->method(), url_path, &args);
 
-  if (view == nullptr) {
-    //LOG_WARN("No view matches the request: %s %s", request->method().c_str(),
-    //         url_path.c_str());
+  if (view != nullptr) {
+    // Save the (regex matched) URL args to the request object.
+    request->set_args(std::move(args));
 
+    // Ask the matched view to process the request.
+    ResponsePtr response = view->Handle(request);
+
+    // Send the response back.
+    if (response != nullptr) {
+      connection->SendResponse(response);
+    } else {
+      // Shouldn't be here!
+      // View::Handle() should return a proper response object.
+      connection->SendResponse(status_codes::kBadRequest);
+    }
+  } else {
     if (request->method() == methods::kGet) {
-      // Try to serve static files for GET request.
+      // Try to serve a static file.
       ResponsePtr response = ServeStatic(request);
       if (response != nullptr) {
         connection->SendResponse(response);
       } else {
-        // Static file not found.
+        // No static file was found for the URL path.
         connection->SendResponse(status_codes::kNotFound);
       }
     } else {
+      // The requested URL was not found.
+      // Send back Not Found instead of Bad Request even for POST!
       connection->SendResponse(status_codes::kNotFound);
     }
-
-    return;
-  }
-
-  // Save the (regex matched) URL args to request object.
-  request->set_args(std::move(args));
-
-  // Ask the matched view to process the request.
-  ResponsePtr response = view->Handle(request);
-
-  // Send the response back.
-  if (response  != nullptr) {
-    connection->SendResponse(response);
-  } else {
-    connection->SendResponse(status_codes::kBadRequest);
   }
 }
 
@@ -355,12 +354,18 @@ ResponsePtr Server::ServeStatic(RequestPtr request) {
     return {};
   }
 
-  std::string url_path = Url::DecodeUnsafe(request->url().path());
-  sfs::path path = doc_root_ / TranslatePath(url_path);
+  const std::string utf8_url_path = Url::DecodeUnsafe(request->url().path());
+
+  sfs::path local_sub_path = TranslatePath(utf8_url_path);
+  if (local_sub_path.empty()) {
+    return {};
+  }
+
+  sfs::path path = doc_root_ / local_sub_path;
 
   try {
     if (!sfs::exists(path) || !sfs::is_regular_file(path)) {
-      LOG_WARN("The file doesn't exist: %s", url_path.c_str());
+      LOG_WARN("The file doesn't exist: %s", utf8_url_path.c_str());
       return {};
     }
 
@@ -387,9 +392,8 @@ sfs::path Server::TranslatePath(const std::string& utf8_url_path) {
 #ifdef _WIN32
   std::wstring url_path;
   if (!windows_only::Utf8ToWstr(utf8_url_path, &url_path)) {
-    return {};  // TODO
+    return {};
   }
-
   std::vector<std::wstring> words;
   boost::split(words, url_path, boost::is_any_of(L"/"),
                boost::token_compress_on);

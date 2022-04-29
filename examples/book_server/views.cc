@@ -88,7 +88,11 @@ webcc::ResponsePtr BookDetailView::Get(webcc::RequestPtr request) {
     return webcc::ResponseBuilder{}.NotFound()();
   }
 
-  return webcc::ResponseBuilder{}.OK().Body(BookToJsonString(book)).Json().Utf8()();
+  return webcc::ResponseBuilder{}
+      .OK()
+      .Body(BookToJsonString(book))
+      .Json()
+      .Utf8()();
 }
 
 webcc::ResponsePtr BookDetailView::Put(webcc::RequestPtr request) {
