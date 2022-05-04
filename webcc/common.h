@@ -126,7 +126,7 @@ public:
     return name_;
   }
 
-  const std::string& file_name() const {
+  const sfs::path& file_name() const {
     return file_name_;
   }
 
@@ -135,7 +135,7 @@ private:
 
 private:
   std::string name_;
-  std::string file_name_;
+  sfs::path file_name_;
   bool valid_ = false;
 };
 
@@ -176,12 +176,12 @@ public:
   }
 
   // API: SERVER
-  const std::string& file_name() const {
+  const sfs::path& file_name() const {
     return file_name_;
   }
 
   // API: SERVER/PARSER
-  void set_file_name(const std::string& file_name) {
+  void set_file_name(const sfs::path& file_name) {
     file_name_ = file_name;
   }
 
@@ -236,8 +236,7 @@ private:
   sfs::path path_;
 
   // The original local file name.
-  // E.g., "baby.jpg".
-  std::string file_name_;
+  sfs::path file_name_;
 
   // The content-type if the media type is known (e.g., inferred from the file
   // extension or operating system typing information) or as

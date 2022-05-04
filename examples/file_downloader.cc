@@ -1,4 +1,4 @@
-// file_downloader.cc
+// examples/file_downloader.cc
 // This example downloads a JPG file.
 
 // NOTE:

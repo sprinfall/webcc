@@ -24,12 +24,16 @@ std::string FormatHttpDate(const std::tm& gmt);
 // Return kInvalidSize on failure.
 std::size_t TellSize(const sfs::path& path);
 
-// Read entire file into string.
-bool ReadFile(const sfs::path& path, std::string* output);
+// Read the binary data of the file into an std::string.
+bool ReadFile(const sfs::path& path, std::string* bytes);
+
+// Write the binary data to the file.
+bool WriteFile(const sfs::path& path, const std::string& bytes);
 
 // Dump the string data line by line to achieve more readability.
 // Also limit the maximum size of the data to be dumped.
-void DumpByLine(const std::string& data, std::ostream& os, std::string_view prefix);
+void DumpByLine(const std::string& data, std::ostream& os,
+                std::string_view prefix);
 
 }  // namespace utility
 }  // namespace webcc

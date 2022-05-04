@@ -136,6 +136,24 @@ bool ContentDisposition::Init(std::string_view str) {
       name_ = Unquote(value);
     } else if (key == "filename") {
       file_name_ = Unquote(value);
+    } else if (key == "filename*") {
+      // NOTE: Only support UTF-8 encoding!
+      if (boost::istarts_with(value, "UTF-8''")) {
+        std::string utf8_file_name{ value.substr(7) };
+#ifdef _WIN32
+        std::wstring wstr_file_name;
+        if (!windows_only::Utf8ToWstr(utf8_file_name, &wstr_file_name)) {
+          LOG_ERRO("Invalid UTF-8 encoding of the file name");
+          return false;
+        }
+        file_name_ = wstr_file_name;
+#else
+        file_name_ = utf8_file_name;
+#endif  // _WIN32
+      } else {
+        LOG_ERRO("Invalid 'filename*'");
+        return false;
+      }
     }
   }
 
@@ -162,10 +180,7 @@ FormPartPtr FormPart::NewFile(std::string_view name, const sfs::path& path,
   form_part->name_ = name;
   form_part->path_ = path;
   form_part->media_type_ = media_type;
-
-  // Determine file name from file path.
-  // TODO: encoding
-  form_part->file_name_ = path.filename().string();
+  form_part->file_name_ = path.filename();
 
   // Determine media type from file extension.
   // TODO: Default to "application/text"?
@@ -260,7 +275,7 @@ void FormPart::Dump(std::ostream& os, std::string_view prefix) const {
   os << prefix << std::endl;
 
   if (!path_.empty()) {
-    os << prefix << "<file: " << path_.string() << ">" << std::endl;
+    os << prefix << "<file: " << path_.u8string() << ">" << std::endl;
   } else {
     utility::DumpByLine(data_, os, prefix);
   }
@@ -270,12 +285,37 @@ void FormPart::SetHeaders() {
   // Header: Content-Disposition
 
   std::string content_disposition = "form-data";
+
   if (!name_.empty()) {
     content_disposition.append("; name=\"" + name_ + "\"");
   }
+
   if (!file_name_.empty()) {
-    content_disposition.append("; filename=\"" + file_name_ + "\"");
+    std::string file_name_str;
+    bool is_utf8 = false;
+
+#ifdef _WIN32
+    std::wstring wstr = file_name_.wstring();
+    if (windows_only::IsAsciiStr(wstr)) {
+      windows_only::WstrToAnsi(wstr, &file_name_str);
+      is_utf8 = false;
+    } else {
+      windows_only::WstrToUtf8(wstr, &file_name_str);
+      is_utf8 = true;
+    }
+#else
+    // Always use UTF-8 on UNIX-like systems.
+    file_name_str = file_name_.u8string();
+    is_utf8 = true;
+#endif  // _WIN32 
+
+    if (is_utf8) {
+      content_disposition.append("; filename*=UTF-8''" + file_name_str);
+    } else {
+      content_disposition.append("; filename=\"" + file_name_str + "\"");
+    }
   }
+
   headers_.Set(headers::kContentDisposition, content_disposition);
 
   // Header: Content-Type

@@ -40,7 +40,7 @@ std::size_t TellSize(const sfs::path& path) {
   return static_cast<std::size_t>(stream.tellg());
 }
 
-bool ReadFile(const sfs::path& path, std::string* output) {
+bool ReadFile(const sfs::path& path, std::string* bytes) {
   // Flag "ate": seek to the end of stream immediately after open.
   std::ifstream stream{ path, std::ios::binary | std::ios::ate };
   if (stream.fail()) {
@@ -48,13 +48,23 @@ bool ReadFile(const sfs::path& path, std::string* output) {
   }
 
   auto size = stream.tellg();
-  output->resize(static_cast<std::size_t>(size), '\0');
+  bytes->resize(static_cast<std::size_t>(size), '\0');
   stream.seekg(std::ios::beg);
-  stream.read(&(*output)[0], size);
+  stream.read(bytes->data(), size);
   if (stream.fail()) {
     return false;
   }
   return true;
+}
+
+bool WriteFile(const sfs::path& path, const std::string& bytes) {
+  std::ofstream stream{ path, std::ios::binary };
+  if (stream.fail()) {
+    return false;
+  }
+
+  stream.write(bytes.data(), bytes.size());
+  return !stream.fail();
 }
 
 void DumpByLine(const std::string& data, std::ostream& os,

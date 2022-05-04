@@ -40,9 +40,21 @@ bool SplitKV(std::string_view input, char delim, bool trim_spaces,
 #ifdef _WIN32
 namespace windows_only {
 
+// Wrapper for Windows API MultiByteToWideChar.
+bool MB2WC(std::string_view input, unsigned int code_page,
+           std::wstring* output);
+
+// Wrapper for Windows API WideCharToMultiByte.
+bool WC2MB(std::wstring_view input, unsigned int code_page,
+           std::string* output);
+
 bool WstrToUtf8(std::wstring_view wstr, std::string* utf8);
 
+bool WstrToAnsi(std::wstring_view wstr, std::string* ansi);
+
 bool Utf8ToWstr(std::string_view utf8, std::wstring* wstr);
+
+bool IsAsciiStr(std::wstring_view wstr);
 
 }  // namespace windows_only
 #endif  // _WIN32

@@ -1,4 +1,5 @@
-// A server handling multipart form data.
+// examples/form_server.cc
+// A server receiving multipart form data.
 
 #include <fstream>
 #include <iostream>
@@ -30,8 +31,8 @@ private:
       if (part->file_name().empty()) {
         std::cout << "data: " << part->data() << std::endl;
       } else {
-        // Save part->data() as binary to file.
-        // ...
+        // Save part->data() to the current directory.
+        webcc::utility::WriteFile(part->file_name(), part->data());
       }
     }
 
@@ -56,7 +57,8 @@ int main(int argc, char* argv[]) {
   try {
     webcc::Server server{ boost::asio::ip::tcp::v4(), port };
 
-    server.set_buffer_size(webcc::kBufferSize * 10);
+    // Enlarge the buffer size
+    server.set_buffer_size(10240);
 
     server.Route("/upload", std::make_shared<FileUploadView>(), { "POST" });
 

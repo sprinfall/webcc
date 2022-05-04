@@ -112,8 +112,8 @@ bool SplitKV(std::string_view input, char delim, bool trim_spaces,
 namespace windows_only {
 
 // Wrapper for Windows API MultiByteToWideChar.
-static bool MB2WC(std::string_view input, unsigned int code_page,
-                  std::wstring* output) {
+bool MB2WC(std::string_view input, unsigned int code_page,
+           std::wstring* output) {
   const int input_size = static_cast<int>(input.size());
   if (input_size == 0) {
     return false;
@@ -139,8 +139,8 @@ static bool MB2WC(std::string_view input, unsigned int code_page,
 }
 
 // Wrapper for Windows API WideCharToMultiByte.
-static bool WC2MB(std::wstring_view input, unsigned int code_page,
-                  std::string* output) {
+bool WC2MB(std::wstring_view input, unsigned int code_page,
+           std::string* output) {
   const int input_size = static_cast<int>(input.size());
   if (input_size == 0) {
     return false;
@@ -150,7 +150,7 @@ static bool WC2MB(std::wstring_view input, unsigned int code_page,
   // 50220, 50211, and so on. But they are not included in our charset
   // dictionary. So, only consider CP_UTF8 (65001) and 54936 (GB18030).
   DWORD flags = 0;
-  if (code_page != CP_UTF8 && code_page != 54936) {
+  if (code_page == CP_UTF8 || code_page == 54936) {
     // WC_ERR_INVALID_CHARS:
     // Only applies when CodePage is specified as CP_UTF8 or 54936. It cannot be
     // used with other code page values. 
@@ -178,8 +178,21 @@ bool WstrToUtf8(std::wstring_view wstr, std::string* utf8) {
   return WC2MB(wstr, CP_UTF8, utf8);
 }
 
+bool WstrToAnsi(std::wstring_view wstr, std::string* ansi) {
+  return WC2MB(wstr, CP_ACP, ansi);
+}
+
 bool Utf8ToWstr(std::string_view utf8, std::wstring* wstr) {
   return MB2WC(utf8, CP_UTF8, wstr);
+}
+
+bool IsAsciiStr(std::wstring_view wstr) {
+  for (std::size_t i = 0; i < wstr.size(); ++i) {
+    if (wstr[i] > 127) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace windows_only

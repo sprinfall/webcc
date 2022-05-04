@@ -1,9 +1,12 @@
 # A demo HTTP file upload server modified from:
 #   http://flask.pocoo.org/docs/1.0/patterns/fileuploads/#uploading-files
-# Run:
-# (Windows)
-# $ set FLASK_APP=form_server_flask.py
-# $ flask 
+# This server is used to test examples/form_client.
+# Usage:
+# 1. Copy this file to some other place.
+# 2. Change UPLOAD_FOLDER to an existing local folder.
+# (Run on Windows)
+# 3. $ set FLASK_APP=form_server_flask.py
+# 4. $ flask run
 
 import os
 from flask import Flask, flash, request, redirect, url_for
@@ -11,7 +14,9 @@ from flask import send_from_directory
 from werkzeug.utils import secure_filename
 
 
+# NOTE: Please change this to an existing folder.
 UPLOAD_FOLDER = '/path/to/the/uploads'
+
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
