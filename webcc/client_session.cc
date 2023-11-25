@@ -367,6 +367,7 @@ ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream,
   client->set_buffer_size(buffer_size_);
   client->set_connect_timeout(connect_timeout_);
   client->set_read_timeout(read_timeout_);
+  client->set_subsequent_read_timeout(subsequent_read_timeout_);
 
   client->set_progress_callback(callback);
 

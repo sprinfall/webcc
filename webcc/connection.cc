@@ -6,12 +6,12 @@ namespace webcc {
 
 void Connection::AsyncWrite(
     const std::vector<boost::asio::const_buffer>& buffers,
-    RWHandler&& handler) {
+    AsyncRWHandler&& handler) {
   boost::asio::async_write(socket_, buffers, std::move(handler));
 }
 
 void Connection::AsyncReadSome(boost::asio::mutable_buffer buffer,
-                               RWHandler&& handler) {
+                               AsyncRWHandler&& handler) {
   socket_.async_read_some(buffer, std::move(handler));
 }
 

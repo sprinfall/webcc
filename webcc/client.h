@@ -19,10 +19,10 @@ protected:
   }
 
   void AsyncWrite(const std::vector<boost::asio::const_buffer>& buffers,
-                  RWHandler&& handler) override;
+                  AsyncRWHandler&& handler) override;
 
   void AsyncReadSome(boost::asio::mutable_buffer buffer,
-                     RWHandler&& handler) override;
+                     AsyncRWHandler&& handler) override;
 
 private:
   boost::asio::ip::tcp::socket socket_;

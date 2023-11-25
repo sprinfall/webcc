@@ -30,6 +30,9 @@ int main(int argc, char* argv[]) {
 
   webcc::ClientSession session;
 
+  // NOTE(20231121): Try the new added `subsequent read timeout`.
+  session.set_subsequent_read_timeout(5);
+
   auto on_progress = [](std::size_t length, std::size_t total_length) {
     if (total_length > 0) {  // Avoid dividing zero
       int percent = static_cast<int>(length * 100.0 / total_length);

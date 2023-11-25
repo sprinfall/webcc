@@ -184,7 +184,7 @@ void ConnectionBase::AsyncWriteBody() {
 }
 
 void ConnectionBase::OnWriteBody(boost::system::error_code ec,
-                                 std::size_t /*length*/) {
+                                 std::size_t length) {
 #if WEBCC_STUDY_SERVER_THREADING
   LOG_USER("[%u] OnWriteBody()", (unsigned int)this);
 #endif

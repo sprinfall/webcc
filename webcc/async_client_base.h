@@ -21,9 +21,6 @@ namespace webcc {
 using SocketType = boost::asio::basic_socket<boost::asio::ip::tcp,
                                              boost::asio::any_io_executor>;
 
-using ProgressCallback =
-    std::function<void(std::size_t current, std::size_t total)>;
-
 class AsyncClientBase : public std::enable_shared_from_this<AsyncClientBase> {
 public:
   AsyncClientBase(boost::asio::io_context& io_context,
@@ -49,6 +46,12 @@ public:
   void set_read_timeout(int timeout)  {
     if (timeout > 0) {
       read_timeout_ = timeout;
+    }
+  }
+
+  void set_subsequent_read_timeout(int timeout) {
+    if (timeout > 0) {
+      subsequent_read_timeout_ = timeout;
     }
   }
 
@@ -81,17 +84,14 @@ public:
   }
 
   // Reset response object.
-  // Used to make sure the response object will released even the client object
-  // itself will be cached for keep-alive purpose.
+  // Used to make sure the response object will be released even the client
+  // object itself will be cached for keep-alive purpose.
   void Reset() {
     response_.reset();
     response_parser_.Init(nullptr, false);
   }
 
 protected:
-  // Read/write handler
-  using RWHandler = std::function<void(boost::system::error_code, std::size_t)>;
-
   // Get underlying socket.
   virtual SocketType& GetSocket() = 0;
 
@@ -103,10 +103,10 @@ protected:
   virtual void RequestEnd() = 0;
 
   virtual void AsyncWrite(const std::vector<boost::asio::const_buffer>& buffers,
-                          RWHandler&& handler) = 0;
+                          AsyncRWHandler&& handler) = 0;
 
   virtual void AsyncReadSome(boost::asio::mutable_buffer buffer,
-                             RWHandler&& handler) = 0;
+                             AsyncRWHandler&& handler) = 0;
 
   // Send a request to the server.
   // Check `error()` for any error.
@@ -161,9 +161,13 @@ protected:
   int connect_timeout_ = 0;
 
   // Timeout (seconds) for reading response.
-  int read_timeout_ = kMaxReadSeconds;
+  int read_timeout_ = 30;
 
-  // Deadline timer for connecting to server.
+  // Timeout (seconds) for each subsequent read during reading a response.
+  // A reasonable value should be much less than `read_timeout_`.
+  int subsequent_read_timeout_ = 10;
+
+  // Deadline timer for connecting to server and reading respone.
   boost::asio::steady_timer deadline_timer_;
   bool deadline_timer_stopped_ = true;
 

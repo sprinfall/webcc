@@ -32,12 +32,12 @@ void SslConnection::Close() {
 
 void SslConnection::AsyncWrite(
     const std::vector<boost::asio::const_buffer>& buffers,
-    RWHandler&& handler) {
+    AsyncRWHandler&& handler) {
   boost::asio::async_write(ssl_stream_, buffers, std::move(handler));
 }
 
 void SslConnection::AsyncReadSome(boost::asio::mutable_buffer buffer,
-                                  RWHandler&& handler) {
+                                  AsyncRWHandler&& handler) {
   ssl_stream_.async_read_some(buffer, std::move(handler));
 }
 

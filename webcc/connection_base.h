@@ -61,14 +61,11 @@ public:
   void SendResponse(int status, bool no_keep_alive = false);
 
 protected:
-  // Read/write handler
-  using RWHandler = std::function<void(boost::system::error_code, std::size_t)>;
-
   virtual void AsyncWrite(const std::vector<boost::asio::const_buffer>& buffers,
-                          RWHandler&& handler) = 0;
+                          AsyncRWHandler&& handler) = 0;
 
   virtual void AsyncReadSome(boost::asio::mutable_buffer buffer,
-                             RWHandler&& handler) = 0;
+                             AsyncRWHandler&& handler) = 0;
 
   void PrepareRequest();
 

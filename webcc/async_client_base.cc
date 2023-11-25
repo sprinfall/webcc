@@ -257,13 +257,10 @@ void AsyncClientBase::OnRead(boost::system::error_code ec, std::size_t length) {
     return;
   }
 
-  // Inform progress callback if it's specified.
-  if (progress_callback_ != nullptr) {
-    if (response_parser_.header_ended()) {
-      // NOTE: Need to get rid of the header length.
-      progress_callback_(length_read_ - response_parser_.header_length(),
-                         response_parser_.content_length());
-    }
+  if (progress_callback_ != nullptr && response_parser_.header_ended()) {
+    // NOTE: Need to get rid of the header length.
+    progress_callback_(length_read_ - response_parser_.header_length(),
+                       response_parser_.content_length());
   }
 
   if (response_parser_.finished()) {
@@ -285,6 +282,7 @@ void AsyncClientBase::OnRead(boost::system::error_code ec, std::size_t length) {
   }
 
   // Continue to read the response.
+  AsyncWaitDeadlineTimer(subsequent_read_timeout_);
   AsyncRead();
 }
 
@@ -294,7 +292,7 @@ void AsyncClientBase::AsyncWaitDeadlineTimer(int seconds) {
     return;
   }
 
-  LOG_INFO("Async wait deadline timer");
+  LOG_INFO("Async wait deadline timer (%ds)", seconds);
 
   deadline_timer_stopped_ = false;
 
@@ -306,15 +304,24 @@ void AsyncClientBase::AsyncWaitDeadlineTimer(int seconds) {
 void AsyncClientBase::OnDeadlineTimer(boost::system::error_code ec) {
   LOG_INFO("On deadline timer");
 
-  deadline_timer_stopped_ = true;
+  // NOT HERE!
+  //   deadline_timer_stopped_ = true;
 
-  // deadline_timer_.cancel() was called.
   if (ec == boost::asio::error::operation_aborted) {
+    // deadline_timer_.cancel() was called.d
+    // But, a new async-wait on this timer might have already been triggered.
+    // So, don't set `deadline_timer_stopped_` to true right now, it's too late.
+    // The newly triggered async-wait needs it to be false.
     LOG_INFO("Deadline timer canceled");
     return;
   }
 
   LOG_WARN("Operation timeout");
+
+  // NOTE:
+  // Don't set this flag to true on `error::operation_aborted`.
+  // StopDeadlineTimer() sets it.
+  deadline_timer_stopped_ = true;
 
   // Cancel the async operations on the socket by closing it.
   // OnXxx() will be called with `error::operation_aborted`.
@@ -324,7 +331,10 @@ void AsyncClientBase::OnDeadlineTimer(boost::system::error_code ec) {
 }
 
 void AsyncClientBase::StopDeadlineTimer() {
+  // This flag is tricky.
+  // Don't set it to true when OnDeadlineTimer(error::operation_aborted).
   if (deadline_timer_stopped_) {
+    LOG_INFO("Deadline timer already stopped");
     return;
   }
 
@@ -333,9 +343,13 @@ void AsyncClientBase::StopDeadlineTimer() {
   try {
     // Cancel the async wait operation on this timer.
     deadline_timer_.cancel();
+
   } catch (const boost::system::system_error& e) {
     LOG_ERRO("Deadline timer cancel error: %s", e.what());
   }
+
+  // To check the time needed by canceling a deadline timer.
+  LOG_VERB("Cancel deadline timer end");
 
   deadline_timer_stopped_ = true;
 }

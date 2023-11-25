@@ -43,8 +43,7 @@ public:
   static void SetUpTestCase() {
     g_server.reset(new webcc::Server{ boost::asio::ip::tcp::v4(), kPort });
 
-    g_server->Route(webcc::R{ "/sleep/(\\d+)" },
-                    std::make_shared<HelloView>());
+    g_server->Route(webcc::R{ "/sleep/(\\d+)" }, std::make_shared<HelloView>());
 
     // Run the server in a separate thread.
     g_thread.reset(new std::thread{ []() { g_server->Run(); } });
