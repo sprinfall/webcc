@@ -67,7 +67,6 @@ void AsyncClientBase::AsyncSend(RequestPtr request, bool stream) {
   request_ = request;
   response_.reset(new Response{});
   response_parser_.Init(response_.get(), stream);
-  length_read_ = 0;
 
   if (buffer_.size() != buffer_size_) {
     LOG_INFO("Resize buffer: %u -> %u", buffer_.size(), buffer_size_);
@@ -178,6 +177,9 @@ void AsyncClientBase::OnWrite(boost::system::error_code ec,
 
   request_->body()->InitPayload();
 
+  current_length_ = 0;
+  total_length_ = request_->body()->GetSize();
+
   AsyncWriteBody();
 }
 
@@ -199,10 +201,16 @@ void AsyncClientBase::AsyncWriteBody() {
 }
 
 void AsyncClientBase::OnWriteBody(boost::system::error_code ec,
-                                  std::size_t legnth) {
+                                  std::size_t length) {
   if (ec) {
     HandleWriteError(ec);
     return;
+  }
+
+  current_length_ += length;
+
+  if (progress_callback_ != nullptr) {
+    progress_callback_(current_length_, total_length_, false);
   }
 
   // Continue to write the next payload of body.
@@ -246,7 +254,8 @@ void AsyncClientBase::OnRead(boost::system::error_code ec, std::size_t length) {
   }
 
   LOG_INFO("Read length: %u", length);
-  length_read_ += length;
+
+  current_length_ += length;
 
   // Parse the piece of data just read.
   if (!response_parser_.Parse(buffer_.data(), length)) {
@@ -258,9 +267,13 @@ void AsyncClientBase::OnRead(boost::system::error_code ec, std::size_t length) {
   }
 
   if (progress_callback_ != nullptr && response_parser_.header_ended()) {
-    // NOTE: Need to get rid of the header length.
-    progress_callback_(length_read_ - response_parser_.header_length(),
-                       response_parser_.content_length());
+    if (response_parser_.header_just_ended()) {
+      current_length_ -= response_parser_.header_length();
+      // NOTE: The total length will be kInvalidSize if the content is chunked.
+      total_length_ = response_parser_.content_length();
+    }
+
+    progress_callback_(current_length_, total_length_, true);
   }
 
   if (response_parser_.finished()) {

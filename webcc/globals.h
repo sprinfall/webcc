@@ -31,8 +31,9 @@ using Payload = std::vector<boost::asio::const_buffer>;
 using AsyncRWHandler =
     std::function<void(boost::system::error_code, std::size_t)>;
 
-// Parameters: (current, total)
-using ProgressCallback = std::function<void(std::size_t, std::size_t)>;
+// Parameters: current, total, mode(read/write)
+// NOTE: The (read) total length will be kInvalidSize if the content is chunked.
+using ProgressCallback = std::function<void(std::size_t, std::size_t, bool)>;
 
 // -----------------------------------------------------------------------------
 

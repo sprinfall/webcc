@@ -55,10 +55,9 @@ public:
     }
   }
 
-  // Set progress callback to be informed about the read progress.
+  // Set progress callback to be informed about the read/write progress.
   // NOTE: Don't use move semantics because in practice, there is no difference
   //       between copying and moving an object of a closure type.
-  // TODO: Support write progress
   void set_progress_callback(ProgressCallback callback) {
     progress_callback_ = callback;
   }
@@ -174,11 +173,13 @@ protected:
   // Socket connected or not.
   bool connected_ = false;
 
-  // The length already read.
-  std::size_t length_read_ = 0;
-
   // Progress callback (optional).
   ProgressCallback progress_callback_;
+
+  // The length already read/written.
+  std::size_t current_length_ = 0;
+
+  std::size_t total_length_ = 0;
 
   // Current error.
   Error error_;

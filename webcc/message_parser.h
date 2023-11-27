@@ -109,6 +109,15 @@ public:
     return header_ended_;
   }
 
+  // If the headers part just ended in the recent call to Parse().
+  // Equivalent to:
+  //   bool ended_before = header_ended();
+  //   Parse(...);
+  //   bool header_just_ended = header_ended() && !ended_before;
+  bool header_just_ended() const {
+    return header_just_ended_;
+  }
+
   // The length of the headers part.
   // Available after the headers have been parsed (see header_ended()).
   std::size_t header_length() const {
@@ -179,6 +188,7 @@ protected:
   bool start_line_parsed_ = false;
   bool content_length_parsed_ = false;
   bool header_ended_ = false;
+  bool header_just_ended_ = false;
   bool chunked_ = false;
   std::size_t chunk_size_ = kInvalidSize;
   bool finished_ = false;
