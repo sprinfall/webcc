@@ -28,7 +28,7 @@ public:
   // Override to firstly handshake before read the client request.
   void Start() override;
 
-  // Override to firstly shutdown SSL.
+  // Override to firstly shut down SSL.
   void Close() override;
 
 protected:

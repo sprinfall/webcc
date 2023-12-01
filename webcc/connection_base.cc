@@ -24,7 +24,7 @@ ConnectionBase::ConnectionBase(boost::asio::io_context& io_context,
 }
 
 void ConnectionBase::Close() {
-  LOG_INFO("Shutdown and close socket...");
+  LOG_INFO("Shut down and close socket...");
 
   // Initiate graceful connection closure.
   // Socket close VS. shutdown:

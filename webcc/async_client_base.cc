@@ -42,7 +42,7 @@ void AsyncClientBase::Close() {
   if (connected_) {
     connected_ = false;
 
-    LOG_INFO("Shutdown and close socket...");
+    LOG_INFO("Shut down and close socket...");
 
     GetSocket().shutdown(tcp::socket::shutdown_both, ec);
     if (ec) {
@@ -54,6 +54,7 @@ void AsyncClientBase::Close() {
     // TODO: resolver_.cancel() ?
   }
 
+  // TODO: Close socket even when it's not connected?
   GetSocket().close(ec);
   if (ec) {
     LOG_WARN("Socket close error (%s)", ec.message().c_str());
@@ -63,7 +64,8 @@ void AsyncClientBase::Close() {
 }
 
 void AsyncClientBase::AsyncSend(RequestPtr request, bool stream) {
-  error_.Clear();
+  RequestBegin();
+
   request_ = request;
   response_.reset(new Response{});
   response_parser_.Init(response_.get(), stream);
@@ -112,6 +114,7 @@ void AsyncClientBase::OnResolve(boost::system::error_code ec,
                                 tcp::resolver::results_type endpoints) {
   if (ec) {
     LOG_ERRO("Host resolve error (%s)", ec.message().c_str());
+    Close();  // TODO: Need to close socket even when host is not resolved?
     error_.Set(error_codes::kResolveError, "Host resolve error");
     RequestEnd();
     return;
@@ -147,6 +150,9 @@ void AsyncClientBase::OnConnect(boost::system::error_code ec,
       LOG_ERRO("Connect error (%s)", ec.message().c_str());
       // No need to close socket since no async operation is on it.
     }
+
+    // Should be unnecessary, see the comments above.
+    //   Close();
 
     error_.Set(error_codes::kConnectError, "Socket connect error");
     RequestEnd();

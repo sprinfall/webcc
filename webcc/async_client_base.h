@@ -3,6 +3,7 @@
 
 // Asynchronous HTTP client base class.
 
+#include <atomic>
 #include <memory>
 #include <string>
 #include <vector>
@@ -62,7 +63,7 @@ public:
     progress_callback_ = callback;
   }
 
-  // Close the connection (shutdown and close socket).
+  // Close the connection (shut down and close socket).
   // The async operation on the socket will be canceled.
   virtual void Close();
 
@@ -94,18 +95,24 @@ protected:
   // Get underlying socket.
   virtual SocketType& GetSocket() = 0;
 
-  virtual void OnConnected() {
-    AsyncWrite();
-  }
-
-  // The current request has ended.
-  virtual void RequestEnd() = 0;
-
   virtual void AsyncWrite(const std::vector<boost::asio::const_buffer>& buffers,
                           AsyncRWHandler&& handler) = 0;
 
   virtual void AsyncReadSome(boost::asio::mutable_buffer buffer,
                              AsyncRWHandler&& handler) = 0;
+
+  // Request begin.
+  // Initialize the states here (e.g., reset error and flags).
+  virtual void RequestBegin() {
+    error_.Clear();
+  }
+
+  // The current request has ended.
+  virtual void RequestEnd() = 0;
+
+  virtual void OnConnected() {
+    AsyncWrite();
+  }
 
   // Send a request to the server.
   // Check `error()` for any error.
@@ -171,7 +178,7 @@ protected:
   bool deadline_timer_stopped_ = true;
 
   // Socket connected or not.
-  bool connected_ = false;
+  std::atomic_bool connected_ = false;
 
   // Progress callback (optional).
   ProgressCallback progress_callback_;

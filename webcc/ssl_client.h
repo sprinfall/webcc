@@ -32,13 +32,18 @@ protected:
     return ssl_stream_.lowest_layer();
   }
 
-  void OnConnected() override;
-
   void AsyncWrite(const std::vector<boost::asio::const_buffer>& buffers,
                   AsyncRWHandler&& handler) override;
 
   void AsyncReadSome(boost::asio::mutable_buffer buffer,
                      AsyncRWHandler&& handler) override;
+
+  void RequestBegin() override {
+    BlockingClientBase::RequestBegin();
+    hand_shaken_ = false;
+  }
+
+  void OnConnected() override;
 
 private:
   void OnHandshake(boost::system::error_code ec);
@@ -46,6 +51,9 @@ private:
   boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_stream_;
 
   SslVerify ssl_verify_;
+
+  // If SSL handshake finished or not.
+  std::atomic_bool hand_shaken_ = false;
 };
 
 }  // namespace webcc

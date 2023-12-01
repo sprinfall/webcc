@@ -7,8 +7,6 @@ namespace webcc {
 Error BlockingClientBase::Send(RequestPtr request, bool stream) {
   LOG_INFO("Blocking request begin");
 
-  request_finished_ = false;
-
   AsyncClientBase::AsyncSend(request, stream);
 
   // Wait for the request to be ended (see RequestEnd()).

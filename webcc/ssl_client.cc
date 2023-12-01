@@ -12,15 +12,24 @@ namespace ssl = boost::asio::ssl;
 namespace webcc {
 
 void SslClient::Close() {
-  boost::system::error_code ec;
-  GetSocket().cancel(ec);
+  if (connected_) {
+    boost::system::error_code ec;
 
-  // Shutdown SSL
-  ssl_stream_.shutdown(ec);
-  if (ec) {
-    // See: https://stackoverflow.com/a/25703699
-    LOG_WARN("SSL shutdown error (%s)", ec.message().c_str());
-    ec.clear();
+    // Cancel any pending async operations on the socket.
+    GetSocket().cancel(ec);
+    if (ec) {
+      LOG_WARN("Socket cancel error (%s)", ec.message().c_str());
+      ec.clear();
+    }
+
+    // Shut down SSL if handshake has completed.
+    if (hand_shaken_) {
+      ssl_stream_.shutdown(ec);
+      if (ec) {
+        // See: https://stackoverflow.com/a/25703699
+        LOG_WARN("SSL shutdown error (%s)", ec.message().c_str());
+      }
+    }
   }
 
   BlockingClientBase::Close();
@@ -68,12 +77,14 @@ void SslClient::OnConnected() {
 void SslClient::OnHandshake(boost::system::error_code ec) {
   if (ec) {
     LOG_ERRO("Handshake error (%s)", ec.message().c_str());
+    Close();
     error_.Set(error_codes::kHandshakeError, "Handshake error");
     RequestEnd();
     return;
   }
 
   LOG_INFO("Handshake OK");
+  hand_shaken_ = true;
 
   BlockingClientBase::AsyncWrite();
 }

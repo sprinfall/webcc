@@ -22,6 +22,11 @@ public:
   Error Send(RequestPtr request, bool stream = false);
 
 protected:
+  void RequestBegin() override {
+    AsyncClientBase::RequestBegin();
+    request_finished_ = false;
+  }
+
   void RequestEnd() override;
 
   bool request_finished_ = true;
