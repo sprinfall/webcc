@@ -13,7 +13,6 @@ int main() {
   // They'll be applied to all the requests on this session.
   session.set_connect_timeout(5);
   session.set_read_timeout(5);
-  session.KeepAlive(false);
   session.Accept("application/json");
 
   webcc::ResponsePtr r;

@@ -365,8 +365,8 @@ void ClientSession::InitHeaders() {
   // Please overwrite with AcceptGzip().
   headers_.Set(headers::kAcceptEncoding, "identity");
 
-  // Keep-alive by default.
-  KeepAlive(true);
+  // No keep-alive by default.
+  KeepAlive(false);
 }
 
 ClientPtr ClientSession::CreateClient(const std::string& url_scheme) {
