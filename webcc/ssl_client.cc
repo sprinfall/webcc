@@ -12,27 +12,44 @@ namespace ssl = boost::asio::ssl;
 namespace webcc {
 
 void SslClient::Close() {
-  if (connected_) {
-    boost::system::error_code ec;
-
-    // Cancel any pending async operations on the socket.
-    GetSocket().cancel(ec);
-    if (ec) {
-      LOG_WARN("Socket cancel error (%s)", ec.message().c_str());
-      ec.clear();
-    }
-
-    // Shut down SSL if handshake has completed.
-    if (hand_shaken_) {
-      ssl_stream_.shutdown(ec);
-      if (ec) {
-        // See: https://stackoverflow.com/a/25703699
-        LOG_WARN("SSL shutdown error (%s)", ec.message().c_str());
-      }
-    }
+  if (!connected_) {
+    BlockingClientBase::Close();
+    return;
   }
 
-  BlockingClientBase::Close();
+  boost::system::error_code ec;
+
+  // Cancel the pending asynchronous operations on the socket.
+  GetSocket().cancel(ec);
+  if (ec) {
+    LOG_WARN("Socket cancel error (%s)", ec.message().c_str());
+    ec.clear();
+  }
+
+  if (!hand_shaken_) {
+    BlockingClientBase::Close();
+    return;
+  }
+
+  LOG_INFO("Shut down SSL...");
+
+  // SSL shudown is necessary only if handshake has completed.
+
+  // Synchronous shutdown:
+  //   ssl_stream_.shutdown(ec);
+  //   if (ec) {
+  //     LOG_WARN("SSL shutdown error (%s)", ec.message().c_str());
+  //   }
+
+  // Timeout control for SSL shutdown.
+  LOG_INFO("Start ssl shutdown deadline timer (%ds)", ssl_shutdown_timeout_);
+  deadline_timer_stopped_ = false;
+  deadline_timer_.expires_after(std::chrono::seconds(ssl_shutdown_timeout_));
+  deadline_timer_.async_wait(
+      std::bind(&SslClient::OnSslShutdownTimer, shared_from_this(), _1));
+
+  ssl_stream_.async_shutdown(
+      std::bind(&SslClient::OnSslShutdown, shared_from_this(), _1));
 }
 
 void SslClient::AsyncWrite(
@@ -87,6 +104,40 @@ void SslClient::OnHandshake(boost::system::error_code ec) {
   hand_shaken_ = true;
 
   BlockingClientBase::AsyncWrite();
+}
+
+void SslClient::OnSslShutdownTimer(boost::system::error_code ec) {
+  if (ec == boost::asio::error::operation_aborted) {
+    LOG_INFO("SSL shutdown deadline timer canceled");
+    return;
+  }
+
+  LOG_INFO("Cancel the asynchonous SSL shutdown");
+
+  GetSocket().cancel(ec);
+  if (ec) {
+    LOG_WARN("Socket cancel error (%s)", ec.message().c_str());
+    ec.clear();
+  }
+}
+
+void SslClient::OnSslShutdown(boost::system::error_code ec) {
+  StopDeadlineTimer();
+
+  // See: https://stackoverflow.com/a/25703699
+  if (ec == boost::asio::error::eof) {
+    ec = {};  // Not an error
+  }
+  if (ec) {
+    // Failed or canceled by the deadline timer.
+    LOG_WARN("SSL shutdown error (%s)", ec.message().c_str());
+  } else {
+    LOG_INFO("SSL shutdown complete");
+  }
+
+  // Continue to shut down and close the socket.
+  // TODO: Better to call it from OnSslShutdownTimer() in some case.
+  BlockingClientBase::Close();
 }
 
 }  // namespace webcc

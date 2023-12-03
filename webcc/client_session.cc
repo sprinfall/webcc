@@ -338,7 +338,10 @@ BlockingClientPtr ClientSession::CreateClient(const std::string& url_scheme) {
 
   if (boost::iequals(url_scheme, "https")) {
     auto pair = SSL_CONTEXT_MANAGER->Get(ssl_context_key_);
-    return std::make_shared<SslClient>(io_context_, *pair.first, pair.second);
+    auto ssl_client =
+        std::make_shared<SslClient>(io_context_, *pair.first, pair.second);
+    ssl_client->set_ssl_shutdown_timeout(ssl_shutdown_timeout_);
+    return ssl_client;
   }
 
   return {};

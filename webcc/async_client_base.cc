@@ -61,6 +61,9 @@ void AsyncClientBase::Close() {
   }
 
   LOG_INFO("Socket closed");
+
+  // End the request if it's ended yet.
+  RequestEnd();
 }
 
 void AsyncClientBase::AsyncSend(RequestPtr request, bool stream) {
@@ -114,9 +117,8 @@ void AsyncClientBase::OnResolve(boost::system::error_code ec,
                                 tcp::resolver::results_type endpoints) {
   if (ec) {
     LOG_ERRO("Host resolve error (%s)", ec.message().c_str());
-    Close();  // TODO: Need to close socket even when host is not resolved?
     error_.Set(error_codes::kResolveError, "Host resolve error");
-    RequestEnd();
+    Close();
     return;
   }
 
@@ -148,14 +150,10 @@ void AsyncClientBase::OnConnect(boost::system::error_code ec,
       LOG_WARN("Connect operation aborted");
     } else {
       LOG_ERRO("Connect error (%s)", ec.message().c_str());
-      // No need to close socket since no async operation is on it.
     }
 
-    // Should be unnecessary, see the comments above.
-    //   Close();
-
     error_.Set(error_codes::kConnectError, "Socket connect error");
-    RequestEnd();
+    Close();
     return;
   }
 
@@ -229,11 +227,10 @@ void AsyncClientBase::HandleWriteError(boost::system::error_code ec) {
     LOG_WARN("Socket write aborted");
   } else {
     LOG_ERRO("Socket write error (%s)", ec.message().c_str());
-    Close();
   }
 
   error_.Set(error_codes::kSocketWriteError, "Socket write error");
-  RequestEnd();
+  Close();
 }
 
 void AsyncClientBase::AsyncRead() {
@@ -251,11 +248,10 @@ void AsyncClientBase::OnRead(boost::system::error_code ec, std::size_t length) {
       LOG_WARN("Socket read aborted");
     } else {
       LOG_ERRO("Socket read error (%s)", ec.message().c_str());
-      Close();
     }
 
     error_.Set(error_codes::kSocketReadError, "Socket read error");
-    RequestEnd();
+    Close();
     return;
   }
 
@@ -266,9 +262,8 @@ void AsyncClientBase::OnRead(boost::system::error_code ec, std::size_t length) {
   // Parse the piece of data just read.
   if (!response_parser_.Parse(buffer_.data(), length)) {
     LOG_ERRO("Response parse error");
-    Close();
     error_.Set(error_codes::kParseError, "Response parse error");
-    RequestEnd();
+    Close();
     return;
   }
 
@@ -289,14 +284,14 @@ void AsyncClientBase::OnRead(boost::system::error_code ec, std::size_t length) {
     if (response_->IsConnectionKeepAlive()) {
       LOG_INFO("Keep the socket connection alive");
     } else {
-      Close();
+      //Close();
     }
 
     // Stop trying to read once all content has been received, because some
     // servers will block extra call to read_some().
 
     LOG_INFO("Finished to read the response");
-    RequestEnd();
+    Close();
     return;
   }
 
@@ -327,7 +322,7 @@ void AsyncClientBase::OnDeadlineTimer(boost::system::error_code ec) {
   //   deadline_timer_stopped_ = true;
 
   if (ec == boost::asio::error::operation_aborted) {
-    // deadline_timer_.cancel() was called.d
+    // deadline_timer_.cancel() was called.
     // But, a new async-wait on this timer might have already been triggered.
     // So, don't set `deadline_timer_stopped_` to true right now, it's too late.
     // The newly triggered async-wait needs it to be false.

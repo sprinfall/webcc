@@ -73,6 +73,12 @@ public:
     }
   }
 
+  void set_ssl_shutdown_timeout(int timeout) {
+    if (timeout > 0) {
+      ssl_shutdown_timeout_ = timeout;
+    }
+  }
+
   void set_buffer_size(std::size_t buffer_size) {
     buffer_size_ = buffer_size;
   }
@@ -198,6 +204,9 @@ private:
 
   // Timeout (seconds) for each subsequent read during reading a response.
   int subsequent_read_timeout_ = 0;
+
+  // Timeout (seconds) for shutdown SSL.
+  int ssl_shutdown_timeout_ = 0;
 
   // The size of the buffer for reading response.
   // 0 means default value will be used.
