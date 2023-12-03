@@ -33,8 +33,6 @@ public:
       return;
     }
 
-    session_.Start();
-
     std::cout << "Heartbeat started" << std::endl;
 
     thread_.reset(new std::thread{ &Heartbeat::Routine, this });

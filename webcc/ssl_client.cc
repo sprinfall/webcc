@@ -1,7 +1,7 @@
 #include "webcc/ssl_client.h"
 
-#include "boost/asio/write.hpp"
 #include "boost/asio/ssl.hpp"
+#include "boost/asio/write.hpp"
 
 #include "webcc/logger.h"
 
@@ -11,10 +11,9 @@ namespace ssl = boost::asio::ssl;
 
 namespace webcc {
 
-void SslClient::Close() {
+bool SslClient::Close() {
   if (!connected_) {
-    BlockingClientBase::Close();
-    return;
+    return ClientBase::Close();
   }
 
   boost::system::error_code ec;
@@ -27,19 +26,12 @@ void SslClient::Close() {
   }
 
   if (!hand_shaken_) {
-    BlockingClientBase::Close();
-    return;
+    return ClientBase::Close();
   }
 
   LOG_INFO("Shut down SSL...");
 
   // SSL shudown is necessary only if handshake has completed.
-
-  // Synchronous shutdown:
-  //   ssl_stream_.shutdown(ec);
-  //   if (ec) {
-  //     LOG_WARN("SSL shutdown error (%s)", ec.message().c_str());
-  //   }
 
   // Timeout control for SSL shutdown.
   LOG_INFO("Start ssl shutdown deadline timer (%ds)", ssl_shutdown_timeout_);
@@ -50,6 +42,8 @@ void SslClient::Close() {
 
   ssl_stream_.async_shutdown(
       std::bind(&SslClient::OnSslShutdown, shared_from_this(), _1));
+
+  return true;
 }
 
 void SslClient::AsyncWrite(
@@ -96,14 +90,13 @@ void SslClient::OnHandshake(boost::system::error_code ec) {
     LOG_ERRO("Handshake error (%s)", ec.message().c_str());
     Close();
     error_.Set(error_codes::kHandshakeError, "Handshake error");
-    RequestEnd();
     return;
   }
 
   LOG_INFO("Handshake OK");
   hand_shaken_ = true;
 
-  BlockingClientBase::AsyncWrite();
+  ClientBase::AsyncWrite();
 }
 
 void SslClient::OnSslShutdownTimer(boost::system::error_code ec) {
@@ -128,6 +121,7 @@ void SslClient::OnSslShutdown(boost::system::error_code ec) {
   if (ec == boost::asio::error::eof) {
     ec = {};  // Not an error
   }
+
   if (ec) {
     // Failed or canceled by the deadline timer.
     LOG_WARN("SSL shutdown error (%s)", ec.message().c_str());
@@ -136,8 +130,7 @@ void SslClient::OnSslShutdown(boost::system::error_code ec) {
   }
 
   // Continue to shut down and close the socket.
-  // TODO: Better to call it from OnSslShutdownTimer() in some case.
-  BlockingClientBase::Close();
+  ClientBase::Close();
 }
 
 }  // namespace webcc

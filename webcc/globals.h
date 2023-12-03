@@ -146,6 +146,14 @@ enum class ContentEncoding {
 
 // -----------------------------------------------------------------------------
 
+// SSL verification mode.
+enum class SslVerify {
+  kDefault,
+  kHostName,  // use ssl::host_name_verification
+};
+
+// -----------------------------------------------------------------------------
+
 namespace error_codes {
 
 constexpr int kUnknownError = -1;

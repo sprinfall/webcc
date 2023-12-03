@@ -1,7 +1,7 @@
-#ifndef WEBCC_ASYNC_CLIENT_BASE_H_
-#define WEBCC_ASYNC_CLIENT_BASE_H_
+#ifndef WEBCC_CLIENT_BASE_H_
+#define WEBCC_CLIENT_BASE_H_
 
-// Asynchronous HTTP client base class.
+// HTTP client base class.
 
 #include <atomic>
 #include <memory>
@@ -22,15 +22,15 @@ namespace webcc {
 using SocketType = boost::asio::basic_socket<boost::asio::ip::tcp,
                                              boost::asio::any_io_executor>;
 
-class AsyncClientBase : public std::enable_shared_from_this<AsyncClientBase> {
+class ClientBase : public std::enable_shared_from_this<ClientBase> {
 public:
-  AsyncClientBase(boost::asio::io_context& io_context,
-                  std::string_view default_port);
+  ClientBase(boost::asio::io_context& io_context,
+             std::string_view default_port);
 
-  AsyncClientBase(const AsyncClientBase&) = delete;
-  AsyncClientBase& operator=(const AsyncClientBase&) = delete;
+  ClientBase(const ClientBase&) = delete;
+  ClientBase& operator=(const ClientBase&) = delete;
 
-  virtual ~AsyncClientBase() = default;
+  virtual ~ClientBase() = default;
 
   void set_buffer_size(std::size_t buffer_size) {
     if (buffer_size > 0) {
@@ -44,7 +44,7 @@ public:
     }
   }
 
-  void set_read_timeout(int timeout)  {
+  void set_read_timeout(int timeout) {
     if (timeout > 0) {
       read_timeout_ = timeout;
     }
@@ -65,7 +65,7 @@ public:
 
   // Close the connection (shut down and close socket).
   // The async operation on the socket will be canceled.
-  virtual void Close();
+  virtual bool Close();
 
   bool connected() const {
     return connected_;
@@ -74,6 +74,9 @@ public:
   RequestPtr request() const {
     return request_;
   }
+
+  // Send a request to the server.
+  void Send(RequestPtr request, bool stream = false);
 
   ResponsePtr response() const {
     return response_;
@@ -108,15 +111,11 @@ protected:
   }
 
   // The current request has ended.
-  virtual void RequestEnd() = 0;
+  //virtual void RequestEnd() = 0;
 
   virtual void OnConnected() {
     AsyncWrite();
   }
-
-  // Send a request to the server.
-  // Check `error()` for any error.
-  void AsyncSend(RequestPtr request, bool stream = false);
 
   void AsyncResolve();
 
@@ -192,6 +191,8 @@ protected:
   Error error_;
 };
 
+using ClientPtr = std::shared_ptr<ClientBase>;
+
 }  // namespace webcc
 
-#endif  // WEBCC_ASYNC_CLIENT_BASE_H_
+#endif  // WEBCC_CLIENT_BASE_H_

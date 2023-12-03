@@ -1,11 +1,12 @@
 #ifndef WEBCC_CLIENT_POOL_H_
 #define WEBCC_CLIENT_POOL_H_
 
+#include <cassert>
 #include <map>
 #include <mutex>
 #include <string>
 
-#include "webcc/client.h"
+#include "webcc/client_base.h"
 
 namespace webcc {
 
@@ -20,20 +21,23 @@ public:
   ClientPool& operator=(const ClientPool&) = delete;
 
   ~ClientPool() {
-    Clear();
+    // NOTE: Clear() should be called manually!
+    assert(IsEmpty());
   }
 
-  BlockingClientPtr Get(const Key& key) const;
+  ClientPtr Get(const Key& key) const;
 
-  void Add(const Key& key, BlockingClientPtr client);
+  bool IsEmpty() const;
+
+  void Add(const Key& key, ClientPtr client);
 
   void Remove(const Key& key);
 
-  // Shutdown and close all connections.
-  void Clear();
+  // Shut down and close all connections.
+  void Clear(bool* new_async_op);
 
 private:
-  std::map<Key, BlockingClientPtr> clients_;
+  std::map<Key, ClientPtr> clients_;
 
   mutable std::mutex mutex_;
 };

@@ -15,7 +15,9 @@
 #include "boost/container/flat_map.hpp"
 
 #include "webcc/base64.h"
+#include "webcc/client.h"
 #include "webcc/logger.h"
+#include "webcc/ssl_client.h"
 #include "webcc/url.h"
 #include "webcc/utility.h"
  
@@ -226,60 +228,35 @@ void ClientSession::AddSslContext(const std::string& key,
 
 // -----------------------------------------------------------------------------
 
-void ClientSession::Start() {
-  std::lock_guard<std::mutex> lock{ mutex_ };
-
-  if (started_) {
-    return;
-  }
-
-  LOG_INFO("Start loop...");
-
-  started_ = true;
-
-  work_guard_.reset(new WorkGuard{ io_context_.get_executor() });
-
-  io_context_.restart();
-
-  // Run the io context off in its own thread so that it operates completely
-  // asynchronously with respect to the rest of the program.
-
-  io_thread_.reset(new std::thread{ [this]() { io_context_.run(); }});
-
-  LOG_INFO("Loop is now running");
-}
-
 void ClientSession::Stop() {
-  std::lock_guard<std::mutex> lock{ mutex_ };
+  LOG_INFO("Stop client session...");
 
-  if (!started_) {
-    return;
-  }
+  mutex_.lock();
+  auto client = current_client_;
+  mutex_.unlock();
 
-  LOG_INFO("Stop loop...");
-
-  if (current_client_ != nullptr) {
-    auto key = ClientKeyFromUrl(current_client_->request()->url());
-    client_pool_.Remove(key);
+  if (client != nullptr) {
+    // Remove from pool (it might not be in the pool).
+    client_pool_.Remove(ClientKeyFromUrl(client->request()->url()));
 
     // This will cause `client->Send()` to return with an error.
-    current_client_->Close();
+    client->Close();
 
-    LOG_INFO("Ongoing request canceled");
+    LOG_INFO("Request canceled");
   }
 
-  client_pool_.Clear();
+  if (!client_pool_.IsEmpty()) {
+    bool new_async_op = false;
+    client_pool_.Clear(&new_async_op);
 
-  // Reset the work guard to let the loop stop.
-  // Calling `io_context_.stop()` instead is wrong!
-  work_guard_.reset();
+    if (new_async_op) {
+      // Run io context for the new asynchronous operations during the close.
+      io_context_.restart();
+      io_context_.run();
+    }
+  }
 
-  // Wait for the thread to run the loop to finish.
-  io_thread_->join();
-
-  LOG_INFO("Loop stopped");
-
-  started_ = false;
+  LOG_INFO("Client session stopped");
 }
 
 bool ClientSession::Cancel() {
@@ -287,7 +264,7 @@ bool ClientSession::Cancel() {
 
   if (current_client_ != nullptr) {
     current_client_->Close();
-    LOG_INFO("Ongoing request canceled");
+    LOG_INFO("Request canceled");
     return true;
   }
 
@@ -297,10 +274,6 @@ bool ClientSession::Cancel() {
 ResponsePtr ClientSession::Send(RequestPtr request, bool stream,
                                 ProgressCallback callback) {
   assert(request != nullptr);
-
-  if (!started_) {
-    throw Error{ error_codes::kStateError, "Loop is not running" };
-  }
 
   for (auto& h : headers_.data()) {
     if (!request->HeaderExist(h.first)) {
@@ -315,47 +288,13 @@ ResponsePtr ClientSession::Send(RequestPtr request, bool stream,
 
   request->Prepare();
 
-  return DoSend(request, stream, callback);
-}
-
-void ClientSession::InitHeaders() {
-  headers_.Set(headers::kUserAgent, utility::UserAgent());
-
-  headers_.Set(headers::kAccept, "*/*");
-
-  // Accept-Encoding is always default to "identity", even if GZIP is enabled.
-  // Please overwrite with AcceptGzip().
-  headers_.Set(headers::kAcceptEncoding, "identity");
-
-  // Keep-alive by default.
-  KeepAlive(true);
-}
-
-BlockingClientPtr ClientSession::CreateClient(const std::string& url_scheme) {
-  if (boost::iequals(url_scheme, "http")) {
-    return std::make_shared<Client>(io_context_);
-  }
-
-  if (boost::iequals(url_scheme, "https")) {
-    auto pair = SSL_CONTEXT_MANAGER->Get(ssl_context_key_);
-    auto ssl_client =
-        std::make_shared<SslClient>(io_context_, *pair.first, pair.second);
-    ssl_client->set_ssl_shutdown_timeout(ssl_shutdown_timeout_);
-    return ssl_client;
-  }
-
-  return {};
-}
-
-ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream,
-                                  ProgressCallback callback) {
   const std::string key = ClientKeyFromUrl(request->url());
 
   // Reuse a pooled connection.
   bool reuse = false;
 
-  BlockingClientPtr client = client_pool_.Get(key);
-  
+  ClientPtr client = client_pool_.Get(key);
+
   if (client == nullptr) {
     client = CreateClient(request->url().scheme());
     if (client == nullptr) {
@@ -371,7 +310,6 @@ ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream,
   client->set_connect_timeout(connect_timeout_);
   client->set_read_timeout(read_timeout_);
   client->set_subsequent_read_timeout(subsequent_read_timeout_);
-
   client->set_progress_callback(callback);
 
   // Save current client for cancel.
@@ -379,11 +317,16 @@ ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream,
   current_client_ = client;
   mutex_.unlock();
 
-  Error error = client->Send(request, stream);
+  client->Send(request, stream);
+
+  io_context_.restart();
+  io_context_.run();
 
   mutex_.lock();
   current_client_.reset();
   mutex_.unlock();
+
+  Error error = client->error();
 
   if (error) {
     if (reuse) {
@@ -411,6 +354,35 @@ ResponsePtr ClientSession::DoSend(RequestPtr request, bool stream,
   client->Reset();
 
   return response;
+}
+
+void ClientSession::InitHeaders() {
+  headers_.Set(headers::kUserAgent, utility::UserAgent());
+
+  headers_.Set(headers::kAccept, "*/*");
+
+  // Accept-Encoding is always default to "identity", even if GZIP is enabled.
+  // Please overwrite with AcceptGzip().
+  headers_.Set(headers::kAcceptEncoding, "identity");
+
+  // Keep-alive by default.
+  KeepAlive(true);
+}
+
+ClientPtr ClientSession::CreateClient(const std::string& url_scheme) {
+  if (boost::iequals(url_scheme, "http")) {
+    return std::make_shared<Client>(io_context_);
+  }
+
+  if (boost::iequals(url_scheme, "https")) {
+    auto pair = SSL_CONTEXT_MANAGER->Get(ssl_context_key_);
+    auto ssl_client =
+        std::make_shared<SslClient>(io_context_, *pair.first, pair.second);
+    ssl_client->set_ssl_shutdown_timeout(ssl_shutdown_timeout_);
+    return ssl_client;
+  }
+
+  return {};
 }
 
 }  // namespace webcc

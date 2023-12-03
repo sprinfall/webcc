@@ -6,7 +6,7 @@
 
 namespace webcc {
 
-void Client::Close() {
+bool Client::Close() {
   if (connected_) {
     boost::system::error_code ec;
 
@@ -18,7 +18,7 @@ void Client::Close() {
     }
   }
 
-  BlockingClientBase::Close();
+  return ClientBase::Close();
 }
 
 void Client::AsyncWrite(const std::vector<boost::asio::const_buffer>& buffers,

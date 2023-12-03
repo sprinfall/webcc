@@ -4,21 +4,15 @@
 #include "boost/asio/ssl/context.hpp"
 #include "boost/asio/ssl/stream.hpp"
 
-#include "webcc/blocking_client_base.h"
+#include "webcc/client_base.h"
 
 namespace webcc {
 
-// SSL verification mode.
-enum class SslVerify {
-  kDefault,
-  kHostName,  // use ssl::host_name_verification
-};
-
-class SslClient final : public BlockingClientBase {
+class SslClient final : public ClientBase {
 public:
   SslClient(boost::asio::io_context& io_context,
             boost::asio::ssl::context& ssl_context, SslVerify ssl_verify)
-      : BlockingClientBase(io_context, "443"),
+      : ClientBase(io_context, "443"),
         ssl_stream_(io_context, ssl_context),
         ssl_verify_(ssl_verify) {
   }
@@ -26,10 +20,10 @@ public:
   ~SslClient() override = default;
 
   std::shared_ptr<SslClient> shared_from_this() {
-    return std::dynamic_pointer_cast<SslClient>(BlockingClientBase::shared_from_this());
+    return std::dynamic_pointer_cast<SslClient>(ClientBase::shared_from_this());
   }
 
-  void Close() override;
+  bool Close() override;
 
   void set_ssl_shutdown_timeout(int timeout) {
     if (timeout > 0) {
@@ -49,7 +43,7 @@ protected:
                      AsyncRWHandler&& handler) override;
 
   void RequestBegin() override {
-    BlockingClientBase::RequestBegin();
+    ClientBase::RequestBegin();
     hand_shaken_ = false;
   }
 

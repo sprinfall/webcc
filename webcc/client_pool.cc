@@ -4,7 +4,7 @@
 
 namespace webcc {
 
-BlockingClientPtr ClientPool::Get(const Key& key) const {
+ClientPtr ClientPool::Get(const Key& key) const {
   std::lock_guard<std::mutex> lock{ mutex_ };
 
   auto iter = clients_.find(key);
@@ -15,7 +15,13 @@ BlockingClientPtr ClientPool::Get(const Key& key) const {
   }
 }
 
-void ClientPool::Add(const Key& key, BlockingClientPtr client) {
+bool ClientPool::IsEmpty() const {
+  std::lock_guard<std::mutex> lock{ mutex_ };
+
+  return clients_.empty();
+}
+
+void ClientPool::Add(const Key& key, ClientPtr client) {
   std::lock_guard<std::mutex> lock{ mutex_ };
 
   clients_[key] = client;
@@ -30,17 +36,23 @@ void ClientPool::Remove(const Key& key) {
   }
 }
 
-void ClientPool::Clear() {
+void ClientPool::Clear(bool* new_async_op) {
   std::lock_guard<std::mutex> lock{ mutex_ };
 
-  if (!clients_.empty()) {
-    LOG_INFO("Close socket for all (%u) connections in the pool",
-             clients_.size());
-    for (auto& pair : clients_) {
-      pair.second->Close();
-    }
-    clients_.clear();
+  if (clients_.empty()) {
+    return;
   }
+
+  LOG_INFO("Close socket for all (%u) connections in the pool",
+           clients_.size());
+
+  for (auto& pair : clients_) {
+    if (pair.second->Close()) {
+      *new_async_op = true;
+    }
+  }
+
+  clients_.clear();
 }
 
 }  // namespace webcc
