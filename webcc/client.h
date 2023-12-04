@@ -13,8 +13,6 @@ public:
 
   ~Client() override = default;
 
-  bool Close() override;
-
 protected:
   SocketType& GetSocket() override {
     return socket_;

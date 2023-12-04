@@ -12,38 +12,46 @@ namespace ssl = boost::asio::ssl;
 namespace webcc {
 
 bool SslClient::Close() {
-  if (!connected_) {
-    return ClientBase::Close();
+  bool new_async_op = false;
+  SocketType& socket = GetSocket();
+
+  if (socket.is_open()) {
+    SocketCancel(socket);
+
+    if (connected_) {
+      connected_ = false;
+
+      if (hand_shaken_) {
+        // SSL shudown is necessary only if handshake has completed.
+        LOG_INFO("Shut down SSL...");
+
+        StopDeadlineTimer();
+
+        // Timeout control for SSL shutdown.
+        LOG_INFO("Start ssl shutdown deadline timer (%ds)",
+                 ssl_shutdown_timeout_);
+        deadline_timer_active_ = true;
+        deadline_timer_.expires_after(
+            std::chrono::seconds(ssl_shutdown_timeout_));
+        deadline_timer_.async_wait(
+            std::bind(&SslClient::OnSslShutdownTimer, shared_from_this(), _1));
+
+        ssl_stream_.async_shutdown(
+            std::bind(&SslClient::OnSslShutdown, shared_from_this(), _1));
+
+        new_async_op = true;
+
+      } else {
+        SocketShutdownClose(socket);
+      }
+    } else {
+      SocketClose(socket);
+    }
+  } else {
+    // TODO: resolver_.cancel() ?
   }
 
-  boost::system::error_code ec;
-
-  // Cancel the pending asynchronous operations on the socket.
-  GetSocket().cancel(ec);
-  if (ec) {
-    LOG_WARN("Socket cancel error (%s)", ec.message().c_str());
-    ec.clear();
-  }
-
-  if (!hand_shaken_) {
-    return ClientBase::Close();
-  }
-
-  LOG_INFO("Shut down SSL...");
-
-  // SSL shudown is necessary only if handshake has completed.
-
-  // Timeout control for SSL shutdown.
-  LOG_INFO("Start ssl shutdown deadline timer (%ds)", ssl_shutdown_timeout_);
-  deadline_timer_stopped_ = false;
-  deadline_timer_.expires_after(std::chrono::seconds(ssl_shutdown_timeout_));
-  deadline_timer_.async_wait(
-      std::bind(&SslClient::OnSslShutdownTimer, shared_from_this(), _1));
-
-  ssl_stream_.async_shutdown(
-      std::bind(&SslClient::OnSslShutdown, shared_from_this(), _1));
-
-  return true;
+  return new_async_op;
 }
 
 void SslClient::AsyncWrite(
@@ -130,7 +138,7 @@ void SslClient::OnSslShutdown(boost::system::error_code ec) {
   }
 
   // Continue to shut down and close the socket.
-  ClientBase::Close();
+  SocketShutdownClose(GetSocket());
 }
 
 }  // namespace webcc

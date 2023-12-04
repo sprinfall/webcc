@@ -28,6 +28,44 @@ static std::string EndpointToString(const tcp::endpoint& endpoint) {
 
 // -----------------------------------------------------------------------------
 
+// Cancel the pending asynchronous operations (including async_connect) on the
+// socket.
+void SocketCancel(SocketType& socket) {
+  boost::system::error_code ec;
+  socket.cancel(ec);
+  if (ec) {
+    LOG_WARN("Socket cancel error (%s)", ec.message().c_str());
+  }
+}
+
+void SocketShutdown(SocketType& socket) {
+  LOG_INFO("Shut down socket...");
+
+  boost::system::error_code ec;
+  socket.shutdown(tcp::socket::shutdown_both, ec);
+  if (ec) {
+    LOG_WARN("Socket shutdown error (%s)", ec.message().c_str());
+    return;
+  }
+
+  LOG_INFO("Socket shut down");
+}
+
+void SocketClose(SocketType& socket) {
+  LOG_INFO("Close socket...");
+
+  boost::system::error_code ec;
+  socket.close(ec);
+  if (ec) {
+    LOG_WARN("Socket close error (%s)", ec.message().c_str());
+    return;
+  }
+
+  LOG_INFO("Socket closed");
+}
+
+// -----------------------------------------------------------------------------
+
 ClientBase::ClientBase(boost::asio::io_context& io_context,
                        std::string_view default_port)
     : io_context_(io_context),
@@ -37,30 +75,22 @@ ClientBase::ClientBase(boost::asio::io_context& io_context,
 }
 
 bool ClientBase::Close() {
-  boost::system::error_code ec;
+  SocketType& socket = GetSocket();
 
-  if (connected_) {
-    connected_ = false;
+  if (!socket.is_open()) {
+    SocketCancel(socket);
 
-    LOG_INFO("Shut down and close socket...");
-
-    GetSocket().shutdown(tcp::socket::shutdown_both, ec);
-    if (ec) {
-      LOG_WARN("Socket shutdown error (%s)", ec.message().c_str());
-      ec.clear();
+    if (connected_) {
+      connected_ = false;
+      SocketShutdown(socket);
     }
+
+    SocketClose(socket);
+
   } else {
-    LOG_INFO("Close socket...");
     // TODO: resolver_.cancel() ?
   }
 
-  // TODO: Close socket even when it's not connected?
-  GetSocket().close(ec);
-  if (ec) {
-    LOG_WARN("Socket close error (%s)", ec.message().c_str());
-  }
-
-  LOG_INFO("Socket closed");
   return false;
 }
 
@@ -116,7 +146,6 @@ void ClientBase::OnResolve(boost::system::error_code ec,
   if (ec) {
     LOG_ERRO("Host resolve error (%s)", ec.message().c_str());
     error_.Set(error_codes::kResolveError, "Host resolve error");
-    Close();
     return;
   }
 
@@ -133,9 +162,13 @@ void ClientBase::OnResolve(boost::system::error_code ec,
 
   LOG_INFO("Connect socket...");
 
+  // GetSocket().is_open() -> false
+
   boost::asio::async_connect(
       GetSocket(), endpoints,
       std::bind(&ClientBase::OnConnect, shared_from_this(), _1, _2));
+
+  // GetSocket().is_open() -> true
 }
 
 void ClientBase::OnConnect(boost::system::error_code ec,
@@ -151,7 +184,7 @@ void ClientBase::OnConnect(boost::system::error_code ec,
     }
 
     error_.Set(error_codes::kConnectError, "Socket connect error");
-    Close();
+    Close();  // Socket is open now, close it.
     return;
   }
 
@@ -219,7 +252,6 @@ void ClientBase::OnWriteBody(boost::system::error_code ec, std::size_t length) {
 
 void ClientBase::HandleWriteError(boost::system::error_code ec) {
   if (ec == boost::asio::error::operation_aborted) {
-    // Socket has been closed by OnDeadlineTimer() or Close().
     LOG_WARN("Socket write aborted");
   } else {
     LOG_ERRO("Socket write error (%s)", ec.message().c_str());
@@ -239,7 +271,6 @@ void ClientBase::OnRead(boost::system::error_code ec, std::size_t length) {
 
   if (ec) {
     if (ec == boost::asio::error::operation_aborted) {
-      // Socket has been closed by OnDeadlineTimer() or Close().
       LOG_WARN("Socket read aborted");
     } else {
       LOG_ERRO("Socket read error (%s)", ec.message().c_str());
@@ -296,13 +327,13 @@ void ClientBase::OnRead(boost::system::error_code ec, std::size_t length) {
 
 void ClientBase::AsyncWaitDeadlineTimer(int seconds) {
   if (seconds <= 0) {
-    deadline_timer_stopped_ = true;
+    deadline_timer_active_ = false;
     return;
   }
 
   LOG_INFO("Async wait deadline timer (%ds)", seconds);
 
-  deadline_timer_stopped_ = false;
+  deadline_timer_active_ = true;
 
   deadline_timer_.expires_after(std::chrono::seconds(seconds));
   deadline_timer_.async_wait(
@@ -313,12 +344,12 @@ void ClientBase::OnDeadlineTimer(boost::system::error_code ec) {
   LOG_INFO("On deadline timer");
 
   // NOT HERE!
-  //   deadline_timer_stopped_ = true;
+  //   deadline_timer_active_ = false;
 
   if (ec == boost::asio::error::operation_aborted) {
     // deadline_timer_.cancel() was called.
     // But, a new async-wait on this timer might have already been triggered.
-    // So, don't set `deadline_timer_stopped_` to true right now, it's too late.
+    // So, don't set `deadline_timer_active_` to false right now, it's too late.
     // The newly triggered async-wait needs it to be false.
     LOG_INFO("Deadline timer canceled");
     return;
@@ -327,29 +358,27 @@ void ClientBase::OnDeadlineTimer(boost::system::error_code ec) {
   LOG_WARN("Operation timeout");
 
   // NOTE:
-  // Don't set this flag to true on `error::operation_aborted`.
+  // Don't set this flag to false on `error::operation_aborted`.
   // StopDeadlineTimer() sets it.
-  deadline_timer_stopped_ = true;
+  deadline_timer_active_ = false;
 
-  // Cancel the async operations on the socket by closing it.
-  // OnXxx() will be called with `error::operation_aborted`.
-  Close();
+  // Cancel the asynchronous operations on the socket.
+  // OnXxx() will be called with `error::operation_aborted` and it will call
+  // Close() to shut down and close the socket properly.
+  GetSocket().cancel(ec);
 
   error_.set_timeout(true);
 }
 
 void ClientBase::StopDeadlineTimer() {
-  // This flag is tricky.
-  // Don't set it to true when OnDeadlineTimer(error::operation_aborted).
-  if (deadline_timer_stopped_) {
-    LOG_INFO("Deadline timer already stopped");
+  if (!deadline_timer_active_) {
     return;
   }
 
   LOG_INFO("Cancel deadline timer");
 
   try {
-    // Cancel the async wait operation on this timer.
+    // Cancel the asynchronous wait operation on this timer.
     deadline_timer_.cancel();
 
   } catch (const boost::system::system_error& e) {
@@ -359,7 +388,7 @@ void ClientBase::StopDeadlineTimer() {
   // To check the time needed by canceling a deadline timer.
   LOG_VERB("Cancel deadline timer end");
 
-  deadline_timer_stopped_ = true;
+  deadline_timer_active_ = false;
 }
 
 }  // namespace webcc

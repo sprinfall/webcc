@@ -22,6 +22,15 @@ namespace webcc {
 using SocketType = boost::asio::basic_socket<boost::asio::ip::tcp,
                                              boost::asio::any_io_executor>;
 
+void SocketCancel(SocketType& socket);
+void SocketShutdown(SocketType& socket);
+void SocketClose(SocketType& socket);
+
+inline void SocketShutdownClose(SocketType& socket) {
+  SocketShutdown(socket);
+  SocketClose(socket);
+}
+
 class ClientBase : public std::enable_shared_from_this<ClientBase> {
 public:
   ClientBase(boost::asio::io_context& io_context,
@@ -110,9 +119,6 @@ protected:
     error_.Clear();
   }
 
-  // The current request has ended.
-  //virtual void RequestEnd() = 0;
-
   virtual void OnConnected() {
     AsyncWrite();
   }
@@ -174,7 +180,7 @@ protected:
 
   // Deadline timer for connecting to server and reading respone.
   boost::asio::steady_timer deadline_timer_;
-  bool deadline_timer_stopped_ = true;
+  std::atomic_bool deadline_timer_active_ = false;
 
   // Socket connected or not.
   std::atomic_bool connected_ = false;
