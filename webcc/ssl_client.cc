@@ -25,7 +25,7 @@ bool SslClient::Close() {
         // SSL shudown is necessary only if handshake has completed.
         LOG_INFO("Shut down SSL...");
 
-        StopDeadlineTimer();
+        StopDeadlineTimer("close");
 
         // Timeout control for SSL shutdown.
         LOG_INFO("Start ssl shutdown deadline timer (%ds)",
@@ -123,7 +123,7 @@ void SslClient::OnSslShutdownTimer(boost::system::error_code ec) {
 }
 
 void SslClient::OnSslShutdown(boost::system::error_code ec) {
-  StopDeadlineTimer();
+  StopDeadlineTimer("on ssl shutdown");
 
   // See: https://stackoverflow.com/a/25703699
   if (ec == boost::asio::error::eof) {

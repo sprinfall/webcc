@@ -48,10 +48,12 @@ bool StringBodyHandler::Finish() {
   auto body = std::make_shared<StringBody>(std::move(content_), IsCompressed());
 
 #if WEBCC_ENABLE_GZIP
-  LOG_INFO("Decompress the HTTP content");
-  if (!body->Decompress()) {
-    LOG_ERRO("Cannot decompress the HTTP content");
-    return false;
+  if (body->compressed()) {
+    LOG_INFO("Decompress the HTTP content");
+    if (!body->Decompress()) {
+      LOG_ERRO("Cannot decompress the HTTP content");
+      return false;
+    }
   }
 #else
   if (body->compressed()) {

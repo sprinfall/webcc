@@ -142,9 +142,9 @@ protected:
   void AsyncRead();
   void OnRead(boost::system::error_code ec, std::size_t length);
 
-  void AsyncWaitDeadlineTimer(int seconds);
+  void AsyncWaitDeadlineTimer(int seconds, const char* what);
   void OnDeadlineTimer(boost::system::error_code ec);
-  void StopDeadlineTimer();
+  void StopDeadlineTimer(const char* what);
 
 protected:
   boost::asio::io_context& io_context_;
