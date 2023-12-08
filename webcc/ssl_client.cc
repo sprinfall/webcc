@@ -40,7 +40,7 @@ bool SslClient::Close() {
         LOG_INFO("Start ssl shutdown timer (%ds)", ssl_shutdown_timeout_);
         ssl_shutdown_timer_active_ = true;
         ssl_shutdown_timer_.expires_after(
-            std::chrono::seconds(ssl_shutdown_timeout_));
+            boost::asio::chrono::seconds(ssl_shutdown_timeout_));
         ssl_shutdown_timer_.async_wait(
             std::bind(&SslClient::OnSslShutdownTimer, shared_from_this(), _1));
 

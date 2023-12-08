@@ -25,6 +25,12 @@ option(WEBCC_BUILD_AUTOTEST "Build automation test?" OFF)
 option(WEBCC_BUILD_EXAMPLES "Build examples?" ON)
 option(WEBCC_BUILD_QT_EXAMPLES "Build Qt application examples?" OFF)
 
+# Only for 'webcc' library itself.
+# The tests and examples are not affected by this option.
+# Webcc always uses boost::asio::chrono to avoid the direct references to
+# std::chrono or boost::chrono.
+option(WEBCC_DISABLE_STD_CHRONO "Disable std::chrono and use boost::chrono instead?" OFF)
+
 set(WEBCC_LOG_LEVEL 2
     CACHE STRING "Log level (0:VERB, 1:INFO, 2:USER, 3:WARN, 4:ERRO, >=5:NONE)"
     )
@@ -48,9 +54,22 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Boost
+
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.74.0 REQUIRED COMPONENTS date_time)
+
+set(BOOST_MIN_VERSION 1.74.0)
+
+if(WEBCC_DISABLE_STD_CHRONO)
+    add_compile_definitions(BOOST_ASIO_DISABLE_STD_CHRONO)
+endif()
+
+if(WEBCC_DISABLE_STD_CHRONO)
+    find_package(Boost ${BOOST_MIN_VERSION} REQUIRED COMPONENTS chrono)
+else()
+    find_package(Boost ${BOOST_MIN_VERSION} REQUIRED)
+endif()
+
 if(Boost_FOUND)
     message(STATUS "Boost version: ${Boost_VERSION}")
     message(STATUS "Boost libraries: ${Boost_LIBRARIES}")

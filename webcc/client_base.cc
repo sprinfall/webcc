@@ -334,7 +334,7 @@ void ClientBase::AsyncWaitDeadlineTimer(int seconds, const char* what) {
 
   deadline_timer_active_ = true;
 
-  deadline_timer_.expires_after(std::chrono::seconds(seconds));
+  deadline_timer_.expires_after(boost::asio::chrono::seconds(seconds));
   deadline_timer_.async_wait(
       std::bind(&ClientBase::OnDeadlineTimer, shared_from_this(), _1));
 }

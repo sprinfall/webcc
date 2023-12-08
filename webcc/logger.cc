@@ -1,7 +1,6 @@
 #include "webcc/logger.h"
 
 #include <cassert>
-#include <chrono>
 #include <cstdarg>
 #include <ctime>
 #include <iomanip>  // for put_time
@@ -18,6 +17,11 @@
 #include <sys/syscall.h>  // For SYS_xxx definitions
 #include <sys/types.h>
 #endif  // _WIN32
+
+// Use boost::asio::chrono instead of std::chrono or boost::chrono so that the
+// chrono library could be controled by defining BOOST_ASIO_DISABLE_STD_CHRONO
+// or not.
+#include "boost/asio/detail/chrono.hpp"
 
 namespace webcc {
 
@@ -180,8 +184,8 @@ void LogInit(const sfs::path& dir, int modes) {
 
 // TODO: Use a fixed static buffer to avoid string reallocations.
 static std::string GetTimestamp() {
-  using system_clock_t = std::chrono::system_clock;
-  using milliseconds_t = std::chrono::milliseconds;
+  using system_clock_t = boost::asio::chrono::system_clock;
+  using milliseconds_t = boost::asio::chrono::milliseconds;
 
   auto now = system_clock_t::now();
   std::time_t t = system_clock_t::to_time_t(now);
@@ -190,8 +194,8 @@ static std::string GetTimestamp() {
   ss << std::put_time(std::localtime(&t), "%Y-%m-%d %H:%M:%S");
   ss << ".";
 
-  auto milliseconds =
-      std::chrono::duration_cast<milliseconds_t>(now.time_since_epoch());
+  auto milliseconds = boost::asio::chrono::duration_cast<milliseconds_t>(
+      now.time_since_epoch());
   ss << std::setfill('0') << std::setw(3) << (milliseconds.count() % 1000);
 
   return ss.str();
