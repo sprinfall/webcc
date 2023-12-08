@@ -168,7 +168,7 @@ protected:
   std::size_t buffer_size_ = kBufferSize;
 
   // Timeout (seconds) for connecting to server.
-  // Default as 0 to disable our own control (i.e., deadline_timer_).
+  // Default as 0 to disable our own timeout control.
   int connect_timeout_ = 0;
 
   // Timeout (seconds) for reading response.
@@ -178,7 +178,7 @@ protected:
   // A reasonable value should be much less than `read_timeout_`.
   int subsequent_read_timeout_ = 10;
 
-  // Deadline timer for connecting to server and reading respone.
+  // Deadline timer for socket connect, write and read operations.
   boost::asio::steady_timer deadline_timer_;
   std::atomic_bool deadline_timer_active_ = false;
 
@@ -188,9 +188,11 @@ protected:
   // Progress callback (optional).
   ProgressCallback progress_callback_;
 
-  // The length already read/written.
+  // The length already read or written.
   std::size_t current_length_ = 0;
 
+  // The total length of the response or request.
+  // It will be kInvalidSize if the content is chunked.
   std::size_t total_length_ = 0;
 
   // Current error.

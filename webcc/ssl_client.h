@@ -11,11 +11,7 @@ namespace webcc {
 class SslClient final : public ClientBase {
 public:
   SslClient(boost::asio::io_context& io_context,
-            boost::asio::ssl::context& ssl_context, SslVerify ssl_verify)
-      : ClientBase(io_context, "443"),
-        ssl_stream_(io_context, ssl_context),
-        ssl_verify_(ssl_verify) {
-  }
+            boost::asio::ssl::context& ssl_context, SslVerify ssl_verify);
 
   ~SslClient() override = default;
 
@@ -56,15 +52,23 @@ private:
 
   void OnSslShutdown(boost::system::error_code ec);
 
+  void StopSslShutdownTimer();
+
+private:
   boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_stream_;
 
+  // SSL verification mode.
   SslVerify ssl_verify_;
 
-  // Timeout (seconds) for shutdown SSL.
+  // SSL handshake finished or not.
+  std::atomic_bool hand_shaken_ = false;
+
+  // Timeout (seconds) for SSL shutdown.
   int ssl_shutdown_timeout_ = 10;
 
-  // If SSL handshake finished or not.
-  std::atomic_bool hand_shaken_ = false;
+  // Deadline timer for SSL shutdown.
+  boost::asio::steady_timer ssl_shutdown_timer_;
+  std::atomic_bool ssl_shutdown_timer_active_ = false;
 };
 
 }  // namespace webcc
