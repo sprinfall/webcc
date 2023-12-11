@@ -123,10 +123,11 @@ void SslClient::OnSslShutdownTimer(boost::system::error_code ec) {
 
   LOG_INFO("Cancel the SSL shutdown");
 
+  ssl_shutdown_timer_active_ = false;
+
   GetSocket().cancel(ec);
   if (ec) {
     LOG_WARN("Socket cancel error (%s)", ec.message().c_str());
-    ec.clear();
   }
 }
 

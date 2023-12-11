@@ -232,18 +232,16 @@ void ClientSession::Stop() {
   LOG_INFO("Stop client session...");
 
   mutex_.lock();
-  auto client = current_client_;
-  mutex_.unlock();
-
-  if (client != nullptr) {
+  if (current_client_ != nullptr) {
     // Remove from pool (it might not be in the pool).
-    client_pool_.Remove(ClientKeyFromUrl(client->request()->url()));
+    client_pool_.Remove(ClientKeyFromUrl(current_client_->request()->url()));
 
-    // This will cause `client->Send()` to return with an error.
-    client->Close();
+    // This will cause `current_client_->Send()` to return with an error.
+    current_client_->Close();
 
     LOG_INFO("Request canceled");
   }
+  mutex_.unlock();
 
   if (!client_pool_.IsEmpty()) {
     bool new_async_op = false;

@@ -17,8 +17,8 @@ include(GNUInstallDirs)
 
 set(SOURCES
     base64.cc
-    client_base.cc
     body.cc
+    client_base.cc
     client.cc
     client_pool.cc
     client_session.cc
@@ -48,8 +48,8 @@ set(SOURCES
 
 set(HEADERS
     base64.h
-    client_base.h
     body.h
+    client_base.h
     client.h
     client_pool.h
     client_session.h
