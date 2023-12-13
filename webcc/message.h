@@ -45,6 +45,10 @@ public:
     return !headers_.Get(key).empty();
   }
 
+  Headers GetHeaders() const {
+    return headers_;
+  }
+
   std::size_t content_length() const {
     return content_length_;
   }
