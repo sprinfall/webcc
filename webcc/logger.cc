@@ -8,6 +8,7 @@
 #include <sstream>
 #include <string>
 #include <thread>
+#include <unistd.h>
 
 #ifdef _WIN32
 #include <Windows.h>
